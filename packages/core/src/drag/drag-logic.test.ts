@@ -1,0 +1,479 @@
+import { describe, expect, it } from 'vite-plus/test';
+import {
+  adjacencySide,
+  classifyByZoneAndSide,
+  commitDrag,
+  type DragState,
+} from './drag-logic';
+import type { TileryHandle, TabId } from '../types';
+
+describe('commitDrag — every branch', () => {
+  function mockHandle() {
+    const calls: { tabId: TabId; target: unknown }[] = [];
+    const swapCalls: { a: string; b: string }[] = [];
+    const handle = {
+      getPanel(id: string) {
+        return id === 'PEMPTY'
+          ? { id, tabs: [] }
+          : id === 'PMISS'
+            ? null
+            : { id, tabs: [{}, {}] };
+      },
+      getTab(_id: TabId) {
+        // Default: dragged tab's panel has 2 tabs → shouldSwapForSplit returns false.
+        return {
+          id: _id,
+          panel: {
+            id: 'SOURCE',
+            tabs: [{}, {}],
+            inset: { top: 0, right: 0, bottom: 0, left: 0 },
+          },
+        };
+      },
+      moveTab(tabId: TabId, target: unknown) {
+        calls.push({ tabId, target });
+      },
+      swapPanels(a: string, b: string) {
+        swapCalls.push({ a, b });
+      },
+    } as unknown as TileryHandle;
+    return { handle, calls, swapCalls };
+  }
+  const baseDrag: Omit<
+    DragState,
+    'hoverTabBar' | 'hoverPanelId' | 'hoverZone'
+  > = {
+    tabId: 'T1',
+    pointerId: 1,
+    startX: 0,
+    startY: 0,
+    x: 0,
+    y: 0,
+  };
+  it('no-op when tilery is null', () => {
+    expect(() =>
+      commitDrag(
+        null,
+        { ...baseDrag, hoverTabBar: null, hoverPanelId: null, hoverZone: null },
+        'T1',
+      ),
+    ).not.toThrow();
+  });
+  it('tab-bar append calls moveTab to end of target panel', () => {
+    const { handle, calls } = mockHandle();
+    commitDrag(
+      handle,
+      {
+        ...baseDrag,
+        hoverTabBar: { panelId: 'P', hit: { kind: 'append' } },
+        hoverPanelId: null,
+        hoverZone: null,
+      },
+      'TX',
+    );
+    expect(calls[0]).toEqual({ tabId: 'TX', target: { panel: 'P', index: 2 } });
+  });
+  it('tab-bar append when target panel missing is a no-op', () => {
+    const { handle, calls } = mockHandle();
+    commitDrag(
+      handle,
+      {
+        ...baseDrag,
+        hoverTabBar: { panelId: 'PMISS', hit: { kind: 'append' } },
+        hoverPanelId: null,
+        hoverZone: null,
+      },
+      'TX',
+    );
+    expect(calls).toEqual([]);
+  });
+  it('tab-bar before/after maps to moveTab', () => {
+    const { handle, calls } = mockHandle();
+    commitDrag(
+      handle,
+      {
+        ...baseDrag,
+        hoverTabBar: { panelId: 'P', hit: { kind: 'before', tabId: 'OTHER' } },
+        hoverPanelId: null,
+        hoverZone: null,
+      },
+      'TX',
+    );
+    commitDrag(
+      handle,
+      {
+        ...baseDrag,
+        hoverTabBar: { panelId: 'P', hit: { kind: 'after', tabId: 'OTHER' } },
+        hoverPanelId: null,
+        hoverZone: null,
+      },
+      'TX',
+    );
+    expect(calls).toEqual([
+      { tabId: 'TX', target: { beforeTab: 'OTHER' } },
+      { tabId: 'TX', target: { afterTab: 'OTHER' } },
+    ]);
+  });
+  it('tab-bar drop on the same tab is a no-op', () => {
+    const { handle, calls } = mockHandle();
+    commitDrag(
+      handle,
+      {
+        ...baseDrag,
+        hoverTabBar: { panelId: 'P', hit: { kind: 'before', tabId: 'TX' } },
+        hoverPanelId: null,
+        hoverZone: null,
+      },
+      'TX',
+    );
+    expect(calls).toEqual([]);
+  });
+  it('center zone maps to append in the hovered panel', () => {
+    const { handle, calls } = mockHandle();
+    commitDrag(
+      handle,
+      {
+        ...baseDrag,
+        hoverTabBar: null,
+        hoverPanelId: 'P',
+        hoverZone: 'center',
+      },
+      'TX',
+    );
+    expect(calls[0]).toEqual({ tabId: 'TX', target: { panel: 'P', index: 2 } });
+  });
+  it('center zone with missing panel is a no-op', () => {
+    const { handle, calls } = mockHandle();
+    commitDrag(
+      handle,
+      {
+        ...baseDrag,
+        hoverTabBar: null,
+        hoverPanelId: 'PMISS',
+        hoverZone: 'center',
+      },
+      'TX',
+    );
+    expect(calls).toEqual([]);
+  });
+  it('directional zone maps to splitPanel moveTab', () => {
+    const { handle, calls } = mockHandle();
+    commitDrag(
+      handle,
+      { ...baseDrag, hoverTabBar: null, hoverPanelId: 'P', hoverZone: 'right' },
+      'TX',
+    );
+    expect(calls[0]).toEqual({
+      tabId: 'TX',
+      target: { splitPanel: 'P', direction: 'right', sizePercent: 50 },
+    });
+  });
+  it('no hoverPanel and no tabBar is a no-op', () => {
+    const { handle, calls } = mockHandle();
+    commitDrag(
+      handle,
+      { ...baseDrag, hoverTabBar: null, hoverPanelId: null, hoverZone: null },
+      'TX',
+    );
+    expect(calls).toEqual([]);
+  });
+
+  function swapHandle(
+    sourceInset: { top: number; right: number; bottom: number; left: number },
+    targetInset: { top: number; right: number; bottom: number; left: number },
+  ) {
+    const calls: { tabId: TabId; target: unknown }[] = [];
+    const swapCalls: { a: string; b: string }[] = [];
+    const handle = {
+      getPanel(id: string) {
+        if (id === 'TGT') {
+          return { id, tabs: [{ id: 'TGT-TAB' }], inset: targetInset };
+        }
+        return null;
+      },
+      getTab(_id: TabId) {
+        return {
+          id: _id,
+          panel: { id: 'SRC', tabs: [{ id: _id }], inset: sourceInset },
+        };
+      },
+      moveTab(tabId: TabId, target: unknown) {
+        calls.push({ tabId, target });
+      },
+      swapPanels(a: string, b: string) {
+        swapCalls.push({ a, b });
+      },
+    } as unknown as TileryHandle;
+    return { handle, calls, swapCalls };
+  }
+  it('left zone routes to swap when source is right of target', () => {
+    const { handle, calls, swapCalls } = swapHandle(
+      { top: 0, right: 0, bottom: 0, left: 50 },
+      { top: 0, right: 50, bottom: 0, left: 0 },
+    );
+    commitDrag(
+      handle,
+      {
+        ...baseDrag,
+        hoverTabBar: null,
+        hoverPanelId: 'TGT',
+        hoverZone: 'left',
+      },
+      'TX',
+    );
+    expect(swapCalls).toEqual([{ a: 'SRC', b: 'TGT' }]);
+    expect(calls).toEqual([]);
+  });
+  it('right zone routes to swap when source is left of target', () => {
+    const { handle, calls, swapCalls } = swapHandle(
+      { top: 0, right: 50, bottom: 0, left: 0 },
+      { top: 0, right: 0, bottom: 0, left: 50 },
+    );
+    commitDrag(
+      handle,
+      {
+        ...baseDrag,
+        hoverTabBar: null,
+        hoverPanelId: 'TGT',
+        hoverZone: 'right',
+      },
+      'TX',
+    );
+    expect(swapCalls).toEqual([{ a: 'SRC', b: 'TGT' }]);
+    expect(calls).toEqual([]);
+  });
+  it('top zone routes to swap when source is below target', () => {
+    const { handle, calls, swapCalls } = swapHandle(
+      { top: 50, right: 0, bottom: 0, left: 0 },
+      { top: 0, right: 0, bottom: 50, left: 0 },
+    );
+    commitDrag(
+      handle,
+      { ...baseDrag, hoverTabBar: null, hoverPanelId: 'TGT', hoverZone: 'top' },
+      'TX',
+    );
+    expect(swapCalls).toEqual([{ a: 'SRC', b: 'TGT' }]);
+    expect(calls).toEqual([]);
+  });
+  it('bottom zone routes to swap when source is above target', () => {
+    const { handle, calls, swapCalls } = swapHandle(
+      { top: 0, right: 0, bottom: 50, left: 0 },
+      { top: 50, right: 0, bottom: 0, left: 0 },
+    );
+    commitDrag(
+      handle,
+      {
+        ...baseDrag,
+        hoverTabBar: null,
+        hoverPanelId: 'TGT',
+        hoverZone: 'bottom',
+      },
+      'TX',
+    );
+    expect(swapCalls).toEqual([{ a: 'SRC', b: 'TGT' }]);
+    expect(calls).toEqual([]);
+  });
+  it('directional zone splits when source == target (same-panel split, multi-tab)', () => {
+    // hover on source's own panel (multi-tab) — shouldSwapForSplit short-circuits on source.id === target.id
+    const calls: { tabId: TabId; target: unknown }[] = [];
+    const swapCalls: { a: string; b: string }[] = [];
+    const handle = {
+      getPanel(_id: string) {
+        return {
+          id: 'SELF',
+          tabs: [{ id: 'T1' }, { id: 'T2' }],
+          inset: { top: 0, right: 0, bottom: 0, left: 0 },
+        };
+      },
+      getTab(_id: TabId) {
+        return {
+          id: _id,
+          panel: {
+            id: 'SELF',
+            tabs: [{ id: 'T1' }, { id: 'T2' }],
+            inset: { top: 0, right: 0, bottom: 0, left: 0 },
+          },
+        };
+      },
+      moveTab(tabId: TabId, target: unknown) {
+        calls.push({ tabId, target });
+      },
+      swapPanels(a: string, b: string) {
+        swapCalls.push({ a, b });
+      },
+    } as unknown as TileryHandle;
+    commitDrag(
+      handle,
+      {
+        ...baseDrag,
+        hoverTabBar: null,
+        hoverPanelId: 'SELF',
+        hoverZone: 'left',
+      },
+      'T1',
+    );
+    expect(swapCalls).toEqual([]);
+    expect(calls[0]).toEqual({
+      tabId: 'T1',
+      target: { splitPanel: 'SELF', direction: 'left', sizePercent: 50 },
+    });
+  });
+  it('directional zone splits when target has 2+ tabs even with single-tab source', () => {
+    // target.tabs.length !== 1 short-circuit in shouldSwapForSplit
+    const calls: { tabId: TabId; target: unknown }[] = [];
+    const handle = {
+      getPanel(id: string) {
+        if (id === 'TGT') {
+          return {
+            id,
+            tabs: [{ id: 'A' }, { id: 'B' }],
+            inset: { top: 0, right: 50, bottom: 0, left: 0 },
+          };
+        }
+        return null;
+      },
+      getTab(_id: TabId) {
+        return {
+          id: _id,
+          panel: {
+            id: 'SRC',
+            tabs: [{ id: _id }],
+            inset: { top: 0, right: 0, bottom: 0, left: 50 },
+          },
+        };
+      },
+      moveTab(tabId: TabId, target: unknown) {
+        calls.push({ tabId, target });
+      },
+      swapPanels() {},
+    } as unknown as TileryHandle;
+    commitDrag(
+      handle,
+      {
+        ...baseDrag,
+        hoverTabBar: null,
+        hoverPanelId: 'TGT',
+        hoverZone: 'left',
+      },
+      'TX',
+    );
+    expect(calls[0]).toEqual({
+      tabId: 'TX',
+      target: { splitPanel: 'TGT', direction: 'left', sizePercent: 50 },
+    });
+  });
+  it('directional zone splits when source and target are not adjacent', () => {
+    // adjacencySide returns null → shouldSwapForSplit short-circuits on !side
+    const { handle, calls, swapCalls } = swapHandle(
+      { top: 0, right: 80, bottom: 0, left: 0 },
+      { top: 0, right: 0, bottom: 0, left: 80 },
+    );
+    commitDrag(
+      handle,
+      {
+        ...baseDrag,
+        hoverTabBar: null,
+        hoverPanelId: 'TGT',
+        hoverZone: 'left',
+      },
+      'TX',
+    );
+    expect(swapCalls).toEqual([]);
+    expect(calls[0]).toEqual({
+      tabId: 'TX',
+      target: { splitPanel: 'TGT', direction: 'left', sizePercent: 50 },
+    });
+  });
+  it('directional zone falls through to splitPanel moveTab when not a swap candidate (same side)', () => {
+    // Source is right of target, drop on target's RIGHT (same side as source) → not a swap.
+    // commitDrag falls through to default split.
+    const { handle, calls, swapCalls } = swapHandle(
+      { top: 0, right: 0, bottom: 0, left: 50 },
+      { top: 0, right: 50, bottom: 0, left: 0 },
+    );
+    commitDrag(
+      handle,
+      {
+        ...baseDrag,
+        hoverTabBar: null,
+        hoverPanelId: 'TGT',
+        hoverZone: 'right',
+      },
+      'TX',
+    );
+    expect(swapCalls).toEqual([]);
+    expect(calls[0]).toEqual({
+      tabId: 'TX',
+      target: { splitPanel: 'TGT', direction: 'right', sizePercent: 50 },
+    });
+  });
+});
+
+describe('classifyByZoneAndSide', () => {
+  it('suppresses when zone matches the side source is already on', () => {
+    expect(classifyByZoneAndSide('left', 'left')).toBe('suppress');
+    expect(classifyByZoneAndSide('right', 'right')).toBe('suppress');
+    expect(classifyByZoneAndSide('top', 'above')).toBe('suppress');
+    expect(classifyByZoneAndSide('bottom', 'below')).toBe('suppress');
+  });
+  it('swaps when zone is opposite source side', () => {
+    expect(classifyByZoneAndSide('left', 'right')).toBe('swap');
+    expect(classifyByZoneAndSide('right', 'left')).toBe('swap');
+    expect(classifyByZoneAndSide('top', 'below')).toBe('swap');
+    expect(classifyByZoneAndSide('bottom', 'above')).toBe('swap');
+  });
+  it('splits when zone is perpendicular to source-target adjacency', () => {
+    expect(classifyByZoneAndSide('left', 'above')).toBe('split');
+    expect(classifyByZoneAndSide('left', 'below')).toBe('split');
+    expect(classifyByZoneAndSide('right', 'above')).toBe('split');
+    expect(classifyByZoneAndSide('right', 'below')).toBe('split');
+    expect(classifyByZoneAndSide('top', 'left')).toBe('split');
+    expect(classifyByZoneAndSide('top', 'right')).toBe('split');
+    expect(classifyByZoneAndSide('bottom', 'left')).toBe('split');
+    expect(classifyByZoneAndSide('bottom', 'right')).toBe('split');
+  });
+});
+
+describe('adjacencySide', () => {
+  const mk = (inset: {
+    top: number;
+    right: number;
+    bottom: number;
+    left: number;
+  }) => ({ inset });
+  it('returns left when source right-edge meets target left-edge with y overlap', () => {
+    const src = mk({ top: 0, right: 50, bottom: 0, left: 0 });
+    const tgt = mk({ top: 0, right: 0, bottom: 0, left: 50 });
+    expect(adjacencySide(src, tgt)).toBe('left');
+  });
+  it('returns right when source left-edge meets target right-edge', () => {
+    const src = mk({ top: 0, right: 0, bottom: 0, left: 50 });
+    const tgt = mk({ top: 0, right: 50, bottom: 0, left: 0 });
+    expect(adjacencySide(src, tgt)).toBe('right');
+  });
+  it('returns above when source bottom meets target top', () => {
+    const src = mk({ top: 0, right: 0, bottom: 50, left: 0 });
+    const tgt = mk({ top: 50, right: 0, bottom: 0, left: 0 });
+    expect(adjacencySide(src, tgt)).toBe('above');
+  });
+  it('returns below when source top meets target bottom', () => {
+    const src = mk({ top: 50, right: 0, bottom: 0, left: 0 });
+    const tgt = mk({ top: 0, right: 0, bottom: 50, left: 0 });
+    expect(adjacencySide(src, tgt)).toBe('below');
+  });
+  it('returns null for non-adjacent rects', () => {
+    const src = mk({ top: 0, right: 70, bottom: 70, left: 0 });
+    const tgt = mk({ top: 70, right: 0, bottom: 0, left: 70 });
+    expect(adjacencySide(src, tgt)).toBeNull();
+  });
+  it('returns null when y-overlap exists but no shared vertical edge (x-gap)', () => {
+    const src = mk({ top: 0, right: 80, bottom: 0, left: 0 });
+    const tgt = mk({ top: 0, right: 0, bottom: 0, left: 80 });
+    expect(adjacencySide(src, tgt)).toBeNull();
+  });
+  it('returns null when x-overlap exists but no shared horizontal edge (y-gap)', () => {
+    const src = mk({ top: 0, right: 0, bottom: 80, left: 0 });
+    const tgt = mk({ top: 80, right: 0, bottom: 0, left: 0 });
+    expect(adjacencySide(src, tgt)).toBeNull();
+  });
+});

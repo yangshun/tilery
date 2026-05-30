@@ -1,0 +1,154 @@
+.demo-root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background: #0e0f12;
+  color: #d9dde3;
+  font-family: system-ui, sans-serif;
+}
+
+.demo-toolbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #16181c;
+  border-bottom: 1px solid #2a2d33;
+  font-size: 12px;
+}
+
+.demo-toolbar-label {
+  font-weight: 600;
+  margin-right: 12px;
+  color: #f3f4f7;
+}
+
+.demo-toolbar button {
+  padding: 4px 10px;
+  background: #1f2127;
+  color: #d9dde3;
+  border: 1px solid #2a2d33;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+}
+.demo-toolbar button:hover {
+  background: #2a2d33;
+  border-color: #3884ff;
+  color: #f3f4f7;
+}
+
+.demo-tilery-wrapper {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.demo-tab-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.demo-tab-content {
+  padding: 16px;
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 100%;
+}
+
+.demo-tab-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: #9aa1ab;
+}
+.demo-meta-row code {
+  background: #16181c;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  color: #d9dde3;
+}
+
+.demo-input-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  color: #9aa1ab;
+}
+.demo-input-row input {
+  padding: 6px 8px;
+  background: #16181c;
+  color: #f3f4f7;
+  border: 1px solid #2a2d33;
+  border-radius: 3px;
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+}
+
+.demo-counter-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.demo-counter-row button {
+  padding: 4px 10px;
+  background: #1f2127;
+  color: #d9dde3;
+  border: 1px solid #2a2d33;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+}
+
+.demo-counter-row button:hover {
+  background: #2a2d33;
+  border-color: #3884ff;
+}
+
+.demo-counter-value {
+  display: inline-block;
+  min-width: 24px;
+  padding: 2px 8px;
+  background: #16181c;
+  border-radius: 3px;
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+  color: #f3f4f7;
+  text-align: center;
+}
+
+.demo-file-tree {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-family: ui-monospace, monospace;
+  color: #d9dde3;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.demo-code,
+.demo-log {
+  background: #16181c;
+  padding: 10px;
+  border-radius: 3px;
+  border: 1px solid #2a2d33;
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+  color: #d9dde3;
+  white-space: pre-wrap;
+  overflow: auto;
+}

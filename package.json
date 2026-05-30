@@ -1,0 +1,35 @@
+{
+  "name": "tilery-monorepo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vp run --filter @tilery/demo dev",
+    "build": "vp run --filter './packages/*' build",
+    "build:demo": "vp run --filter @tilery/demo build",
+    "test": "vp test run",
+    "test:watch": "vp test watch",
+    "check": "vp check",
+    "lint": "vp lint .",
+    "lint:fix": "vp lint . --fix",
+    "fmt": "vp fmt . --write",
+    "fmt:check": "vp fmt . --check",
+    "typecheck": "tsc -b",
+    "clean": "rm -rf packages/*/dist apps/*/dist apps/*/.next"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1",
+    "@types/react": "^19.2.15",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.2",
+    "jsdom": "^29.1.1",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "typescript": "^6.0.3",
+    "vite-plugin-dts": "^5.0.1",
+    "vite-plus": "^0.1.23"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "packageManager": "pnpm@10.8.1"
+}
