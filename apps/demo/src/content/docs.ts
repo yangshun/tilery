@@ -18,7 +18,7 @@ export const docs: DocPage[] = [
   {
     slug: 'getting-started',
     title: 'Getting Started',
-    description: 'Install tilery and render your first tiling layout.',
+    description: 'Install Tilery and render your first tiling layout.',
     group: 'Guide',
     sections: [
       {
@@ -85,13 +85,13 @@ function App() {
   {
     slug: 'concepts',
     title: 'Concepts',
-    description: 'Understand how tilery positions panels and manages state.',
+    description: 'Understand how Tilery positions panels and manages state.',
     group: 'Guide',
     sections: [
       {
         heading: 'Inset-Based Positioning',
         body: [
-          'Panels are positioned using percentage-based insets from each edge of the container. This is similar to CSS inset but uses percentages of the tilery container dimensions.',
+          'Panels are positioned using percentage-based insets from each edge of the container. This is similar to CSS inset but uses percentages of the Tilery container dimensions.',
           'A panel taking the left 40% of the container would have: { top: 0, right: 60, bottom: 0, left: 0 }. The right inset of 60 means "60% from the right edge", leaving 40% width.',
         ],
         code: `// Full width panel
@@ -142,7 +142,7 @@ function App() {
   {
     slug: 'styling',
     title: 'Styling',
-    description: 'Customize the look of tilery with CSS variables.',
+    description: 'Customize the look of Tilery with CSS variables.',
     group: 'Guide',
     sections: [
       {

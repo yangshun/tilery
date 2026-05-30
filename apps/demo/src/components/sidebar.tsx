@@ -20,7 +20,7 @@ export function Sidebar({ groups }: { groups: SidebarGroup[] }) {
     <aside className="sidebar">
       <div className="sidebar__header">
         <Link href="/docs/getting-started" className="sidebar__logo">
-          tilery
+          Tilery
         </Link>
       </div>
       <nav className="sidebar__nav">

@@ -41,6 +41,6 @@ export const examples = [
   {
     slug: 'nested',
     title: 'Nested Instances',
-    description: 'A tilery instance rendered inside a tab of another tilery.',
+    description: 'A Tilery instance rendered inside a tab of another Tilery.',
   },
 ];
