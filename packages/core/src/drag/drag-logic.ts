@@ -25,22 +25,40 @@ export function tileryCommitDrag(
   tilery: TileryHandle | null,
   drag: TileryDragState,
   tabId: TileryTabId,
+  panelDrag: boolean = false,
 ) {
   if (!tilery) return;
+
+  const draggedTab = tilery.getTab(tabId);
+  if (!draggedTab) return;
+  const sourcePanel = draggedTab.panel;
+  const siblingTabIds = panelDrag
+    ? sourcePanel.tabs.map((t) => t.id).filter((id) => id !== tabId)
+    : [];
+
   if (drag.hoverTabBar) {
     const { hit, panelId } = drag.hoverTabBar;
     if (hit.kind === 'append') {
       const target = tilery.getPanel(panelId);
       if (target) {
         tilery.moveTab(tabId, { panel: panelId, index: target.tabs.length });
+        for (const id of siblingTabIds) {
+          tilery.moveTab(id, { afterTab: tabId });
+        }
       }
       return;
     }
     if (hit.tabId === tabId) return;
     if (hit.kind === 'before') {
       tilery.moveTab(tabId, { beforeTab: hit.tabId });
+      for (const id of siblingTabIds) {
+        tilery.moveTab(id, { afterTab: tabId });
+      }
     } else {
       tilery.moveTab(tabId, { afterTab: hit.tabId });
+      for (const id of siblingTabIds) {
+        tilery.moveTab(id, { afterTab: tabId });
+      }
     }
     return;
   }
@@ -52,18 +70,16 @@ export function tileryCommitDrag(
           panel: drag.hoverPanelId,
           index: target.tabs.length,
         });
+        for (const id of siblingTabIds) {
+          tilery.moveTab(id, { afterTab: tabId });
+        }
       }
       return;
     }
     const dir: TileryDirection = drag.hoverZone;
-    const draggedTab = tilery.getTab(tabId);
     const target = tilery.getPanel(drag.hoverPanelId);
-    if (
-      draggedTab &&
-      target &&
-      shouldSwapForSplit(draggedTab.panel, target, dir)
-    ) {
-      tilery.swapPanels(draggedTab.panel.id, target.id);
+    if (target && !panelDrag && shouldSwapForSplit(sourcePanel, target, dir)) {
+      tilery.swapPanels(sourcePanel.id, target.id);
       return;
     }
     tilery.moveTab(tabId, {
@@ -71,6 +87,9 @@ export function tileryCommitDrag(
       direction: dir,
       sizePercent: 50,
     });
+    for (const id of siblingTabIds) {
+      tilery.moveTab(id, { afterTab: tabId });
+    }
   }
 }
 

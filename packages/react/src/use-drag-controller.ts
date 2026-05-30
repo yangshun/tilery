@@ -47,6 +47,7 @@ export function useTileryDragController(tilery: () => TileryHandle | null) {
     startX: number;
     startY: number;
   } | null>(null);
+  const panelDragRef = useRef(false);
 
   const registerPanel = useCallback(
     (panelId: TileryPanelId, el: HTMLElement | null) => {
@@ -169,6 +170,7 @@ export function useTileryDragController(tilery: () => TileryHandle | null) {
       } catch {
         // Synthetic events or already-released pointers will throw; ignore.
       }
+      panelDragRef.current = false;
       pendingRef.current = {
         tabId,
         pointerId: e.pointerId,
@@ -177,6 +179,35 @@ export function useTileryDragController(tilery: () => TileryHandle | null) {
       };
     },
     [],
+  );
+
+  const onTabBarPointerDown = useCallback(
+    (e: React.PointerEvent, panelId: TileryPanelId) => {
+      /* v8 ignore next */
+      if (e.button !== 0) return;
+      const target = e.target as HTMLElement;
+      if (target.closest('[data-tab-id]')) return;
+      const m = tilery();
+      /* v8 ignore next */
+      if (!m) return;
+      const panel = m.getPanel(panelId);
+      /* v8 ignore next */
+      if (!panel || !panel.activeTab) return;
+      const barEl = e.currentTarget as HTMLElement;
+      try {
+        barEl.setPointerCapture(e.pointerId);
+      } catch {
+        // ignore
+      }
+      panelDragRef.current = true;
+      pendingRef.current = {
+        tabId: panel.activeTab.id,
+        pointerId: e.pointerId,
+        startX: e.clientX,
+        startY: e.clientY,
+      };
+    },
+    [tilery],
   );
 
   const onTabPointerMove = useCallback(
@@ -223,7 +254,37 @@ export function useTileryDragController(tilery: () => TileryHandle | null) {
         return;
       }
       if (current && current.pointerId === _e.pointerId) {
-        tileryCommitDrag(tilery(), current, tabId);
+        tileryCommitDrag(tilery(), current, tabId, panelDragRef.current);
+        panelDragRef.current = false;
+        setDragState(null);
+      }
+    },
+    [tilery, setDragState],
+  );
+
+  const onTabBarPointerUp = useCallback(
+    (e: React.PointerEvent) => {
+      const target = e.currentTarget as HTMLElement;
+      try {
+        target.releasePointerCapture(e.pointerId);
+      } catch {
+        // ignore
+      }
+      const current = dragStateRef.current;
+      if (pendingRef.current && pendingRef.current.pointerId === e.pointerId) {
+        pendingRef.current = null;
+        panelDragRef.current = false;
+        return;
+      }
+      /* v8 ignore next 7 */
+      if (current && current.pointerId === e.pointerId) {
+        tileryCommitDrag(
+          tilery(),
+          current,
+          current.tabId,
+          panelDragRef.current,
+        );
+        panelDragRef.current = false;
         setDragState(null);
       }
     },
@@ -245,6 +306,7 @@ export function useTileryDragController(tilery: () => TileryHandle | null) {
 
   return {
     dragState,
+    panelDragRef,
     registerPanel,
     registerTabBar,
     registerTab,
@@ -252,5 +314,7 @@ export function useTileryDragController(tilery: () => TileryHandle | null) {
     onTabPointerMove,
     onTabPointerUp,
     onTabPointerCancel,
+    onTabBarPointerDown,
+    onTabBarPointerUp,
   };
 }

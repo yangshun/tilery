@@ -354,6 +354,8 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
               onTabPointerMove={drag.onTabPointerMove}
               onTabPointerUp={drag.onTabPointerUp}
               onTabPointerCancel={drag.onTabPointerCancel}
+              onTabBarPointerDown={drag.onTabBarPointerDown}
+              onTabBarPointerUp={drag.onTabBarPointerUp}
               onTabClick={onTabClick}
               onTabClose={onTabClose}
             />
@@ -383,9 +385,23 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
         {drag.dragState &&
           (() => {
             const draggedTab = getCachedTabHandle(drag.dragState.tabId);
-            const ghostLabel = draggedTab
-              ? renderHeaderAdapter(draggedTab, { isActive: false })
-              : 'Tab';
+            const siblingCount = drag.panelDragRef.current
+              ? draggedTab
+                ? draggedTab.panel.tabs.length - 1
+                : 0
+              : 0;
+            const ghostLabel = draggedTab ? (
+              <>
+                {renderHeaderAdapter(draggedTab, { isActive: false })}
+                {siblingCount > 0 && (
+                  <span className="tilery__drag-ghost-count">
+                    +{siblingCount}
+                  </span>
+                )}
+              </>
+            ) : (
+              'Tab'
+            );
             return (
               <DropOverlay
                 drag={drag.dragState}

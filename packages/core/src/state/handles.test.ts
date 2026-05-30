@@ -302,6 +302,17 @@ describe('TileryTabHandle', () => {
     expect(tab.index).toBe(1);
     expect((tab.data as { title: string }).title).toBe('two');
   });
+  it('closeable defaults to true and reflects state', () => {
+    const { handle } = makeStore();
+    const tab = handle.getTab('T1')!;
+    expect(tab.closeable).toBe(true);
+  });
+  it('closeable returns true when tab is missing from state', () => {
+    const { handle } = makeStore();
+    const tab = handle.getTab('T1')!;
+    handle.removeTab('T1');
+    expect(tab.closeable).toBe(true);
+  });
   it('panel getter throws when the tab no longer exists', () => {
     const { handle } = makeStore();
     const tab = handle.getTab('T1')!;

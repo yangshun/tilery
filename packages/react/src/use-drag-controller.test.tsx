@@ -1524,3 +1524,150 @@ describe('useTileryDragController — hover detection', () => {
     panelEl.remove();
   });
 });
+
+describe('useTileryDragController — panel drag from tab bar', () => {
+  it('onTabBarPointerDown initiates a panel drag from empty tab bar area', () => {
+    const { handle } = setupStore();
+    const hook = renderHook(() => useTileryDragController(() => handle));
+    const tabBarEl = document.createElement('div');
+    tabBarEl.setAttribute('data-panel-id', 'P1');
+    document.body.appendChild(tabBarEl);
+    act(() => {
+      hook.current().registerTabBar('P1', tabBarEl);
+    });
+    const down = pointerEvent('pointerdown', {
+      clientX: 200,
+      clientY: 10,
+      pointerId: 1,
+    });
+    Object.defineProperty(down, 'target', { value: tabBarEl });
+    Object.defineProperty(down, 'currentTarget', { value: tabBarEl });
+    act(() => {
+      hook.current().onTabBarPointerDown(asReact(down), 'P1');
+    });
+    // Move past threshold to initiate drag
+    const move = pointerEvent('pointermove', {
+      clientX: 250,
+      clientY: 200,
+      pointerId: 1,
+    });
+    act(() => {
+      hook.current().onTabPointerMove(asReact(move));
+    });
+    // Drag state should be set with the active tab of P1
+    expect(hook.current().dragState).not.toBeNull();
+    expect(hook.current().dragState?.tabId).toBe('T1');
+    hook.unmount();
+    tabBarEl.remove();
+  });
+
+  it('onTabBarPointerDown ignores clicks on tab elements', () => {
+    const { handle } = setupStore();
+    const hook = renderHook(() => useTileryDragController(() => handle));
+    const tabBarEl = document.createElement('div');
+    tabBarEl.setAttribute('data-panel-id', 'P1');
+    const tabEl = document.createElement('div');
+    tabEl.setAttribute('data-tab-id', 'T1');
+    tabBarEl.appendChild(tabEl);
+    document.body.appendChild(tabBarEl);
+    act(() => {
+      hook.current().registerTabBar('P1', tabBarEl);
+    });
+    const down = pointerEvent('pointerdown', {
+      clientX: 50,
+      clientY: 10,
+      pointerId: 1,
+    });
+    Object.defineProperty(down, 'target', { value: tabEl });
+    Object.defineProperty(down, 'currentTarget', { value: tabBarEl });
+    act(() => {
+      hook.current().onTabBarPointerDown(asReact(down), 'P1');
+    });
+    // Move past threshold — should NOT initiate drag
+    const move = pointerEvent('pointermove', {
+      clientX: 100,
+      clientY: 200,
+      pointerId: 1,
+    });
+    act(() => {
+      hook.current().onTabPointerMove(asReact(move));
+    });
+    expect(hook.current().dragState).toBeNull();
+    hook.unmount();
+    tabBarEl.remove();
+  });
+
+  it('onTabBarPointerUp commits the panel drag', () => {
+    const { handle } = setupStore();
+    const hook = renderHook(() => useTileryDragController(() => handle));
+    const tabBarEl = document.createElement('div');
+    tabBarEl.setAttribute('data-panel-id', 'P1');
+    document.body.appendChild(tabBarEl);
+    act(() => {
+      hook.current().registerTabBar('P1', tabBarEl);
+    });
+    const down = pointerEvent('pointerdown', {
+      clientX: 200,
+      clientY: 10,
+      pointerId: 1,
+    });
+    Object.defineProperty(down, 'target', { value: tabBarEl });
+    Object.defineProperty(down, 'currentTarget', { value: tabBarEl });
+    act(() => {
+      hook.current().onTabBarPointerDown(asReact(down), 'P1');
+    });
+    const move = pointerEvent('pointermove', {
+      clientX: 250,
+      clientY: 200,
+      pointerId: 1,
+    });
+    act(() => {
+      hook.current().onTabPointerMove(asReact(move));
+    });
+    expect(hook.current().dragState).not.toBeNull();
+    const up = pointerEvent('pointerup', {
+      clientX: 250,
+      clientY: 200,
+      pointerId: 1,
+    });
+    act(() => {
+      hook.current().onTabBarPointerUp(asReact(up));
+    });
+    expect(hook.current().dragState).toBeNull();
+    hook.unmount();
+    tabBarEl.remove();
+  });
+
+  it('onTabBarPointerUp with no drag clears pending state', () => {
+    const { handle } = setupStore();
+    const hook = renderHook(() => useTileryDragController(() => handle));
+    const tabBarEl = document.createElement('div');
+    tabBarEl.setAttribute('data-panel-id', 'P1');
+    document.body.appendChild(tabBarEl);
+    act(() => {
+      hook.current().registerTabBar('P1', tabBarEl);
+    });
+    const down = pointerEvent('pointerdown', {
+      clientX: 200,
+      clientY: 10,
+      pointerId: 1,
+    });
+    Object.defineProperty(down, 'target', { value: tabBarEl });
+    Object.defineProperty(down, 'currentTarget', { value: tabBarEl });
+    act(() => {
+      hook.current().onTabBarPointerDown(asReact(down), 'P1');
+    });
+    // Pointer up without exceeding threshold (no move)
+    const up = pointerEvent('pointerup', {
+      clientX: 200,
+      clientY: 10,
+      pointerId: 1,
+    });
+    act(() => {
+      hook.current().onTabBarPointerUp(asReact(up));
+    });
+    expect(hook.current().dragState).toBeNull();
+    hook.unmount();
+    tabBarEl.remove();
+  });
+});

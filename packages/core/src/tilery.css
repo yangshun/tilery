@@ -32,6 +32,8 @@
   height: 32px;
   background: var(--tilery-tabbar-bg, #16181c);
   border-bottom: 1px solid var(--tilery-panel-border, #2a2d33);
+  cursor: grab;
+  touch-action: none;
 }
 
 .tilery__tab {
@@ -177,4 +179,11 @@
   font-size: 11px;
   border-radius: 3px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tilery__drag-ghost-count {
+  opacity: 0.75;
 }

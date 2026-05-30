@@ -20,6 +20,8 @@ export type TabBarProps = {
     onClick: () => void,
   ) => void;
   onTabPointerCancel: (e: React.PointerEvent) => void;
+  onTabBarPointerDown: (e: React.PointerEvent, panelId: string) => void;
+  onTabBarPointerUp: (e: React.PointerEvent) => void;
   onTabClick: (tabId: string) => void;
   onTabClose: (tabId: string) => void;
 };
@@ -84,15 +86,27 @@ export function TabBar({
   onTabPointerMove,
   onTabPointerUp,
   onTabPointerCancel,
+  onTabBarPointerDown,
+  onTabBarPointerUp,
   onTabClick,
   onTabClose,
 }: TabBarProps) {
+  const panelId = panel.id;
+  /* v8 ignore next */
+  const handleBarDown = useCallback(
+    (e: React.PointerEvent) => onTabBarPointerDown(e, panelId),
+    [onTabBarPointerDown, panelId],
+  );
   return (
     <div
       ref={registerTabBar}
       className="tilery__tab-bar"
       role="tablist"
-      data-panel-id={panel.id}>
+      data-panel-id={panel.id}
+      onPointerDown={handleBarDown}
+      onPointerMove={onTabPointerMove}
+      onPointerUp={onTabBarPointerUp}
+      onPointerCancel={onTabPointerCancel}>
       {panel.tabs.map((tab) => (
         <TabRow
           key={tab.id}

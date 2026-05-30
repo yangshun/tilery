@@ -477,3 +477,237 @@ describe('tileryAdjacencySide', () => {
     expect(tileryAdjacencySide(src, tgt)).toBeNull();
   });
 });
+
+describe('tileryCommitDrag — panelDrag=true (moves all tabs)', () => {
+  const baseDrag: Omit<
+    TileryDragState,
+    'hoverTabBar' | 'hoverPanelId' | 'hoverZone'
+  > = {
+    tabId: 'T1',
+    pointerId: 1,
+    startX: 0,
+    startY: 0,
+    x: 0,
+    y: 0,
+  };
+
+  function panelDragHandle() {
+    const calls: { tabId: TileryTabId; target: unknown }[] = [];
+    const swapCalls: { a: string; b: string }[] = [];
+    const handle = {
+      getPanel(id: string) {
+        if (id === 'TGT')
+          return {
+            id,
+            tabs: [{ id: 'TGT-T1' }],
+            inset: { top: 0, right: 0, bottom: 0, left: 50 },
+          };
+        return null;
+      },
+      getTab(_id: TileryTabId) {
+        return {
+          id: _id,
+          panel: {
+            id: 'SRC',
+            tabs: [{ id: 'T1' }, { id: 'T2' }, { id: 'T3' }],
+            inset: { top: 0, right: 50, bottom: 0, left: 0 },
+          },
+        };
+      },
+      moveTab(tabId: TileryTabId, target: unknown) {
+        calls.push({ tabId, target });
+      },
+      swapPanels(a: string, b: string) {
+        swapCalls.push({ a, b });
+      },
+    } as unknown as TileryHandle;
+    return { handle, calls, swapCalls };
+  }
+
+  it('tab-bar append moves all tabs from source panel', () => {
+    const { handle, calls } = panelDragHandle();
+    tileryCommitDrag(
+      handle,
+      {
+        ...baseDrag,
+        hoverTabBar: { panelId: 'TGT', hit: { kind: 'append' } },
+        hoverPanelId: null,
+        hoverZone: null,
+      },
+      'T1',
+      true,
+    );
+    expect(calls).toEqual([
+      { tabId: 'T1', target: { panel: 'TGT', index: 1 } },
+      { tabId: 'T2', target: { afterTab: 'T1' } },
+      { tabId: 'T3', target: { afterTab: 'T1' } },
+    ]);
+  });
+
+  it('tab-bar before moves all tabs from source panel', () => {
+    const { handle, calls } = panelDragHandle();
+    tileryCommitDrag(
+      handle,
+      {
+        ...baseDrag,
+        hoverTabBar: {
+          panelId: 'TGT',
+          hit: { kind: 'before', tabId: 'TGT-T1' },
+        },
+        hoverPanelId: null,
+        hoverZone: null,
+      },
+      'T1',
+      true,
+    );
+    expect(calls).toEqual([
+      { tabId: 'T1', target: { beforeTab: 'TGT-T1' } },
+      { tabId: 'T2', target: { afterTab: 'T1' } },
+      { tabId: 'T3', target: { afterTab: 'T1' } },
+    ]);
+  });
+
+  it('tab-bar after moves all tabs from source panel', () => {
+    const { handle, calls } = panelDragHandle();
+    tileryCommitDrag(
+      handle,
+      {
+        ...baseDrag,
+        hoverTabBar: {
+          panelId: 'TGT',
+          hit: { kind: 'after', tabId: 'TGT-T1' },
+        },
+        hoverPanelId: null,
+        hoverZone: null,
+      },
+      'T1',
+      true,
+    );
+    expect(calls).toEqual([
+      { tabId: 'T1', target: { afterTab: 'TGT-T1' } },
+      { tabId: 'T2', target: { afterTab: 'T1' } },
+      { tabId: 'T3', target: { afterTab: 'T1' } },
+    ]);
+  });
+
+  it('center zone moves all tabs to target panel', () => {
+    const { handle, calls } = panelDragHandle();
+    tileryCommitDrag(
+      handle,
+      {
+        ...baseDrag,
+        hoverTabBar: null,
+        hoverPanelId: 'TGT',
+        hoverZone: 'center',
+      },
+      'T1',
+      true,
+    );
+    expect(calls).toEqual([
+      { tabId: 'T1', target: { panel: 'TGT', index: 1 } },
+      { tabId: 'T2', target: { afterTab: 'T1' } },
+      { tabId: 'T3', target: { afterTab: 'T1' } },
+    ]);
+  });
+
+  it('directional zone splits and moves all tabs when panelDrag=true', () => {
+    const { handle, calls, swapCalls } = panelDragHandle();
+    tileryCommitDrag(
+      handle,
+      {
+        ...baseDrag,
+        hoverTabBar: null,
+        hoverPanelId: 'TGT',
+        hoverZone: 'right',
+      },
+      'T1',
+      true,
+    );
+    expect(swapCalls).toEqual([]);
+    expect(calls).toEqual([
+      {
+        tabId: 'T1',
+        target: { splitPanel: 'TGT', direction: 'right', sizePercent: 50 },
+      },
+      { tabId: 'T2', target: { afterTab: 'T1' } },
+      { tabId: 'T3', target: { afterTab: 'T1' } },
+    ]);
+  });
+
+  it('directional zone on own panel splits and moves siblings', () => {
+    const calls: { tabId: TileryTabId; target: unknown }[] = [];
+    const swapCalls: { a: string; b: string }[] = [];
+    const handle = {
+      getPanel(_id: string) {
+        return {
+          id: 'SRC',
+          tabs: [{ id: 'T1' }, { id: 'T2' }],
+          inset: { top: 0, right: 0, bottom: 0, left: 0 },
+        };
+      },
+      getTab(_id: TileryTabId) {
+        return {
+          id: _id,
+          panel: {
+            id: 'SRC',
+            tabs: [{ id: 'T1' }, { id: 'T2' }],
+            inset: { top: 0, right: 0, bottom: 0, left: 0 },
+          },
+        };
+      },
+      moveTab(tabId: TileryTabId, target: unknown) {
+        calls.push({ tabId, target });
+      },
+      swapPanels(a: string, b: string) {
+        swapCalls.push({ a, b });
+      },
+    } as unknown as TileryHandle;
+    tileryCommitDrag(
+      handle,
+      {
+        ...baseDrag,
+        hoverTabBar: null,
+        hoverPanelId: 'SRC',
+        hoverZone: 'left',
+      },
+      'T1',
+      true,
+    );
+    expect(swapCalls).toEqual([]);
+    expect(calls).toEqual([
+      {
+        tabId: 'T1',
+        target: { splitPanel: 'SRC', direction: 'left', sizePercent: 50 },
+      },
+      { tabId: 'T2', target: { afterTab: 'T1' } },
+    ]);
+  });
+
+  it('no-op when dragged tab is not found', () => {
+    const calls: unknown[] = [];
+    const handle = {
+      getPanel() {
+        return { id: 'P', tabs: [] };
+      },
+      getTab() {
+        return null;
+      },
+      moveTab(...args: unknown[]) {
+        calls.push(args);
+      },
+      swapPanels() {},
+    } as unknown as TileryHandle;
+    tileryCommitDrag(
+      handle,
+      {
+        ...baseDrag,
+        hoverTabBar: null,
+        hoverPanelId: 'P',
+        hoverZone: 'center',
+      },
+      'MISSING',
+      true,
+    );
+    expect(calls).toEqual([]);
+  });
+});
