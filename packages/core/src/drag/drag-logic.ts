@@ -167,5 +167,18 @@ function shouldSwapForSplit(
   if (target.tabs.length !== 1) return false;
   const side = tileryAdjacencySide(source, target);
   if (!side) return false;
+  if (!shareFullEdge(source.inset, target.inset, side)) return false;
   return tileryClassifyByZoneAndSide(zone, side) === 'swap';
+}
+
+function shareFullEdge(
+  a: { top: number; right: number; bottom: number; left: number },
+  b: { top: number; right: number; bottom: number; left: number },
+  side: NonNullable<AdjacencySide>,
+): boolean {
+  const EPS = 0.0001;
+  if (side === 'left' || side === 'right') {
+    return Math.abs(a.top - b.top) < EPS && Math.abs(a.bottom - b.bottom) < EPS;
+  }
+  return Math.abs(a.left - b.left) < EPS && Math.abs(a.right - b.right) < EPS;
 }

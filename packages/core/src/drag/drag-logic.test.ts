@@ -384,6 +384,29 @@ describe('tileryCommitDrag — every branch', () => {
       target: { splitPanel: 'TGT', direction: 'left', sizePercent: 50 },
     });
   });
+  it('directional zone splits when adjacent panels do not share a full edge', () => {
+    // Terminal (bottom-right half) dragged to left zone of explorer (full left column).
+    // They share a vertical edge at x=40 but terminal is only half-height → not a full edge → split, not swap.
+    const { handle, calls, swapCalls } = swapHandle(
+      { top: 60, right: 0, bottom: 0, left: 40 }, // source: terminal (half height right)
+      { top: 0, right: 60, bottom: 0, left: 0 }, // target: explorer (full height left)
+    );
+    tileryCommitDrag(
+      handle,
+      {
+        ...baseDrag,
+        hoverTabBar: null,
+        hoverPanelId: 'TGT',
+        hoverZone: 'left',
+      },
+      'TX',
+    );
+    expect(swapCalls).toEqual([]);
+    expect(calls[0]).toEqual({
+      tabId: 'TX',
+      target: { splitPanel: 'TGT', direction: 'left', sizePercent: 50 },
+    });
+  });
   it('directional zone falls through to splitPanel moveTab when not a swap candidate (same side)', () => {
     // Source is right of target, drop on target's RIGHT (same side as source) → not a swap.
     // tileryCommitDrag falls through to default split.
