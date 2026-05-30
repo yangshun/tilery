@@ -34,6 +34,9 @@
   border-bottom: 1px solid var(--tilery-panel-border, #2a2d33);
   cursor: grab;
   touch-action: none;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
 }
 
 .tilery__tab {
