@@ -1,14 +1,14 @@
 'use client';
 
 import { Tilery } from '@tilery/react';
-import type { InitialLayout, TabHandle } from '@tilery/react';
+import type { TileryInitialLayout, TileryTabHandle } from '@tilery/react';
 
 type TabData = {
   title: string;
   kind: 'explorer' | 'editor' | 'terminal';
 };
 
-const layout: InitialLayout<TabData> = {
+const layout: TileryInitialLayout<TabData> = {
   panels: [
     {
       id: 'sidebar',
@@ -47,10 +47,10 @@ export function Example() {
   return (
     <Tilery<TabData>
       initialLayout={layout}
-      renderTabHeader={(tab: TabHandle<TabData>) => (
+      renderTabHeader={(tab: TileryTabHandle<TabData>) => (
         <span>{tab.data.title}</span>
       )}
-      renderTabContent={(tab: TabHandle<TabData>) => (
+      renderTabContent={(tab: TileryTabHandle<TabData>) => (
         <div
           style={{ padding: 16, fontSize: 13, fontFamily: 'var(--site-mono)' }}>
           {tab.data.kind === 'explorer' && (

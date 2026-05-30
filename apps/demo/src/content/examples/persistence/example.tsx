@@ -3,15 +3,15 @@
 import { useRef, useCallback } from 'react';
 import { Tilery } from '@tilery/react';
 import type {
-  InitialLayout,
-  LayoutState,
-  TabHandle,
+  TileryInitialLayout,
+  TileryLayoutState,
+  TileryTabHandle,
   TileryHandle,
 } from '@tilery/react';
 
 type TabData = { title: string };
 
-const defaultLayout: InitialLayout<TabData> = {
+const defaultLayout: TileryInitialLayout<TabData> = {
   panels: [
     {
       id: 'left',
@@ -28,12 +28,12 @@ const defaultLayout: InitialLayout<TabData> = {
 
 const STORAGE_KEY = 'tilery-example-persistence';
 
-function getInitialLayout(): InitialLayout<TabData> {
+function getInitialLayout(): TileryInitialLayout<TabData> {
   if (typeof window === 'undefined') return defaultLayout;
   const saved = localStorage.getItem(STORAGE_KEY);
   if (!saved) return defaultLayout;
   try {
-    const state = JSON.parse(saved) as LayoutState;
+    const state = JSON.parse(saved) as TileryLayoutState;
     return {
       panels: Object.values(state.panels).map((p) => ({
         id: p.id,
@@ -53,7 +53,7 @@ function getInitialLayout(): InitialLayout<TabData> {
 export function Example() {
   const tileryRef = useRef<TileryHandle | null>(null);
 
-  const handleChange = useCallback((state: LayoutState) => {
+  const handleChange = useCallback((state: TileryLayoutState) => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }, []);
 
@@ -86,10 +86,10 @@ export function Example() {
           ref={tileryRef as React.Ref<TileryHandle>}
           initialLayout={getInitialLayout()}
           onChange={handleChange}
-          renderTabHeader={(tab: TabHandle<TabData>) => (
+          renderTabHeader={(tab: TileryTabHandle<TabData>) => (
             <span>{tab.data.title}</span>
           )}
-          renderTabContent={(tab: TabHandle<TabData>) => (
+          renderTabContent={(tab: TileryTabHandle<TabData>) => (
             <div style={{ padding: 16, color: '#9aa1ab', fontSize: 13 }}>
               {tab.data.title} content
             </div>

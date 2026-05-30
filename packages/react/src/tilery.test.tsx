@@ -5,7 +5,7 @@ import React, { act, createRef } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { Tilery } from './tilery';
-import type { InitialLayout, TileryHandle } from 'tilery';
+import type { TileryInitialLayout, TileryHandle } from 'tilery/internal';
 
 // Integration tests for the Tilery component itself. They exercise the
 // JSX tree that the per-piece unit tests don't reach: panel-chrome, tab,
@@ -16,7 +16,7 @@ import type { InitialLayout, TileryHandle } from 'tilery';
 
 type Data = { title: string };
 
-function lShapeLayout(): InitialLayout<Data> {
+function lShapeLayout(): TileryInitialLayout<Data> {
   // Sidebar + (editor / terminal) = exactly one junction at (40, 50).
   return {
     panels: [
@@ -59,7 +59,7 @@ function stubContainerRect(el: HTMLElement) {
 }
 
 function mount(
-  initialLayout: InitialLayout<Data>,
+  initialLayout: TileryInitialLayout<Data>,
   onChange?: (s: unknown) => void,
 ) {
   const host = document.createElement('div');

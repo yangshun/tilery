@@ -1,16 +1,16 @@
 import { describe, expect, it } from 'vite-plus/test';
 import {
-  createInitialState,
-  nextId,
-  panelInitToReducerInit,
-  reducer,
-  tabInitToReducerInit,
+  tileryCreateInitialState,
+  tileryNextId,
+  tileryPanelInitToReducerInit,
+  tileryReducer,
+  tileryTabInitToReducerInit,
 } from './reducer';
-import { deriveDividers } from './layout-math';
-import type { LayoutState } from '../types';
+import { tileryDeriveDividers } from './layout-math';
+import type { TileryLayoutState } from '../types';
 
-const twoSideBySide = (): LayoutState =>
-  createInitialState({
+const twoSideBySide = (): TileryLayoutState =>
+  tileryCreateInitialState({
     panels: [
       {
         id: 'L',
@@ -28,9 +28,9 @@ const twoSideBySide = (): LayoutState =>
     ],
   });
 
-describe('createInitialState', () => {
+describe('tileryCreateInitialState', () => {
   it('assigns auto ids when not provided and treats invalid activeTabId as fallback', () => {
-    const state = createInitialState({
+    const state = tileryCreateInitialState({
       panels: [
         {
           inset: { top: 0, right: 0, bottom: 0, left: 0 },
@@ -48,7 +48,7 @@ describe('createInitialState', () => {
     expect(panel.activeTabId).toBe(panel.tabs[0]);
   });
   it('honors a valid activeTabId', () => {
-    const state = createInitialState({
+    const state = tileryCreateInitialState({
       panels: [
         {
           id: 'P',
@@ -64,7 +64,7 @@ describe('createInitialState', () => {
     expect(state.panels.P!.activeTabId).toBe('B');
   });
   it('sets activeTabId to null when the panel has no tabs', () => {
-    const state = createInitialState({
+    const state = tileryCreateInitialState({
       panels: [
         { id: 'P', inset: { top: 0, right: 0, bottom: 0, left: 0 }, tabs: [] },
       ],
@@ -73,20 +73,20 @@ describe('createInitialState', () => {
   });
 });
 
-describe('reducer dispatch matrix', () => {
+describe('tileryReducer dispatch matrix', () => {
   it('REPLACE_STATE swaps state wholesale', () => {
     const a = twoSideBySide();
-    const b = createInitialState({
+    const b = tileryCreateInitialState({
       panels: [
         { id: 'X', inset: { top: 0, right: 0, bottom: 0, left: 0 }, tabs: [] },
       ],
     });
-    expect(reducer(a, { type: 'REPLACE_STATE', state: b })).toBe(b);
+    expect(tileryReducer(a, { type: 'REPLACE_STATE', state: b })).toBe(b);
   });
 
   it('SPLIT_PANEL is a no-op if the source panel is missing', () => {
     const state = twoSideBySide();
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'SPLIT_PANEL',
       panelId: 'phantom',
       direction: 'right',
@@ -99,7 +99,7 @@ describe('reducer dispatch matrix', () => {
   });
   it('SPLIT_PANEL with no tabs creates an empty new panel', () => {
     const state = twoSideBySide();
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'SPLIT_PANEL',
       panelId: 'L',
       direction: 'right',
@@ -113,12 +113,12 @@ describe('reducer dispatch matrix', () => {
     expect(next.panelOrder).toEqual(['L', 'NEW', 'R']);
   });
   it('SPLIT_PANEL appends to the end of panelOrder when source is somehow not in order', () => {
-    const state: LayoutState = twoSideBySide();
-    const broken: LayoutState = {
+    const state: TileryLayoutState = twoSideBySide();
+    const broken: TileryLayoutState = {
       ...state,
       panelOrder: state.panelOrder.filter((p) => p !== 'L'),
     };
-    const next = reducer(broken, {
+    const next = tileryReducer(broken, {
       type: 'SPLIT_PANEL',
       panelId: 'L',
       direction: 'right',
@@ -132,11 +132,14 @@ describe('reducer dispatch matrix', () => {
 
   it('REMOVE_PANEL is a no-op if the panel is missing', () => {
     const state = twoSideBySide();
-    const next = reducer(state, { type: 'REMOVE_PANEL', panelId: 'phantom' });
+    const next = tileryReducer(state, {
+      type: 'REMOVE_PANEL',
+      panelId: 'phantom',
+    });
     expect(next).toBe(state);
   });
   it('REMOVE_PANEL with only one panel left drops both panel and its tabs', () => {
-    const state = createInitialState({
+    const state = tileryCreateInitialState({
       panels: [
         {
           id: 'only',
@@ -145,7 +148,10 @@ describe('reducer dispatch matrix', () => {
         },
       ],
     });
-    const next = reducer(state, { type: 'REMOVE_PANEL', panelId: 'only' });
+    const next = tileryReducer(state, {
+      type: 'REMOVE_PANEL',
+      panelId: 'only',
+    });
     expect(next.panels.only).toBeUndefined();
     expect(next.tabs.T).toBeUndefined();
     expect(next.panelOrder).toEqual([]);
@@ -153,7 +159,7 @@ describe('reducer dispatch matrix', () => {
 
   it('APPEND_TAB is a no-op if the panel is missing', () => {
     const state = twoSideBySide();
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'APPEND_TAB',
       panelId: 'phantom',
       tab: { id: 'X', data: {} },
@@ -163,7 +169,7 @@ describe('reducer dispatch matrix', () => {
   });
   it('APPEND_TAB with activate=false keeps existing active tab', () => {
     const state = twoSideBySide();
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'APPEND_TAB',
       panelId: 'L',
       tab: { id: 'NEW', data: {} },
@@ -178,7 +184,7 @@ describe('reducer dispatch matrix', () => {
       ...state,
       panels: { ...state.panels, R: { ...state.panels.R!, activeTabId: null } },
     };
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'APPEND_TAB',
       panelId: 'R',
       tab: { id: 'NEW', data: {} },
@@ -189,7 +195,7 @@ describe('reducer dispatch matrix', () => {
 
   it('INSERT_TAB is a no-op if panel missing', () => {
     const state = twoSideBySide();
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'INSERT_TAB',
       panelId: 'phantom',
       tab: { id: 'X', data: {} },
@@ -200,7 +206,7 @@ describe('reducer dispatch matrix', () => {
   });
   it('INSERT_TAB clamps index above tabs length to end', () => {
     const state = twoSideBySide();
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'INSERT_TAB',
       panelId: 'L',
       tab: { id: 'X', data: {} },
@@ -211,7 +217,7 @@ describe('reducer dispatch matrix', () => {
   });
   it('INSERT_TAB clamps negative index to 0', () => {
     const state = twoSideBySide();
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'INSERT_TAB',
       panelId: 'L',
       tab: { id: 'X', data: {} },
@@ -222,7 +228,7 @@ describe('reducer dispatch matrix', () => {
   });
   it('INSERT_TAB activate=false keeps current activeTabId', () => {
     const state = twoSideBySide();
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'INSERT_TAB',
       panelId: 'L',
       tab: { id: 'X', data: {} },
@@ -237,7 +243,7 @@ describe('reducer dispatch matrix', () => {
       ...state,
       panels: { ...state.panels, R: { ...state.panels.R!, activeTabId: null } },
     };
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'INSERT_TAB',
       panelId: 'R',
       tab: { id: 'X', data: {} },
@@ -249,7 +255,7 @@ describe('reducer dispatch matrix', () => {
 
   it('REMOVE_TAB is a no-op if tab missing', () => {
     const state = twoSideBySide();
-    const next = reducer(state, { type: 'REMOVE_TAB', tabId: 'phantom' });
+    const next = tileryReducer(state, { type: 'REMOVE_TAB', tabId: 'phantom' });
     expect(next).toBe(state);
   });
   it('REMOVE_TAB is a no-op if the back-reference panel is missing', () => {
@@ -258,24 +264,24 @@ describe('reducer dispatch matrix', () => {
       ...state,
       tabs: { ...state.tabs, L1: { ...state.tabs.L1!, panelId: 'phantom' } },
     };
-    const next = reducer(state, { type: 'REMOVE_TAB', tabId: 'L1' });
+    const next = tileryReducer(state, { type: 'REMOVE_TAB', tabId: 'L1' });
     expect(next).toBe(state);
   });
   it('REMOVE_TAB picks the next tab as active when active was removed', () => {
     const state = twoSideBySide();
-    const next = reducer(state, { type: 'REMOVE_TAB', tabId: 'L1' });
+    const next = tileryReducer(state, { type: 'REMOVE_TAB', tabId: 'L1' });
     expect(next.panels.L!.tabs).toEqual(['L2']);
     expect(next.panels.L!.activeTabId).toBe('L2');
   });
   it('REMOVE_TAB keeps existing active when removing a non-active tab', () => {
     const state = twoSideBySide();
-    const next = reducer(state, { type: 'REMOVE_TAB', tabId: 'L2' });
+    const next = tileryReducer(state, { type: 'REMOVE_TAB', tabId: 'L2' });
     expect(next.panels.L!.activeTabId).toBe('L1');
   });
 
   it('MOVE_TAB is a no-op if the tab does not exist', () => {
     const state = twoSideBySide();
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'MOVE_TAB',
       tabId: 'phantom',
       to: { panelId: 'R', index: 0 },
@@ -288,7 +294,7 @@ describe('reducer dispatch matrix', () => {
       ...state,
       tabs: { ...state.tabs, L1: { ...state.tabs.L1!, panelId: 'phantom' } },
     };
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'MOVE_TAB',
       tabId: 'L1',
       to: { panelId: 'R', index: 0 },
@@ -297,7 +303,7 @@ describe('reducer dispatch matrix', () => {
   });
   it('MOVE_TAB beforeTab is a no-op if ref tab is missing', () => {
     const state = twoSideBySide();
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'MOVE_TAB',
       tabId: 'L1',
       to: { beforeTabId: 'phantom' },
@@ -306,7 +312,7 @@ describe('reducer dispatch matrix', () => {
   });
   it('MOVE_TAB beforeTab is a no-op if ref equals the tab being moved', () => {
     const state = twoSideBySide();
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'MOVE_TAB',
       tabId: 'L1',
       to: { beforeTabId: 'L1' },
@@ -319,7 +325,7 @@ describe('reducer dispatch matrix', () => {
       ...state,
       tabs: { ...state.tabs, R1: { ...state.tabs.R1!, panelId: 'phantom' } },
     };
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'MOVE_TAB',
       tabId: 'L1',
       to: { beforeTabId: 'R1' },
@@ -328,7 +334,7 @@ describe('reducer dispatch matrix', () => {
   });
   it('MOVE_TAB beforeTab within the same panel reorders', () => {
     const state = twoSideBySide();
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'MOVE_TAB',
       tabId: 'L2',
       to: { beforeTabId: 'L1' },
@@ -337,7 +343,7 @@ describe('reducer dispatch matrix', () => {
   });
   it('MOVE_TAB afterTab inserts after the ref', () => {
     const state = twoSideBySide();
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'MOVE_TAB',
       tabId: 'L1',
       to: { afterTabId: 'R1' },
@@ -346,7 +352,7 @@ describe('reducer dispatch matrix', () => {
   });
   it('MOVE_TAB target by panel index defaults to append when index too large', () => {
     const state = twoSideBySide();
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'MOVE_TAB',
       tabId: 'L1',
       to: { panelId: 'R', index: 999 },
@@ -355,7 +361,7 @@ describe('reducer dispatch matrix', () => {
   });
   it('MOVE_TAB target by panel index with negative clamps to 0', () => {
     const state = twoSideBySide();
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'MOVE_TAB',
       tabId: 'L1',
       to: { panelId: 'R', index: -5 },
@@ -364,7 +370,7 @@ describe('reducer dispatch matrix', () => {
   });
   it('MOVE_TAB target by panel reorders within same panel', () => {
     const state = twoSideBySide();
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'MOVE_TAB',
       tabId: 'L1',
       to: { panelId: 'L', index: 2 },
@@ -373,7 +379,7 @@ describe('reducer dispatch matrix', () => {
   });
   it('MOVE_TAB target panel missing → no-op', () => {
     const state = twoSideBySide();
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'MOVE_TAB',
       tabId: 'L1',
       to: { panelId: 'phantom', index: 0 },
@@ -383,7 +389,7 @@ describe('reducer dispatch matrix', () => {
   it('MOVE_TAB splitPanel: wasActive=false branch (moving a non-active tab keeps source active)', () => {
     // Source has two tabs and the moved one is NOT active.
     const state = twoSideBySide();
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'MOVE_TAB',
       tabId: 'L2', // L's active is L1; L2 is not active
       to: {
@@ -401,7 +407,7 @@ describe('reducer dispatch matrix', () => {
   it('MOVE_TAB to another panel with non-active source tab keeps the original active', () => {
     const state = twoSideBySide();
     // L's tabs: [L1, L2], active = L1. Move L2 (non-active) to R.
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'MOVE_TAB',
       tabId: 'L2',
       to: { panelId: 'R', index: 0 },
@@ -413,7 +419,7 @@ describe('reducer dispatch matrix', () => {
 
   it('MOVE_TAB splitPanel target adds a new panel and moves the tab there', () => {
     const state = twoSideBySide();
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'MOVE_TAB',
       tabId: 'L1',
       to: {
@@ -431,7 +437,7 @@ describe('reducer dispatch matrix', () => {
   it('MOVE_TAB splitPanel is a no-op when source is the same panel and has only this tab', () => {
     // A single-tab panel cannot be split by its own only tab — there would
     // be nothing to leave behind, and the result would be empty space.
-    const state = createInitialState({
+    const state = tileryCreateInitialState({
       panels: [
         {
           id: 'P',
@@ -440,7 +446,7 @@ describe('reducer dispatch matrix', () => {
         },
       ],
     });
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'MOVE_TAB',
       tabId: 'A',
       to: {
@@ -458,7 +464,7 @@ describe('reducer dispatch matrix', () => {
     // Dragging one tab to the right zone of the SAME panel should:
     //   - shrink the source to the left half
     //   - create a new panel in the right half holding the moved tab
-    const state = createInitialState({
+    const state = tileryCreateInitialState({
       panels: [
         {
           id: 'P',
@@ -470,7 +476,7 @@ describe('reducer dispatch matrix', () => {
         },
       ],
     });
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'MOVE_TAB',
       tabId: 'B',
       to: {
@@ -497,7 +503,7 @@ describe('reducer dispatch matrix', () => {
   });
   it('MOVE_TAB splitPanel with active source picks next active', () => {
     const state = twoSideBySide();
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'MOVE_TAB',
       tabId: 'L1',
       to: {
@@ -510,7 +516,7 @@ describe('reducer dispatch matrix', () => {
     expect(next.panels.L!.activeTabId).toBe('L2');
   });
   it('MOVE_TAB splitPanel auto-collapses source when source loses its last tab', () => {
-    const state = createInitialState({
+    const state = tileryCreateInitialState({
       panels: [
         {
           id: 'A',
@@ -524,7 +530,7 @@ describe('reducer dispatch matrix', () => {
         },
       ],
     });
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'MOVE_TAB',
       tabId: 'TA',
       to: {
@@ -538,7 +544,7 @@ describe('reducer dispatch matrix', () => {
   });
   it('MOVE_TAB splitPanel missing target → no-op', () => {
     const state = twoSideBySide();
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'MOVE_TAB',
       tabId: 'L1',
       to: {
@@ -553,10 +559,10 @@ describe('reducer dispatch matrix', () => {
 
   it('MOVE_TAB splitPanel target no-ops when split would violate min size', () => {
     // Target panel is only 18% wide. A 50% split would leave each half
-    // at 9% — below the 10% default min — so splitFitsMin refuses the
-    // action and the reducer returns the original state. (This is the
+    // at 9% — below the 10% default min — so tilerySplitFitsMin refuses the
+    // action and the tileryReducer returns the original state. (This is the
     // counterpart guard to the one on plain SPLIT_PANEL.)
-    const state = createInitialState({
+    const state = tileryCreateInitialState({
       panels: [
         {
           id: 'L',
@@ -570,7 +576,7 @@ describe('reducer dispatch matrix', () => {
         },
       ],
     });
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'MOVE_TAB',
       tabId: 'l1',
       to: {
@@ -585,7 +591,10 @@ describe('reducer dispatch matrix', () => {
 
   it('SET_ACTIVE_TAB is a no-op when tab missing', () => {
     const state = twoSideBySide();
-    const next = reducer(state, { type: 'SET_ACTIVE_TAB', tabId: 'phantom' });
+    const next = tileryReducer(state, {
+      type: 'SET_ACTIVE_TAB',
+      tabId: 'phantom',
+    });
     expect(next).toBe(state);
   });
   it('SET_ACTIVE_TAB is a no-op when panel back-ref is broken', () => {
@@ -594,23 +603,23 @@ describe('reducer dispatch matrix', () => {
       ...state,
       tabs: { ...state.tabs, L1: { ...state.tabs.L1!, panelId: 'phantom' } },
     };
-    const next = reducer(state, { type: 'SET_ACTIVE_TAB', tabId: 'L1' });
+    const next = tileryReducer(state, { type: 'SET_ACTIVE_TAB', tabId: 'L1' });
     expect(next).toBe(state);
   });
   it('SET_ACTIVE_TAB is a no-op when the tab is already active', () => {
     const state = twoSideBySide();
-    const next = reducer(state, { type: 'SET_ACTIVE_TAB', tabId: 'L1' });
+    const next = tileryReducer(state, { type: 'SET_ACTIVE_TAB', tabId: 'L1' });
     expect(next).toBe(state);
   });
   it('SET_ACTIVE_TAB updates active tab', () => {
     const state = twoSideBySide();
-    const next = reducer(state, { type: 'SET_ACTIVE_TAB', tabId: 'L2' });
+    const next = tileryReducer(state, { type: 'SET_ACTIVE_TAB', tabId: 'L2' });
     expect(next.panels.L!.activeTabId).toBe('L2');
   });
 
   it('SET_PANEL_DATA is a no-op when tab missing', () => {
     const state = twoSideBySide();
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'SET_PANEL_DATA',
       tabId: 'phantom',
       data: { x: 1 },
@@ -619,7 +628,7 @@ describe('reducer dispatch matrix', () => {
   });
   it('SET_PANEL_DATA updates the tab data', () => {
     const state = twoSideBySide();
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'SET_PANEL_DATA',
       tabId: 'L1',
       data: { renamed: true },
@@ -629,8 +638,8 @@ describe('reducer dispatch matrix', () => {
 
   it('RESIZE_DIVIDER updates panel insets', () => {
     const state = twoSideBySide();
-    const div = deriveDividers(state)[0]!;
-    const next = reducer(state, {
+    const div = tileryDeriveDividers(state)[0]!;
+    const next = tileryReducer(state, {
       type: 'RESIZE_DIVIDER',
       dividerId: div.id,
       newPosition: 70,
@@ -638,10 +647,10 @@ describe('reducer dispatch matrix', () => {
     expect(next.panels.L!.inset.right).toBe(30);
     expect(next.panels.R!.inset.left).toBe(70);
   });
-  it('RESIZE_DIVIDER honors min size (defaults to DEFAULT_MIN_PANEL_SIZE = 10)', () => {
+  it('RESIZE_DIVIDER honors min size (defaults to TILERY_DEFAULT_MIN_PANEL_SIZE = 10)', () => {
     const state = twoSideBySide();
-    const div = deriveDividers(state)[0]!;
-    const next = reducer(state, {
+    const div = tileryDeriveDividers(state)[0]!;
+    const next = tileryReducer(state, {
       type: 'RESIZE_DIVIDER',
       dividerId: div.id,
       newPosition: 2,
@@ -650,8 +659,8 @@ describe('reducer dispatch matrix', () => {
   });
   it('RESIZE_DIVIDER honors caller-provided minSizePercent', () => {
     const state = twoSideBySide();
-    const div = deriveDividers(state)[0]!;
-    const next = reducer(state, {
+    const div = tileryDeriveDividers(state)[0]!;
+    const next = tileryReducer(state, {
       type: 'RESIZE_DIVIDER',
       dividerId: div.id,
       newPosition: 2,
@@ -661,7 +670,7 @@ describe('reducer dispatch matrix', () => {
   });
   it('RESIZE_DIVIDER is a no-op for an unknown divider id', () => {
     const state = twoSideBySide();
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'RESIZE_DIVIDER',
       dividerId: 'phantom',
       newPosition: 50,
@@ -673,7 +682,7 @@ describe('reducer dispatch matrix', () => {
     const state = twoSideBySide();
     const beforeL = state.panels.L!.inset;
     const beforeR = state.panels.R!.inset;
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'SWAP_PANELS',
       panelA: 'L',
       panelB: 'R',
@@ -687,31 +696,39 @@ describe('reducer dispatch matrix', () => {
   it('SWAP_PANELS is a no-op when either panel is missing', () => {
     const state = twoSideBySide();
     expect(
-      reducer(state, { type: 'SWAP_PANELS', panelA: 'phantom', panelB: 'R' }),
+      tileryReducer(state, {
+        type: 'SWAP_PANELS',
+        panelA: 'phantom',
+        panelB: 'R',
+      }),
     ).toBe(state);
     expect(
-      reducer(state, { type: 'SWAP_PANELS', panelA: 'L', panelB: 'phantom' }),
+      tileryReducer(state, {
+        type: 'SWAP_PANELS',
+        panelA: 'L',
+        panelB: 'phantom',
+      }),
     ).toBe(state);
   });
   it('SWAP_PANELS is a no-op when given the same panel twice', () => {
     const state = twoSideBySide();
     expect(
-      reducer(state, { type: 'SWAP_PANELS', panelA: 'L', panelB: 'L' }),
+      tileryReducer(state, { type: 'SWAP_PANELS', panelA: 'L', panelB: 'L' }),
     ).toBe(state);
   });
 
   it('unknown action returns the same state (default case)', () => {
     const state = twoSideBySide();
     // intentionally wrong shape to exercise the default branch
-    const next = reducer(state, { type: 'NOT_AN_ACTION' } as never);
+    const next = tileryReducer(state, { type: 'NOT_AN_ACTION' } as never);
     expect(next).toBe(state);
   });
 
   it('MOVE_TAB splitPanel: defensive fallback to null when active tab is missing from source.tabs', () => {
     // Construct a malformed state: tab T1 points to panel A, but A.tabs does NOT contain T1.
-    // This violates the invariant; the reducer should still survive and pick null activeTabId
+    // This violates the invariant; the tileryReducer should still survive and pick null activeTabId
     // for the source via the `?? null` fallback path.
-    const state: LayoutState = {
+    const state: TileryLayoutState = {
       panels: {
         A: {
           id: 'A',
@@ -735,7 +752,7 @@ describe('reducer dispatch matrix', () => {
         TB: { id: 'TB', panelId: 'B', data: {} },
       },
     };
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'MOVE_TAB',
       tabId: 'T1',
       to: {
@@ -750,7 +767,7 @@ describe('reducer dispatch matrix', () => {
   });
 
   it('REMOVE_TAB: defensive ?? null when active tab is not in panel.tabs', () => {
-    const state: LayoutState = {
+    const state: TileryLayoutState = {
       panels: {
         P: {
           id: 'P',
@@ -766,7 +783,7 @@ describe('reducer dispatch matrix', () => {
         T_OTHER: { id: 'T_OTHER', panelId: 'P', data: {} },
       },
     };
-    const next = reducer(state, { type: 'REMOVE_TAB', tabId: 'T1' });
+    const next = tileryReducer(state, { type: 'REMOVE_TAB', tabId: 'T1' });
     // The fallback returned null for activeTabId; nextTabs filter leaves T_OTHER
     expect(next.panels.P!.tabs).toEqual(['T_OTHER']);
     expect(next.panels.P!.activeTabId).toBeNull();
@@ -775,7 +792,7 @@ describe('reducer dispatch matrix', () => {
   it('finishTabMove: defensive ?? null in same-panel move when tab id not in source.tabs', () => {
     // Trigger finishTabMove's wasActiveInSource branch via panel target (regular move)
     // where action.tabId isn't actually in source's tabs list.
-    const state: LayoutState = {
+    const state: TileryLayoutState = {
       panels: {
         A: {
           id: 'A',
@@ -799,7 +816,7 @@ describe('reducer dispatch matrix', () => {
         TB: { id: 'TB', panelId: 'B', data: {} },
       },
     };
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'MOVE_TAB',
       tabId: 'T1',
       to: { panelId: 'B', index: 0 },
@@ -811,7 +828,7 @@ describe('reducer dispatch matrix', () => {
   });
 
   it('MOVE_TAB panel target: defensive fallback when active tab missing from source.tabs', () => {
-    const state: LayoutState = {
+    const state: TileryLayoutState = {
       panels: {
         A: {
           id: 'A',
@@ -835,7 +852,7 @@ describe('reducer dispatch matrix', () => {
         TB: { id: 'TB', panelId: 'B', data: {} },
       },
     };
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'MOVE_TAB',
       tabId: 'T1',
       to: { panelId: 'B', index: 0 },
@@ -846,22 +863,22 @@ describe('reducer dispatch matrix', () => {
 });
 
 describe('helpers', () => {
-  it('nextId increments and includes the prefix', () => {
-    const a = nextId('z');
-    const b = nextId('z');
+  it('tileryNextId increments and includes the prefix', () => {
+    const a = tileryNextId('z');
+    const b = tileryNextId('z');
     expect(a).not.toBe(b);
     expect(a.startsWith('z_')).toBe(true);
   });
-  it('panelInitToReducerInit auto-assigns missing ids', () => {
-    const r = panelInitToReducerInit({
+  it('tileryPanelInitToReducerInit auto-assigns missing ids', () => {
+    const r = tileryPanelInitToReducerInit({
       inset: { top: 0, right: 0, bottom: 0, left: 0 },
       tabs: [{ data: {} }],
     });
     expect(r.id).toMatch(/^p_/);
     expect(r.tabs[0]!.id).toMatch(/^t_/);
   });
-  it('panelInitToReducerInit preserves provided ids', () => {
-    const r = panelInitToReducerInit({
+  it('tileryPanelInitToReducerInit preserves provided ids', () => {
+    const r = tileryPanelInitToReducerInit({
       id: 'mine',
       inset: { top: 0, right: 0, bottom: 0, left: 0 },
       tabs: [{ id: 'tt', data: {} }],
@@ -869,13 +886,15 @@ describe('helpers', () => {
     expect(r.id).toBe('mine');
     expect(r.tabs[0]!.id).toBe('tt');
   });
-  it('tabInitToReducerInit auto-assigns missing id', () => {
-    const r = tabInitToReducerInit({ data: { x: 1 } });
+  it('tileryTabInitToReducerInit auto-assigns missing id', () => {
+    const r = tileryTabInitToReducerInit({ data: { x: 1 } });
     expect(r.id).toMatch(/^t_/);
     expect(r.data).toEqual({ x: 1 });
   });
-  it('tabInitToReducerInit preserves provided id', () => {
-    expect(tabInitToReducerInit({ id: 'mine', data: {} }).id).toBe('mine');
+  it('tileryTabInitToReducerInit preserves provided id', () => {
+    expect(tileryTabInitToReducerInit({ id: 'mine', data: {} }).id).toBe(
+      'mine',
+    );
   });
 });
 
@@ -885,8 +904,8 @@ describe('helpers', () => {
 // the ref tab's panel, the source panel must be updated, and active-tab
 // selection in the source must fall over to a sibling.
 describe('MOVE_TAB — cross-panel beforeTab / afterTab', () => {
-  const twoPanels = (): LayoutState =>
-    createInitialState({
+  const twoPanels = (): TileryLayoutState =>
+    tileryCreateInitialState({
       panels: [
         {
           id: 'L',
@@ -910,7 +929,7 @@ describe('MOVE_TAB — cross-panel beforeTab / afterTab', () => {
     });
 
   it('moves the tab to the ref-tab’s panel and inserts BEFORE the ref', () => {
-    const next = reducer(twoPanels(), {
+    const next = tileryReducer(twoPanels(), {
       type: 'MOVE_TAB',
       tabId: 'L1',
       to: { beforeTabId: 'R2' },
@@ -921,7 +940,7 @@ describe('MOVE_TAB — cross-panel beforeTab / afterTab', () => {
   });
 
   it('moves the tab to the ref-tab’s panel and inserts AFTER the ref', () => {
-    const next = reducer(twoPanels(), {
+    const next = tileryReducer(twoPanels(), {
       type: 'MOVE_TAB',
       tabId: 'L1',
       to: { afterTabId: 'R1' },
@@ -932,7 +951,7 @@ describe('MOVE_TAB — cross-panel beforeTab / afterTab', () => {
   });
 
   it('picks a sibling as the source panel’s new active when active is moved', () => {
-    const next = reducer(twoPanels(), {
+    const next = tileryReducer(twoPanels(), {
       type: 'MOVE_TAB',
       tabId: 'L1', // active in L
       to: { beforeTabId: 'R1' },
@@ -941,7 +960,7 @@ describe('MOVE_TAB — cross-panel beforeTab / afterTab', () => {
   });
 
   it('activates the moved tab in the destination panel (drag-to-foreground)', () => {
-    const next = reducer(twoPanels(), {
+    const next = tileryReducer(twoPanels(), {
       type: 'MOVE_TAB',
       tabId: 'L2', // not active in L
       to: { beforeTabId: 'R2' },
@@ -953,7 +972,7 @@ describe('MOVE_TAB — cross-panel beforeTab / afterTab', () => {
   });
 
   it('auto-collapses the source panel when its last tab moves out via beforeTab', () => {
-    const state = createInitialState({
+    const state = tileryCreateInitialState({
       panels: [
         {
           id: 'L',
@@ -967,7 +986,7 @@ describe('MOVE_TAB — cross-panel beforeTab / afterTab', () => {
         },
       ],
     });
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'MOVE_TAB',
       tabId: 'only',
       to: { beforeTabId: 'R1' },

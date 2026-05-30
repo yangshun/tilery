@@ -2,11 +2,15 @@
 
 import { useRef } from 'react';
 import { Tilery } from '@tilery/react';
-import type { InitialLayout, TabHandle, TileryHandle } from '@tilery/react';
+import type {
+  TileryInitialLayout,
+  TileryTabHandle,
+  TileryHandle,
+} from '@tilery/react';
 
 type TabData = { title: string };
 
-const layout: InitialLayout<TabData> = {
+const layout: TileryInitialLayout<TabData> = {
   panels: [
     {
       id: 'main',
@@ -75,10 +79,10 @@ export function Example() {
         <Tilery<TabData>
           ref={tileryRef as React.Ref<TileryHandle>}
           initialLayout={layout}
-          renderTabHeader={(tab: TabHandle<TabData>) => (
+          renderTabHeader={(tab: TileryTabHandle<TabData>) => (
             <span>{tab.data.title}</span>
           )}
-          renderTabContent={(tab: TabHandle<TabData>) => (
+          renderTabContent={(tab: TileryTabHandle<TabData>) => (
             <div style={{ padding: 16, color: '#9aa1ab', fontSize: 13 }}>
               {tab.data.title}
             </div>

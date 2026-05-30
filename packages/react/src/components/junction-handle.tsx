@@ -1,12 +1,12 @@
 'use client';
 
 import { useCallback } from 'react';
-import type { Junction } from 'tilery';
-import { usePointerDrag } from '../use-pointer-drag';
+import type { TileryJunction } from 'tilery/internal';
+import { useTileryPointerDrag } from '../use-pointer-drag';
 
 export type JunctionHandleProps = {
-  junction: Junction;
-  onDrag: (junction: Junction, xPct: number, yPct: number) => void;
+  junction: TileryJunction;
+  onDrag: (junction: TileryJunction, xPct: number, yPct: number) => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
 };
 
@@ -29,7 +29,7 @@ export function JunctionHandle({
     [containerRef, junction, onDrag],
   );
 
-  const handlers = usePointerDrag({
+  const handlers = useTileryPointerDrag({
     onMove,
     stopPropagationOnDown: true,
   });

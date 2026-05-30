@@ -1,9 +1,9 @@
 'use client';
 
-import type { DragState } from 'tilery';
+import type { TileryDragState } from 'tilery/internal';
 
 export type DropOverlayProps = {
-  drag: DragState;
+  drag: TileryDragState;
   containerRef: React.RefObject<HTMLDivElement | null>;
   panelEls: Map<string, HTMLElement>;
   ghostLabel?: React.ReactNode;
@@ -49,7 +49,7 @@ export function DropOverlay({
 }
 
 function renderTabBarInsertion(
-  hoverTabBar: NonNullable<DragState['hoverTabBar']>,
+  hoverTabBar: NonNullable<TileryDragState['hoverTabBar']>,
   container: HTMLElement,
   cRect: DOMRect,
 ): React.ReactNode {
@@ -96,7 +96,7 @@ function renderTabBarInsertion(
 
 function renderPanelZone(
   panelEl: HTMLElement,
-  zone: NonNullable<DragState['hoverZone']>,
+  zone: NonNullable<TileryDragState['hoverZone']>,
   cRect: DOMRect,
 ): React.ReactNode {
   const panelRect = panelEl.getBoundingClientRect();

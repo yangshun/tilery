@@ -1,12 +1,16 @@
 import { describe, expect, it } from 'vite-plus/test';
 import { makeTileryHandle } from './handles';
-import { createInitialState, reducer, type ReducerAction } from './reducer';
-import type { LayoutState } from '../types';
+import {
+  tileryCreateInitialState,
+  tileryReducer,
+  type TileryReducerAction,
+} from './reducer';
+import type { TileryLayoutState } from '../types';
 
-function makeStore(initial?: LayoutState) {
+function makeStore(initial?: TileryLayoutState) {
   let state =
     initial ??
-    createInitialState({
+    tileryCreateInitialState({
       panels: [
         {
           id: 'P1',
@@ -24,10 +28,10 @@ function makeStore(initial?: LayoutState) {
         },
       ],
     });
-  const dispatched: ReducerAction[] = [];
-  const dispatch = (action: ReducerAction) => {
+  const dispatched: TileryReducerAction[] = [];
+  const dispatch = (action: TileryReducerAction) => {
     dispatched.push(action);
-    state = reducer(state, action);
+    state = tileryReducer(state, action);
   };
   const getState = () => state;
   const handle = makeTileryHandle(getState, dispatch);
@@ -154,7 +158,7 @@ describe('TileryHandle mutations', () => {
   });
 });
 
-describe('TileryHandle.moveTab — every MoveTarget shape', () => {
+describe('TileryHandle.moveTab — every TileryMoveTarget shape', () => {
   it('panel target without index uses MAX_SAFE_INTEGER (append)', () => {
     const { handle, dispatched } = makeStore();
     handle.moveTab('T1', { panel: 'P2' });
@@ -213,7 +217,7 @@ describe('TileryHandle.moveTab — every MoveTarget shape', () => {
   });
 });
 
-describe('PanelHandle', () => {
+describe('TileryPanelHandle', () => {
   it('reads inset live from state', () => {
     const { handle } = makeStore();
     const panel = handle.getPanel('P1')!;
@@ -244,7 +248,7 @@ describe('PanelHandle', () => {
     expect(panel.activeTab).toBeNull();
   });
   it('returns null activeTab when the panel exists but activeTabId is null', () => {
-    let state = createInitialState({
+    let state = tileryCreateInitialState({
       panels: [
         { id: 'P', inset: { top: 0, right: 0, bottom: 0, left: 0 }, tabs: [] },
       ],
@@ -289,7 +293,7 @@ describe('PanelHandle', () => {
   });
 });
 
-describe('TabHandle', () => {
+describe('TileryTabHandle', () => {
   it('reads panel, index, and data live from state', () => {
     const { handle } = makeStore();
     const tab = handle.getTab('T2')!;
@@ -311,7 +315,7 @@ describe('TabHandle', () => {
     expect(tab.index).toBe(-1);
   });
   it('index returns -1 if the panel back-ref is broken', () => {
-    let state = createInitialState({
+    let state = tileryCreateInitialState({
       panels: [
         {
           id: 'P',

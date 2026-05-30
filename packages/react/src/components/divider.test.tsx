@@ -4,10 +4,10 @@ import { describe, expect, it } from 'vite-plus/test';
 import React, { act, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 
-import { Divider } from './divider';
-import type { Divider as DividerType } from 'tilery';
+import { TileryDivider } from './divider';
+import type { TileryDivider as DividerType } from 'tilery/internal';
 
-// The happy paths for Divider (vertical drag, horizontal drag, divider
+// The happy paths for TileryDivider (vertical drag, horizontal drag, divider
 // styling) are covered through Tilery's integration test. This file pins
 // the defensive branches the integration test doesn't reach — the
 // null-container guard and the horizontal-axis math.
@@ -69,7 +69,11 @@ function mountWithRef({
           }
         },
       },
-      React.createElement(Divider, { divider, onDrag, containerRef: ref }),
+      React.createElement(TileryDivider, {
+        divider,
+        onDrag,
+        containerRef: ref,
+      }),
     );
   }
   act(() => {
@@ -112,7 +116,7 @@ function pointerEvent(
   } as unknown as React.PointerEvent;
 }
 
-describe('Divider — horizontal axis math', () => {
+describe('TileryDivider — horizontal axis math', () => {
   it('uses clientY for horizontal dividers', () => {
     const recorded: Array<{ id: string; pct: number }> = [];
     const t = mountWithRef({
@@ -141,7 +145,7 @@ describe('Divider — horizontal axis math', () => {
   });
 });
 
-describe('Divider — defensive null container', () => {
+describe('TileryDivider — defensive null container', () => {
   it('no-ops onMove when container ref is null', () => {
     const recorded: number[] = [];
     const t = mountWithRef({

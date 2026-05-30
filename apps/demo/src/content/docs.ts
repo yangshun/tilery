@@ -43,11 +43,11 @@ export const docs: DocPage[] = [
         ],
         code: `import { Tilery } from '@tilery/react';
 import '@tilery/react/style.css';
-import type { InitialLayout, TabHandle } from '@tilery/react';
+import type { TileryInitialLayout, TileryTabHandle } from '@tilery/react';
 
 type MyTab = { title: string };
 
-const layout: InitialLayout<MyTab> = {
+const layout: TileryInitialLayout<MyTab> = {
   panels: [
     {
       id: 'left',
@@ -118,10 +118,10 @@ function App() {
         body: [
           'The layout state is a flat structure with panels and tabs stored in lookup objects. Panel order is tracked separately for deterministic rendering.',
         ],
-        code: `type LayoutState = {
-  panels: Record<PanelId, PanelState>;
-  panelOrder: PanelId[];
-  tabs: Record<TabId, TabState>;
+        code: `type TileryLayoutState = {
+  panels: Record<TileryPanelId, TileryPanelState>;
+  panelOrder: TileryPanelId[];
+  tabs: Record<TileryTabId, TileryTabState>;
 };`,
       },
       {
@@ -210,25 +210,25 @@ function App() {
           rows: [
             [
               'initialLayout',
-              'InitialLayout<TData>',
+              'TileryInitialLayout<TData>',
               'Yes',
               'Initial panel and tab configuration',
             ],
             [
               'renderTabHeader',
-              '(tab: TabHandle<TData>, ctx: { isActive: boolean }) => ReactNode',
+              '(tab: TileryTabHandle<TData>, ctx: { isActive: boolean }) => ReactNode',
               'Yes',
               'Renders tab button content',
             ],
             [
               'renderTabContent',
-              '(tab: TabHandle<TData>) => ReactNode',
+              '(tab: TileryTabHandle<TData>) => ReactNode',
               'Yes',
               'Renders tab panel content',
             ],
             [
               'onChange',
-              '(state: LayoutState) => void',
+              '(state: TileryLayoutState) => void',
               'No',
               'Called after every state change',
             ],
@@ -256,9 +256,9 @@ function App() {
           headers: ['Method', 'Description'],
           rows: [
             ['getPanel(id)', 'Returns a PanelHandle or null'],
-            ['getTab(id)', 'Returns a TabHandle or null'],
+            ['getTab(id)', 'Returns a TileryTabHandle or null'],
             ['getPanels()', 'Returns all PanelHandle[]'],
-            ['getTabs()', 'Returns all TabHandle[]'],
+            ['getTabs()', 'Returns all TileryTabHandle[]'],
             [
               'splitPanel(panelId, direction, opts?)',
               'Splits a panel, returns new PanelHandle',
@@ -273,7 +273,7 @@ function App() {
             ['moveTab(tabId, target)', 'Moves a tab to a target location'],
             ['setActiveTab(tabId)', 'Activates a tab'],
             ['swapPanels(panelA, panelB)', 'Swaps two panels positions'],
-            ['getState()', 'Returns the current LayoutState'],
+            ['getState()', 'Returns the current TileryLayoutState'],
           ],
         },
       },
@@ -285,8 +285,8 @@ function App() {
           rows: [
             ['id', 'Panel identifier'],
             ['inset', 'Current { top, right, bottom, left } percentages'],
-            ['tabs', 'Array of TabHandle for this panel'],
-            ['activeTab', 'The active TabHandle or null'],
+            ['tabs', 'Array of TileryTabHandle for this panel'],
+            ['activeTab', 'The active TileryTabHandle or null'],
             ['appendTab(tab, opts?)', 'Append a tab to this panel'],
             ['insertTab(tab, index, opts?)', 'Insert a tab at index'],
             ['split(direction, opts?)', 'Split this panel'],
@@ -296,7 +296,7 @@ function App() {
         },
       },
       {
-        heading: 'TabHandle<TData>',
+        heading: 'TileryTabHandle<TData>',
         body: ['Returned by getTab(). Provides tab-scoped operations.'],
         table: {
           headers: ['Property / Method', 'Description'],
@@ -313,21 +313,21 @@ function App() {
         },
       },
       {
-        heading: 'MoveTarget',
+        heading: 'TileryMoveTarget',
         body: ['Used with moveTab() and tabHandle.moveTo():'],
-        code: `type MoveTarget =
-  | { panel: PanelId; index?: number }        // Move to panel at index
-  | { beforeTab: TabId }                       // Insert before a tab
-  | { afterTab: TabId }                        // Insert after a tab
-  | { splitPanel: PanelId; direction: Direction; sizePercent?: number };`,
+        code: `type TileryMoveTarget =
+  | { panel: TileryPanelId; index?: number }        // Move to panel at index
+  | { beforeTab: TileryTabId }                       // Insert before a tab
+  | { afterTab: TileryTabId }                        // Insert after a tab
+  | { splitPanel: TileryPanelId; direction: TileryDirection; sizePercent?: number };`,
       },
       {
-        heading: 'Direction',
-        code: `type Direction = 'left' | 'right' | 'top' | 'bottom';`,
+        heading: 'TileryDirection',
+        code: `type TileryDirection = 'left' | 'right' | 'top' | 'bottom';`,
       },
       {
-        heading: 'InitialLayout<TData>',
-        code: `type InitialLayout<TData> = {
+        heading: 'TileryInitialLayout<TData>',
+        code: `type TileryInitialLayout<TData> = {
   panels: PanelInit<TData>[];
 };
 

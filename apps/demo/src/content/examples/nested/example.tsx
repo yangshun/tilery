@@ -1,11 +1,11 @@
 'use client';
 
 import { Tilery } from '@tilery/react';
-import type { InitialLayout, TabHandle } from '@tilery/react';
+import type { TileryInitialLayout, TileryTabHandle } from '@tilery/react';
 
 type TabData = { title: string; nested?: boolean };
 
-const innerLayout: InitialLayout<TabData> = {
+const innerLayout: TileryInitialLayout<TabData> = {
   panels: [
     {
       id: 'inner-left',
@@ -20,7 +20,7 @@ const innerLayout: InitialLayout<TabData> = {
   ],
 };
 
-const outerLayout: InitialLayout<TabData> = {
+const outerLayout: TileryInitialLayout<TabData> = {
   panels: [
     {
       id: 'sidebar',
@@ -43,10 +43,10 @@ function InnerTilery() {
     <div style={{ width: '100%', height: '100%' }}>
       <Tilery<TabData>
         initialLayout={innerLayout}
-        renderTabHeader={(tab: TabHandle<TabData>) => (
+        renderTabHeader={(tab: TileryTabHandle<TabData>) => (
           <span>{tab.data.title}</span>
         )}
-        renderTabContent={(tab: TabHandle<TabData>) => (
+        renderTabContent={(tab: TileryTabHandle<TabData>) => (
           <div style={{ padding: 16, color: '#9aa1ab', fontSize: 13 }}>
             {tab.data.title} (nested instance)
           </div>
@@ -60,10 +60,10 @@ export function Example() {
   return (
     <Tilery<TabData>
       initialLayout={outerLayout}
-      renderTabHeader={(tab: TabHandle<TabData>) => (
+      renderTabHeader={(tab: TileryTabHandle<TabData>) => (
         <span>{tab.data.title}</span>
       )}
-      renderTabContent={(tab: TabHandle<TabData>) => {
+      renderTabContent={(tab: TileryTabHandle<TabData>) => {
         if (tab.data.nested) return <InnerTilery />;
         return (
           <div style={{ padding: 16, color: '#9aa1ab', fontSize: 13 }}>

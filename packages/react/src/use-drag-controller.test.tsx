@@ -3,15 +3,19 @@
 import { describe, expect, it } from 'vite-plus/test';
 import React, { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
-import { useDragController } from './use-drag-controller';
-import { makeTileryHandle } from 'tilery';
-import { createInitialState, reducer, type ReducerAction } from 'tilery';
-import type { LayoutState } from 'tilery';
+import { useTileryDragController } from './use-drag-controller';
+import { makeTileryHandle } from 'tilery/internal';
+import {
+  tileryCreateInitialState,
+  tileryReducer,
+  type TileryReducerAction,
+} from 'tilery/internal';
+import type { TileryLayoutState } from 'tilery/internal';
 
-type Controller = ReturnType<typeof useDragController>;
+type Controller = ReturnType<typeof useTileryDragController>;
 
 function setupStore() {
-  let state: LayoutState = createInitialState({
+  let state: TileryLayoutState = tileryCreateInitialState({
     panels: [
       {
         id: 'P1',
@@ -28,8 +32,8 @@ function setupStore() {
       },
     ],
   });
-  const dispatch = (a: ReducerAction) => {
-    state = reducer(state, a);
+  const dispatch = (a: TileryReducerAction) => {
+    state = tileryReducer(state, a);
   };
   const handle = makeTileryHandle(() => state, dispatch);
   return { handle, getState: () => state };
@@ -111,10 +115,10 @@ function renderHook<T>(useHook: () => T): {
   };
 }
 
-describe('useDragController — registration', () => {
+describe('useTileryDragController — registration', () => {
   it('registers and deregisters panel/tabBar/tab elements', () => {
     const { handle } = setupStore();
-    const hook = renderHook(() => useDragController(() => handle));
+    const hook = renderHook(() => useTileryDragController(() => handle));
     const ctrl = hook.current();
     const panelEl = document.createElement('div');
     act(() => {
@@ -131,10 +135,10 @@ describe('useDragController — registration', () => {
   });
 });
 
-describe('useDragController — pointer flow', () => {
+describe('useTileryDragController — pointer flow', () => {
   it('ignores non-left buttons on pointerdown', () => {
     const { handle } = setupStore();
-    const hook = renderHook(() => useDragController(() => handle));
+    const hook = renderHook(() => useTileryDragController(() => handle));
     const tabEl = document.createElement('div');
     document.body.appendChild(tabEl);
     setBoundingClientRect(tabEl, {
@@ -165,7 +169,7 @@ describe('useDragController — pointer flow', () => {
 
   it('treats sub-threshold move + up as a click (calls onClick)', () => {
     const { handle } = setupStore();
-    const hook = renderHook(() => useDragController(() => handle));
+    const hook = renderHook(() => useTileryDragController(() => handle));
     const tabEl = document.createElement('div');
     document.body.appendChild(tabEl);
     let clicked = false;
@@ -216,7 +220,7 @@ describe('useDragController — pointer flow', () => {
 
   it('enters drag state when move exceeds threshold and commits on pointerup', () => {
     const { handle, getState } = setupStore();
-    const hook = renderHook(() => useDragController(() => handle));
+    const hook = renderHook(() => useTileryDragController(() => handle));
     const tabEl = document.createElement('div');
     const panel2El = document.createElement('div');
     document.body.appendChild(tabEl);
@@ -288,7 +292,7 @@ describe('useDragController — pointer flow', () => {
       hook.current().onTabPointerUp(asReact(up), 'T1', () => {});
     });
     expect(hook.current().dragState).toBeNull();
-    // commitDrag should have moved T1 into P2 (center zone → append)
+    // tileryCommitDrag should have moved T1 into P2 (center zone → append)
     expect(getState().panels.P2!.tabs).toContain('T1');
     hook.unmount();
     tabEl.remove();
@@ -297,7 +301,7 @@ describe('useDragController — pointer flow', () => {
 
   it('ignores pointermove with a different pointerId', () => {
     const { handle } = setupStore();
-    const hook = renderHook(() => useDragController(() => handle));
+    const hook = renderHook(() => useTileryDragController(() => handle));
     const tabEl = document.createElement('div');
     document.body.appendChild(tabEl);
     act(() => {
@@ -327,7 +331,7 @@ describe('useDragController — pointer flow', () => {
 
   it('pointer cancel clears pending and drag state', () => {
     const { handle } = setupStore();
-    const hook = renderHook(() => useDragController(() => handle));
+    const hook = renderHook(() => useTileryDragController(() => handle));
     const tabEl = document.createElement('div');
     document.body.appendChild(tabEl);
     setBoundingClientRect(tabEl, {
@@ -398,7 +402,7 @@ describe('useDragController — pointer flow', () => {
 
   it('pointerup with no pending nor drag state is a no-op (different pointer id)', () => {
     const { handle } = setupStore();
-    const hook = renderHook(() => useDragController(() => handle));
+    const hook = renderHook(() => useTileryDragController(() => handle));
     const tabEl = document.createElement('div');
     document.body.appendChild(tabEl);
     let clicked = false;
@@ -423,10 +427,10 @@ describe('useDragController — pointer flow', () => {
   });
 });
 
-describe('useDragController — hover detection', () => {
+describe('useTileryDragController — hover detection', () => {
   it('detects tab-bar hovers with before/after/append based on tab rects', () => {
     const { handle } = setupStore();
-    const hook = renderHook(() => useDragController(() => handle));
+    const hook = renderHook(() => useTileryDragController(() => handle));
     const tabBarEl = document.createElement('div');
     const t1El = document.createElement('div');
     const t2El = document.createElement('div');
@@ -519,7 +523,7 @@ describe('useDragController — hover detection', () => {
 
   it('handles tab-bar hover when the underlying panel is missing', () => {
     const { handle } = setupStore();
-    const hook = renderHook(() => useDragController(() => handle));
+    const hook = renderHook(() => useTileryDragController(() => handle));
     const tabBarEl = document.createElement('div');
     document.body.appendChild(tabBarEl);
     setBoundingClientRect(tabBarEl, {
@@ -573,7 +577,7 @@ describe('useDragController — hover detection', () => {
 
   it('skips tabs that have not been registered yet during tab-bar hover', () => {
     const { handle } = setupStore();
-    const hook = renderHook(() => useDragController(() => handle));
+    const hook = renderHook(() => useTileryDragController(() => handle));
     const tabBarEl = document.createElement('div');
     const t1El = document.createElement('div');
     // T2 deliberately not registered
@@ -642,7 +646,7 @@ describe('useDragController — hover detection', () => {
 
   it('iterates through multiple panels and returns null hover when cursor is outside every panel', () => {
     const { handle } = setupStore();
-    const hook = renderHook(() => useDragController(() => handle));
+    const hook = renderHook(() => useTileryDragController(() => handle));
     const p1El = document.createElement('div');
     const p2El = document.createElement('div');
     document.body.appendChild(p1El);
@@ -689,7 +693,7 @@ describe('useDragController — hover detection', () => {
       });
       hook.current().onTabPointerDown(asReact(down), 'T1');
     });
-    // Move into the gap between P1 and P2 (zoneAt → null for both)
+    // Move into the gap between P1 and P2 (tileryZoneAt → null for both)
     act(() => {
       const m = pointerEvent('pointermove', {
         clientX: 150,
@@ -718,7 +722,7 @@ describe('useDragController — hover detection', () => {
 
   it('falls through tab-bars that the cursor is outside of', () => {
     const { handle } = setupStore();
-    const hook = renderHook(() => useDragController(() => handle));
+    const hook = renderHook(() => useTileryDragController(() => handle));
     const offBar = document.createElement('div');
     const panelEl = document.createElement('div');
     document.body.appendChild(offBar);
@@ -787,7 +791,7 @@ describe('useDragController — hover detection', () => {
     // Layout: P1 [A] at x=[0,200], P2 [B] at x=[200,400]. B is to the right of P1.
     // Dragging B onto P1's LEFT zone is OPPOSITE to source (B is on right) → swap is the intent → zone shown.
     // Dragging B onto P1's RIGHT zone is SAME side as B → already-where-it-is → suppress.
-    let state: LayoutState = createInitialState({
+    let state: TileryLayoutState = tileryCreateInitialState({
       panels: [
         {
           id: 'P1',
@@ -801,11 +805,11 @@ describe('useDragController — hover detection', () => {
         },
       ],
     });
-    const dispatch = (a: ReducerAction) => {
-      state = reducer(state, a);
+    const dispatch = (a: TileryReducerAction) => {
+      state = tileryReducer(state, a);
     };
     const handle = makeTileryHandle(() => state, dispatch);
-    const hook = renderHook(() => useDragController(() => handle));
+    const hook = renderHook(() => useTileryDragController(() => handle));
     const p1El = document.createElement('div');
     const bTabEl = document.createElement('div');
     document.body.appendChild(p1El);
@@ -902,7 +906,7 @@ describe('useDragController — hover detection', () => {
     // Layout: P1 [A] top (y=[0,200]), P2 [B] bottom (y=[200,400]). B is below P1.
     // Dragging B onto P1's TOP zone is OPPOSITE to source → swap → shown.
     // Dragging B onto P1's BOTTOM zone is SAME side as source → suppress.
-    let state: LayoutState = createInitialState({
+    let state: TileryLayoutState = tileryCreateInitialState({
       panels: [
         {
           id: 'P1',
@@ -916,11 +920,11 @@ describe('useDragController — hover detection', () => {
         },
       ],
     });
-    const dispatch = (a: ReducerAction) => {
-      state = reducer(state, a);
+    const dispatch = (a: TileryReducerAction) => {
+      state = tileryReducer(state, a);
     };
     const handle = makeTileryHandle(() => state, dispatch);
-    const hook = renderHook(() => useDragController(() => handle));
+    const hook = renderHook(() => useTileryDragController(() => handle));
     const p1El = document.createElement('div');
     const bTabEl = document.createElement('div');
     document.body.appendChild(p1El);
@@ -1004,7 +1008,7 @@ describe('useDragController — hover detection', () => {
   it('does NOT suppress same-axis split when the source has multiple tabs (source will survive)', () => {
     // P1 [A] | P2 [B, C]. Dragging C onto P1: source P2 won't collapse, so
     // the split IS structurally meaningful (P2 keeps B). Allow left/right.
-    let state: LayoutState = createInitialState({
+    let state: TileryLayoutState = tileryCreateInitialState({
       panels: [
         {
           id: 'P1',
@@ -1021,11 +1025,11 @@ describe('useDragController — hover detection', () => {
         },
       ],
     });
-    const dispatch = (a: ReducerAction) => {
-      state = reducer(state, a);
+    const dispatch = (a: TileryReducerAction) => {
+      state = tileryReducer(state, a);
     };
     const handle = makeTileryHandle(() => state, dispatch);
-    const hook = renderHook(() => useDragController(() => handle));
+    const hook = renderHook(() => useTileryDragController(() => handle));
     const p1El = document.createElement('div');
     const cTabEl = document.createElement('div');
     document.body.appendChild(p1El);
@@ -1078,7 +1082,7 @@ describe('useDragController — hover detection', () => {
   it('does NOT suppress same-axis split when the target has multiple tabs (target keeps others)', () => {
     // P1 [A, B] | P2 [C]. Dragging C onto P1: target P1 keeps A and B in its
     // shrunk area, NEW gets C. Different shape, allow.
-    let state: LayoutState = createInitialState({
+    let state: TileryLayoutState = tileryCreateInitialState({
       panels: [
         {
           id: 'P1',
@@ -1095,11 +1099,11 @@ describe('useDragController — hover detection', () => {
         },
       ],
     });
-    const dispatch = (a: ReducerAction) => {
-      state = reducer(state, a);
+    const dispatch = (a: TileryReducerAction) => {
+      state = tileryReducer(state, a);
     };
     const handle = makeTileryHandle(() => state, dispatch);
-    const hook = renderHook(() => useDragController(() => handle));
+    const hook = renderHook(() => useTileryDragController(() => handle));
     const p1El = document.createElement('div');
     const cTabEl = document.createElement('div');
     document.body.appendChild(p1El);
@@ -1154,7 +1158,7 @@ describe('useDragController — hover detection', () => {
     // zone is the user's "put me to the left of B" intent — swap B and C
     // positions cleanly (preserves proportions). RIGHT zone (same side as C)
     // is suppressed.
-    let state: LayoutState = createInitialState({
+    let state: TileryLayoutState = tileryCreateInitialState({
       panels: [
         {
           id: 'P1',
@@ -1173,11 +1177,11 @@ describe('useDragController — hover detection', () => {
         },
       ],
     });
-    const dispatch = (a: ReducerAction) => {
-      state = reducer(state, a);
+    const dispatch = (a: TileryReducerAction) => {
+      state = tileryReducer(state, a);
     };
     const handle = makeTileryHandle(() => state, dispatch);
-    const hook = renderHook(() => useDragController(() => handle));
+    const hook = renderHook(() => useTileryDragController(() => handle));
     const p2El = document.createElement('div');
     const cTabEl = document.createElement('div');
     document.body.appendChild(p2El);
@@ -1253,7 +1257,7 @@ describe('useDragController — hover detection', () => {
     // Multi-tab panel: dragging one of its tabs onto its own split zone is a
     // valid operation (source survives with the other tabs). The redundancy
     // rule doesn't apply, and the zone should be shown.
-    let state: LayoutState = createInitialState({
+    let state: TileryLayoutState = tileryCreateInitialState({
       panels: [
         {
           id: 'MULTI',
@@ -1265,11 +1269,11 @@ describe('useDragController — hover detection', () => {
         },
       ],
     });
-    const dispatch = (a: ReducerAction) => {
-      state = reducer(state, a);
+    const dispatch = (a: TileryReducerAction) => {
+      state = tileryReducer(state, a);
     };
     const handle = makeTileryHandle(() => state, dispatch);
-    const hook = renderHook(() => useDragController(() => handle));
+    const hook = renderHook(() => useTileryDragController(() => handle));
     const panelEl = document.createElement('div');
     const aTabEl = document.createElement('div');
     document.body.appendChild(panelEl);
@@ -1324,7 +1328,7 @@ describe('useDragController — hover detection', () => {
   it('does NOT suppress same-axis split when the panels are not adjacent', () => {
     // Layout: P1 [A] top-left, P2 [B] bottom-right. Diagonal opposites — no
     // shared edge. Splitting either is a genuine layout change.
-    let state: LayoutState = createInitialState({
+    let state: TileryLayoutState = tileryCreateInitialState({
       panels: [
         {
           id: 'P1',
@@ -1348,11 +1352,11 @@ describe('useDragController — hover detection', () => {
         },
       ],
     });
-    const dispatch = (a: ReducerAction) => {
-      state = reducer(state, a);
+    const dispatch = (a: TileryReducerAction) => {
+      state = tileryReducer(state, a);
     };
     const handle = makeTileryHandle(() => state, dispatch);
-    const hook = renderHook(() => useDragController(() => handle));
+    const hook = renderHook(() => useTileryDragController(() => handle));
     const p1El = document.createElement('div');
     const bTabEl = document.createElement('div');
     document.body.appendChild(p1El);
@@ -1417,7 +1421,7 @@ describe('useDragController — hover detection', () => {
     // Single panel with one tab; dragging that tab over its own panel —
     // anywhere (split zones, center, or tab bar) — should produce NO hover
     // state, because every possible drop is a no-op.
-    let state: LayoutState = createInitialState({
+    let state: TileryLayoutState = tileryCreateInitialState({
       panels: [
         {
           id: 'SOLO',
@@ -1426,11 +1430,11 @@ describe('useDragController — hover detection', () => {
         },
       ],
     });
-    const dispatch = (a: ReducerAction) => {
-      state = reducer(state, a);
+    const dispatch = (a: TileryReducerAction) => {
+      state = tileryReducer(state, a);
     };
     const handle = makeTileryHandle(() => state, dispatch);
-    const hook = renderHook(() => useDragController(() => handle));
+    const hook = renderHook(() => useTileryDragController(() => handle));
     const panelEl = document.createElement('div');
     const tabBarEl = document.createElement('div');
     const oneEl = document.createElement('div');

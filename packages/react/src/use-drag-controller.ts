@@ -1,68 +1,77 @@
 'use client';
 
 import { useCallback, useRef, useState } from 'react';
-import type { TileryHandle, PanelId, TabId } from 'tilery';
+import type { TileryHandle, TileryPanelId, TileryTabId } from 'tilery/internal';
 import {
-  tabBarDropAt,
-  zoneAt,
-  adjacencySide,
-  classifyByZoneAndSide,
-  commitDrag,
-  type PanelZone,
-  type DragState,
-} from 'tilery';
+  tileryTabBarDropAt,
+  tileryZoneAt,
+  tileryAdjacencySide,
+  tileryClassifyByZoneAndSide,
+  tileryCommitDrag,
+  type TileryPanelZone,
+  type TileryDragState,
+} from 'tilery/internal';
 
-export { adjacencySide, classifyByZoneAndSide, commitDrag } from 'tilery';
-export type { DragState } from 'tilery';
+export {
+  tileryAdjacencySide,
+  tileryClassifyByZoneAndSide,
+  tileryCommitDrag,
+} from 'tilery/internal';
+export type { TileryDragState } from 'tilery/internal';
 
 type Refs = {
-  panelEls: Map<PanelId, HTMLElement>;
-  tabBarEls: Map<PanelId, HTMLElement>;
-  tabEls: Map<TabId, HTMLElement>;
+  panelEls: Map<TileryPanelId, HTMLElement>;
+  tabBarEls: Map<TileryPanelId, HTMLElement>;
+  tabEls: Map<TileryTabId, HTMLElement>;
 };
 
 const DRAG_THRESHOLD_PX = 4;
 
-export function useDragController(tilery: () => TileryHandle | null) {
+export function useTileryDragController(tilery: () => TileryHandle | null) {
   const refs = useRef<Refs>({
     panelEls: new Map(),
     tabBarEls: new Map(),
     tabEls: new Map(),
   });
-  const [dragState, setDragStateInternal] = useState<DragState | null>(null);
-  const dragStateRef = useRef<DragState | null>(null);
-  const setDragState = useCallback((next: DragState | null) => {
+  const [dragState, setDragStateInternal] = useState<TileryDragState | null>(
+    null,
+  );
+  const dragStateRef = useRef<TileryDragState | null>(null);
+  const setDragState = useCallback((next: TileryDragState | null) => {
     dragStateRef.current = next;
     setDragStateInternal(next);
   }, []);
   const pendingRef = useRef<{
-    tabId: TabId;
+    tabId: TileryTabId;
     pointerId: number;
     startX: number;
     startY: number;
   } | null>(null);
 
   const registerPanel = useCallback(
-    (panelId: PanelId, el: HTMLElement | null) => {
+    (panelId: TileryPanelId, el: HTMLElement | null) => {
       if (el) refs.current.panelEls.set(panelId, el);
       else refs.current.panelEls.delete(panelId);
     },
     [],
   );
   const registerTabBar = useCallback(
-    (panelId: PanelId, el: HTMLElement | null) => {
+    (panelId: TileryPanelId, el: HTMLElement | null) => {
       if (el) refs.current.tabBarEls.set(panelId, el);
       else refs.current.tabBarEls.delete(panelId);
     },
     [],
   );
-  const registerTab = useCallback((tabId: TabId, el: HTMLElement | null) => {
-    if (el) refs.current.tabEls.set(tabId, el);
-    else refs.current.tabEls.delete(tabId);
-  }, []);
+  const registerTab = useCallback(
+    (tabId: TileryTabId, el: HTMLElement | null) => {
+      if (el) refs.current.tabEls.set(tabId, el);
+      else refs.current.tabEls.delete(tabId);
+    },
+    [],
+  );
 
   const isOwnSoloPanel = useCallback(
-    (panelId: PanelId, draggedTabId: TabId): boolean => {
+    (panelId: TileryPanelId, draggedTabId: TileryTabId): boolean => {
       const m = tilery();
       /* v8 ignore next */
       if (!m) return false;
@@ -76,9 +85,9 @@ export function useDragController(tilery: () => TileryHandle | null) {
 
   const classifySplitInteraction = useCallback(
     (
-      panelId: PanelId,
-      draggedTabId: TabId,
-      zone: PanelZone,
+      panelId: TileryPanelId,
+      draggedTabId: TileryTabId,
+      zone: TileryPanelZone,
     ): 'suppress' | 'swap' | 'split' => {
       if (zone === 'center') return 'split';
       const m = tilery();
@@ -92,9 +101,9 @@ export function useDragController(tilery: () => TileryHandle | null) {
       if (source.id === target.id) return 'split';
       if (source.tabs.length !== 1) return 'split';
       if (target.tabs.length !== 1) return 'split';
-      const side = adjacencySide(source, target);
+      const side = tileryAdjacencySide(source, target);
       if (!side) return 'split';
-      return classifyByZoneAndSide(zone, side);
+      return tileryClassifyByZoneAndSide(zone, side);
     },
     [tilery],
   );
@@ -103,11 +112,11 @@ export function useDragController(tilery: () => TileryHandle | null) {
     (
       x: number,
       y: number,
-      draggedTabId: TabId,
-    ): Pick<DragState, 'hoverPanelId' | 'hoverZone' | 'hoverTabBar'> => {
-      let hoverPanelId: PanelId | null = null;
-      let hoverZone: PanelZone | null = null;
-      let hoverTabBar: DragState['hoverTabBar'] = null;
+      draggedTabId: TileryTabId,
+    ): Pick<TileryDragState, 'hoverPanelId' | 'hoverZone' | 'hoverTabBar'> => {
+      let hoverPanelId: TileryPanelId | null = null;
+      let hoverZone: TileryPanelZone | null = null;
+      let hoverTabBar: TileryDragState['hoverTabBar'] = null;
 
       for (const [panelId, tabBarEl] of refs.current.tabBarEls) {
         const r = tabBarEl.getBoundingClientRect();
@@ -123,7 +132,7 @@ export function useDragController(tilery: () => TileryHandle | null) {
             tabRects.push({ tabId: t.id, left: tr.left, right: tr.right });
           }
         }
-        const hit = tabBarDropAt(tabRects, x);
+        const hit = tileryTabBarDropAt(tabRects, x);
         hoverTabBar = { panelId, hit };
         hoverPanelId = panelId;
         break;
@@ -132,7 +141,7 @@ export function useDragController(tilery: () => TileryHandle | null) {
       if (!hoverTabBar) {
         for (const [panelId, panelEl] of refs.current.panelEls) {
           const r = panelEl.getBoundingClientRect();
-          const z = zoneAt(
+          const z = tileryZoneAt(
             { left: r.left, top: r.top, width: r.width, height: r.height },
             x,
             y,
@@ -152,7 +161,7 @@ export function useDragController(tilery: () => TileryHandle | null) {
   );
 
   const onTabPointerDown = useCallback(
-    (e: React.PointerEvent, tabId: TabId) => {
+    (e: React.PointerEvent, tabId: TileryTabId) => {
       if (e.button !== 0) return;
       const target = e.currentTarget as HTMLElement;
       try {
@@ -200,7 +209,7 @@ export function useDragController(tilery: () => TileryHandle | null) {
   );
 
   const onTabPointerUp = useCallback(
-    (_e: React.PointerEvent, tabId: TabId, onClick: () => void) => {
+    (_e: React.PointerEvent, tabId: TileryTabId, onClick: () => void) => {
       const target = _e.currentTarget as HTMLElement;
       try {
         target.releasePointerCapture(_e.pointerId);
@@ -214,7 +223,7 @@ export function useDragController(tilery: () => TileryHandle | null) {
         return;
       }
       if (current && current.pointerId === _e.pointerId) {
-        commitDrag(tilery(), current, tabId);
+        tileryCommitDrag(tilery(), current, tabId);
         setDragState(null);
       }
     },

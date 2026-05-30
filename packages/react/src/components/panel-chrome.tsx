@@ -1,11 +1,14 @@
 'use client';
 
-import type { PanelHandle, TabHandle } from 'tilery';
+import type { TileryPanelHandle, TileryTabHandle } from 'tilery/internal';
 import { TabBar, type TabBarProps } from './tab-bar';
 
 export type PanelChromeProps = Omit<TabBarProps, 'panel' | 'renderHeader'> & {
-  panel: PanelHandle;
-  renderHeader: (tab: TabHandle, ctx: { isActive: boolean }) => React.ReactNode;
+  panel: TileryPanelHandle;
+  renderHeader: (
+    tab: TileryTabHandle,
+    ctx: { isActive: boolean },
+  ) => React.ReactNode;
   registerPanel: (el: HTMLElement | null) => void;
   registerContentSlot: (el: HTMLElement | null) => void;
 };

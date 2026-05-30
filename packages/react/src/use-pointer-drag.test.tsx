@@ -5,22 +5,22 @@ import React, { act } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import {
-  usePointerDrag,
-  type UsePointerDragHandlers,
-  type UsePointerDragOptions,
+  useTileryPointerDrag,
+  type TileryPointerDragHandlers,
+  type TileryPointerDragOptions,
 } from './use-pointer-drag';
 
 // Renders a probe that exposes the hook's handlers, then returns helpers for
 // invoking them inside `act()`.
-function setup(options: Partial<UsePointerDragOptions> = {}) {
+function setup(options: Partial<TileryPointerDragOptions> = {}) {
   const moves: React.PointerEvent[] = [];
   const container = document.createElement('div');
   document.body.appendChild(container);
 
-  let handlers!: UsePointerDragHandlers;
+  let handlers!: TileryPointerDragHandlers;
 
   function Probe() {
-    handlers = usePointerDrag({
+    handlers = useTileryPointerDrag({
       onMove: (e) => moves.push(e),
       stopPropagationOnDown: options.stopPropagationOnDown,
     });
@@ -86,7 +86,7 @@ function setup(options: Partial<UsePointerDragOptions> = {}) {
   };
 }
 
-describe('usePointerDrag — gating', () => {
+describe('useTileryPointerDrag — gating', () => {
   it('ignores non-left buttons on pointerdown', () => {
     const t = setup();
     const e = t.fakeEvent({ button: 2 });
@@ -105,7 +105,7 @@ describe('usePointerDrag — gating', () => {
   });
 });
 
-describe('usePointerDrag — happy path', () => {
+describe('useTileryPointerDrag — happy path', () => {
   it('starts dragging on pointerdown and routes moves to onMove', () => {
     const t = setup();
     t.handlers().onPointerDown(t.fakeEvent());
@@ -131,7 +131,7 @@ describe('usePointerDrag — happy path', () => {
   });
 });
 
-describe('usePointerDrag — stopPropagationOnDown', () => {
+describe('useTileryPointerDrag — stopPropagationOnDown', () => {
   it('does not stop propagation by default', () => {
     const t = setup();
     const e = t.fakeEvent() as React.PointerEvent & {
@@ -153,7 +153,7 @@ describe('usePointerDrag — stopPropagationOnDown', () => {
   });
 });
 
-describe('usePointerDrag — robustness', () => {
+describe('useTileryPointerDrag — robustness', () => {
   it('survives setPointerCapture throwing', () => {
     const t = setup();
     const e = {

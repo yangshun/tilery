@@ -5,9 +5,9 @@ import React, { act, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { JunctionHandle } from './junction-handle';
-import type { Junction } from 'tilery';
+import type { TileryJunction } from 'tilery/internal';
 
-const JUNCTION: Junction = {
+const JUNCTION: TileryJunction = {
   id: 'j|v|h',
   x: 40,
   y: 50,
@@ -42,7 +42,7 @@ type Handlers = {
 function setup({
   onDrag,
 }: {
-  onDrag: (j: Junction, xPct: number, yPct: number) => void;
+  onDrag: (j: TileryJunction, xPct: number, yPct: number) => void;
 }) {
   const host = document.createElement('div');
   document.body.appendChild(host);
@@ -128,7 +128,8 @@ describe('JunctionHandle — rendering', () => {
 
 describe('JunctionHandle — drag flow', () => {
   it('translates cursor coords into (xPct, yPct) and routes to onDrag', () => {
-    const recorded: Array<{ j: Junction; xPct: number; yPct: number }> = [];
+    const recorded: Array<{ j: TileryJunction; xPct: number; yPct: number }> =
+      [];
     const t = setup({
       onDrag: (j, xPct, yPct) => recorded.push({ j, xPct, yPct }),
     });

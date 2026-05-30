@@ -12,37 +12,37 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { PanelChrome } from './components/panel-chrome';
-import { Divider } from './components/divider';
+import { TileryDivider } from './components/divider';
 import { JunctionHandle } from './components/junction-handle';
 import { DropOverlay } from './components/drop-overlay';
-import { useDragController } from './use-drag-controller';
+import { useTileryDragController } from './use-drag-controller';
 import {
-  createInitialState,
-  reducer,
+  tileryCreateInitialState,
+  tileryReducer,
   makeTileryHandle,
-  deriveDividers,
-  deriveJunctions,
-  type ReducerAction,
-  type Junction,
-  type InitialLayout,
-  type LayoutState,
+  tileryDeriveDividers,
+  tileryDeriveJunctions,
+  type TileryReducerAction,
+  type TileryJunction,
+  type TileryInitialLayout,
+  type TileryLayoutState,
   type TileryHandle,
-  type PanelHandle,
-  type PanelId,
-  type TabHandle,
-  type TabId,
-} from 'tilery';
+  type TileryPanelHandle,
+  type TileryPanelId,
+  type TileryTabHandle,
+  type TileryTabId,
+} from 'tilery/internal';
 
 import 'tilery/style.css';
 
 export type TileryProps<TData = unknown> = {
-  initialLayout: InitialLayout<TData>;
+  initialLayout: TileryInitialLayout<TData>;
   renderTabHeader: (
-    tab: TabHandle<TData>,
+    tab: TileryTabHandle<TData>,
     ctx: { isActive: boolean },
   ) => React.ReactNode;
-  renderTabContent: (tab: TabHandle<TData>) => React.ReactNode;
-  onChange?: (state: LayoutState) => void;
+  renderTabContent: (tab: TileryTabHandle<TData>) => React.ReactNode;
+  onChange?: (state: TileryLayoutState) => void;
   minPanelSizePercent?: number;
 };
 
@@ -59,9 +59,9 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
   } = props;
 
   const [state, dispatch] = useReducer(
-    reducer,
+    tileryReducer,
     initialLayout,
-    createInitialState,
+    tileryCreateInitialState,
   );
   const stateRef = useRef(state);
   stateRef.current = state;
@@ -69,7 +69,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   const dispatchWithMin = useCallback(
-    (action: ReducerAction) => {
+    (action: TileryReducerAction) => {
       if (action.type === 'RESIZE_DIVIDER') {
         dispatch({
           ...action,
@@ -91,9 +91,11 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
   }
   useImperativeHandle(ref, () => tileryRef.current!, []);
 
-  const panelHandleCache = useRef<Map<PanelId, PanelHandle>>(new Map());
+  const panelHandleCache = useRef<Map<TileryPanelId, TileryPanelHandle>>(
+    new Map(),
+  );
   const getCachedPanelHandle = useCallback(
-    (id: PanelId): PanelHandle | null => {
+    (id: TileryPanelId): TileryPanelHandle | null => {
       /* v8 ignore next 4 */
       if (!stateRef.current.panels[id]) {
         panelHandleCache.current.delete(id);
@@ -109,26 +111,29 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
     },
     [],
   );
-  const tabHandleCache = useRef<Map<TabId, TabHandle>>(new Map());
-  const getCachedTabHandle = useCallback((id: TabId): TabHandle | null => {
-    if (!stateRef.current.tabs[id]) {
-      tabHandleCache.current.delete(id);
-      return null;
-    }
-    const cached = tabHandleCache.current.get(id);
-    if (cached) return cached;
-    const fresh = tileryRef.current!.getTab(id);
-    /* v8 ignore next */
-    if (!fresh) return null;
-    tabHandleCache.current.set(id, fresh);
-    return fresh;
-  }, []);
+  const tabHandleCache = useRef<Map<TileryTabId, TileryTabHandle>>(new Map());
+  const getCachedTabHandle = useCallback(
+    (id: TileryTabId): TileryTabHandle | null => {
+      if (!stateRef.current.tabs[id]) {
+        tabHandleCache.current.delete(id);
+        return null;
+      }
+      const cached = tabHandleCache.current.get(id);
+      if (cached) return cached;
+      const fresh = tileryRef.current!.getTab(id);
+      /* v8 ignore next */
+      if (!fresh) return null;
+      tabHandleCache.current.set(id, fresh);
+      return fresh;
+    },
+    [],
+  );
 
   useEffect(() => {
     onChange?.(state);
   }, [state, onChange]);
 
-  const drag = useDragController(() => tileryRef.current);
+  const drag = useTileryDragController(() => tileryRef.current);
 
   const [limboEl] = useState(() => {
     /* v8 ignore next */
@@ -150,12 +155,12 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
   }, [limboEl]);
 
   const [contentSlots, setContentSlots] = useState<
-    Record<PanelId, HTMLElement | null>
+    Record<TileryPanelId, HTMLElement | null>
   >({});
-  const slotCbCache = useRef<Map<PanelId, (el: HTMLElement | null) => void>>(
-    new Map(),
-  );
-  const getRegisterContentSlot = useCallback((panelId: PanelId) => {
+  const slotCbCache = useRef<
+    Map<TileryPanelId, (el: HTMLElement | null) => void>
+  >(new Map());
+  const getRegisterContentSlot = useCallback((panelId: TileryPanelId) => {
     const cached = slotCbCache.current.get(panelId);
     if (cached) return cached;
     const cb = (el: HTMLElement | null) => {
@@ -169,8 +174,8 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
     return cb;
   }, []);
 
-  const tabHosts = useRef<Map<TabId, HTMLDivElement>>(new Map());
-  const ensureTabHost = (tabId: TabId): HTMLDivElement | null => {
+  const tabHosts = useRef<Map<TileryTabId, HTMLDivElement>>(new Map());
+  const ensureTabHost = (tabId: TileryTabId): HTMLDivElement | null => {
     /* v8 ignore next */
     if (typeof document === 'undefined') return null;
     let host = tabHosts.current.get(tabId);
@@ -198,14 +203,16 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
     }
   }, [state.tabs, contentSlots, limboEl]);
 
-  const dividers = useMemo(() => deriveDividers(state), [state]);
-  const junctions = useMemo(() => deriveJunctions(dividers), [dividers]);
+  const dividers = useMemo(() => tileryDeriveDividers(state), [state]);
+  const junctions = useMemo(() => tileryDeriveJunctions(dividers), [dividers]);
 
-  const activeByPanelRef = useRef<Record<PanelId, TabId | null>>({});
+  const activeByPanelRef = useRef<Record<TileryPanelId, TileryTabId | null>>(
+    {},
+  );
   const activeByPanelFp = useRef<string>('');
   const activeByPanel = useMemo(() => {
     let fp = '';
-    const next: Record<PanelId, TabId | null> = {};
+    const next: Record<TileryPanelId, TileryTabId | null> = {};
     for (const pid of state.panelOrder) {
       const p = state.panels[pid];
       /* v8 ignore next */
@@ -239,7 +246,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
   );
 
   const onJunctionDrag = useCallback(
-    (junction: Junction, xPct: number, yPct: number) => {
+    (junction: TileryJunction, xPct: number, yPct: number) => {
       dispatchWithMin({
         type: 'RESIZE_DIVIDER',
         dividerId: junction.verticalDividerId,
@@ -257,18 +264,18 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
   );
 
   const renderHeaderAdapter = useCallback(
-    (tab: TabHandle, ctx: { isActive: boolean }) =>
-      renderTabHeader(tab as TabHandle<TData>, ctx),
+    (tab: TileryTabHandle, ctx: { isActive: boolean }) =>
+      renderTabHeader(tab as TileryTabHandle<TData>, ctx),
     [renderTabHeader],
   );
 
-  const panelEls = useRef<Map<PanelId, HTMLElement>>(new Map());
-  const panelCbCache = useRef<Map<PanelId, (el: HTMLElement | null) => void>>(
-    new Map(),
-  );
-  const tabBarCbCache = useRef<Map<PanelId, (el: HTMLElement | null) => void>>(
-    new Map(),
-  );
+  const panelEls = useRef<Map<TileryPanelId, HTMLElement>>(new Map());
+  const panelCbCache = useRef<
+    Map<TileryPanelId, (el: HTMLElement | null) => void>
+  >(new Map());
+  const tabBarCbCache = useRef<
+    Map<TileryPanelId, (el: HTMLElement | null) => void>
+  >(new Map());
   const tabCbRef = useRef<(tabId: string, el: HTMLElement | null) => void>(
     /* v8 ignore next */
     () => {},
@@ -283,7 +290,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
   );
 
   const getRegisterPanel = useCallback(
-    (panelId: PanelId) => {
+    (panelId: TileryPanelId) => {
       const cached = panelCbCache.current.get(panelId);
       if (cached) return cached;
       const cb = (el: HTMLElement | null) => {
@@ -297,7 +304,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
     [drag],
   );
   const getRegisterTabBar = useCallback(
-    (panelId: PanelId) => {
+    (panelId: TileryPanelId) => {
       const cached = tabBarCbCache.current.get(panelId);
       if (cached) return cached;
       const cb = (el: HTMLElement | null) => drag.registerTabBar(panelId, el);
@@ -318,7 +325,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
       if (!tabHandle) return null;
       return createPortal(
         <div className="tilery__tab-content" data-active={isActive}>
-          {renderTabContent(tabHandle as TabHandle<TData>)}
+          {renderTabContent(tabHandle as TileryTabHandle<TData>)}
         </div>,
         host,
         tabState.id,
@@ -354,7 +361,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
         })}
 
         {dividers.map((d) => (
-          <Divider
+          <TileryDivider
             key={d.id}
             divider={d}
             onDrag={onDividerDrag}

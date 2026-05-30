@@ -1,42 +1,42 @@
 import type {
-  Direction,
-  Divider,
-  DividerOrientation,
-  Inset,
-  LayoutState,
-  PanelId,
-  PanelState,
+  TileryDirection,
+  TileryDivider,
+  TileryDividerOrientation,
+  TileryInset,
+  TileryLayoutState,
+  TileryPanelId,
+  TileryPanelState,
 } from '../types';
 
-export const DEFAULT_MIN_PANEL_SIZE = 10;
+export const TILERY_DEFAULT_MIN_PANEL_SIZE = 10;
 const EPSILON = 0.0001;
 
 const eq = (a: number, b: number) => Math.abs(a - b) < EPSILON;
 
-export function panelLeft(p: PanelState): number {
+export function tileryPanelLeft(p: TileryPanelState): number {
   return p.inset.left;
 }
-export function panelRight(p: PanelState): number {
+export function tileryPanelRight(p: TileryPanelState): number {
   return 100 - p.inset.right;
 }
-export function panelTop(p: PanelState): number {
+export function tileryPanelTop(p: TileryPanelState): number {
   return p.inset.top;
 }
-export function panelBottom(p: PanelState): number {
+export function tileryPanelBottom(p: TileryPanelState): number {
   return 100 - p.inset.bottom;
 }
-export function panelWidth(p: PanelState): number {
+export function tileryPanelWidth(p: TileryPanelState): number {
   return 100 - p.inset.left - p.inset.right;
 }
-export function panelHeight(p: PanelState): number {
+export function tileryPanelHeight(p: TileryPanelState): number {
   return 100 - p.inset.top - p.inset.bottom;
 }
 
-export function splitInset(
-  inset: Inset,
-  direction: Direction,
+export function tilerySplitInset(
+  inset: TileryInset,
+  direction: TileryDirection,
   sizePercent: number,
-): { source: Inset; created: Inset } {
+): { source: TileryInset; created: TileryInset } {
   const width = 100 - inset.left - inset.right;
   const height = 100 - inset.top - inset.bottom;
   const sizeClamped = Math.max(0, Math.min(100, sizePercent));
@@ -67,24 +67,26 @@ export function splitInset(
   };
 }
 
-export function deriveDividers(state: LayoutState): Divider[] {
+export function tileryDeriveDividers(
+  state: TileryLayoutState,
+): TileryDivider[] {
   const panels = state.panelOrder
     .map((id) => state.panels[id])
-    .filter((p): p is PanelState => Boolean(p));
-  const dividers: Divider[] = [];
+    .filter((p): p is TileryPanelState => Boolean(p));
+  const dividers: TileryDivider[] = [];
 
   const xMap = new Map<string, number>();
   for (const p of panels) {
-    const l = panelLeft(p);
-    const r = panelRight(p);
+    const l = tileryPanelLeft(p);
+    const r = tileryPanelRight(p);
     xMap.set(roundCoord(l), l);
     xMap.set(roundCoord(r), r);
   }
   for (const xKey of xMap.keys()) {
     const x = xMap.get(xKey)!;
     if (x <= EPSILON || x >= 100 - EPSILON) continue;
-    const lefts = panels.filter((p) => eq(panelRight(p), x));
-    const rights = panels.filter((p) => eq(panelLeft(p), x));
+    const lefts = panels.filter((p) => eq(tileryPanelRight(p), x));
+    const rights = panels.filter((p) => eq(tileryPanelLeft(p), x));
     if (lefts.length === 0 || rights.length === 0) continue;
     const segments = computeAdjacentSegments(lefts, rights, 'vertical');
     for (const seg of segments) {
@@ -104,16 +106,16 @@ export function deriveDividers(state: LayoutState): Divider[] {
 
   const yMap = new Map<string, number>();
   for (const p of panels) {
-    const t = panelTop(p);
-    const b = panelBottom(p);
+    const t = tileryPanelTop(p);
+    const b = tileryPanelBottom(p);
     yMap.set(roundCoord(t), t);
     yMap.set(roundCoord(b), b);
   }
   for (const yKey of yMap.keys()) {
     const y = yMap.get(yKey)!;
     if (y <= EPSILON || y >= 100 - EPSILON) continue;
-    const tops = panels.filter((p) => eq(panelBottom(p), y));
-    const bottoms = panels.filter((p) => eq(panelTop(p), y));
+    const tops = panels.filter((p) => eq(tileryPanelBottom(p), y));
+    const bottoms = panels.filter((p) => eq(tileryPanelTop(p), y));
     if (tops.length === 0 || bottoms.length === 0) continue;
     const segments = computeAdjacentSegments(tops, bottoms, 'horizontal');
     for (const seg of segments) {
@@ -137,7 +139,7 @@ function roundCoord(n: number): string {
   return n.toFixed(3);
 }
 
-export type Junction = {
+export type TileryJunction = {
   id: string;
   x: number;
   y: number;
@@ -145,10 +147,12 @@ export type Junction = {
   horizontalDividerId: string;
 };
 
-export function deriveJunctions(dividers: Divider[]): Junction[] {
+export function tileryDeriveJunctions(
+  dividers: TileryDivider[],
+): TileryJunction[] {
   const verticals = dividers.filter((d) => d.orientation === 'vertical');
   const horizontals = dividers.filter((d) => d.orientation === 'horizontal');
-  const out: Junction[] = [];
+  const out: TileryJunction[] = [];
   for (const v of verticals) {
     for (const h of horizontals) {
       if (
@@ -173,8 +177,8 @@ export function deriveJunctions(dividers: Divider[]): Junction[] {
 type Segment = {
   start: number;
   end: number;
-  before: PanelId[];
-  after: PanelId[];
+  before: TileryPanelId[];
+  after: TileryPanelId[];
 };
 
 type Range = { start: number; end: number };
@@ -208,21 +212,21 @@ function intersectRanges(a: Range[], b: Range[]): Range[] {
 }
 
 function computeAdjacentSegments(
-  beforeSide: PanelState[],
-  afterSide: PanelState[],
-  orientation: DividerOrientation,
+  beforeSide: TileryPanelState[],
+  afterSide: TileryPanelState[],
+  orientation: TileryDividerOrientation,
 ): Segment[] {
-  const orth = (p: PanelState): Range =>
+  const orth = (p: TileryPanelState): Range =>
     orientation === 'vertical'
-      ? { start: panelTop(p), end: panelBottom(p) }
-      : { start: panelLeft(p), end: panelRight(p) };
+      ? { start: tileryPanelTop(p), end: tileryPanelBottom(p) }
+      : { start: tileryPanelLeft(p), end: tileryPanelRight(p) };
 
   const beforeUnion = unionRanges(beforeSide.map(orth));
   const afterUnion = unionRanges(afterSide.map(orth));
   const intersection = intersectRanges(beforeUnion, afterUnion);
 
   return intersection.map(({ start, end }) => {
-    const overlaps = (p: PanelState) => {
+    const overlaps = (p: TileryPanelState) => {
       const o = orth(p);
       return o.start < end - EPSILON && o.end > start + EPSILON;
     };
@@ -235,11 +239,11 @@ function computeAdjacentSegments(
   });
 }
 
-export function clampDividerPosition(
-  state: LayoutState,
-  divider: Divider,
+export function tileryClampDividerPosition(
+  state: TileryLayoutState,
+  divider: TileryDivider,
   targetPosition: number,
-  minSizePercent: number = DEFAULT_MIN_PANEL_SIZE,
+  minSizePercent: number = TILERY_DEFAULT_MIN_PANEL_SIZE,
 ): number {
   let min = 0;
   let max = 100;
@@ -284,24 +288,24 @@ export function clampDividerPosition(
   return Math.max(min, Math.min(max, targetPosition));
 }
 
-export function splitFitsMin(
-  inset: Inset,
-  direction: Direction,
+export function tilerySplitFitsMin(
+  inset: TileryInset,
+  direction: TileryDirection,
   sizePercent: number,
-  minSizePercent: number = DEFAULT_MIN_PANEL_SIZE,
+  minSizePercent: number = TILERY_DEFAULT_MIN_PANEL_SIZE,
 ): boolean {
-  const { source, created } = splitInset(inset, direction, sizePercent);
+  const { source, created } = tilerySplitInset(inset, direction, sizePercent);
   const tol = minSizePercent - EPSILON;
-  const fits = (i: Inset) =>
+  const fits = (i: TileryInset) =>
     100 - i.left - i.right >= tol && 100 - i.top - i.bottom >= tol;
   return fits(source) && fits(created);
 }
 
-export function applyDividerResize(
-  state: LayoutState,
-  divider: Divider,
+export function tileryApplyDividerResize(
+  state: TileryLayoutState,
+  divider: TileryDivider,
   newPosition: number,
-): LayoutState {
+): TileryLayoutState {
   const nextPanels = { ...state.panels };
   if (divider.orientation === 'vertical') {
     for (const id of divider.beforePanels) {
@@ -335,20 +339,20 @@ export function applyDividerResize(
   return { ...state, panels: nextPanels };
 }
 
-export function findCollapseFillers(
-  panels: PanelState[],
-  removed: PanelState,
-): { id: PanelId; inset: Inset }[] {
-  const removedL = panelLeft(removed);
-  const removedR = panelRight(removed);
-  const removedT = panelTop(removed);
-  const removedB = panelBottom(removed);
+export function tileryFindCollapseFillers(
+  panels: TileryPanelState[],
+  removed: TileryPanelState,
+): { id: TileryPanelId; inset: TileryInset }[] {
+  const removedL = tileryPanelLeft(removed);
+  const removedR = tileryPanelRight(removed);
+  const removedT = tileryPanelTop(removed);
+  const removedB = tileryPanelBottom(removed);
 
   type Side = {
-    candidates: PanelState[];
-    range: (p: PanelState) => Range;
+    candidates: TileryPanelState[];
+    range: (p: TileryPanelState) => Range;
     target: { start: number; end: number };
-    patch: (p: PanelState) => Inset;
+    patch: (p: TileryPanelState) => TileryInset;
   };
 
   const sides: Side[] = [
@@ -356,11 +360,11 @@ export function findCollapseFillers(
       candidates: panels.filter(
         (p) =>
           p.id !== removed.id &&
-          eq(panelLeft(p), removedR) &&
-          panelTop(p) >= removedT - EPSILON &&
-          panelBottom(p) <= removedB + EPSILON,
+          eq(tileryPanelLeft(p), removedR) &&
+          tileryPanelTop(p) >= removedT - EPSILON &&
+          tileryPanelBottom(p) <= removedB + EPSILON,
       ),
-      range: (p) => ({ start: panelTop(p), end: panelBottom(p) }),
+      range: (p) => ({ start: tileryPanelTop(p), end: tileryPanelBottom(p) }),
       target: { start: removedT, end: removedB },
       patch: (p) => ({ ...p.inset, left: removed.inset.left }),
     },
@@ -368,11 +372,11 @@ export function findCollapseFillers(
       candidates: panels.filter(
         (p) =>
           p.id !== removed.id &&
-          eq(panelRight(p), removedL) &&
-          panelTop(p) >= removedT - EPSILON &&
-          panelBottom(p) <= removedB + EPSILON,
+          eq(tileryPanelRight(p), removedL) &&
+          tileryPanelTop(p) >= removedT - EPSILON &&
+          tileryPanelBottom(p) <= removedB + EPSILON,
       ),
-      range: (p) => ({ start: panelTop(p), end: panelBottom(p) }),
+      range: (p) => ({ start: tileryPanelTop(p), end: tileryPanelBottom(p) }),
       target: { start: removedT, end: removedB },
       patch: (p) => ({ ...p.inset, right: removed.inset.right }),
     },
@@ -380,11 +384,11 @@ export function findCollapseFillers(
       candidates: panels.filter(
         (p) =>
           p.id !== removed.id &&
-          eq(panelTop(p), removedB) &&
-          panelLeft(p) >= removedL - EPSILON &&
-          panelRight(p) <= removedR + EPSILON,
+          eq(tileryPanelTop(p), removedB) &&
+          tileryPanelLeft(p) >= removedL - EPSILON &&
+          tileryPanelRight(p) <= removedR + EPSILON,
       ),
-      range: (p) => ({ start: panelLeft(p), end: panelRight(p) }),
+      range: (p) => ({ start: tileryPanelLeft(p), end: tileryPanelRight(p) }),
       target: { start: removedL, end: removedR },
       patch: (p) => ({ ...p.inset, top: removed.inset.top }),
     },
@@ -392,11 +396,11 @@ export function findCollapseFillers(
       candidates: panels.filter(
         (p) =>
           p.id !== removed.id &&
-          eq(panelBottom(p), removedT) &&
-          panelLeft(p) >= removedL - EPSILON &&
-          panelRight(p) <= removedR + EPSILON,
+          eq(tileryPanelBottom(p), removedT) &&
+          tileryPanelLeft(p) >= removedL - EPSILON &&
+          tileryPanelRight(p) <= removedR + EPSILON,
       ),
-      range: (p) => ({ start: panelLeft(p), end: panelRight(p) }),
+      range: (p) => ({ start: tileryPanelLeft(p), end: tileryPanelRight(p) }),
       target: { start: removedL, end: removedR },
       patch: (p) => ({ ...p.inset, bottom: removed.inset.bottom }),
     },
@@ -416,7 +420,7 @@ export function findCollapseFillers(
   return [];
 }
 
-export function rectsOverlap(a: Inset, b: Inset): boolean {
+export function tileryRectsOverlap(a: TileryInset, b: TileryInset): boolean {
   const aL = a.left;
   const aR = 100 - a.right;
   const aT = a.top;

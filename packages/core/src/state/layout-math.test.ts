@@ -1,49 +1,53 @@
 import { describe, expect, it } from 'vite-plus/test';
 import {
-  applyDividerResize,
-  clampDividerPosition,
-  deriveDividers,
-  deriveJunctions,
-  findCollapseFillers,
-  panelBottom,
-  panelHeight,
-  panelLeft,
-  panelRight,
-  panelTop,
-  panelWidth,
-  rectsOverlap,
-  splitFitsMin,
-  splitInset,
+  tileryApplyDividerResize,
+  tileryClampDividerPosition,
+  tileryDeriveDividers,
+  tileryDeriveJunctions,
+  tileryFindCollapseFillers,
+  tileryPanelBottom,
+  tileryPanelHeight,
+  tileryPanelLeft,
+  tileryPanelRight,
+  tileryPanelTop,
+  tileryPanelWidth,
+  tileryRectsOverlap,
+  tilerySplitFitsMin,
+  tilerySplitInset,
 } from './layout-math';
-import { createInitialState, reducer } from './reducer';
-import type { Direction, LayoutState, PanelState } from '../types';
+import { tileryCreateInitialState, tileryReducer } from './reducer';
+import type {
+  TileryDirection,
+  TileryLayoutState,
+  TileryPanelState,
+} from '../types';
 
 const fullInset = { top: 0, right: 0, bottom: 0, left: 0 };
 
-describe('splitInset', () => {
+describe('tilerySplitInset', () => {
   it('splits to the right with 50%', () => {
-    const { source, created } = splitInset(fullInset, 'right', 50);
+    const { source, created } = tilerySplitInset(fullInset, 'right', 50);
     expect(source).toEqual({ top: 0, right: 50, bottom: 0, left: 0 });
     expect(created).toEqual({ top: 0, right: 0, bottom: 0, left: 50 });
   });
   it('splits to the left with 30%', () => {
-    const { source, created } = splitInset(fullInset, 'left', 30);
+    const { source, created } = tilerySplitInset(fullInset, 'left', 30);
     expect(source).toEqual({ top: 0, right: 0, bottom: 0, left: 30 });
     expect(created).toEqual({ top: 0, right: 70, bottom: 0, left: 0 });
   });
   it('splits to the bottom with 25%', () => {
-    const { source, created } = splitInset(fullInset, 'bottom', 25);
+    const { source, created } = tilerySplitInset(fullInset, 'bottom', 25);
     expect(source).toEqual({ top: 0, right: 0, bottom: 25, left: 0 });
     expect(created).toEqual({ top: 75, right: 0, bottom: 0, left: 0 });
   });
   it('splits to the top with 40%', () => {
-    const { source, created } = splitInset(fullInset, 'top', 40);
+    const { source, created } = tilerySplitInset(fullInset, 'top', 40);
     expect(source).toEqual({ top: 40, right: 0, bottom: 0, left: 0 });
     expect(created).toEqual({ top: 0, right: 0, bottom: 60, left: 0 });
   });
   it('splits a non-full inset proportionally', () => {
     // Source: x ∈ [40, 100], width = 60. Split right 50% → new width 30.
-    const { source, created } = splitInset(
+    const { source, created } = tilerySplitInset(
       { top: 0, right: 0, bottom: 0, left: 40 },
       'right',
       50,
@@ -53,9 +57,9 @@ describe('splitInset', () => {
   });
 });
 
-describe('deriveDividers', () => {
+describe('tileryDeriveDividers', () => {
   it('produces a single vertical divider for two side-by-side panels', () => {
-    const state = createInitialState({
+    const state = tileryCreateInitialState({
       panels: [
         {
           id: 'A',
@@ -69,7 +73,7 @@ describe('deriveDividers', () => {
         },
       ],
     });
-    const dividers = deriveDividers(state);
+    const dividers = tileryDeriveDividers(state);
     expect(dividers).toHaveLength(1);
     expect(dividers[0]!.orientation).toBe('vertical');
     expect(dividers[0]!.position).toBe(50);
@@ -78,7 +82,7 @@ describe('deriveDividers', () => {
   });
 
   it('produces two dividers for a 3-panel L-shape (sidebar + editor + terminal)', () => {
-    const state = createInitialState({
+    const state = tileryCreateInitialState({
       panels: [
         {
           id: 'sidebar',
@@ -97,7 +101,7 @@ describe('deriveDividers', () => {
         },
       ],
     });
-    const dividers = deriveDividers(state);
+    const dividers = tileryDeriveDividers(state);
     const vertical = dividers.filter((d) => d.orientation === 'vertical');
     const horizontal = dividers.filter((d) => d.orientation === 'horizontal');
     expect(vertical).toHaveLength(1);
@@ -113,7 +117,7 @@ describe('deriveDividers', () => {
   });
 
   it('produces the right dividers for a 2x2 grid', () => {
-    const state = createInitialState({
+    const state = tileryCreateInitialState({
       panels: [
         {
           id: 'TL',
@@ -137,7 +141,7 @@ describe('deriveDividers', () => {
         },
       ],
     });
-    const dividers = deriveDividers(state);
+    const dividers = tileryDeriveDividers(state);
     const v = dividers.filter((d) => d.orientation === 'vertical');
     const h = dividers.filter((d) => d.orientation === 'horizontal');
     expect(v).toHaveLength(1);
@@ -149,9 +153,9 @@ describe('deriveDividers', () => {
   });
 });
 
-describe('clampDividerPosition + applyDividerResize', () => {
+describe('tileryClampDividerPosition + tileryApplyDividerResize', () => {
   it('clamps the divider to respect min size on both sides', () => {
-    const state = createInitialState({
+    const state = tileryCreateInitialState({
       panels: [
         {
           id: 'A',
@@ -165,17 +169,17 @@ describe('clampDividerPosition + applyDividerResize', () => {
         },
       ],
     });
-    const div = deriveDividers(state)[0]!;
+    const div = tileryDeriveDividers(state)[0]!;
     // Try to push divider to 5% — A would be 5% wide. Should clamp to min (10%).
-    expect(clampDividerPosition(state, div, 5, 10)).toBe(10);
+    expect(tileryClampDividerPosition(state, div, 5, 10)).toBe(10);
     // Try to push to 98% — B would be 2% wide. Should clamp to 90%.
-    expect(clampDividerPosition(state, div, 98, 10)).toBe(90);
+    expect(tileryClampDividerPosition(state, div, 98, 10)).toBe(90);
     // Within bounds, no clamp.
-    expect(clampDividerPosition(state, div, 30, 10)).toBe(30);
+    expect(tileryClampDividerPosition(state, div, 30, 10)).toBe(30);
   });
 
   it('applies a resize correctly to both adjacent panels', () => {
-    const state = createInitialState({
+    const state = tileryCreateInitialState({
       panels: [
         {
           id: 'A',
@@ -189,8 +193,8 @@ describe('clampDividerPosition + applyDividerResize', () => {
         },
       ],
     });
-    const div = deriveDividers(state)[0]!;
-    const next = applyDividerResize(state, div, 70);
+    const div = tileryDeriveDividers(state)[0]!;
+    const next = tileryApplyDividerResize(state, div, 70);
     expect(next.panels.A!.inset).toEqual({
       top: 0,
       right: 30,
@@ -206,9 +210,9 @@ describe('clampDividerPosition + applyDividerResize', () => {
   });
 });
 
-describe('reducer — split, move-tab, auto-collapse', () => {
+describe('tileryReducer — split, move-tab, auto-collapse', () => {
   const baseLayout = () =>
-    createInitialState({
+    tileryCreateInitialState({
       panels: [
         {
           id: 'sidebar',
@@ -233,7 +237,7 @@ describe('reducer — split, move-tab, auto-collapse', () => {
 
   it('SPLIT_PANEL shrinks source and creates new panel with correct inset', () => {
     const state = baseLayout();
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'SPLIT_PANEL',
       panelId: 'sidebar',
       direction: 'right',
@@ -261,7 +265,7 @@ describe('reducer — split, move-tab, auto-collapse', () => {
 
   it('MOVE_TAB into another panel preserves source if it still has tabs', () => {
     const state = baseLayout();
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'MOVE_TAB',
       tabId: 'te1',
       to: { panelId: 'terminal', index: 1 },
@@ -274,7 +278,7 @@ describe('reducer — split, move-tab, auto-collapse', () => {
   it('REMOVE_TAB auto-collapses a panel when last tab is removed (vertical neighbor reflows)', () => {
     const state = baseLayout();
     // Remove sidebar's only tab — sidebar auto-collapses; editor + terminal both extend left
-    const next = reducer(state, { type: 'REMOVE_TAB', tabId: 'ts' });
+    const next = tileryReducer(state, { type: 'REMOVE_TAB', tabId: 'ts' });
     expect(next.panels.sidebar).toBeUndefined();
     expect(next.panelOrder).not.toContain('sidebar');
     expect(next.panels.editor!.inset).toEqual({
@@ -294,7 +298,7 @@ describe('reducer — split, move-tab, auto-collapse', () => {
 
   it('REMOVE_TAB auto-collapses with horizontal neighbor reflow', () => {
     const state = baseLayout();
-    const next = reducer(state, { type: 'REMOVE_TAB', tabId: 'tt' });
+    const next = tileryReducer(state, { type: 'REMOVE_TAB', tabId: 'tt' });
     // terminal collapses; editor extends down to fill the bottom half
     expect(next.panels.terminal).toBeUndefined();
     expect(next.panels.editor!.inset).toEqual({
@@ -307,13 +311,13 @@ describe('reducer — split, move-tab, auto-collapse', () => {
 
   it('REMOVE_TAB without auto-collapse selects a neighbor as active when the active is removed', () => {
     const state = baseLayout();
-    const next = reducer(state, { type: 'REMOVE_TAB', tabId: 'te1' });
+    const next = tileryReducer(state, { type: 'REMOVE_TAB', tabId: 'te1' });
     expect(next.panels.editor!.tabs).toEqual(['te2']);
     expect(next.panels.editor!.activeTabId).toBe('te2');
   });
 
   it('MOVE_TAB out of last-tab panel auto-collapses the source panel', () => {
-    const state: LayoutState = createInitialState({
+    const state: TileryLayoutState = tileryCreateInitialState({
       panels: [
         {
           id: 'A',
@@ -327,7 +331,7 @@ describe('reducer — split, move-tab, auto-collapse', () => {
         },
       ],
     });
-    const next = reducer(state, {
+    const next = tileryReducer(state, {
       type: 'MOVE_TAB',
       tabId: 'ta',
       to: { panelId: 'B', index: 0 },
@@ -343,9 +347,9 @@ describe('reducer — split, move-tab, auto-collapse', () => {
   });
 });
 
-describe('findCollapseFillers — edge cases', () => {
+describe('tileryFindCollapseFillers — edge cases', () => {
   it('expands a left neighbor over a removed right panel of equal height', () => {
-    const state = createInitialState({
+    const state = tileryCreateInitialState({
       panels: [
         {
           id: 'L',
@@ -359,7 +363,7 @@ describe('findCollapseFillers — edge cases', () => {
         },
       ],
     });
-    const fillers = findCollapseFillers(
+    const fillers = tileryFindCollapseFillers(
       Object.values(state.panels),
       state.panels.R!,
     );
@@ -370,7 +374,7 @@ describe('findCollapseFillers — edge cases', () => {
 
   it('expands a top neighbor downward into a removed panel', () => {
     // Top: x=[0,100], y=[0,50]. Bottom: x=[0,100], y=[50,100]. Remove bottom.
-    const state = createInitialState({
+    const state = tileryCreateInitialState({
       panels: [
         {
           id: 'T',
@@ -384,7 +388,7 @@ describe('findCollapseFillers — edge cases', () => {
         },
       ],
     });
-    const fillers = findCollapseFillers(
+    const fillers = tileryFindCollapseFillers(
       Object.values(state.panels),
       state.panels.B!,
     );
@@ -394,7 +398,7 @@ describe('findCollapseFillers — edge cases', () => {
   });
 
   it('expands a bottom neighbor upward when the removed panel is on top', () => {
-    const state = createInitialState({
+    const state = tileryCreateInitialState({
       panels: [
         {
           id: 'T',
@@ -408,7 +412,7 @@ describe('findCollapseFillers — edge cases', () => {
         },
       ],
     });
-    const fillers = findCollapseFillers(
+    const fillers = tileryFindCollapseFillers(
       Object.values(state.panels),
       state.panels.T!,
     );
@@ -418,7 +422,7 @@ describe('findCollapseFillers — edge cases', () => {
   });
 
   it('returns no fillers when no adjacent side tiles the removed region', () => {
-    const state = createInitialState({
+    const state = tileryCreateInitialState({
       panels: [
         // Two non-adjacent panels (gap between them)
         {
@@ -434,13 +438,13 @@ describe('findCollapseFillers — edge cases', () => {
       ],
     });
     expect(
-      findCollapseFillers(Object.values(state.panels), state.panels.A!),
+      tileryFindCollapseFillers(Object.values(state.panels), state.panels.A!),
     ).toEqual([]);
   });
 
   it('returns no fillers when neighbors do not fully cover the removed range', () => {
     // Two left neighbors stacked but their union doesn't reach the removed's top
-    const state = createInitialState({
+    const state = tileryCreateInitialState({
       panels: [
         {
           id: 'L',
@@ -455,7 +459,7 @@ describe('findCollapseFillers — edge cases', () => {
       ],
     });
     expect(
-      findCollapseFillers(Object.values(state.panels), state.panels.R!),
+      tileryFindCollapseFillers(Object.values(state.panels), state.panels.R!),
     ).toEqual([]);
   });
 });
@@ -466,31 +470,31 @@ describe('helper readers', () => {
     right: number;
     bottom: number;
     left: number;
-  }): PanelState => ({
+  }): TileryPanelState => ({
     id: 'x',
     kind: 'tiled',
     inset,
     tabs: [],
     activeTabId: null,
   });
-  it('panelLeft / panelRight / panelTop / panelBottom', () => {
+  it('tileryPanelLeft / tileryPanelRight / tileryPanelTop / tileryPanelBottom', () => {
     const r = p({ top: 5, right: 10, bottom: 15, left: 20 });
-    expect(panelLeft(r)).toBe(20);
-    expect(panelRight(r)).toBe(90);
-    expect(panelTop(r)).toBe(5);
-    expect(panelBottom(r)).toBe(85);
+    expect(tileryPanelLeft(r)).toBe(20);
+    expect(tileryPanelRight(r)).toBe(90);
+    expect(tileryPanelTop(r)).toBe(5);
+    expect(tileryPanelBottom(r)).toBe(85);
   });
-  it('panelWidth / panelHeight', () => {
+  it('tileryPanelWidth / tileryPanelHeight', () => {
     const r = p({ top: 5, right: 10, bottom: 15, left: 20 });
-    expect(panelWidth(r)).toBe(70);
-    expect(panelHeight(r)).toBe(80);
+    expect(tileryPanelWidth(r)).toBe(70);
+    expect(tileryPanelHeight(r)).toBe(80);
   });
 });
 
-describe('rectsOverlap', () => {
+describe('tileryRectsOverlap', () => {
   it('returns true for clearly overlapping rects', () => {
     expect(
-      rectsOverlap(
+      tileryRectsOverlap(
         { top: 0, right: 50, bottom: 0, left: 0 },
         { top: 0, right: 0, bottom: 0, left: 40 },
       ),
@@ -498,7 +502,7 @@ describe('rectsOverlap', () => {
   });
   it('returns false for side-by-side non-overlapping rects', () => {
     expect(
-      rectsOverlap(
+      tileryRectsOverlap(
         { top: 0, right: 50, bottom: 0, left: 0 },
         { top: 0, right: 0, bottom: 0, left: 50 },
       ),
@@ -506,7 +510,7 @@ describe('rectsOverlap', () => {
   });
   it('returns false for stacked non-overlapping rects', () => {
     expect(
-      rectsOverlap(
+      tileryRectsOverlap(
         { top: 0, right: 0, bottom: 50, left: 0 },
         { top: 50, right: 0, bottom: 0, left: 0 },
       ),
@@ -516,7 +520,7 @@ describe('rectsOverlap', () => {
 
 describe('horizontal dividers — resize math', () => {
   const stacked = () =>
-    createInitialState({
+    tileryCreateInitialState({
       panels: [
         {
           id: 'T',
@@ -532,26 +536,26 @@ describe('horizontal dividers — resize math', () => {
     });
   it('clamps min for horizontal divider', () => {
     const state = stacked();
-    const div = deriveDividers(state)[0]!;
-    expect(clampDividerPosition(state, div, 1, 10)).toBe(10);
+    const div = tileryDeriveDividers(state)[0]!;
+    expect(tileryClampDividerPosition(state, div, 1, 10)).toBe(10);
   });
   it('clamps max for horizontal divider', () => {
     const state = stacked();
-    const div = deriveDividers(state)[0]!;
-    expect(clampDividerPosition(state, div, 99, 10)).toBe(90);
+    const div = tileryDeriveDividers(state)[0]!;
+    expect(tileryClampDividerPosition(state, div, 99, 10)).toBe(90);
   });
   it('applies horizontal resize correctly', () => {
     const state = stacked();
-    const div = deriveDividers(state)[0]!;
-    const next = applyDividerResize(state, div, 70);
+    const div = tileryDeriveDividers(state)[0]!;
+    const next = tileryApplyDividerResize(state, div, 70);
     expect(next.panels.T!.inset.bottom).toBe(30);
     expect(next.panels.B!.inset.top).toBe(70);
   });
 });
 
 describe('divider edge guards — horizontal', () => {
-  it('clampDividerPosition skips missing panels on horizontal divider both sides', () => {
-    const state = createInitialState({
+  it('tileryClampDividerPosition skips missing panels on horizontal divider both sides', () => {
+    const state = tileryCreateInitialState({
       panels: [
         {
           id: 'T',
@@ -565,19 +569,19 @@ describe('divider edge guards — horizontal', () => {
         },
       ],
     });
-    const div = deriveDividers(state)[0]!;
+    const div = tileryDeriveDividers(state)[0]!;
     const phantomDivider = {
       ...div,
       beforePanels: ['phantom-top'],
       afterPanels: ['phantom-bottom'],
     };
-    expect(clampDividerPosition(state, phantomDivider, 60, 10)).toBe(60);
+    expect(tileryClampDividerPosition(state, phantomDivider, 60, 10)).toBe(60);
   });
 });
 
 describe('divider edge guards', () => {
-  it('clampDividerPosition skips missing panels', () => {
-    const state = createInitialState({
+  it('tileryClampDividerPosition skips missing panels', () => {
+    const state = tileryCreateInitialState({
       panels: [
         {
           id: 'L',
@@ -591,16 +595,16 @@ describe('divider edge guards', () => {
         },
       ],
     });
-    const div = deriveDividers(state)[0]!;
+    const div = tileryDeriveDividers(state)[0]!;
     const phantomDivider = {
       ...div,
       beforePanels: ['phantom'],
       afterPanels: ['phantom2'],
     };
-    expect(clampDividerPosition(state, phantomDivider, 60, 10)).toBe(60);
+    expect(tileryClampDividerPosition(state, phantomDivider, 60, 10)).toBe(60);
   });
-  it('applyDividerResize skips missing panels on both sides', () => {
-    const state = createInitialState({
+  it('tileryApplyDividerResize skips missing panels on both sides', () => {
+    const state = tileryCreateInitialState({
       panels: [
         {
           id: 'L',
@@ -614,13 +618,13 @@ describe('divider edge guards', () => {
         },
       ],
     });
-    const div = deriveDividers(state)[0]!;
+    const div = tileryDeriveDividers(state)[0]!;
     const phantomDivider = {
       ...div,
       beforePanels: ['phantom'],
       afterPanels: ['phantom2'],
     };
-    const next = applyDividerResize(state, phantomDivider, 60);
+    const next = tileryApplyDividerResize(state, phantomDivider, 60);
     expect(next.panels.L!.inset).toEqual({
       top: 0,
       right: 50,
@@ -634,8 +638,8 @@ describe('divider edge guards', () => {
       left: 50,
     });
   });
-  it('applyDividerResize horizontal skips missing panels', () => {
-    const state = createInitialState({
+  it('tileryApplyDividerResize horizontal skips missing panels', () => {
+    const state = tileryCreateInitialState({
       panels: [
         {
           id: 'T',
@@ -649,26 +653,26 @@ describe('divider edge guards', () => {
         },
       ],
     });
-    const div = deriveDividers(state)[0]!;
+    const div = tileryDeriveDividers(state)[0]!;
     const phantomDivider = {
       ...div,
       beforePanels: ['phantom'],
       afterPanels: ['phantom2'],
     };
-    const next = applyDividerResize(state, phantomDivider, 60);
+    const next = tileryApplyDividerResize(state, phantomDivider, 60);
     expect(next.panels.T!.inset.bottom).toBe(50);
     expect(next.panels.B!.inset.top).toBe(50);
   });
 });
 
-describe('deriveDividers — disjoint adjacency', () => {
+describe('tileryDeriveDividers — disjoint adjacency', () => {
   it('produces no divider when before and after sides share an x but their y-ranges do not overlap', () => {
     // Three panels sharing x=50 edge but with no y overlap between the sides:
     //   A1: x=[0,50], y=[0,30]   (left, top)
     //   A2: x=[0,50], y=[70,100] (left, bottom)
     //   B:  x=[50,100], y=[40,60] (right, middle)
     // intersectRanges([[0,30],[70,100]], [[40,60]]) → all pairs non-overlapping
-    const state = createInitialState({
+    const state = tileryCreateInitialState({
       panels: [
         {
           id: 'A1',
@@ -687,7 +691,7 @@ describe('deriveDividers — disjoint adjacency', () => {
         },
       ],
     });
-    const dividers = deriveDividers(state);
+    const dividers = tileryDeriveDividers(state);
     // No vertical divider at x=50 because the disjoint y-ranges produce no intersection
     expect(
       dividers.filter((d) => d.position === 50 && d.orientation === 'vertical'),
@@ -695,11 +699,11 @@ describe('deriveDividers — disjoint adjacency', () => {
   });
 });
 
-describe('deriveDividers — gap branches', () => {
+describe('tileryDeriveDividers — gap branches', () => {
   it('skips an x-coord that only has panels on one side (no opposing panel)', () => {
     // Single panel covers full width on top, plus a smaller panel on bottom only
     // x-coord at the inner edge of the bottom panel has no opposing side.
-    const state = createInitialState({
+    const state = tileryCreateInitialState({
       panels: [
         {
           id: 'top',
@@ -713,7 +717,7 @@ describe('deriveDividers — gap branches', () => {
         },
       ],
     });
-    const dividers = deriveDividers(state);
+    const dividers = tileryDeriveDividers(state);
     expect(
       dividers.every(
         (d) => d.beforePanels.length > 0 && d.afterPanels.length > 0,
@@ -721,7 +725,7 @@ describe('deriveDividers — gap branches', () => {
     ).toBe(true);
   });
   it('skips a y-coord that only has panels on one side', () => {
-    const state = createInitialState({
+    const state = tileryCreateInitialState({
       panels: [
         {
           id: 'l',
@@ -735,7 +739,7 @@ describe('deriveDividers — gap branches', () => {
         },
       ],
     });
-    const dividers = deriveDividers(state);
+    const dividers = tileryDeriveDividers(state);
     expect(
       dividers.every(
         (d) => d.beforePanels.length > 0 && d.afterPanels.length > 0,
@@ -750,9 +754,9 @@ describe('deriveDividers — gap branches', () => {
 // — the clamp has to respect *every* panel sharing the edge, not just the
 // immediate neighbour. Equivalent to VS Code's splitview "constraints from
 // all views in the chain" test and dockview's multi-view-sash test.
-describe('clampDividerPosition — multi-panel side (workspace shape)', () => {
-  const workspace = (): LayoutState =>
-    createInitialState({
+describe('tileryClampDividerPosition — multi-panel side (workspace shape)', () => {
+  const workspace = (): TileryLayoutState =>
+    tileryCreateInitialState({
       panels: [
         {
           id: 'sidebar',
@@ -774,38 +778,38 @@ describe('clampDividerPosition — multi-panel side (workspace shape)', () => {
 
   it('clamps low so the single before-side panel (sidebar) keeps its min', () => {
     const state = workspace();
-    const div = deriveDividers(state).find(
+    const div = tileryDeriveDividers(state).find(
       (d) => d.orientation === 'vertical',
     )!;
     // Drag toward x=5 would leave sidebar 5% wide — below the 10% min.
-    expect(clampDividerPosition(state, div, 5, 10)).toBe(10);
+    expect(tileryClampDividerPosition(state, div, 5, 10)).toBe(10);
   });
 
   it('clamps high so editor AND terminal both keep their min', () => {
     const state = workspace();
-    const div = deriveDividers(state).find(
+    const div = tileryDeriveDividers(state).find(
       (d) => d.orientation === 'vertical',
     )!;
     // Drag toward x=95 would leave the right column 5% wide, breaking the
     // min for BOTH editor and terminal. Clamp must hit 90, not e.g. 95.
-    expect(clampDividerPosition(state, div, 95, 10)).toBe(90);
+    expect(tileryClampDividerPosition(state, div, 95, 10)).toBe(90);
   });
 
   it('respects a stricter custom minSizePercent across all afterPanels', () => {
     const state = workspace();
-    const div = deriveDividers(state).find(
+    const div = tileryDeriveDividers(state).find(
       (d) => d.orientation === 'vertical',
     )!;
     // minSizePercent=20 → divider can go no higher than 80.
-    expect(clampDividerPosition(state, div, 95, 20)).toBe(80);
+    expect(tileryClampDividerPosition(state, div, 95, 20)).toBe(80);
   });
 
-  it('applyDividerResize updates EVERY panel sharing the after edge', () => {
+  it('tileryApplyDividerResize updates EVERY panel sharing the after edge', () => {
     const state = workspace();
-    const div = deriveDividers(state).find(
+    const div = tileryDeriveDividers(state).find(
       (d) => d.orientation === 'vertical',
     )!;
-    const next = applyDividerResize(state, div, 30);
+    const next = tileryApplyDividerResize(state, div, 30);
     // sidebar's right edge moves: was right=60 → now right=70.
     expect(next.panels.sidebar!.inset.right).toBe(70);
     // both editor and terminal lose left inset.
@@ -818,14 +822,14 @@ describe('clampDividerPosition — multi-panel side (workspace shape)', () => {
 // ALREADY below the minimum size has no movement that satisfies every
 // minimum. The clamp must report "no movement" (return the divider's
 // current position), not pick `min` and produce a position outside [0,100].
-describe('clampDividerPosition — over-determined constraints', () => {
+describe('tileryClampDividerPosition — over-determined constraints', () => {
   it('returns the divider’s current position when min > max (no legal move)', () => {
     // Both panels are 5% tall — well below the 10% min. Could only have
     // been produced by an out-of-band setup like REPLACE_STATE; we still
     // must not crash on it. The two panels share the edge at y=10, so
-    // deriveDividers returns one horizontal divider with both T and B as
+    // tileryDeriveDividers returns one horizontal divider with both T and B as
     // its only constraint sources.
-    const state = createInitialState({
+    const state = tileryCreateInitialState({
       panels: [
         {
           id: 'T',
@@ -839,46 +843,61 @@ describe('clampDividerPosition — over-determined constraints', () => {
         },
       ],
     });
-    const div = deriveDividers(state)[0]!;
+    const div = tileryDeriveDividers(state)[0]!;
     // Target at the divider's current position triggers both constraints:
     // T would shrink below min (min becomes 15) AND B would shrink below
     // min (max becomes 5). Since min > max, no movement is legal; return
     // the divider's current position rather than a nonsense out-of-range
     // value like `Math.max(15, Math.min(5, 10)) = 15`.
-    expect(clampDividerPosition(state, div, div.position, 10)).toBe(
+    expect(tileryClampDividerPosition(state, div, div.position, 10)).toBe(
       div.position,
     );
   });
 });
 
-// splitFitsMin is the policy gate the reducer uses to refuse SPLIT_PANEL
+// tilerySplitFitsMin is the policy gate the tileryReducer uses to refuse SPLIT_PANEL
 // actions that would shrink either half below the minimum. Without this,
 // repeated splits of a small panel produced sub-min panels, which in turn
 // broke divider math (see fuzz regression test above).
-describe('splitFitsMin', () => {
+describe('tilerySplitFitsMin', () => {
   it('accepts a 50/50 split of a full-bleed panel', () => {
-    expect(splitFitsMin(fullInset, 'right', 50, 10)).toBe(true);
+    expect(tilerySplitFitsMin(fullInset, 'right', 50, 10)).toBe(true);
   });
   it('rejects a split where the resulting source half would be below min', () => {
     // 50% wide source; split right 95% → source ends at 2.5% width.
     expect(
-      splitFitsMin({ top: 0, right: 50, bottom: 0, left: 0 }, 'right', 95, 10),
+      tilerySplitFitsMin(
+        { top: 0, right: 50, bottom: 0, left: 0 },
+        'right',
+        95,
+        10,
+      ),
     ).toBe(false);
   });
   it('rejects a split where the resulting created half would be below min', () => {
     expect(
-      splitFitsMin({ top: 0, right: 50, bottom: 0, left: 0 }, 'right', 5, 10),
+      tilerySplitFitsMin(
+        { top: 0, right: 50, bottom: 0, left: 0 },
+        'right',
+        5,
+        10,
+      ),
     ).toBe(false);
   });
   it('rejects when the panel is too narrow to split horizontally at all', () => {
     // Width = 5%, less than 2 × minSize.
     expect(
-      splitFitsMin({ top: 0, right: 95, bottom: 0, left: 0 }, 'left', 50, 10),
+      tilerySplitFitsMin(
+        { top: 0, right: 95, bottom: 0, left: 0 },
+        'left',
+        50,
+        10,
+      ),
     ).toBe(false);
   });
 });
 
-// Property tests: pairwise no-overlap and full coverage are reducer
+// Property tests: pairwise no-overlap and full coverage are tileryReducer
 // invariants. Verify they survive a deterministic-random sequence of
 // mutations starting from a single full-bleed panel. Catches the kind of
 // off-by-EPSILON bug that wouldn't show up in any hand-written scenario.
@@ -891,26 +910,27 @@ describe('layout invariants — deterministic random fuzz', () => {
     };
   }
 
-  function pairwiseNoOverlap(state: LayoutState): boolean {
+  function pairwiseNoOverlap(state: TileryLayoutState): boolean {
     const panels = Object.values(state.panels);
     for (let i = 0; i < panels.length; i++) {
       for (let j = i + 1; j < panels.length; j++) {
-        if (rectsOverlap(panels[i]!.inset, panels[j]!.inset)) return false;
+        if (tileryRectsOverlap(panels[i]!.inset, panels[j]!.inset))
+          return false;
       }
     }
     return true;
   }
 
-  function totalArea(state: LayoutState): number {
+  function totalArea(state: TileryLayoutState): number {
     return Object.values(state.panels).reduce(
-      (sum, p) => sum + panelWidth(p) * panelHeight(p),
+      (sum, p) => sum + tileryPanelWidth(p) * tileryPanelHeight(p),
       0,
     );
   }
 
   it('200 random splits + resizes preserve no-overlap AND full coverage', () => {
     const rand = lcg(42);
-    let state = createInitialState({
+    let state = tileryCreateInitialState({
       panels: [
         {
           id: 'P0',
@@ -925,10 +945,10 @@ describe('layout invariants — deterministic random fuzz', () => {
       if (op === 'split') {
         const ids = state.panelOrder;
         const sourceId = ids[Math.floor(rand() * ids.length)]!;
-        const dirs: Direction[] = ['left', 'right', 'top', 'bottom'];
+        const dirs: TileryDirection[] = ['left', 'right', 'top', 'bottom'];
         const dir = dirs[Math.floor(rand() * dirs.length)]!;
         const size = 20 + Math.floor(rand() * 60); // 20–79%
-        state = reducer(state, {
+        state = tileryReducer(state, {
           type: 'SPLIT_PANEL',
           panelId: sourceId,
           direction: dir,
@@ -939,11 +959,11 @@ describe('layout invariants — deterministic random fuzz', () => {
         });
         nextSeq++;
       } else {
-        const dividers = deriveDividers(state);
+        const dividers = tileryDeriveDividers(state);
         if (dividers.length === 0) continue;
         const div = dividers[Math.floor(rand() * dividers.length)]!;
-        const target = 5 + rand() * 90; // 5–95, will be clamped by reducer
-        state = reducer(state, {
+        const target = 5 + rand() * 90; // 5–95, will be clamped by tileryReducer
+        state = tileryReducer(state, {
           type: 'RESIZE_DIVIDER',
           dividerId: div.id,
           newPosition: target,
@@ -956,18 +976,18 @@ describe('layout invariants — deterministic random fuzz', () => {
       expect(pairwiseNoOverlap(state)).toBe(true);
       expect(totalArea(state)).toBeCloseTo(10000, 4);
       // No panel ever inverts (negative width/height) — the new min-size
-      // guards in SPLIT_PANEL and clampDividerPosition prevent it.
+      // guards in SPLIT_PANEL and tileryClampDividerPosition prevent it.
       for (const p of Object.values(state.panels)) {
-        expect(panelWidth(p)).toBeGreaterThanOrEqual(-0.001);
-        expect(panelHeight(p)).toBeGreaterThanOrEqual(-0.001);
+        expect(tileryPanelWidth(p)).toBeGreaterThanOrEqual(-0.001);
+        expect(tileryPanelHeight(p)).toBeGreaterThanOrEqual(-0.001);
       }
     }
   });
 });
 
-describe('deriveJunctions', () => {
+describe('tileryDeriveJunctions', () => {
   it('returns no junctions for two side-by-side panels (vertical divider only)', () => {
-    const state = createInitialState({
+    const state = tileryCreateInitialState({
       panels: [
         {
           id: 'A',
@@ -981,12 +1001,12 @@ describe('deriveJunctions', () => {
         },
       ],
     });
-    const dividers = deriveDividers(state);
-    expect(deriveJunctions(dividers)).toEqual([]);
+    const dividers = tileryDeriveDividers(state);
+    expect(tileryDeriveJunctions(dividers)).toEqual([]);
   });
 
   it('returns no junctions for two stacked panels (horizontal divider only)', () => {
-    const state = createInitialState({
+    const state = tileryCreateInitialState({
       panels: [
         {
           id: 'T',
@@ -1000,15 +1020,15 @@ describe('deriveJunctions', () => {
         },
       ],
     });
-    const dividers = deriveDividers(state);
-    expect(deriveJunctions(dividers)).toEqual([]);
+    const dividers = tileryDeriveDividers(state);
+    expect(tileryDeriveJunctions(dividers)).toEqual([]);
   });
 
   it('finds one junction at the L-shape corner', () => {
     // Sidebar + (editor over terminal). The horizontal divider spans
     // x∈[40,100], the vertical divider spans y∈[0,100]; they cross at
     // exactly (40, 50).
-    const state = createInitialState({
+    const state = tileryCreateInitialState({
       panels: [
         {
           id: 'sidebar',
@@ -1027,8 +1047,8 @@ describe('deriveJunctions', () => {
         },
       ],
     });
-    const dividers = deriveDividers(state);
-    const junctions = deriveJunctions(dividers);
+    const dividers = tileryDeriveDividers(state);
+    const junctions = tileryDeriveJunctions(dividers);
     expect(junctions).toHaveLength(1);
     expect(junctions[0]!.x).toBe(40);
     expect(junctions[0]!.y).toBe(50);
@@ -1043,7 +1063,7 @@ describe('deriveJunctions', () => {
   });
 
   it('finds one junction at the centre of a 2x2 grid (cross-junction)', () => {
-    const state = createInitialState({
+    const state = tileryCreateInitialState({
       panels: [
         {
           id: 'TL',
@@ -1067,8 +1087,8 @@ describe('deriveJunctions', () => {
         },
       ],
     });
-    const dividers = deriveDividers(state);
-    const junctions = deriveJunctions(dividers);
+    const dividers = tileryDeriveDividers(state);
+    const junctions = tileryDeriveJunctions(dividers);
     expect(junctions).toHaveLength(1);
     expect(junctions[0]!.x).toBe(50);
     expect(junctions[0]!.y).toBe(50);
@@ -1097,14 +1117,14 @@ describe('deriveJunctions', () => {
         afterPanels: ['D'],
       },
     ];
-    expect(deriveJunctions(dividers)).toEqual([]);
+    expect(tileryDeriveJunctions(dividers)).toEqual([]);
   });
 
   it('returns one junction per crossing for a workspace 5-panel shape', () => {
     // FE + (Editor over Terminal/Tests) + Preview + AI: two vertical
     // dividers (FE-edge and Preview-edge) and one horizontal divider
     // spanning the centre column. Two junctions.
-    const state = createInitialState({
+    const state = tileryCreateInitialState({
       panels: [
         {
           id: 'fe',
@@ -1133,8 +1153,8 @@ describe('deriveJunctions', () => {
         },
       ],
     });
-    const dividers = deriveDividers(state);
-    const junctions = deriveJunctions(dividers);
+    const dividers = tileryDeriveDividers(state);
+    const junctions = tileryDeriveJunctions(dividers);
     expect(junctions).toHaveLength(2);
     const points = junctions
       .map((j): [number, number] => [j.x, j.y])

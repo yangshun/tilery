@@ -1,25 +1,30 @@
-import type { Direction, TileryHandle, PanelId, TabId } from '../types';
-import { tabBarDropAt, type PanelZone } from './drop-zones';
+import type {
+  TileryDirection,
+  TileryHandle,
+  TileryPanelId,
+  TileryTabId,
+} from '../types';
+import { tileryTabBarDropAt, type TileryPanelZone } from './drop-zones';
 
-export type DragState = {
-  tabId: TabId;
+export type TileryDragState = {
+  tabId: TileryTabId;
   pointerId: number;
   startX: number;
   startY: number;
   x: number;
   y: number;
-  hoverPanelId: PanelId | null;
-  hoverZone: PanelZone | null;
+  hoverPanelId: TileryPanelId | null;
+  hoverZone: TileryPanelZone | null;
   hoverTabBar: {
-    panelId: PanelId;
-    hit: ReturnType<typeof tabBarDropAt>;
+    panelId: TileryPanelId;
+    hit: ReturnType<typeof tileryTabBarDropAt>;
   } | null;
 };
 
-export function commitDrag(
+export function tileryCommitDrag(
   tilery: TileryHandle | null,
-  drag: DragState,
-  tabId: TabId,
+  drag: TileryDragState,
+  tabId: TileryTabId,
 ) {
   if (!tilery) return;
   if (drag.hoverTabBar) {
@@ -50,7 +55,7 @@ export function commitDrag(
       }
       return;
     }
-    const dir: Direction = drag.hoverZone;
+    const dir: TileryDirection = drag.hoverZone;
     const draggedTab = tilery.getTab(tabId);
     const target = tilery.getPanel(drag.hoverPanelId);
     if (
@@ -71,8 +76,8 @@ export function commitDrag(
 
 type AdjacencySide = 'left' | 'right' | 'above' | 'below' | null;
 
-export function classifyByZoneAndSide(
-  zone: Direction,
+export function tileryClassifyByZoneAndSide(
+  zone: TileryDirection,
   side: NonNullable<AdjacencySide>,
 ): 'suppress' | 'swap' | 'split' {
   if (zone === 'left') {
@@ -95,7 +100,7 @@ export function classifyByZoneAndSide(
   return 'split';
 }
 
-export function adjacencySide(
+export function tileryAdjacencySide(
   source: {
     inset: { top: number; right: number; bottom: number; left: number };
   },
@@ -136,12 +141,12 @@ function shouldSwapForSplit(
     tabs: readonly { id: string }[];
     inset: { top: number; right: number; bottom: number; left: number };
   },
-  zone: Direction,
+  zone: TileryDirection,
 ): boolean {
   if (source.id === target.id) return false;
   if (source.tabs.length !== 1) return false;
   if (target.tabs.length !== 1) return false;
-  const side = adjacencySide(source, target);
+  const side = tileryAdjacencySide(source, target);
   if (!side) return false;
-  return classifyByZoneAndSide(zone, side) === 'swap';
+  return tileryClassifyByZoneAndSide(zone, side) === 'swap';
 }

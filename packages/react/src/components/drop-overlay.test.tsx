@@ -5,7 +5,7 @@ import React, { act, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { DropOverlay } from './drop-overlay';
-import type { DragState } from 'tilery';
+import type { TileryDragState } from 'tilery/internal';
 
 // DropOverlay is rendered only while a tab drag is in flight. The Tilery
 // integration test exercises the "no zone / no panel" path; this file
@@ -73,7 +73,7 @@ function buildContainer({
   return { container, panel, tabBar };
 }
 
-function dragWith(overrides: Partial<DragState>): DragState {
+function dragWith(overrides: Partial<TileryDragState>): TileryDragState {
   return {
     tabId: 'foo',
     pointerId: 1,
@@ -89,7 +89,7 @@ function dragWith(overrides: Partial<DragState>): DragState {
 }
 
 function mount(
-  drag: DragState,
+  drag: TileryDragState,
   containerEl: HTMLElement,
   panelEls: Map<string, HTMLElement>,
   ghostLabel?: React.ReactNode,
@@ -174,7 +174,7 @@ describe('DropOverlay — drag ghost', () => {
 });
 
 describe('DropOverlay — panel zones', () => {
-  function setupHover(zone: NonNullable<DragState['hoverZone']>) {
+  function setupHover(zone: NonNullable<TileryDragState['hoverZone']>) {
     const { container, panel } = buildContainer({
       panelId: 'P',
       tabIds: ['T'],

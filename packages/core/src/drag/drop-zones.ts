@@ -1,13 +1,13 @@
-import type { Direction } from '../types';
+import type { TileryDirection } from '../types';
 
-export type PanelZone = Direction | 'center';
+export type TileryPanelZone = TileryDirection | 'center';
 
-export function zoneAt(
+export function tileryZoneAt(
   rect: { left: number; top: number; width: number; height: number },
   x: number,
   y: number,
   edgeFraction: number = 0.25,
-): PanelZone | null {
+): TileryPanelZone | null {
   const localX = x - rect.left;
   const localY = y - rect.top;
   if (localX < 0 || localX > rect.width || localY < 0 || localY > rect.height) {
@@ -31,15 +31,15 @@ export function zoneAt(
   return 'center';
 }
 
-export type TabBarHit =
+export type TileryTabBarHit =
   | { kind: 'before'; tabId: string }
   | { kind: 'after'; tabId: string }
   | { kind: 'append' };
 
-export function tabBarDropAt(
+export function tileryTabBarDropAt(
   tabRects: { tabId: string; left: number; right: number }[],
   x: number,
-): TabBarHit {
+): TileryTabBarHit {
   for (const tr of tabRects) {
     if (x < tr.left) continue;
     if (x <= tr.right) {
@@ -52,8 +52,8 @@ export function tabBarDropAt(
   return { kind: 'append' };
 }
 
-export function zoneToSplitInset(
-  zone: Direction,
+export function tileryZoneToSplitInset(
+  zone: TileryDirection,
   panelRect: { left: number; top: number; width: number; height: number },
 ): { left: number; top: number; width: number; height: number } {
   const half =

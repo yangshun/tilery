@@ -2,21 +2,21 @@
 
 import { useCallback, useRef } from 'react';
 
-export type UsePointerDragOptions = {
+export type TileryPointerDragOptions = {
   onMove: (e: React.PointerEvent) => void;
   stopPropagationOnDown?: boolean;
 };
 
-export type UsePointerDragHandlers = {
+export type TileryPointerDragHandlers = {
   onPointerDown: (e: React.PointerEvent) => void;
   onPointerMove: (e: React.PointerEvent) => void;
   onPointerUp: (e: React.PointerEvent) => void;
 };
 
-export function usePointerDrag({
+export function useTileryPointerDrag({
   onMove,
   stopPropagationOnDown = false,
-}: UsePointerDragOptions): UsePointerDragHandlers {
+}: TileryPointerDragOptions): TileryPointerDragHandlers {
   const draggingRef = useRef(false);
 
   const onPointerDown = useCallback(

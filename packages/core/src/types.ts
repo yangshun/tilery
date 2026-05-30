@@ -1,135 +1,139 @@
-export type PanelId = string;
-export type TabId = string;
+export type TileryPanelId = string;
+export type TileryTabId = string;
 
-export type Direction = 'left' | 'right' | 'top' | 'bottom';
+export type TileryDirection = 'left' | 'right' | 'top' | 'bottom';
 
-export type Inset = {
+export type TileryInset = {
   top: number;
   right: number;
   bottom: number;
   left: number;
 };
 
-export type PanelState = {
-  id: PanelId;
+export type TileryPanelState = {
+  id: TileryPanelId;
   kind: 'tiled';
-  inset: Inset;
-  tabs: TabId[];
-  activeTabId: TabId | null;
+  inset: TileryInset;
+  tabs: TileryTabId[];
+  activeTabId: TileryTabId | null;
 };
 
-export type TabState<TData = unknown> = {
-  id: TabId;
-  panelId: PanelId;
+export type TileryTabState<TData = unknown> = {
+  id: TileryTabId;
+  panelId: TileryPanelId;
   data: TData;
   closeable?: boolean;
 };
 
-export type LayoutState = {
-  panels: Record<PanelId, PanelState>;
-  panelOrder: PanelId[];
-  tabs: Record<TabId, TabState>;
+export type TileryLayoutState = {
+  panels: Record<TileryPanelId, TileryPanelState>;
+  panelOrder: TileryPanelId[];
+  tabs: Record<TileryTabId, TileryTabState>;
 };
 
-export type TabInit<TData = unknown> = {
-  id?: TabId;
+export type TileryTabInit<TData = unknown> = {
+  id?: TileryTabId;
   data: TData;
   closeable?: boolean;
 };
 
-export type PanelInit<TData = unknown> = {
-  id?: PanelId;
-  inset: Inset;
-  tabs: TabInit<TData>[];
-  activeTabId?: TabId;
+export type TileryPanelInit<TData = unknown> = {
+  id?: TileryPanelId;
+  inset: TileryInset;
+  tabs: TileryTabInit<TData>[];
+  activeTabId?: TileryTabId;
 };
 
-export type InitialLayout<TData = unknown> = {
-  panels: PanelInit<TData>[];
+export type TileryInitialLayout<TData = unknown> = {
+  panels: TileryPanelInit<TData>[];
 };
 
-export type MoveTarget =
-  | { panel: PanelId; index?: number }
-  | { beforeTab: TabId }
-  | { afterTab: TabId }
-  | { splitPanel: PanelId; direction: Direction; sizePercent?: number };
+export type TileryMoveTarget =
+  | { panel: TileryPanelId; index?: number }
+  | { beforeTab: TileryTabId }
+  | { afterTab: TileryTabId }
+  | {
+      splitPanel: TileryPanelId;
+      direction: TileryDirection;
+      sizePercent?: number;
+    };
 
-export type DividerOrientation = 'vertical' | 'horizontal';
+export type TileryDividerOrientation = 'vertical' | 'horizontal';
 
-export type Divider = {
+export type TileryDivider = {
   id: string;
-  orientation: DividerOrientation;
+  orientation: TileryDividerOrientation;
   position: number;
   start: number;
   end: number;
-  beforePanels: PanelId[];
-  afterPanels: PanelId[];
+  beforePanels: TileryPanelId[];
+  afterPanels: TileryPanelId[];
 };
 
 export type TileryHandle = {
-  getPanel(id: PanelId): PanelHandle | null;
-  getTab(id: TabId): TabHandle | null;
-  getPanels(): PanelHandle[];
-  getTabs(): TabHandle[];
+  getPanel(id: TileryPanelId): TileryPanelHandle | null;
+  getTab(id: TileryTabId): TileryTabHandle | null;
+  getPanels(): TileryPanelHandle[];
+  getTabs(): TileryTabHandle[];
   splitPanel(
-    panelId: PanelId,
-    direction: Direction,
+    panelId: TileryPanelId,
+    direction: TileryDirection,
     opts?: {
       sizePercent?: number;
-      tabs?: TabInit[];
+      tabs?: TileryTabInit[];
       activate?: boolean;
     },
-  ): PanelHandle;
-  removePanel(panelId: PanelId): void;
+  ): TileryPanelHandle;
+  removePanel(panelId: TileryPanelId): void;
   appendTab(
-    panelId: PanelId,
-    tab: TabInit,
+    panelId: TileryPanelId,
+    tab: TileryTabInit,
     opts?: { activate?: boolean },
-  ): TabHandle;
+  ): TileryTabHandle;
   insertTab(
-    panelId: PanelId,
-    tab: TabInit,
+    panelId: TileryPanelId,
+    tab: TileryTabInit,
     index: number,
     opts?: { activate?: boolean },
-  ): TabHandle;
-  removeTab(tabId: TabId): void;
-  moveTab(tabId: TabId, target: MoveTarget): void;
-  setActiveTab(tabId: TabId): void;
-  swapPanels(panelA: PanelId, panelB: PanelId): void;
-  getState(): LayoutState;
+  ): TileryTabHandle;
+  removeTab(tabId: TileryTabId): void;
+  moveTab(tabId: TileryTabId, target: TileryMoveTarget): void;
+  setActiveTab(tabId: TileryTabId): void;
+  swapPanels(panelA: TileryPanelId, panelB: TileryPanelId): void;
+  getState(): TileryLayoutState;
 };
 
-export type PanelHandle = {
-  readonly id: PanelId;
-  readonly inset: Readonly<Inset>;
-  readonly tabs: readonly TabHandle[];
-  readonly activeTab: TabHandle | null;
-  appendTab(tab: TabInit, opts?: { activate?: boolean }): TabHandle;
+export type TileryPanelHandle = {
+  readonly id: TileryPanelId;
+  readonly inset: Readonly<TileryInset>;
+  readonly tabs: readonly TileryTabHandle[];
+  readonly activeTab: TileryTabHandle | null;
+  appendTab(tab: TileryTabInit, opts?: { activate?: boolean }): TileryTabHandle;
   insertTab(
-    tab: TabInit,
+    tab: TileryTabInit,
     index: number,
     opts?: { activate?: boolean },
-  ): TabHandle;
+  ): TileryTabHandle;
   split(
-    direction: Direction,
+    direction: TileryDirection,
     opts?: {
       sizePercent?: number;
-      tabs?: TabInit[];
+      tabs?: TileryTabInit[];
       activate?: boolean;
     },
-  ): PanelHandle;
+  ): TileryPanelHandle;
   remove(): void;
-  setActiveTab(id: TabId): void;
+  setActiveTab(id: TileryTabId): void;
 };
 
-export type TabHandle<TData = unknown> = {
-  readonly id: TabId;
-  readonly panel: PanelHandle;
+export type TileryTabHandle<TData = unknown> = {
+  readonly id: TileryTabId;
+  readonly panel: TileryPanelHandle;
   readonly index: number;
   readonly data: TData;
   readonly closeable: boolean;
   setData(data: TData): void;
-  moveTo(target: MoveTarget): void;
+  moveTo(target: TileryMoveTarget): void;
   activate(): void;
   remove(): void;
 };

@@ -1,12 +1,15 @@
 'use client';
 
 import { useCallback } from 'react';
-import type { PanelHandle, TabHandle } from 'tilery';
+import type { TileryPanelHandle, TileryTabHandle } from 'tilery/internal';
 import { Tab } from './tab';
 
 export type TabBarProps = {
-  panel: PanelHandle;
-  renderHeader: (tab: TabHandle, ctx: { isActive: boolean }) => React.ReactNode;
+  panel: TileryPanelHandle;
+  renderHeader: (
+    tab: TileryTabHandle,
+    ctx: { isActive: boolean },
+  ) => React.ReactNode;
   registerTabBar: (el: HTMLElement | null) => void;
   registerTab: (tabId: string, el: HTMLElement | null) => void;
   onTabPointerDown: (e: React.PointerEvent, tabId: string) => void;
@@ -33,7 +36,7 @@ function TabRow({
   onTabClick,
   onTabClose,
 }: {
-  tab: TabHandle;
+  tab: TileryTabHandle;
   isActive: boolean;
 } & Pick<
   TabBarProps,

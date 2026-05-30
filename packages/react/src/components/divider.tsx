@@ -1,8 +1,8 @@
 'use client';
 
 import { useCallback } from 'react';
-import type { Divider as DividerType } from 'tilery';
-import { usePointerDrag } from '../use-pointer-drag';
+import type { TileryDivider as DividerType } from 'tilery/internal';
+import { useTileryPointerDrag } from '../use-pointer-drag';
 
 export type DividerProps = {
   divider: DividerType;
@@ -12,7 +12,7 @@ export type DividerProps = {
 
 const HIT_SIZE_PX = 8;
 
-export function Divider({ divider, onDrag, containerRef }: DividerProps) {
+export function TileryDivider({ divider, onDrag, containerRef }: DividerProps) {
   const onMove = useCallback(
     (e: React.PointerEvent) => {
       const container = containerRef.current;
@@ -27,7 +27,7 @@ export function Divider({ divider, onDrag, containerRef }: DividerProps) {
     [containerRef, divider.id, divider.orientation, onDrag],
   );
 
-  const handlers = usePointerDrag({ onMove });
+  const handlers = useTileryPointerDrag({ onMove });
 
   const style: React.CSSProperties =
     divider.orientation === 'vertical'

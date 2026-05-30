@@ -6,9 +6,11 @@ import dts from 'vite-plugin-dts';
 export default defineConfig({
   build: {
     lib: {
-      entry: resolve(__dirname, 'src/index.ts'),
+      entry: {
+        index: resolve(__dirname, 'src/index.ts'),
+        internal: resolve(__dirname, 'src/internal.ts'),
+      },
       formats: ['es'],
-      fileName: 'index',
     },
     cssCodeSplit: false,
     rollupOptions: {
@@ -16,7 +18,7 @@ export default defineConfig({
     },
   },
   plugins: [
-    dts({ rollupTypes: true }),
+    dts(),
     {
       name: 'copy-css',
       closeBundle() {
