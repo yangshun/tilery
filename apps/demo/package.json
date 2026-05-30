@@ -12,7 +12,8 @@
     "@tilery/react": "workspace:*",
     "next": "^16.2.6",
     "react": "catalog:",
-    "react-dom": "catalog:"
+    "react-dom": "catalog:",
+    "shiki": "^4.1.0"
   },
   "devDependencies": {
     "@types/react": "catalog:",

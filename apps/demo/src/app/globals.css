@@ -59,7 +59,6 @@ pre {
   font-family: var(--site-mono);
   font-size: 13px;
   line-height: 1.5;
-  background: var(--site-surface);
   border: 1px solid var(--site-border);
   border-radius: 6px;
   padding: 16px;
@@ -70,6 +69,10 @@ pre code {
   background: none;
   padding: 0;
   font-size: inherit;
+}
+
+.shiki {
+  background-color: var(--site-surface) !important;
 }
 
 h1 {

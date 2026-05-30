@@ -1,6 +1,6 @@
 'use client';
 
-import { ExamplePreview } from '../../../components/example-preview';
+import { useEffect, useState } from 'react';
 import {
   BasicExample,
   IdeExample,
@@ -22,18 +22,28 @@ const registry: Record<string, React.ComponentType> = {
 export function ExamplePage({
   slug,
   title,
-  source,
+  sourceHtml,
 }: {
   slug: string;
   title: string;
-  source: string;
+  sourceHtml: string;
 }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   const Component = registry[slug];
   if (!Component) return <div>Example not found</div>;
 
   return (
-    <ExamplePreview title={title} source={source}>
-      <Component />
-    </ExamplePreview>
+    <div className="example-preview">
+      <h1>{title}</h1>
+      <div className="example-preview__demo">
+        {mounted ? <Component /> : null}
+      </div>
+      <div
+        className="example-preview__source"
+        dangerouslySetInnerHTML={{ __html: sourceHtml }}
+      />
+    </div>
   );
 }
