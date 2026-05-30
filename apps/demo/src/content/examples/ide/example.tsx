@@ -13,7 +13,13 @@ const layout: InitialLayout<TabData> = {
     {
       id: 'sidebar',
       inset: { top: 0, right: 60, bottom: 0, left: 0 },
-      tabs: [{ id: 'explorer', data: { title: 'Explorer', kind: 'explorer' } }],
+      tabs: [
+        {
+          id: 'explorer',
+          data: { title: 'Explorer', kind: 'explorer' },
+          closeable: false,
+        },
+      ],
     },
     {
       id: 'editor',
@@ -26,15 +32,15 @@ const layout: InitialLayout<TabData> = {
     {
       id: 'terminal',
       inset: { top: 60, right: 0, bottom: 0, left: 40 },
-      tabs: [{ id: 'bash', data: { title: 'Terminal', kind: 'terminal' } }],
+      tabs: [
+        {
+          id: 'bash',
+          data: { title: 'Terminal', kind: 'terminal' },
+          closeable: false,
+        },
+      ],
     },
   ],
-};
-
-export const metadata = {
-  slug: 'ide',
-  title: 'IDE Layout',
-  description: 'VS Code-like layout with sidebar, editor, and terminal.',
 };
 
 export function Example() {
@@ -70,41 +76,3 @@ export function Example() {
     />
   );
 }
-
-export const source = `import { Tilery } from '@tilery/react';
-import '@tilery/react/style.css';
-
-const layout = {
-  panels: [
-    {
-      id: 'sidebar',
-      inset: { top: 0, right: 60, bottom: 0, left: 0 },
-      tabs: [{ id: 'explorer', data: { title: 'Explorer', kind: 'explorer' } }],
-    },
-    {
-      id: 'editor',
-      inset: { top: 0, right: 0, bottom: 40, left: 40 },
-      tabs: [
-        { id: 'index-ts', data: { title: 'index.ts', kind: 'editor' } },
-        { id: 'app-tsx', data: { title: 'app.tsx', kind: 'editor' } },
-      ],
-    },
-    {
-      id: 'terminal',
-      inset: { top: 60, right: 0, bottom: 0, left: 40 },
-      tabs: [{ id: 'bash', data: { title: 'Terminal', kind: 'terminal' } }],
-    },
-  ],
-};
-
-function App() {
-  return (
-    <div style={{ width: '100%', height: '100vh' }}>
-      <Tilery
-        initialLayout={layout}
-        renderTabHeader={(tab) => <span>{tab.data.title}</span>}
-        renderTabContent={(tab) => <div>{tab.data.title}</div>}
-      />
-    </div>
-  );
-}`;

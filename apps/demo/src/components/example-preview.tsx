@@ -18,9 +18,7 @@ export function ExamplePreview({
   return (
     <div className="example-preview">
       <h1>{title}</h1>
-      <div className="example-preview__demo">
-        {mounted ? children : null}
-      </div>
+      <div className="example-preview__demo">{mounted ? children : null}</div>
       <div className="example-preview__source">
         <CodeBlock code={source} />
       </div>

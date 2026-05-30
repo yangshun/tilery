@@ -50,12 +50,6 @@ function getInitialLayout(): InitialLayout<TabData> {
   }
 }
 
-export const metadata = {
-  slug: 'persistence',
-  title: 'Layout Persistence',
-  description: 'Save and restore layout state via localStorage.',
-};
-
 export function Example() {
   const tileryRef = useRef<TileryHandle | null>(null);
 
@@ -116,44 +110,3 @@ const btnStyle: React.CSSProperties = {
   fontFamily: 'var(--site-mono)',
   fontSize: 11,
 };
-
-export const source = `import { useRef, useCallback } from 'react';
-import { Tilery } from '@tilery/react';
-import '@tilery/react/style.css';
-import type { LayoutState, TileryHandle } from '@tilery/react';
-
-const STORAGE_KEY = 'my-app-layout';
-
-function getInitialLayout() {
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved) {
-    const state = JSON.parse(saved);
-    // Convert LayoutState back to InitialLayout
-    return {
-      panels: Object.values(state.panels).map((p) => ({
-        id: p.id,
-        inset: p.inset,
-        tabs: p.tabs.map((tid) => ({ id: tid, data: state.tabs[tid].data })),
-      })),
-    };
-  }
-  return defaultLayout;
-}
-
-function App() {
-  const ref = useRef<TileryHandle>(null);
-
-  const handleChange = useCallback((state: LayoutState) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }, []);
-
-  return (
-    <Tilery
-      ref={ref}
-      initialLayout={getInitialLayout()}
-      onChange={handleChange}
-      renderTabHeader={(tab) => <span>{tab.data.title}</span>}
-      renderTabContent={(tab) => <div>{tab.data.title}</div>}
-    />
-  );
-}`;

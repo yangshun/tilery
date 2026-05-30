@@ -16,12 +16,6 @@ const layout: InitialLayout<TabData> = {
   ],
 };
 
-export const metadata = {
-  slug: 'controlled',
-  title: 'Programmatic Control',
-  description: 'Use the imperative API to add, remove, and move tabs.',
-};
-
 let counter = 0;
 
 export function Example() {
@@ -105,39 +99,3 @@ const btnStyle: React.CSSProperties = {
   fontFamily: 'var(--site-mono)',
   fontSize: 11,
 };
-
-export const source = `import { useRef } from 'react';
-import { Tilery } from '@tilery/react';
-import '@tilery/react/style.css';
-import type { TileryHandle } from '@tilery/react';
-
-function App() {
-  const tileryRef = useRef<TileryHandle>(null);
-
-  const addTab = () => {
-    const panels = tileryRef.current?.getPanels();
-    panels?.[0]?.appendTab({ data: { title: 'New Tab' } });
-  };
-
-  const splitRight = () => {
-    const panels = tileryRef.current?.getPanels();
-    panels?.[0]?.split('right', {
-      sizePercent: 50,
-      tabs: [{ data: { title: 'Split' } }],
-    });
-  };
-
-  const removeActive = () => {
-    const panels = tileryRef.current?.getPanels();
-    panels?.[0]?.activeTab?.remove();
-  };
-
-  return (
-    <>
-      <button onClick={addTab}>Add Tab</button>
-      <button onClick={splitRight}>Split Right</button>
-      <button onClick={removeActive}>Remove Active</button>
-      <Tilery ref={tileryRef} initialLayout={layout} ... />
-    </>
-  );
-}`;

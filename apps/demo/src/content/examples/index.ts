@@ -1,33 +1,16 @@
-export {
-  metadata as basicMeta,
-  Example as BasicExample,
-  source as basicSource,
-} from './basic';
-export {
-  metadata as ideMeta,
-  Example as IdeExample,
-  source as ideSource,
-} from './ide';
-export {
-  metadata as dashboardMeta,
-  Example as DashboardExample,
-  source as dashboardSource,
-} from './dashboard';
-export {
-  metadata as controlledMeta,
-  Example as ControlledExample,
-  source as controlledSource,
-} from './controlled';
-export {
-  metadata as persistenceMeta,
-  Example as PersistenceExample,
-  source as persistenceSource,
-} from './persistence';
-export {
-  metadata as nestedMeta,
-  Example as NestedExample,
-  source as nestedSource,
-} from './nested';
+export { Example as BasicExample } from './basic/example';
+export { Example as IdeExample } from './ide/example';
+export { Example as DashboardExample } from './dashboard/example';
+export { Example as ControlledExample } from './controlled/example';
+export { Example as PersistenceExample } from './persistence/example';
+export { Example as NestedExample } from './nested/example';
+
+export { metadata as basicMeta } from './basic/metadata';
+export { metadata as ideMeta } from './ide/metadata';
+export { metadata as dashboardMeta } from './dashboard/metadata';
+export { metadata as controlledMeta } from './controlled/metadata';
+export { metadata as persistenceMeta } from './persistence/metadata';
+export { metadata as nestedMeta } from './nested/metadata';
 
 export const examples = [
   {

@@ -185,6 +185,9 @@ export function makeTabHandle<TData = unknown>(
     get data() {
       return (getState().tabs[id]?.data as TData) ?? (undefined as TData);
     },
+    get closeable() {
+      return getState().tabs[id]?.closeable ?? true;
+    },
     setData(data) {
       dispatch({ type: 'SET_PANEL_DATA', tabId: id, data });
     },

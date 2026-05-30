@@ -87,7 +87,9 @@ describe('TileryHandle mutations', () => {
     if (action.type !== 'SPLIT_PANEL') throw new Error('expected SPLIT_PANEL');
     expect(action.sizePercent).toBe(30);
     expect(action.activate).toBe(false);
-    expect(action.tabs).toEqual([{ id: 'NEW', data: { title: 'new' } }]);
+    expect(action.tabs).toEqual([
+      { id: 'NEW', data: { title: 'new' }, closeable: true },
+    ]);
   });
   it('removePanel dispatches REMOVE_PANEL', () => {
     const { handle, dispatched } = makeStore();
@@ -101,7 +103,7 @@ describe('TileryHandle mutations', () => {
     expect(dispatched[0]).toEqual({
       type: 'APPEND_TAB',
       panelId: 'P1',
-      tab: { id: 'TX', data: { title: 'x' } },
+      tab: { id: 'TX', data: { title: 'x' }, closeable: true },
       activate: true,
     });
   });
@@ -119,7 +121,7 @@ describe('TileryHandle mutations', () => {
     expect(dispatched[0]).toEqual({
       type: 'INSERT_TAB',
       panelId: 'P1',
-      tab: { id: 'TI', data: {} },
+      tab: { id: 'TI', data: {}, closeable: true },
       index: 1,
       activate: false,
     });

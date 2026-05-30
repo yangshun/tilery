@@ -36,6 +36,7 @@ export function Tab({
       ref={handleRef}
       className="tilery__tab"
       data-active={isActive}
+      data-closeable={tab.closeable}
       data-tab-id={tab.id}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
@@ -46,19 +47,21 @@ export function Tab({
       <span className="tilery__tab-header">
         {renderHeader(tab, { isActive })}
       </span>
-      <button
-        type="button"
-        className="tilery__tab-close"
-        aria-label="Close tab"
-        onPointerDown={(e) => {
-          e.stopPropagation();
-        }}
-        onClick={(e) => {
-          e.stopPropagation();
-          onClose();
-        }}>
-        ×
-      </button>
+      {tab.closeable && (
+        <button
+          type="button"
+          className="tilery__tab-close"
+          aria-label="Close tab"
+          onPointerDown={(e) => {
+            e.stopPropagation();
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}>
+          ×
+        </button>
+      )}
     </div>
   );
 }

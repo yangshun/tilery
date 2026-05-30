@@ -25,7 +25,7 @@ const outerLayout: InitialLayout<TabData> = {
     {
       id: 'sidebar',
       inset: { top: 0, right: 70, bottom: 0, left: 0 },
-      tabs: [{ id: 'nav', data: { title: 'Navigation' } }],
+      tabs: [{ id: 'nav', data: { title: 'Navigation' }, closeable: false }],
     },
     {
       id: 'main',
@@ -36,12 +36,6 @@ const outerLayout: InitialLayout<TabData> = {
       ],
     },
   ],
-};
-
-export const metadata = {
-  slug: 'nested',
-  title: 'Nested Instances',
-  description: 'A tilery instance rendered inside a tab of another tilery.',
 };
 
 function InnerTilery() {
@@ -80,49 +74,3 @@ export function Example() {
     />
   );
 }
-
-export const source = `import { Tilery } from '@tilery/react';
-import '@tilery/react/style.css';
-
-const innerLayout = {
-  panels: [
-    { id: 'inner-left', inset: { top: 0, right: 50, bottom: 0, left: 0 },
-      tabs: [{ id: 'a', data: { title: 'Inner A' } }] },
-    { id: 'inner-right', inset: { top: 0, right: 0, bottom: 0, left: 50 },
-      tabs: [{ id: 'b', data: { title: 'Inner B' } }] },
-  ],
-};
-
-function InnerTilery() {
-  return (
-    <Tilery
-      initialLayout={innerLayout}
-      renderTabHeader={(tab) => <span>{tab.data.title}</span>}
-      renderTabContent={(tab) => <div>{tab.data.title}</div>}
-    />
-  );
-}
-
-const outerLayout = {
-  panels: [
-    { id: 'sidebar', inset: { top: 0, right: 70, bottom: 0, left: 0 },
-      tabs: [{ id: 'nav', data: { title: 'Nav' } }] },
-    { id: 'main', inset: { top: 0, right: 0, bottom: 0, left: 30 },
-      tabs: [
-        { id: 'nested', data: { title: 'Nested', nested: true } },
-        { id: 'plain', data: { title: 'Plain' } },
-      ] },
-  ],
-};
-
-function App() {
-  return (
-    <Tilery
-      initialLayout={outerLayout}
-      renderTabHeader={(tab) => <span>{tab.data.title}</span>}
-      renderTabContent={(tab) =>
-        tab.data.nested ? <InnerTilery /> : <div>{tab.data.title}</div>
-      }
-    />
-  );
-}`;

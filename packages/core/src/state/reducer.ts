@@ -26,20 +26,20 @@ export type ReducerAction =
       direction: Direction;
       sizePercent: number;
       newPanelId: PanelId;
-      tabs: { id: TabId; data: unknown }[];
+      tabs: { id: TabId; data: unknown; closeable?: boolean }[];
       activate: boolean;
     }
   | { type: 'REMOVE_PANEL'; panelId: PanelId }
   | {
       type: 'APPEND_TAB';
       panelId: PanelId;
-      tab: { id: TabId; data: unknown };
+      tab: { id: TabId; data: unknown; closeable?: boolean };
       activate: boolean;
     }
   | {
       type: 'INSERT_TAB';
       panelId: PanelId;
-      tab: { id: TabId; data: unknown };
+      tab: { id: TabId; data: unknown; closeable?: boolean };
       index: number;
       activate: boolean;
     }
@@ -86,7 +86,12 @@ export function createInitialState(initial: InitialLayout): LayoutState {
     const tabs: TabId[] = [];
     for (const tabInit of init.tabs) {
       const tabId = tabInit.id ?? nextId('t');
-      state.tabs[tabId] = { id: tabId, panelId, data: tabInit.data };
+      state.tabs[tabId] = {
+        id: tabId,
+        panelId,
+        data: tabInit.data,
+        closeable: tabInit.closeable ?? true,
+      };
       tabs.push(tabId);
     }
     const activeTabId =
@@ -126,7 +131,12 @@ export function reducer(
       const newTabs: Record<TabId, TabState> = { ...state.tabs };
       const tabIds: TabId[] = [];
       for (const t of action.tabs) {
-        newTabs[t.id] = { id: t.id, panelId: action.newPanelId, data: t.data };
+        newTabs[t.id] = {
+          id: t.id,
+          panelId: action.newPanelId,
+          data: t.data,
+          closeable: t.closeable ?? true,
+        };
         tabIds.push(t.id);
       }
       const newPanel: PanelState = {
@@ -179,6 +189,7 @@ export function reducer(
             id: action.tab.id,
             panelId: action.panelId,
             data: action.tab.data,
+            closeable: action.tab.closeable ?? true,
           },
         },
       };
@@ -207,6 +218,7 @@ export function reducer(
             id: action.tab.id,
             panelId: action.panelId,
             data: action.tab.data,
+            closeable: action.tab.closeable ?? true,
           },
         },
       };
@@ -519,17 +531,26 @@ function collapsePanel(state: LayoutState, removed: PanelState): LayoutState {
 
 export function panelInitToReducerInit(init: PanelInit): {
   id: PanelId;
-  tabs: { id: TabId; data: unknown }[];
+  tabs: { id: TabId; data: unknown; closeable?: boolean }[];
 } {
   return {
     id: init.id ?? nextId('p'),
-    tabs: init.tabs.map((t) => ({ id: t.id ?? nextId('t'), data: t.data })),
+    tabs: init.tabs.map((t) => ({
+      id: t.id ?? nextId('t'),
+      data: t.data,
+      closeable: t.closeable ?? true,
+    })),
   };
 }
 
 export function tabInitToReducerInit(init: TabInit): {
   id: TabId;
   data: unknown;
+  closeable: boolean;
 } {
-  return { id: init.id ?? nextId('t'), data: init.data };
+  return {
+    id: init.id ?? nextId('t'),
+    data: init.data,
+    closeable: init.closeable ?? true,
+  };
 }

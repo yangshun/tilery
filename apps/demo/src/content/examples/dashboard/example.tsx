@@ -11,20 +11,34 @@ const layout: InitialLayout<TabData> = {
       id: 'top-left',
       inset: { top: 0, right: 50, bottom: 50, left: 0 },
       tabs: [
-        { id: 'chart', data: { title: 'Revenue Chart', color: '#3aaf6f' } },
+        {
+          id: 'chart',
+          data: { title: 'Revenue Chart', color: '#3aaf6f' },
+          closeable: false,
+        },
       ],
     },
     {
       id: 'top-right',
       inset: { top: 0, right: 0, bottom: 50, left: 50 },
       tabs: [
-        { id: 'metrics', data: { title: 'Key Metrics', color: '#3884ff' } },
+        {
+          id: 'metrics',
+          data: { title: 'Key Metrics', color: '#3884ff' },
+          closeable: false,
+        },
       ],
     },
     {
       id: 'bottom-left',
       inset: { top: 50, right: 50, bottom: 0, left: 0 },
-      tabs: [{ id: 'table', data: { title: 'Data Table', color: '#d28e2a' } }],
+      tabs: [
+        {
+          id: 'table',
+          data: { title: 'Data Table', color: '#d28e2a' },
+          closeable: false,
+        },
+      ],
     },
     {
       id: 'bottom-right',
@@ -35,12 +49,6 @@ const layout: InitialLayout<TabData> = {
       ],
     },
   ],
-};
-
-export const metadata = {
-  slug: 'dashboard',
-  title: 'Dashboard',
-  description: '2x2 grid of panels like an analytics dashboard.',
 };
 
 export function Example() {
@@ -78,46 +86,3 @@ export function Example() {
     />
   );
 }
-
-export const source = `import { Tilery } from '@tilery/react';
-import '@tilery/react/style.css';
-
-const layout = {
-  panels: [
-    {
-      id: 'top-left',
-      inset: { top: 0, right: 50, bottom: 50, left: 0 },
-      tabs: [{ id: 'chart', data: { title: 'Revenue Chart', color: '#3aaf6f' } }],
-    },
-    {
-      id: 'top-right',
-      inset: { top: 0, right: 0, bottom: 50, left: 50 },
-      tabs: [{ id: 'metrics', data: { title: 'Key Metrics', color: '#3884ff' } }],
-    },
-    {
-      id: 'bottom-left',
-      inset: { top: 50, right: 50, bottom: 0, left: 0 },
-      tabs: [{ id: 'table', data: { title: 'Data Table', color: '#d28e2a' } }],
-    },
-    {
-      id: 'bottom-right',
-      inset: { top: 50, right: 0, bottom: 0, left: 50 },
-      tabs: [
-        { id: 'logs', data: { title: 'Activity Log', color: '#9b5ad6' } },
-        { id: 'alerts', data: { title: 'Alerts', color: '#d6515a' } },
-      ],
-    },
-  ],
-};
-
-function App() {
-  return (
-    <div style={{ width: '100%', height: '100vh' }}>
-      <Tilery
-        initialLayout={layout}
-        renderTabHeader={(tab) => <span>{tab.data.title}</span>}
-        renderTabContent={(tab) => <div>{tab.data.title} widget</div>}
-      />
-    </div>
-  );
-}`;

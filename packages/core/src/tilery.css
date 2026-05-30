@@ -49,6 +49,10 @@
   touch-action: none;
 }
 
+.tilery__tab[data-closeable='false'] {
+  padding: 0 12px;
+}
+
 .tilery__tab[data-active='true'] {
   background: var(--tilery-panel-bg, #1a1c20);
   color: var(--tilery-tab-active-fg, #f3f4f7);

@@ -1,49 +1,27 @@
-'use client';
+import { notFound } from 'next/navigation';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { examples } from '../../../content/examples';
+import { ExamplePage } from './example-page';
 
-import { useParams } from 'next/navigation';
-import { ExamplePreview } from '../../../components/example-preview';
-import {
-  examples,
-  BasicExample,
-  basicSource,
-  IdeExample,
-  ideSource,
-  DashboardExample,
-  dashboardSource,
-  ControlledExample,
-  controlledSource,
-  PersistenceExample,
-  persistenceSource,
-  NestedExample,
-  nestedSource,
-} from '../../../content/examples';
+export function generateStaticParams() {
+  return examples.map((e) => ({ slug: e.slug }));
+}
 
-const registry: Record<
-  string,
-  { Component: React.ComponentType; source: string }
-> = {
-  basic: { Component: BasicExample, source: basicSource },
-  ide: { Component: IdeExample, source: ideSource },
-  dashboard: { Component: DashboardExample, source: dashboardSource },
-  controlled: { Component: ControlledExample, source: controlledSource },
-  persistence: { Component: PersistenceExample, source: persistenceSource },
-  nested: { Component: NestedExample, source: nestedSource },
-};
-
-export default function ExamplePage() {
-  const { slug } = useParams<{ slug: string }>();
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
   const meta = examples.find((e) => e.slug === slug);
-  const entry = registry[slug];
+  if (!meta) notFound();
 
-  if (!meta || !entry) {
-    return <div>Example not found</div>;
-  }
-
-  const { Component, source } = entry;
-
-  return (
-    <ExamplePreview title={meta.title} source={source}>
-      <Component />
-    </ExamplePreview>
+  const filePath = resolve(
+    process.cwd(),
+    `src/content/examples/${slug}/example.tsx`,
   );
+  const source = readFileSync(filePath, 'utf-8');
+
+  return <ExamplePage slug={slug} title={meta.title} source={source} />;
 }

@@ -22,6 +22,7 @@ export type TabState<TData = unknown> = {
   id: TabId;
   panelId: PanelId;
   data: TData;
+  closeable?: boolean;
 };
 
 export type LayoutState = {
@@ -33,6 +34,7 @@ export type LayoutState = {
 export type TabInit<TData = unknown> = {
   id?: TabId;
   data: TData;
+  closeable?: boolean;
 };
 
 export type PanelInit<TData = unknown> = {
@@ -125,6 +127,7 @@ export type TabHandle<TData = unknown> = {
   readonly panel: PanelHandle;
   readonly index: number;
   readonly data: TData;
+  readonly closeable: boolean;
   setData(data: TData): void;
   moveTo(target: MoveTarget): void;
   activate(): void;
