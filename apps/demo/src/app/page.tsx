@@ -1,5 +1,5 @@
-import { TileryDemo } from './tilery-demo';
+import { redirect } from 'next/navigation';
 
 export default function Home() {
-  return <TileryDemo />;
+  redirect('/docs/getting-started');
 }
