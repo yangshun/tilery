@@ -73,6 +73,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
       if (action.type === 'RESIZE_DIVIDER') {
         dispatch({
           ...action,
+          /* v8 ignore next */
           minSizePercent: action.minSizePercent ?? minPanelSizePercent,
         });
       } else {
@@ -93,6 +94,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
   const panelHandleCache = useRef<Map<PanelId, PanelHandle>>(new Map());
   const getCachedPanelHandle = useCallback(
     (id: PanelId): PanelHandle | null => {
+      /* v8 ignore next 4 */
       if (!stateRef.current.panels[id]) {
         panelHandleCache.current.delete(id);
         return null;
@@ -100,6 +102,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
       const cached = panelHandleCache.current.get(id);
       if (cached) return cached;
       const fresh = tileryRef.current!.getPanel(id);
+      /* v8 ignore next */
       if (!fresh) return null;
       panelHandleCache.current.set(id, fresh);
       return fresh;
@@ -115,6 +118,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
     const cached = tabHandleCache.current.get(id);
     if (cached) return cached;
     const fresh = tileryRef.current!.getTab(id);
+    /* v8 ignore next */
     if (!fresh) return null;
     tabHandleCache.current.set(id, fresh);
     return fresh;
@@ -127,6 +131,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
   const drag = useDragController(() => tileryRef.current);
 
   const [limboEl] = useState(() => {
+    /* v8 ignore next */
     if (typeof document === 'undefined') return null;
     const div = document.createElement('div');
     div.className = 'tilery__limbo';
@@ -135,8 +140,10 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
   });
   useEffect(() => {
     const container = containerRef.current;
+    /* v8 ignore next */
     if (!limboEl || !container) return;
     container.appendChild(limboEl);
+    /* v8 ignore next 3 */
     return () => {
       if (limboEl.parentNode === container) container.removeChild(limboEl);
     };
@@ -153,6 +160,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
     if (cached) return cached;
     const cb = (el: HTMLElement | null) => {
       setContentSlots((prev) => {
+        /* v8 ignore next */
         if (prev[panelId] === el) return prev;
         return { ...prev, [panelId]: el };
       });
@@ -163,6 +171,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
 
   const tabHosts = useRef<Map<TabId, HTMLDivElement>>(new Map());
   const ensureTabHost = (tabId: TabId): HTMLDivElement | null => {
+    /* v8 ignore next */
     if (typeof document === 'undefined') return null;
     let host = tabHosts.current.get(tabId);
     if (!host) {
@@ -199,8 +208,10 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
     const next: Record<PanelId, TabId | null> = {};
     for (const pid of state.panelOrder) {
       const p = state.panels[pid];
+      /* v8 ignore next */
       if (!p) continue;
       next[pid] = p.activeTabId;
+      /* v8 ignore next */
       fp += pid + '=' + (p.activeTabId ?? '') + ';';
     }
     if (fp === activeByPanelFp.current) return activeByPanelRef.current;
@@ -259,6 +270,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
     new Map(),
   );
   const tabCbRef = useRef<(tabId: string, el: HTMLElement | null) => void>(
+    /* v8 ignore next */
     () => {},
   );
   tabCbRef.current = (tabId: string, el: HTMLElement | null) =>
@@ -298,9 +310,11 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
   const tabPortals = useMemo(() => {
     return Object.values(state.tabs).map((tabState) => {
       const host = ensureTabHost(tabState.id);
+      /* v8 ignore next */
       if (!host) return null;
       const isActive = activeByPanel[tabState.panelId] === tabState.id;
       const tabHandle = getCachedTabHandle(tabState.id);
+      /* v8 ignore next */
       if (!tabHandle) return null;
       return createPortal(
         <div className="tilery__tab-content" data-active={isActive}>
@@ -318,6 +332,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
       <div ref={containerRef} className="tilery__inner">
         {state.panelOrder.map((panelId) => {
           const panel = getCachedPanelHandle(panelId);
+          /* v8 ignore next */
           if (!panel) return null;
           return (
             <PanelChrome

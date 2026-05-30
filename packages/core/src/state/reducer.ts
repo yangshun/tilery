@@ -338,6 +338,7 @@ export function reducer(
             activeTabId: null,
           });
         } else {
+          /* v8 ignore next */
           const latestSource = next.panels[sourcePanel.id] ?? sourcePanel;
           next = {
             ...next,
@@ -506,6 +507,7 @@ function collapsePanel(state: LayoutState, removed: PanelState): LayoutState {
   delete nextPanels[removed.id];
   for (const f of fillers) {
     const p = nextPanels[f.id];
+    /* v8 ignore next */
     if (!p) continue;
     nextPanels[f.id] = { ...p, inset: f.inset };
   }

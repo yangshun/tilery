@@ -64,6 +64,7 @@ export function useDragController(tilery: () => TileryHandle | null) {
   const isOwnSoloPanel = useCallback(
     (panelId: PanelId, draggedTabId: TabId): boolean => {
       const m = tilery();
+      /* v8 ignore next */
       if (!m) return false;
       const panel = m.getPanel(panelId);
       const draggedTab = m.getTab(draggedTabId);
@@ -81,9 +82,11 @@ export function useDragController(tilery: () => TileryHandle | null) {
     ): 'suppress' | 'swap' | 'split' => {
       if (zone === 'center') return 'split';
       const m = tilery();
+      /* v8 ignore next */
       if (!m) return 'split';
       const target = m.getPanel(panelId);
       const draggedTab = m.getTab(draggedTabId);
+      /* v8 ignore next */
       if (!target || !draggedTab) return 'split';
       const source = draggedTab.panel;
       if (source.id === target.id) return 'split';

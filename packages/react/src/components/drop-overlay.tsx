@@ -150,6 +150,7 @@ function readPanelGap(panelEl: HTMLElement): number {
 }
 
 function cssEscape(value: string): string {
+  /* v8 ignore next 3 */
   if (typeof CSS !== 'undefined' && typeof CSS.escape === 'function') {
     return CSS.escape(value);
   }

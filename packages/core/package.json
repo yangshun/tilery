@@ -32,8 +32,8 @@
     "access": "public"
   },
   "scripts": {
-    "build": "vite build",
-    "dev": "vite build --watch"
+    "build": "vp build",
+    "dev": "vp build --watch"
   },
   "devDependencies": {
     "typescript": "catalog:"

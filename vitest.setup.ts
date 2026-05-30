@@ -1,3 +1,5 @@
+globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+
 if (typeof globalThis.PointerEvent === 'undefined') {
   class PointerEvent extends MouseEvent {
     readonly pointerId: number;
