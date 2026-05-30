@@ -56,12 +56,13 @@
 }
 
 .demo-tab-content {
+  box-sizing: border-box;
+  height: 100%;
   padding: 16px;
   font-size: 12px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  min-height: 100%;
 }
 
 .demo-tab-meta {
