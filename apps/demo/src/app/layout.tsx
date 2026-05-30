@@ -41,7 +41,9 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <div className="site-layout">
-          <Sidebar groups={sidebarGroups} />
+          <div className="sidebar-container">
+            <Sidebar groups={sidebarGroups} />
+          </div>
           <main className="site-main">{children}</main>
         </div>
       </body>

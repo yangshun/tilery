@@ -36,6 +36,7 @@ describe('tileryCommitDrag — every branch', () => {
       swapPanels(a: string, b: string) {
         swapCalls.push({ a, b });
       },
+      setActiveTab() {},
     } as unknown as TileryHandle;
     return { handle, calls, swapCalls };
   }
@@ -203,6 +204,7 @@ describe('tileryCommitDrag — every branch', () => {
       swapPanels(a: string, b: string) {
         swapCalls.push({ a, b });
       },
+      setActiveTab() {},
     } as unknown as TileryHandle;
     return { handle, calls, swapCalls };
   }
@@ -301,6 +303,7 @@ describe('tileryCommitDrag — every branch', () => {
       swapPanels(a: string, b: string) {
         swapCalls.push({ a, b });
       },
+      setActiveTab() {},
     } as unknown as TileryHandle;
     tileryCommitDrag(
       handle,
@@ -346,6 +349,7 @@ describe('tileryCommitDrag — every branch', () => {
         calls.push({ tabId, target });
       },
       swapPanels() {},
+      setActiveTab() {},
     } as unknown as TileryHandle;
     tileryCommitDrag(
       handle,
@@ -517,6 +521,7 @@ describe('tileryCommitDrag — panelDrag=true (moves all tabs)', () => {
   function panelDragHandle() {
     const calls: { tabId: TileryTabId; target: unknown }[] = [];
     const swapCalls: { a: string; b: string }[] = [];
+    const activeCalls: TileryTabId[] = [];
     const handle = {
       getPanel(id: string) {
         if (id === 'TGT')
@@ -543,12 +548,15 @@ describe('tileryCommitDrag — panelDrag=true (moves all tabs)', () => {
       swapPanels(a: string, b: string) {
         swapCalls.push({ a, b });
       },
+      setActiveTab(tabId: TileryTabId) {
+        activeCalls.push(tabId);
+      },
     } as unknown as TileryHandle;
-    return { handle, calls, swapCalls };
+    return { handle, calls, swapCalls, activeCalls };
   }
 
   it('tab-bar append moves all tabs from source panel', () => {
-    const { handle, calls } = panelDragHandle();
+    const { handle, calls, activeCalls } = panelDragHandle();
     tileryCommitDrag(
       handle,
       {
@@ -563,12 +571,34 @@ describe('tileryCommitDrag — panelDrag=true (moves all tabs)', () => {
     expect(calls).toEqual([
       { tabId: 'T1', target: { panel: 'TGT', index: 1 } },
       { tabId: 'T2', target: { afterTab: 'T1' } },
-      { tabId: 'T3', target: { afterTab: 'T1' } },
+      { tabId: 'T3', target: { afterTab: 'T2' } },
+    ]);
+  });
+
+  it('preserves original tab order when active tab is not the first tab', () => {
+    const { handle, calls, activeCalls } = panelDragHandle();
+    // T2 is the active/lead tab (middle position in [T1, T2, T3])
+    tileryCommitDrag(
+      handle,
+      {
+        ...baseDrag,
+        hoverTabBar: { panelId: 'TGT', hit: { kind: 'append' } },
+        hoverPanelId: null,
+        hoverZone: null,
+      },
+      'T2',
+      true,
+    );
+    // Move T2 first, then T3 after T2, then T1 before T2 → [T1, T2, T3]
+    expect(calls).toEqual([
+      { tabId: 'T2', target: { panel: 'TGT', index: 1 } },
+      { tabId: 'T3', target: { afterTab: 'T2' } },
+      { tabId: 'T1', target: { beforeTab: 'T2' } },
     ]);
   });
 
   it('tab-bar before moves all tabs from source panel', () => {
-    const { handle, calls } = panelDragHandle();
+    const { handle, calls, activeCalls } = panelDragHandle();
     tileryCommitDrag(
       handle,
       {
@@ -586,12 +616,12 @@ describe('tileryCommitDrag — panelDrag=true (moves all tabs)', () => {
     expect(calls).toEqual([
       { tabId: 'T1', target: { beforeTab: 'TGT-T1' } },
       { tabId: 'T2', target: { afterTab: 'T1' } },
-      { tabId: 'T3', target: { afterTab: 'T1' } },
+      { tabId: 'T3', target: { afterTab: 'T2' } },
     ]);
   });
 
   it('tab-bar after moves all tabs from source panel', () => {
-    const { handle, calls } = panelDragHandle();
+    const { handle, calls, activeCalls } = panelDragHandle();
     tileryCommitDrag(
       handle,
       {
@@ -609,12 +639,12 @@ describe('tileryCommitDrag — panelDrag=true (moves all tabs)', () => {
     expect(calls).toEqual([
       { tabId: 'T1', target: { afterTab: 'TGT-T1' } },
       { tabId: 'T2', target: { afterTab: 'T1' } },
-      { tabId: 'T3', target: { afterTab: 'T1' } },
+      { tabId: 'T3', target: { afterTab: 'T2' } },
     ]);
   });
 
   it('center zone moves all tabs to target panel', () => {
-    const { handle, calls } = panelDragHandle();
+    const { handle, calls, activeCalls } = panelDragHandle();
     tileryCommitDrag(
       handle,
       {
@@ -629,12 +659,12 @@ describe('tileryCommitDrag — panelDrag=true (moves all tabs)', () => {
     expect(calls).toEqual([
       { tabId: 'T1', target: { panel: 'TGT', index: 1 } },
       { tabId: 'T2', target: { afterTab: 'T1' } },
-      { tabId: 'T3', target: { afterTab: 'T1' } },
+      { tabId: 'T3', target: { afterTab: 'T2' } },
     ]);
   });
 
   it('directional zone splits and moves all tabs when panelDrag=true', () => {
-    const { handle, calls, swapCalls } = panelDragHandle();
+    const { handle, calls, swapCalls, activeCalls } = panelDragHandle();
     tileryCommitDrag(
       handle,
       {
@@ -653,7 +683,7 @@ describe('tileryCommitDrag — panelDrag=true (moves all tabs)', () => {
         target: { splitPanel: 'TGT', direction: 'right', sizePercent: 50 },
       },
       { tabId: 'T2', target: { afterTab: 'T1' } },
-      { tabId: 'T3', target: { afterTab: 'T1' } },
+      { tabId: 'T3', target: { afterTab: 'T2' } },
     ]);
   });
 
@@ -684,6 +714,7 @@ describe('tileryCommitDrag — panelDrag=true (moves all tabs)', () => {
       swapPanels(a: string, b: string) {
         swapCalls.push({ a, b });
       },
+      setActiveTab() {},
     } as unknown as TileryHandle;
     tileryCommitDrag(
       handle,
@@ -719,6 +750,7 @@ describe('tileryCommitDrag — panelDrag=true (moves all tabs)', () => {
         calls.push(args);
       },
       swapPanels() {},
+      setActiveTab() {},
     } as unknown as TileryHandle;
     tileryCommitDrag(
       handle,

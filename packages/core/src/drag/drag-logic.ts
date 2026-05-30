@@ -32,9 +32,10 @@ export function tileryCommitDrag(
   const draggedTab = tilery.getTab(tabId);
   if (!draggedTab) return;
   const sourcePanel = draggedTab.panel;
-  const siblingTabIds = panelDrag
-    ? sourcePanel.tabs.map((t) => t.id).filter((id) => id !== tabId)
-    : [];
+  const allTabIds = panelDrag ? sourcePanel.tabs.map((t) => t.id) : [];
+  const leadIndex = allTabIds.indexOf(tabId);
+  const tabsBefore = allTabIds.slice(0, leadIndex);
+  const tabsAfter = allTabIds.slice(leadIndex + 1);
 
   if (drag.hoverTabBar) {
     const { hit, panelId } = drag.hoverTabBar;
@@ -42,23 +43,20 @@ export function tileryCommitDrag(
       const target = tilery.getPanel(panelId);
       if (target) {
         tilery.moveTab(tabId, { panel: panelId, index: target.tabs.length });
-        for (const id of siblingTabIds) {
-          tilery.moveTab(id, { afterTab: tabId });
-        }
+        moveSiblingsPreservingOrder(tilery, tabsBefore, tabsAfter, tabId);
+        if (panelDrag) tilery.setActiveTab(tabId);
       }
       return;
     }
     if (hit.tabId === tabId) return;
     if (hit.kind === 'before') {
       tilery.moveTab(tabId, { beforeTab: hit.tabId });
-      for (const id of siblingTabIds) {
-        tilery.moveTab(id, { afterTab: tabId });
-      }
+      moveSiblingsPreservingOrder(tilery, tabsBefore, tabsAfter, tabId);
+      if (panelDrag) tilery.setActiveTab(tabId);
     } else {
       tilery.moveTab(tabId, { afterTab: hit.tabId });
-      for (const id of siblingTabIds) {
-        tilery.moveTab(id, { afterTab: tabId });
-      }
+      moveSiblingsPreservingOrder(tilery, tabsBefore, tabsAfter, tabId);
+      if (panelDrag) tilery.setActiveTab(tabId);
     }
     return;
   }
@@ -70,9 +68,8 @@ export function tileryCommitDrag(
           panel: drag.hoverPanelId,
           index: target.tabs.length,
         });
-        for (const id of siblingTabIds) {
-          tilery.moveTab(id, { afterTab: tabId });
-        }
+        moveSiblingsPreservingOrder(tilery, tabsBefore, tabsAfter, tabId);
+        if (panelDrag) tilery.setActiveTab(tabId);
       }
       return;
     }
@@ -87,9 +84,34 @@ export function tileryCommitDrag(
       direction: dir,
       sizePercent: 50,
     });
-    for (const id of siblingTabIds) {
-      tilery.moveTab(id, { afterTab: tabId });
-    }
+    moveSiblingsPreservingOrder(tilery, tabsBefore, tabsAfter, tabId);
+    if (panelDrag) tilery.setActiveTab(tabId);
+  }
+}
+
+function moveSiblingsPreservingOrder(
+  tilery: TileryHandle,
+  tabsBefore: TileryTabId[],
+  tabsAfter: TileryTabId[],
+  leadTabId: TileryTabId,
+) {
+  // Reconstruct the original order: [...tabsBefore, leadTabId, ...tabsAfter]
+  // Move each sibling in sequence using afterTab on the previous one.
+  // Start by moving tabsBefore in order, each after the previous (first one after lead initially,
+  // then we fix by moving lead after them all at the end).
+  // Simpler: move tabsAfter after lead, then move tabsBefore before lead.
+  // Even simpler: move all in original order using panel+index targeting.
+
+  // Move tabs that were after the lead: chain after lead in order
+  let prev = leadTabId;
+  for (const id of tabsAfter) {
+    tilery.moveTab(id, { afterTab: prev });
+    prev = id;
+  }
+  // Move tabs that were before the lead: insert before lead in original order
+  // Each one goes before the lead, pushing previous ones further left
+  for (const id of tabsBefore) {
+    tilery.moveTab(id, { beforeTab: leadTabId });
   }
 }
 
