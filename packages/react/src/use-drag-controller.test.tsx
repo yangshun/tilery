@@ -4,9 +4,9 @@ import { describe, expect, it } from 'vite-plus/test';
 import React, { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { useDragController } from './use-drag-controller';
-import { makeTileryHandle } from '@tilery/core';
-import { createInitialState, reducer, type ReducerAction } from '@tilery/core';
-import type { LayoutState } from '@tilery/core';
+import { makeTileryHandle } from 'tilery';
+import { createInitialState, reducer, type ReducerAction } from 'tilery';
+import type { LayoutState } from 'tilery';
 
 type Controller = ReturnType<typeof useDragController>;
 

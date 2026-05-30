@@ -1,2 +1,2 @@
 declare module '*.css' {}
-declare module '@tilery/core/style.css' {}
+declare module 'tilery/style.css' {}

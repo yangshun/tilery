@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import '@tilery/core/style.css';
+import '@tilery/react/style.css';
 
 export const metadata: Metadata = {
   title: 'Tilery Demo',

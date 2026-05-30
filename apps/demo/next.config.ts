@@ -1,7 +1,7 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  transpilePackages: ['@tilery/core', '@tilery/react'],
+  transpilePackages: ['tilery', '@tilery/react'],
 };
 
 export default nextConfig;

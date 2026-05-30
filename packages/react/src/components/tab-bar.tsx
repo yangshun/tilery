@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
-import type { PanelHandle, TabHandle } from '@tilery/core';
+import type { PanelHandle, TabHandle } from 'tilery';
 import { Tab } from './tab';
 
 export type TabBarProps = {

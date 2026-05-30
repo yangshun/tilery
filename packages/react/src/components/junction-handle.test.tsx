@@ -5,7 +5,7 @@ import React, { act, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { JunctionHandle } from './junction-handle';
-import type { Junction } from '@tilery/core';
+import type { Junction } from 'tilery';
 
 const JUNCTION: Junction = {
   id: 'j|v|h',

@@ -5,7 +5,7 @@ import React, { act, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { DropOverlay } from './drop-overlay';
-import type { DragState } from '@tilery/core';
+import type { DragState } from 'tilery';
 
 // DropOverlay is rendered only while a tab drag is in flight. The Tilery
 // integration test exercises the "no zone / no panel" path; this file

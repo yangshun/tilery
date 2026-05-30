@@ -1,6 +1,6 @@
 'use client';
 
-import type { DragState } from '@tilery/core';
+import type { DragState } from 'tilery';
 
 export type DropOverlayProps = {
   drag: DragState;

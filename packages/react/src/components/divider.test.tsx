@@ -5,7 +5,7 @@ import React, { act, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { Divider } from './divider';
-import type { Divider as DividerType } from '@tilery/core';
+import type { Divider as DividerType } from 'tilery';
 
 // The happy paths for Divider (vertical drag, horizontal drag, divider
 // styling) are covered through Tilery's integration test. This file pins

@@ -17,7 +17,7 @@
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     },
-    "./style.css": "./dist/index.css"
+    "./style.css": "./src/style.css"
   },
   "publishConfig": {
     "types": "./dist/index.d.ts",
@@ -36,7 +36,7 @@
     "dev": "vp build --watch"
   },
   "dependencies": {
-    "@tilery/core": "workspace:*"
+    "tilery": "workspace:*"
   },
   "devDependencies": {
     "@types/react": "catalog:",

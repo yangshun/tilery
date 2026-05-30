@@ -25,4 +25,4 @@ export type {
   TabState,
   Junction,
   DragState,
-} from '@tilery/core';
+} from 'tilery';

@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
-import type { Junction } from '@tilery/core';
+import type { Junction } from 'tilery';
 import { usePointerDrag } from '../use-pointer-drag';
 
 export type JunctionHandleProps = {

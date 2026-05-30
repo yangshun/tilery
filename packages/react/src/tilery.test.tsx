@@ -5,7 +5,7 @@ import React, { act, createRef } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { Tilery } from './tilery';
-import type { InitialLayout, TileryHandle } from '@tilery/core';
+import type { InitialLayout, TileryHandle } from 'tilery';
 
 // Integration tests for the Tilery component itself. They exercise the
 // JSX tree that the per-piece unit tests don't reach: panel-chrome, tab,

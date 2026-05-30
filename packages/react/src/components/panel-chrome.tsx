@@ -1,6 +1,6 @@
 'use client';
 
-import type { PanelHandle, TabHandle } from '@tilery/core';
+import type { PanelHandle, TabHandle } from 'tilery';
 import { TabBar, type TabBarProps } from './tab-bar';
 
 export type PanelChromeProps = Omit<TabBarProps, 'panel' | 'renderHeader'> & {

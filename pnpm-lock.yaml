@@ -66,9 +66,6 @@ importers:
 
   apps/demo:
     dependencies:
-      '@tilery/core':
-        specifier: workspace:*
-        version: link:../../packages/core
       '@tilery/react':
         specifier: workspace:*
         version: link:../../packages/react
@@ -100,7 +97,7 @@ importers:
 
   packages/react:
     dependencies:
-      '@tilery/core':
+      tilery:
         specifier: workspace:*
         version: link:../core
     devDependencies:

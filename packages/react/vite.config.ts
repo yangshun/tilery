@@ -10,7 +10,7 @@ export default defineConfig({
       fileName: 'index',
     },
     rollupOptions: {
-      external: ['react', 'react-dom', 'react/jsx-runtime', '@tilery/core'],
+      external: ['react', 'react-dom', 'react/jsx-runtime', 'tilery'],
       output: {
         banner: '"use client";',
       },

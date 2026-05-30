@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useRef, useState } from 'react';
-import type { TileryHandle, PanelId, TabId } from '@tilery/core';
+import type { TileryHandle, PanelId, TabId } from 'tilery';
 import {
   tabBarDropAt,
   zoneAt,
@@ -10,10 +10,10 @@ import {
   commitDrag,
   type PanelZone,
   type DragState,
-} from '@tilery/core';
+} from 'tilery';
 
-export { adjacencySide, classifyByZoneAndSide, commitDrag } from '@tilery/core';
-export type { DragState } from '@tilery/core';
+export { adjacencySide, classifyByZoneAndSide, commitDrag } from 'tilery';
+export type { DragState } from 'tilery';
 
 type Refs = {
   panelEls: Map<PanelId, HTMLElement>;

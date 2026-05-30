@@ -31,9 +31,9 @@ import {
   type PanelId,
   type TabHandle,
   type TabId,
-} from '@tilery/core';
+} from 'tilery';
 
-import '@tilery/core/style.css';
+import 'tilery/style.css';
 
 export type TileryProps<TData = unknown> = {
   initialLayout: InitialLayout<TData>;
