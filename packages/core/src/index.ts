@@ -1,10 +1,7 @@
 export type {
   TileryDirection,
-  TileryDivider,
-  TileryDividerOrientation,
   TileryInset,
   TileryInitialLayout,
-  TileryJunction,
   TilerySplitInit,
   TileryLayoutState,
   TileryLayoutTree,
@@ -19,5 +16,3 @@ export type {
   TileryTabInit,
   TileryTabState,
 } from './types';
-
-export type { TileryDragState } from './drag/drag-logic';

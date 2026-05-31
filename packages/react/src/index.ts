@@ -23,20 +23,11 @@ export {
   type TileryTabsMoveEvent,
   type TileryTabsOpenEvent,
 } from './tilery';
-export {
-  useTileryPointerDrag,
-  type TileryPointerDragOptions,
-  type TileryPointerDragHandlers,
-} from './use-pointer-drag';
-export { useTileryDragController } from './use-drag-controller';
 
 export type {
   TileryDirection,
-  TileryDivider,
-  TileryDividerOrientation,
   TileryInset,
   TileryInitialLayout,
-  TileryJunction,
   TilerySplitInit,
   TileryLayoutState,
   TileryLayoutTree,
@@ -50,5 +41,4 @@ export type {
   TileryTabId,
   TileryTabInit,
   TileryTabState,
-  TileryDragState,
 } from 'tilery';
