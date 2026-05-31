@@ -111,7 +111,9 @@ type InitialStateBuildContext = {
 function buildInitialLayoutTree(
   init: TileryInitialLayout,
   ctx: InitialStateBuildContext,
-): TileryLayoutTree {
+): TileryLayoutTree | null {
+  if (init.type === 'empty') return null;
+
   if (init.type === 'panel') {
     const panelId = init.id ?? tileryNextId('p');
     const tabs: TileryTabId[] = [];
@@ -144,9 +146,11 @@ function buildInitialLayoutTree(
     return { kind: 'panel', panelId, size: init.size };
   }
 
-  const children = init.children.map((child) =>
-    buildInitialLayoutTree(child, ctx),
-  );
+  const children = init.children
+    .map((child) => buildInitialLayoutTree(child, ctx))
+    .filter((child): child is TileryLayoutTree => Boolean(child));
+  if (children.length === 0) return null;
+  if (children.length === 1) return { ...children[0]!, size: init.size };
   return {
     kind: 'split',
     id: init.id ?? initialSplitId(init.direction, children),

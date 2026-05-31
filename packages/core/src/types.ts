@@ -55,6 +55,10 @@ export type TileryTabInit<TData = unknown> = {
   closeable?: boolean;
 };
 
+export type TileryEmptyInit = {
+  type: 'empty';
+};
+
 export type TileryPanelInit<TData = unknown> = {
   type: 'panel';
   id?: TileryPanelId;
@@ -75,8 +79,11 @@ export type TilerySplitInit<TData = unknown> = {
 };
 
 export type TileryInitialLayout<TData = unknown> =
+  | TileryEmptyInit
   | TileryPanelInit<TData>
   | TilerySplitInit<TData>;
+
+export type TileryLayoutSnapshot<TData = unknown> = TileryInitialLayout<TData>;
 
 export type TileryMoveTarget =
   | { panel: TileryPanelId; index?: number }
@@ -146,6 +153,8 @@ export type TileryHandle = {
   moveTab(tabId: TileryTabId, target: TileryMoveTarget): void;
   setActiveTab(tabId: TileryTabId): void;
   swapPanels(panelA: TileryPanelId, panelB: TileryPanelId): void;
+  getLayout<TData = unknown>(): TileryLayoutSnapshot<TData>;
+  setLayout<TData = unknown>(layout: TileryLayoutSnapshot<TData>): void;
   getState(): TileryLayoutState;
 };
 

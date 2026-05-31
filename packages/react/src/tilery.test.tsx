@@ -228,6 +228,40 @@ describe('Tilery — rendering', () => {
     t.cleanup();
   });
 
+  it('restores a layout snapshot through the TileryHandle', () => {
+    const t = mount(simpleLayout());
+    act(() => {
+      t.handle().setLayout({
+        type: 'panel',
+        id: 'restored',
+        tabs: [
+          {
+            id: 'restored-tab',
+            data: { title: 'Restored' },
+            closeable: false,
+          },
+        ],
+      });
+    });
+
+    expect(
+      t
+        .handle()
+        .getPanels()
+        .map((panel) => panel.id),
+    ).toEqual(['restored']);
+    expect(t.host.querySelectorAll('.tilery__panel')).toHaveLength(1);
+    expect(t.host.querySelector('.tilery__tab')?.textContent?.trim()).toBe(
+      'Restored',
+    );
+    expect(t.handle().getLayout()).toMatchObject({
+      type: 'panel',
+      id: 'restored',
+      tabs: [{ id: 'restored-tab', closeable: false }],
+    });
+    t.cleanup();
+  });
+
   it('derives one-dimensional dividers and a T-junction for the L-shape', () => {
     const t = mount(lShapeLayout());
     // 2 dividers: 1 vertical between sidebar and editor/term, then 1

@@ -155,6 +155,9 @@ Describes the initial panel arrangement.
 ```ts
 type TileryInitialLayout<TData> =
   | {
+      type: 'empty';
+    }
+  | {
       type: 'panel';
       id?: string;
       size?: number;
@@ -177,6 +180,8 @@ type TileryTabInit<TData> = {
   data: TData;
   closeable?: boolean;
 };
+
+type TileryLayoutSnapshot<TData> = TileryInitialLayout<TData>;
 ```
 
 Layouts are initialized as an n-ary split tree. A horizontal split places its
@@ -191,6 +196,32 @@ These constraints override the root `minSize` fallback when resizing dividers.
 Resize dividers are keyboard-accessible separators. Focus a divider, then use
 the arrow keys for axis-aligned resizing, Shift+Arrow for larger steps, and
 Home/End to move to the nearest minimum or maximum allowed size.
+
+### Layout snapshots
+
+`TileryLayoutSnapshot<TData>` is the serializable form returned by
+`tilery.getLayout()`. Store it as JSON and pass it back to `initialLayout` or
+`tilery.setLayout(snapshot)` to restore the same panel tree, tab order, active
+tabs, fullscreen panel, and panel size constraints.
+For SSR, parse a saved cookie on the server and pass that snapshot as
+`initialLayout`; for client-only persistence, read and write the snapshot from
+`localStorage`.
+
+```tsx
+const saved =
+  typeof window === 'undefined' ? null : localStorage.getItem('tilery-layout');
+
+<Tilery
+  ref={tileryRef}
+  initialLayout={saved ? JSON.parse(saved) : defaultLayout}
+  onChange={() => {
+    const layout = tileryRef.current?.getLayout<MyTabData>();
+    if (layout) localStorage.setItem('tilery-layout', JSON.stringify(layout));
+  }}
+  renderTabHeader={renderTabHeader}
+  renderTabContent={renderTabContent}
+/>;
+```
 
 ### `TileryResizeEvent`
 
@@ -363,6 +394,8 @@ The imperative API exposed via `ref`. Use it for programmatic layout manipulatio
 | `moveTab(tabId, target)`                | Moves a tab to a target location                    |
 | `setActiveTab(tabId)`                   | Activates a tab                                     |
 | `swapPanels(panelA, panelB)`            | Swaps two panels' positions                         |
+| `getLayout()`                           | Returns a serializable `TileryLayoutSnapshot`       |
+| `setLayout(layout)`                     | Restores a `TileryLayoutSnapshot`                   |
 | `getState()`                            | Returns the current `TileryLayoutState`             |
 
 ### `TileryPanelHandle`

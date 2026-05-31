@@ -62,6 +62,104 @@ describe('TileryHandle lookups', () => {
     const { handle, getState } = makeStore();
     expect(handle.getState()).toBe(getState());
   });
+  it('returns a serializable layout snapshot', () => {
+    const { handle } = makeStore(
+      createStateFromPanels({
+        panels: [
+          {
+            id: 'P1',
+            inset: { top: 0, right: 50, bottom: 0, left: 0 },
+            tabs: [
+              { id: 'T1', data: { title: 'one' }, closeable: false },
+              { id: 'T2', data: { title: 'two' } },
+            ],
+            activeTabId: 'T2',
+            fullScreen: true,
+            minSize: 20,
+            maxSize: 80,
+          },
+          {
+            id: 'P2',
+            inset: { top: 0, right: 0, bottom: 0, left: 50 },
+            tabs: [{ id: 'T3', data: { title: 'three' } }],
+          },
+        ],
+      }),
+    );
+
+    expect(handle.getLayout()).toMatchObject({
+      type: 'split',
+      direction: 'horizontal',
+      children: [
+        {
+          type: 'panel',
+          id: 'P1',
+          size: 50,
+          activeTabId: 'T2',
+          fullScreen: true,
+          minSize: 20,
+          maxSize: 80,
+          tabs: [
+            { id: 'T1', data: { title: 'one' }, closeable: false },
+            { id: 'T2', data: { title: 'two' }, closeable: true },
+          ],
+        },
+        {
+          type: 'panel',
+          id: 'P2',
+          size: 50,
+          tabs: [{ id: 'T3', data: { title: 'three' }, closeable: true }],
+        },
+      ],
+    });
+  });
+  it('returns an empty layout snapshot when no panels remain', () => {
+    const { handle } = makeStore(
+      createStateFromPanels({
+        panels: [],
+      }),
+    );
+
+    expect(handle.getLayout()).toEqual({ type: 'empty' });
+  });
+  it('serializes a transient single-child split as its remaining child', () => {
+    const { handle } = makeStore({
+      panels: {
+        P: {
+          id: 'P',
+          kind: 'tiled',
+          inset: { top: 0, right: 0, bottom: 0, left: 0 },
+          tabs: ['T'],
+          activeTabId: null,
+        },
+      },
+      panelOrder: ['P'],
+      tabs: {
+        T: {
+          id: 'T',
+          panelId: 'P',
+          data: { title: 'one' },
+          closeable: true,
+        },
+      },
+      layout: {
+        kind: 'split',
+        id: 'transient',
+        direction: 'horizontal',
+        size: 75,
+        children: [{ kind: 'panel', panelId: 'P', size: 25 }],
+      },
+    });
+
+    const snapshot = handle.getLayout();
+    expect(snapshot).toMatchObject({
+      type: 'panel',
+      id: 'P',
+      size: 75,
+      tabs: [{ id: 'T', data: { title: 'one' }, closeable: true }],
+    });
+    expect(snapshot).toHaveProperty('activeTabId', undefined);
+  });
 });
 
 describe('TileryHandle mutations', () => {
@@ -165,6 +263,56 @@ describe('TileryHandle mutations', () => {
       panelA: 'P1',
       panelB: 'P2',
     });
+  });
+  it('setLayout replaces the current state from a layout snapshot', () => {
+    const { handle, dispatched, getState } = makeStore();
+    handle.setLayout({
+      type: 'split',
+      direction: 'vertical',
+      children: [
+        {
+          type: 'panel',
+          id: 'Top',
+          size: 25,
+          tabs: [{ id: 'A', data: { title: 'top' } }],
+        },
+        {
+          type: 'panel',
+          id: 'Bottom',
+          size: 75,
+          tabs: [{ id: 'B', data: { title: 'bottom' } }],
+        },
+      ],
+    });
+
+    expect(dispatched[0]?.type).toBe('REPLACE_STATE');
+    expect(getState().panelOrder).toEqual(['Top', 'Bottom']);
+    expect(getState().panels.Top!.inset).toEqual({
+      top: 0,
+      right: 0,
+      bottom: 75,
+      left: 0,
+    });
+    expect(handle.getLayout()).toMatchObject({
+      type: 'split',
+      direction: 'vertical',
+      children: [
+        { type: 'panel', id: 'Top', size: 25 },
+        { type: 'panel', id: 'Bottom', size: 75 },
+      ],
+    });
+  });
+  it('setLayout supports an empty snapshot', () => {
+    const { handle, getState } = makeStore();
+    handle.setLayout({ type: 'empty' });
+
+    expect(getState()).toEqual({
+      panels: {},
+      panelOrder: [],
+      tabs: {},
+      layout: null,
+    });
+    expect(handle.getLayout()).toEqual({ type: 'empty' });
   });
 });
 

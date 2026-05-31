@@ -26,8 +26,10 @@ export {
 
 export type {
   TileryDirection,
+  TileryEmptyInit,
   TileryInset,
   TileryInitialLayout,
+  TileryLayoutSnapshot,
   TilerySplitInit,
   TileryLayoutState,
   TileryLayoutTree,

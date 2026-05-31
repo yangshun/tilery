@@ -2,9 +2,11 @@ export type {
   TileryDirection,
   TileryDivider,
   TileryDividerOrientation,
+  TileryEmptyInit,
   TileryInset,
   TileryInitialLayout,
   TileryJunction,
+  TileryLayoutSnapshot,
   TilerySplitInit,
   TileryLayoutState,
   TileryLayoutTree,
@@ -36,6 +38,8 @@ export {
   type TileryDispatch,
   type TileryGetState,
 } from './state/handles';
+
+export { tileryCreateLayoutSnapshot } from './state/snapshot';
 
 export {
   TILERY_DEFAULT_MIN_SIZE,

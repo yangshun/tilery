@@ -10,11 +10,13 @@ import type {
   TileryTabInit,
 } from '../types';
 import {
+  tileryCreateInitialState,
   tileryNextId,
   tileryTabInitToReducerInit,
   type TileryReducerAction,
 } from './reducer';
 import { tileryPanelOrderFromState } from './layout-tree';
+import { tileryCreateLayoutSnapshot } from './snapshot';
 
 export type TileryDispatch = (action: TileryReducerAction) => void;
 export type TileryGetState = () => TileryLayoutState;
@@ -104,6 +106,15 @@ export function makeTileryHandle(
     },
     setActiveTab(tabId) {
       dispatch({ type: 'SET_ACTIVE_TAB', tabId });
+    },
+    getLayout() {
+      return tileryCreateLayoutSnapshot(getState());
+    },
+    setLayout(layout) {
+      dispatch({
+        type: 'REPLACE_STATE',
+        state: tileryCreateInitialState(layout),
+      });
     },
   };
   return handle;

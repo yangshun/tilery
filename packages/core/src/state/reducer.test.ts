@@ -211,6 +211,46 @@ describe('tileryCreateInitialState', () => {
       left: 40,
     });
   });
+
+  it('normalizes empty and single-child initial splits', () => {
+    const empty = tileryCreateInitialState({
+      type: 'split',
+      direction: 'horizontal',
+      children: [],
+    });
+    expect(empty).toEqual({
+      panels: {},
+      panelOrder: [],
+      tabs: {},
+      layout: null,
+    });
+
+    const single = tileryCreateInitialState({
+      type: 'split',
+      direction: 'vertical',
+      size: 75,
+      children: [
+        {
+          type: 'panel',
+          id: 'Only',
+          size: 25,
+          tabs: [{ id: 'T', data: {} }],
+        },
+      ],
+    });
+    expect(single.layout).toEqual({
+      kind: 'panel',
+      panelId: 'Only',
+      size: 75,
+    });
+    expect(single.panelOrder).toEqual(['Only']);
+    expect(single.panels.Only!.inset).toEqual({
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+    });
+  });
 });
 
 describe('tileryReducer dispatch matrix', () => {

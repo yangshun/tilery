@@ -4,7 +4,7 @@ import { useRef, useCallback } from 'react';
 import { Tilery } from '@tilery/react';
 import type {
   TileryInitialLayout,
-  TileryLayoutState,
+  TileryLayoutSnapshot,
   TileryTabHandle,
   TileryHandle,
 } from '@tilery/react';
@@ -32,64 +32,83 @@ const defaultLayout: TileryInitialLayout<TabData> = {
 
 const STORAGE_KEY = 'tilery-example-persistence';
 
-function getInitialLayout(): TileryInitialLayout<TabData> {
+function getInitialLayout(): TileryLayoutSnapshot<TabData> {
   if (typeof window === 'undefined') return defaultLayout;
   const saved = localStorage.getItem(STORAGE_KEY);
   if (!saved) return defaultLayout;
   try {
-    const state = JSON.parse(saved) as TileryLayoutState;
-    return stateToInitialLayout(state) ?? defaultLayout;
+    const parsed = JSON.parse(saved) as unknown;
+    return isLayoutSnapshot(parsed) ? parsed : defaultLayout;
   } catch {
     return defaultLayout;
   }
 }
 
-function stateToInitialLayout(
-  state: TileryLayoutState,
-): TileryInitialLayout<TabData> | null {
-  const walk = (
-    node: NonNullable<TileryLayoutState['layout']>,
-  ): TileryInitialLayout<TabData> | null => {
-    if (node.kind === 'split') {
-      const children = node.children
-        .map((child) => walk(child))
-        .filter((child): child is TileryInitialLayout<TabData> =>
-          Boolean(child),
-        );
-      if (children.length !== node.children.length) return null;
-      return {
-        type: 'split',
-        id: node.id,
-        direction: node.direction,
-        size: node.size,
-        children,
-      };
-    }
+function isLayoutSnapshot(
+  value: unknown,
+): value is TileryLayoutSnapshot<TabData> {
+  if (!isRecord(value)) return false;
+  if (value.type === 'empty') return true;
+  if (value.type === 'panel') {
+    return (
+      isOptionalString(value.id) &&
+      isOptionalNumber(value.size) &&
+      isOptionalString(value.activeTabId) &&
+      isOptionalBoolean(value.fullScreen) &&
+      isOptionalNumber(value.minSize) &&
+      isOptionalNumber(value.maxSize) &&
+      Array.isArray(value.tabs) &&
+      value.tabs.every(isTabSnapshot)
+    );
+  }
+  if (value.type === 'split') {
+    return (
+      isOptionalString(value.id) &&
+      (value.direction === 'horizontal' || value.direction === 'vertical') &&
+      isOptionalNumber(value.size) &&
+      Array.isArray(value.children) &&
+      value.children.every(isLayoutSnapshot)
+    );
+  }
+  return false;
+}
 
-    const panel = state.panels[node.panelId];
-    if (!panel) return null;
-    return {
-      type: 'panel',
-      id: panel.id,
-      size: node.size,
-      activeTabId: panel.activeTabId ?? undefined,
-      fullScreen: panel.fullScreen,
-      tabs: panel.tabs.map((tid) => ({
-        id: tid,
-        data: (state.tabs[tid]?.data as TabData) ?? { title: tid },
-        closeable: state.tabs[tid]?.closeable,
-      })),
-    };
-  };
+function isTabSnapshot(value: unknown) {
+  return (
+    isRecord(value) &&
+    isOptionalString(value.id) &&
+    isOptionalBoolean(value.closeable) &&
+    isTabData(value.data)
+  );
+}
 
-  return state.layout ? walk(state.layout) : null;
+function isTabData(value: unknown): value is TabData {
+  return isRecord(value) && typeof value.title === 'string';
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function isOptionalString(value: unknown) {
+  return value === undefined || typeof value === 'string';
+}
+
+function isOptionalNumber(value: unknown) {
+  return value === undefined || typeof value === 'number';
+}
+
+function isOptionalBoolean(value: unknown) {
+  return value === undefined || typeof value === 'boolean';
 }
 
 export function Example() {
   const tileryRef = useRef<TileryHandle | null>(null);
 
-  const handleChange = useCallback((state: TileryLayoutState) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  const handleChange = useCallback(() => {
+    const layout = tileryRef.current?.getLayout<TabData>();
+    if (!layout) return;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(layout));
   }, []);
 
   const reset = () => {

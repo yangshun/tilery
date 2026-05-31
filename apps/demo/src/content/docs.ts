@@ -128,6 +128,7 @@ function App() {
         body: [
           'The public layout state keeps panels and tabs in flat lookup objects for direct access, but layout geometry is stored as a nested split tree.',
           'Tilery derives panel insets plus panelOrder from the tree for deterministic rendering.',
+          'Use layout snapshots for persistence instead of storing raw layout state.',
         ],
         code: `type TileryLayoutState = {
   panels: Record<TileryPanelId, TileryPanelState>;
@@ -135,6 +136,27 @@ function App() {
   tabs: Record<TileryTabId, TileryTabState>;
   layout?: TileryLayoutTree | null;
 };`,
+      },
+      {
+        heading: 'Layout Snapshots',
+        body: [
+          'TileryLayoutSnapshot is the serializable layout shape returned by getLayout(). Store it as JSON and pass it back to initialLayout or setLayout(snapshot) to restore the panel tree.',
+          'For SSR, parse a saved cookie on the server and pass that snapshot as initialLayout. For client-only persistence, read and write the snapshot from localStorage.',
+        ],
+        code: `const saved = localStorage.getItem('tilery-layout');
+
+<Tilery
+  ref={tileryRef}
+  initialLayout={saved ? JSON.parse(saved) : defaultLayout}
+  onChange={() => {
+    const layout = tileryRef.current?.getLayout<MyTabData>();
+    if (layout) {
+      localStorage.setItem('tilery-layout', JSON.stringify(layout));
+    }
+  }}
+  renderTabHeader={renderTabHeader}
+  renderTabContent={renderTabContent}
+/>;`,
       },
       {
         heading: 'Dividers',
@@ -346,6 +368,33 @@ function App() {
         },
       },
       {
+        heading: 'TileryInitialLayout and Snapshots',
+        body: [
+          'Initial layouts and persisted snapshots share the same serializable tree shape. A snapshot preserves the panel tree, tab order, active tabs, fullscreen panel, and size constraints.',
+        ],
+        code: `type TileryInitialLayout<TData> =
+  | { type: 'empty' }
+  | {
+      type: 'panel';
+      id?: string;
+      size?: number;
+      minSize?: number;
+      maxSize?: number;
+      tabs: TileryTabInit<TData>[];
+      activeTabId?: string;
+      fullScreen?: boolean;
+    }
+  | {
+      type: 'split';
+      id?: string;
+      direction: 'horizontal' | 'vertical';
+      size?: number;
+      children: TileryInitialLayout<TData>[];
+    };
+
+type TileryLayoutSnapshot<TData> = TileryInitialLayout<TData>;`,
+      },
+      {
         heading: 'TileryResizeEvent',
         body: [
           'onResize fires for each pointer or keyboard resize that changes panel sizes. onResizeEnd fires on pointer release for drag resizes and immediately after each keyboard resize.',
@@ -514,6 +563,8 @@ type TileryPanelsCloseEvent<TData> = {
             ['moveTab(tabId, target)', 'Moves a tab to a target location'],
             ['setActiveTab(tabId)', 'Activates a tab'],
             ['swapPanels(panelA, panelB)', 'Swaps two panels positions'],
+            ['getLayout()', 'Returns a serializable TileryLayoutSnapshot'],
+            ['setLayout(layout)', 'Restores a TileryLayoutSnapshot'],
             ['getState()', 'Returns the current TileryLayoutState'],
           ],
         },
