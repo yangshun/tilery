@@ -106,6 +106,13 @@ The main component. Renders a tiling panel layout.
   onChange={handleChange}
   onResize={handleResize}
   onResizeEnd={handleResizeEnd}
+  onActiveTabChange={handleActiveTabChange}
+  onTabsMove={handleTabsMove}
+  onPanelsOpen={handlePanelsOpen}
+  onPanelSplit={handlePanelSplit}
+  onTabsOpen={handleTabsOpen}
+  onTabsClose={handleTabsClose}
+  onPanelsClose={handlePanelsClose}
   minSize={10}
   showActionsButton
   showNewTabButton={(panel) => panel.id === 'editor'}
@@ -126,6 +133,13 @@ The main component. Renders a tiling panel layout.
 | `onChange`                | `(state: TileryLayoutState) => void`                                     | No       | Called after every state change                 |
 | `onResize`                | `(event: TileryResizeEvent) => void`                                     | No       | Called for each divider or junction resize      |
 | `onResizeEnd`             | `(event: TileryResizeEvent) => void`                                     | No       | Called when a resize interaction commits        |
+| `onActiveTabChange`       | `(event: TileryActiveTabChangeEvent) => void`                            | No       | Called when a panel's active tab changes        |
+| `onTabsMove`              | `(event: TileryTabsMoveEvent<TData>) => void`                            | No       | Called when tabs move between panels or indexes |
+| `onPanelsOpen`            | `(event: TileryPanelsOpenEvent<TData>) => void`                          | No       | Called when panels are created                  |
+| `onPanelSplit`            | `(event: TileryPanelSplitEvent<TData>) => void`                          | No       | Called when a panel is split                    |
+| `onTabsOpen`              | `(event: TileryTabsOpenEvent<TData>) => void`                            | No       | Called when tabs are added                      |
+| `onTabsClose`             | `(event: TileryTabsCloseEvent<TData>) => void`                           | No       | Called when tabs are removed                    |
+| `onPanelsClose`           | `(event: TileryPanelsCloseEvent<TData>) => void`                         | No       | Called when panels are removed                  |
 | `minSize`                 | `number`                                                                 | No       | Default minimum panel size percentage           |
 | `showActionsButton`       | `boolean \| (panel: TileryPanelHandle) => boolean`                       | No       | Shows the built-in panel action menu            |
 | `showNewTabButton`        | `boolean \| (panel: TileryPanelHandle) => boolean`                       | No       | Shows the optional new-tab button               |
@@ -214,6 +228,113 @@ type TileryResizeEvent = {
     previousPixelSize?: number;
     pixelSize?: number;
   }>;
+  previousState: TileryLayoutState;
+  state: TileryLayoutState;
+};
+```
+
+### Lifecycle events
+
+Lifecycle events fire for state changes that activate, move, add, or remove
+tabs and panels. Events include the action source, previous state, next state,
+and compact tab or panel snapshots from the relevant side of the transition.
+When a panel closes because its last tab moved out, `onPanelsClose` reports the
+moved tab even though `onTabsClose` does not fire.
+
+```ts
+type TileryLifecycleSource =
+  | 'SPLIT_PANEL'
+  | 'REMOVE_PANEL'
+  | 'APPEND_TAB'
+  | 'INSERT_TAB'
+  | 'REMOVE_TAB'
+  | 'MOVE_TAB'
+  | 'SET_ACTIVE_TAB'
+  | 'REPLACE_STATE';
+
+type TileryTabLifecycleChange<TData> = {
+  id: string;
+  panelId: string;
+  data: TData;
+  closeable: boolean;
+};
+
+type TileryPanelLifecycleChange = {
+  id: string;
+  tabIds: string[];
+  activeTabId: string | null;
+};
+
+type TileryActiveTabChange = {
+  panelId: string;
+  previousTabId: string | null;
+  tabId: string | null;
+};
+
+type TileryTabMoveChange<TData> = {
+  id: string;
+  previousPanelId: string;
+  panelId: string;
+  previousIndex: number;
+  index: number;
+  data: TData;
+  closeable: boolean;
+};
+
+type TileryActiveTabChangeEvent = {
+  source: TileryLifecycleSource;
+  changes: TileryActiveTabChange[];
+  previousState: TileryLayoutState;
+  state: TileryLayoutState;
+};
+
+type TileryTabsMoveEvent<TData> = {
+  source: TileryLifecycleSource;
+  tabs: TileryTabMoveChange<TData>[];
+  previousState: TileryLayoutState;
+  state: TileryLayoutState;
+};
+
+type TileryPanelsOpenEvent<TData> = {
+  source: TileryLifecycleSource;
+  panels: TileryPanelLifecycleChange[];
+  tabs: TileryTabLifecycleChange<TData>[];
+  previousState: TileryLayoutState;
+  state: TileryLayoutState;
+};
+
+type TileryPanelSplitEvent<TData> = {
+  source: 'SPLIT_PANEL' | 'MOVE_TAB';
+  splitPanelId: string;
+  createdPanelId: string;
+  direction: 'left' | 'right' | 'top' | 'bottom';
+  size: number;
+  splitPanel: TileryPanelLifecycleChange;
+  createdPanel: TileryPanelLifecycleChange;
+  tabs: TileryTabLifecycleChange<TData>[];
+  previousState: TileryLayoutState;
+  state: TileryLayoutState;
+};
+
+type TileryTabsOpenEvent<TData> = {
+  source: TileryLifecycleSource;
+  tabs: TileryTabLifecycleChange<TData>[];
+  previousState: TileryLayoutState;
+  state: TileryLayoutState;
+};
+
+type TileryTabsCloseEvent<TData> = {
+  source: TileryLifecycleSource;
+  tabs: TileryTabLifecycleChange<TData>[];
+  panels: TileryPanelLifecycleChange[];
+  previousState: TileryLayoutState;
+  state: TileryLayoutState;
+};
+
+type TileryPanelsCloseEvent<TData> = {
+  source: TileryLifecycleSource;
+  panels: TileryPanelLifecycleChange[];
+  tabs: TileryTabLifecycleChange<TData>[];
   previousState: TileryLayoutState;
   state: TileryLayoutState;
 };

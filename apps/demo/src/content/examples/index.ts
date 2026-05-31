@@ -5,6 +5,7 @@ export { Example as PanelActionsExample } from './collapse/example';
 export { Example as ConstraintsExample } from './constraints/example';
 export { Example as ControlledExample } from './controlled/example';
 export { Example as PersistenceExample } from './persistence/example';
+export { Example as CallbacksExample } from './callbacks/example';
 export { Example as NestedExample } from './nested/example';
 
 export { metadata as basicMeta } from './basic/metadata';
@@ -14,6 +15,7 @@ export { metadata as panelActionsMeta } from './collapse/metadata';
 export { metadata as constraintsMeta } from './constraints/metadata';
 export { metadata as controlledMeta } from './controlled/metadata';
 export { metadata as persistenceMeta } from './persistence/metadata';
+export { metadata as callbacksMeta } from './callbacks/metadata';
 export { metadata as nestedMeta } from './nested/metadata';
 
 export const examples = [
@@ -52,6 +54,11 @@ export const examples = [
     slug: 'persistence',
     title: 'Layout Persistence',
     description: 'Save and restore layout state via localStorage.',
+  },
+  {
+    slug: 'callbacks',
+    title: 'Lifecycle Callbacks',
+    description: 'Track tab, panel, split, move, and active-tab events.',
   },
   {
     slug: 'nested',

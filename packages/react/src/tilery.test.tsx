@@ -4,7 +4,18 @@ import { describe, expect, it } from 'vite-plus/test';
 import React, { act, createRef } from 'react';
 import { createRoot } from 'react-dom/client';
 
-import { Tilery, type TileryProps, type TileryResizeEvent } from './tilery';
+import {
+  Tilery,
+  type TileryActiveTabChangeEvent,
+  type TileryPanelsCloseEvent,
+  type TileryPanelsOpenEvent,
+  type TileryPanelSplitEvent,
+  type TileryProps,
+  type TileryResizeEvent,
+  type TileryTabsCloseEvent,
+  type TileryTabsMoveEvent,
+  type TileryTabsOpenEvent,
+} from './tilery';
 import type { TileryInitialLayout, TileryHandle } from 'tilery/internal';
 
 // Integration tests for the Tilery component itself. They exercise the
@@ -603,6 +614,314 @@ describe('Tilery — onChange callback', () => {
       t.handle().setActiveTab('bar');
     });
     expect(calls.length).toBeGreaterThan(initial);
+    t.cleanup();
+  });
+});
+
+describe('Tilery — open and close lifecycle callbacks', () => {
+  it('reports opened tabs from append, insert, and split actions', () => {
+    const opens: TileryTabsOpenEvent<Data>[] = [];
+    const panelOpens: TileryPanelsOpenEvent<Data>[] = [];
+    const panelSplits: TileryPanelSplitEvent<Data>[] = [];
+    const t = mount(lShapeLayout(), undefined, {
+      onTabsOpen: (event) => opens.push(event),
+      onPanelsOpen: (event) => panelOpens.push(event),
+      onPanelSplit: (event) => panelSplits.push(event),
+    });
+
+    act(() => {
+      t.handle().appendTab(
+        'sidebar',
+        { id: 'side-2', data: { title: 'Side 2' }, closeable: false },
+        { activate: false },
+      );
+      t.handle().insertTab(
+        'editor',
+        { id: 'readme', data: { title: 'README.md' } },
+        1,
+      );
+      t.handle().splitPanel('term', 'right', {
+        tabs: [
+          { id: 'logs', data: { title: 'Logs' } },
+          { id: 'problems', data: { title: 'Problems' } },
+        ],
+      });
+    });
+
+    expect(opens).toHaveLength(3);
+    expect(opens[0]).toMatchObject({
+      source: 'APPEND_TAB',
+      tabs: [
+        {
+          id: 'side-2',
+          panelId: 'sidebar',
+          data: { title: 'Side 2' },
+          closeable: false,
+        },
+      ],
+    });
+    expect(opens[0].previousState.tabs['side-2']).toBeUndefined();
+    expect(opens[0].state.tabs['side-2']).toMatchObject({
+      panelId: 'sidebar',
+    });
+    expect(opens[1]).toMatchObject({
+      source: 'INSERT_TAB',
+      tabs: [{ id: 'readme', panelId: 'editor', closeable: true }],
+    });
+    expect(opens[2].source).toBe('SPLIT_PANEL');
+    expect(opens[2].tabs.map((tab) => tab.id)).toEqual(['logs', 'problems']);
+    expect(new Set(opens[2].tabs.map((tab) => tab.panelId)).size).toBe(1);
+    expect(panelOpens).toHaveLength(1);
+    expect(panelOpens[0].source).toBe('SPLIT_PANEL');
+    expect(panelOpens[0].tabs.map((tab) => tab.id)).toEqual([
+      'logs',
+      'problems',
+    ]);
+    expect(panelSplits).toHaveLength(1);
+    expect(panelSplits[0]).toMatchObject({
+      source: 'SPLIT_PANEL',
+      splitPanelId: 'term',
+      direction: 'right',
+      size: 50,
+      tabs: [{ id: 'logs' }, { id: 'problems' }],
+    });
+    expect(panelSplits[0].createdPanelId).toBe(panelOpens[0].panels[0].id);
+    t.cleanup();
+  });
+
+  it('reports active tab changes', () => {
+    const activeChanges: TileryActiveTabChangeEvent[] = [];
+    const t = mount(lShapeLayout(), undefined, {
+      onActiveTabChange: (event) => activeChanges.push(event),
+    });
+
+    act(() => {
+      t.handle().setActiveTab('bar');
+      t.handle().appendTab('editor', {
+        id: 'baz',
+        data: { title: 'baz.ts' },
+      });
+    });
+
+    expect(activeChanges).toHaveLength(2);
+    expect(activeChanges[0]).toMatchObject({
+      source: 'SET_ACTIVE_TAB',
+      changes: [{ panelId: 'editor', previousTabId: 'foo', tabId: 'bar' }],
+    });
+    expect(activeChanges[0].previousState.panels.editor!.activeTabId).toBe(
+      'foo',
+    );
+    expect(activeChanges[0].state.panels.editor!.activeTabId).toBe('bar');
+    expect(activeChanges[1]).toMatchObject({
+      source: 'APPEND_TAB',
+      changes: [{ panelId: 'editor', previousTabId: 'bar', tabId: 'baz' }],
+    });
+    t.cleanup();
+  });
+
+  it('reports moved tabs when their panel or index changes', () => {
+    const moves: TileryTabsMoveEvent<Data>[] = [];
+    const t = mount(lShapeLayout(), undefined, {
+      onTabsMove: (event) => moves.push(event),
+    });
+
+    act(() => {
+      t.handle().moveTab('bar', { beforeTab: 'foo' });
+    });
+
+    expect(moves).toHaveLength(1);
+    expect(moves[0]).toMatchObject({
+      source: 'MOVE_TAB',
+      tabs: [
+        {
+          id: 'bar',
+          previousPanelId: 'editor',
+          panelId: 'editor',
+          previousIndex: 1,
+          index: 0,
+          data: { title: 'bar.ts' },
+          closeable: true,
+        },
+      ],
+    });
+    t.cleanup();
+  });
+
+  it('reports tab moves, panel opens, and panel splits for split drops', () => {
+    const moves: TileryTabsMoveEvent<Data>[] = [];
+    const panelOpens: TileryPanelsOpenEvent<Data>[] = [];
+    const panelSplits: TileryPanelSplitEvent<Data>[] = [];
+    const t = mount(lShapeLayout(), undefined, {
+      onTabsMove: (event) => moves.push(event),
+      onPanelsOpen: (event) => panelOpens.push(event),
+      onPanelSplit: (event) => panelSplits.push(event),
+    });
+
+    act(() => {
+      t.handle().moveTab('bar', {
+        splitPanel: 'term',
+        direction: 'left',
+        size: 35,
+      });
+    });
+
+    expect(moves).toHaveLength(1);
+    expect(panelOpens).toHaveLength(1);
+    expect(panelSplits).toHaveLength(1);
+    const createdPanelId = panelOpens[0].panels[0].id;
+    expect(moves[0]).toMatchObject({
+      source: 'MOVE_TAB',
+      tabs: [
+        {
+          id: 'bar',
+          previousPanelId: 'editor',
+          panelId: createdPanelId,
+          previousIndex: 1,
+          index: 0,
+        },
+      ],
+    });
+    expect(panelOpens[0]).toMatchObject({
+      source: 'MOVE_TAB',
+      panels: [{ id: createdPanelId, tabIds: ['bar'], activeTabId: 'bar' }],
+      tabs: [{ id: 'bar', panelId: createdPanelId }],
+    });
+    expect(panelSplits[0]).toMatchObject({
+      source: 'MOVE_TAB',
+      splitPanelId: 'term',
+      createdPanelId,
+      direction: 'left',
+      size: 35,
+      createdPanel: { id: createdPanelId, tabIds: ['bar'] },
+      tabs: [{ id: 'bar', panelId: createdPanelId }],
+    });
+    t.cleanup();
+  });
+
+  it('reports tab closes and the panel that disappears with the last tab', () => {
+    const closes: TileryTabsCloseEvent<Data>[] = [];
+    const panelCloses: TileryPanelsCloseEvent<Data>[] = [];
+    const t = mount(lShapeLayout(), undefined, {
+      onTabsClose: (event) => closes.push(event),
+      onPanelsClose: (event) => panelCloses.push(event),
+    });
+
+    act(() => {
+      t.handle().removeTab('bar');
+      t.handle().removeTab('side');
+    });
+
+    expect(closes).toHaveLength(2);
+    expect(closes[0]).toMatchObject({
+      source: 'REMOVE_TAB',
+      tabs: [{ id: 'bar', panelId: 'editor', data: { title: 'bar.ts' } }],
+      panels: [],
+    });
+    expect(closes[1]).toMatchObject({
+      source: 'REMOVE_TAB',
+      tabs: [{ id: 'side', panelId: 'sidebar', data: { title: 'Side' } }],
+      panels: [
+        {
+          id: 'sidebar',
+          tabIds: ['side'],
+          activeTabId: 'side',
+        },
+      ],
+    });
+    expect(panelCloses).toHaveLength(1);
+    expect(panelCloses[0]).toMatchObject({
+      source: 'REMOVE_TAB',
+      panels: [{ id: 'sidebar', tabIds: ['side'], activeTabId: 'side' }],
+      tabs: [{ id: 'side', panelId: 'sidebar' }],
+    });
+    expect(panelCloses[0].previousState.panels.sidebar).toBeDefined();
+    expect(panelCloses[0].state.panels.sidebar).toBeUndefined();
+    t.cleanup();
+  });
+
+  it('reports all panel tabs when a panel is removed directly', () => {
+    const closes: TileryTabsCloseEvent<Data>[] = [];
+    const panelCloses: TileryPanelsCloseEvent<Data>[] = [];
+    const t = mount(lShapeLayout(), undefined, {
+      onTabsClose: (event) => closes.push(event),
+      onPanelsClose: (event) => panelCloses.push(event),
+    });
+
+    act(() => {
+      t.handle().removePanel('editor');
+    });
+
+    expect(closes).toHaveLength(1);
+    expect(closes[0].source).toBe('REMOVE_PANEL');
+    expect(closes[0].tabs.map((tab) => tab.id)).toEqual(['foo', 'bar']);
+    expect(closes[0].panels).toEqual([
+      { id: 'editor', tabIds: ['foo', 'bar'], activeTabId: 'foo' },
+    ]);
+    expect(panelCloses).toHaveLength(1);
+    expect(panelCloses[0].source).toBe('REMOVE_PANEL');
+    expect(panelCloses[0].tabs.map((tab) => tab.id)).toEqual(['foo', 'bar']);
+    expect(panelCloses[0].panels).toEqual([
+      { id: 'editor', tabIds: ['foo', 'bar'], activeTabId: 'foo' },
+    ]);
+    t.cleanup();
+  });
+
+  it('reports panel closes without tab closes when the last tab moves out', () => {
+    const closes: TileryTabsCloseEvent<Data>[] = [];
+    const panelCloses: TileryPanelsCloseEvent<Data>[] = [];
+    const t = mount(lShapeLayout(), undefined, {
+      onTabsClose: (event) => closes.push(event),
+      onPanelsClose: (event) => panelCloses.push(event),
+    });
+
+    act(() => {
+      t.handle().moveTab('side', { panel: 'editor' });
+    });
+
+    expect(closes).toEqual([]);
+    expect(panelCloses).toHaveLength(1);
+    expect(panelCloses[0]).toMatchObject({
+      source: 'MOVE_TAB',
+      panels: [{ id: 'sidebar', tabIds: ['side'], activeTabId: 'side' }],
+      tabs: [{ id: 'side', panelId: 'sidebar' }],
+    });
+    expect(t.handle().getTab('side')!.panel.id).toBe('editor');
+    t.cleanup();
+  });
+
+  it('does not report lifecycle callbacks for no-op close actions', () => {
+    const activeChanges: TileryActiveTabChangeEvent[] = [];
+    const moves: TileryTabsMoveEvent<Data>[] = [];
+    const opens: TileryTabsOpenEvent<Data>[] = [];
+    const panelOpens: TileryPanelsOpenEvent<Data>[] = [];
+    const panelSplits: TileryPanelSplitEvent<Data>[] = [];
+    const closes: TileryTabsCloseEvent<Data>[] = [];
+    const panelCloses: TileryPanelsCloseEvent<Data>[] = [];
+    const t = mount(lShapeLayout(), undefined, {
+      onActiveTabChange: (event) => activeChanges.push(event),
+      onTabsMove: (event) => moves.push(event),
+      onTabsOpen: (event) => opens.push(event),
+      onPanelsOpen: (event) => panelOpens.push(event),
+      onPanelSplit: (event) => panelSplits.push(event),
+      onTabsClose: (event) => closes.push(event),
+      onPanelsClose: (event) => panelCloses.push(event),
+    });
+
+    act(() => {
+      t.handle().removeTab('missing');
+      t.handle().removePanel('missing');
+      t.handle().moveTab('missing', { panel: 'editor' });
+      t.handle().moveTab('foo', { beforeTab: 'foo' });
+      t.handle().splitPanel('missing', 'right');
+    });
+
+    expect(activeChanges).toEqual([]);
+    expect(moves).toEqual([]);
+    expect(opens).toEqual([]);
+    expect(panelOpens).toEqual([]);
+    expect(panelSplits).toEqual([]);
+    expect(closes).toEqual([]);
+    expect(panelCloses).toEqual([]);
     t.cleanup();
   });
 });

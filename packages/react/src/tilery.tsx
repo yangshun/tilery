@@ -26,6 +26,7 @@ import {
   tileryDeriveJunctions,
   tileryGetFullScreenPanelId,
   type TileryReducerAction,
+  type TileryDirection,
   type TileryInitialLayout,
   type TileryDivider as TileryDividerState,
   type TileryDividerOrientation,
@@ -96,6 +97,113 @@ export type TileryResizeEvent = {
   state: TileryLayoutState;
 };
 
+export type TileryLifecycleSource =
+  | 'SPLIT_PANEL'
+  | 'REMOVE_PANEL'
+  | 'APPEND_TAB'
+  | 'INSERT_TAB'
+  | 'REMOVE_TAB'
+  | 'MOVE_TAB'
+  | 'SET_ACTIVE_TAB'
+  | 'REPLACE_STATE';
+
+export type TileryTabLifecycleChange<TData = unknown> = {
+  id: TileryTabId;
+  panelId: TileryPanelId;
+  data: TData;
+  closeable: boolean;
+};
+
+export type TileryPanelLifecycleChange = {
+  id: TileryPanelId;
+  tabIds: TileryTabId[];
+  activeTabId: TileryTabId | null;
+};
+
+export type TileryActiveTabChange = {
+  panelId: TileryPanelId;
+  previousTabId: TileryTabId | null;
+  tabId: TileryTabId | null;
+};
+
+export type TileryTabMoveChange<TData = unknown> = {
+  id: TileryTabId;
+  previousPanelId: TileryPanelId;
+  panelId: TileryPanelId;
+  previousIndex: number;
+  index: number;
+  data: TData;
+  closeable: boolean;
+};
+
+export type TileryActiveTabChangeEvent = {
+  source: TileryLifecycleSource;
+  changes: TileryActiveTabChange[];
+  previousState: TileryLayoutState;
+  state: TileryLayoutState;
+};
+
+export type TileryTabsMoveEvent<TData = unknown> = {
+  source: TileryLifecycleSource;
+  tabs: TileryTabMoveChange<TData>[];
+  previousState: TileryLayoutState;
+  state: TileryLayoutState;
+};
+
+export type TileryPanelsOpenEvent<TData = unknown> = {
+  source: TileryLifecycleSource;
+  panels: TileryPanelLifecycleChange[];
+  tabs: TileryTabLifecycleChange<TData>[];
+  previousState: TileryLayoutState;
+  state: TileryLayoutState;
+};
+
+export type TileryPanelSplitEvent<TData = unknown> = {
+  source: 'SPLIT_PANEL' | 'MOVE_TAB';
+  splitPanelId: TileryPanelId;
+  createdPanelId: TileryPanelId;
+  direction: TileryDirection;
+  size: number;
+  splitPanel: TileryPanelLifecycleChange;
+  createdPanel: TileryPanelLifecycleChange;
+  tabs: TileryTabLifecycleChange<TData>[];
+  previousState: TileryLayoutState;
+  state: TileryLayoutState;
+};
+
+export type TileryTabsOpenEvent<TData = unknown> = {
+  source: TileryLifecycleSource;
+  tabs: TileryTabLifecycleChange<TData>[];
+  previousState: TileryLayoutState;
+  state: TileryLayoutState;
+};
+
+export type TileryTabsCloseEvent<TData = unknown> = {
+  source: TileryLifecycleSource;
+  tabs: TileryTabLifecycleChange<TData>[];
+  panels: TileryPanelLifecycleChange[];
+  previousState: TileryLayoutState;
+  state: TileryLayoutState;
+};
+
+export type TileryPanelsCloseEvent<TData = unknown> = {
+  source: TileryLifecycleSource;
+  panels: TileryPanelLifecycleChange[];
+  tabs: TileryTabLifecycleChange<TData>[];
+  previousState: TileryLayoutState;
+  state: TileryLayoutState;
+};
+
+type TileryLifecycleEvents<TData = unknown> = {
+  activeTabChange: TileryActiveTabChangeEvent | null;
+  tabsMove: TileryTabsMoveEvent<TData> | null;
+  panelsOpen: TileryPanelsOpenEvent<TData> | null;
+  panelSplit: TileryPanelSplitEvent<TData> | null;
+  tabsOpen: TileryTabsOpenEvent<TData> | null;
+  tabsClose: TileryTabsCloseEvent<TData> | null;
+  panelsClose: TileryPanelsCloseEvent<TData> | null;
+};
+
 type TileryResizeAction = Extract<
   TileryReducerAction,
   { type: 'RESIZE_DIVIDER' | 'RESIZE_JUNCTION' }
@@ -111,6 +219,13 @@ export type TileryProps<TData = unknown> = {
   onChange?: (state: TileryLayoutState) => void;
   onResize?: (event: TileryResizeEvent) => void;
   onResizeEnd?: (event: TileryResizeEvent) => void;
+  onActiveTabChange?: (event: TileryActiveTabChangeEvent) => void;
+  onTabsMove?: (event: TileryTabsMoveEvent<TData>) => void;
+  onPanelsOpen?: (event: TileryPanelsOpenEvent<TData>) => void;
+  onPanelSplit?: (event: TileryPanelSplitEvent<TData>) => void;
+  onTabsOpen?: (event: TileryTabsOpenEvent<TData>) => void;
+  onTabsClose?: (event: TileryTabsCloseEvent<TData>) => void;
+  onPanelsClose?: (event: TileryPanelsCloseEvent<TData>) => void;
   minSize?: number;
   showActionsButton?: TileryPanelVisibility;
   showNewTabButton?: TileryPanelVisibility;
@@ -133,6 +248,13 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
     onChange,
     onResize,
     onResizeEnd,
+    onActiveTabChange,
+    onTabsMove,
+    onPanelsOpen,
+    onPanelSplit,
+    onTabsOpen,
+    onTabsClose,
+    onPanelsClose,
     minSize = 10,
     showActionsButton = false,
     showNewTabButton = false,
@@ -150,7 +272,38 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
   stateRef.current = state;
   const resizeStateRef = useRef(state);
   resizeStateRef.current = state;
+  const lifecycleStateRef = useRef(state);
+  lifecycleStateRef.current = state;
   const lastResizeEventRef = useRef<TileryResizeEvent | null>(null);
+  const lifecycleCallbacksRef = useRef<
+    Pick<
+      TileryProps<TData>,
+      | 'onActiveTabChange'
+      | 'onTabsMove'
+      | 'onPanelsOpen'
+      | 'onPanelSplit'
+      | 'onTabsOpen'
+      | 'onTabsClose'
+      | 'onPanelsClose'
+    >
+  >({
+    onActiveTabChange,
+    onTabsMove,
+    onPanelsOpen,
+    onPanelSplit,
+    onTabsOpen,
+    onTabsClose,
+    onPanelsClose,
+  });
+  lifecycleCallbacksRef.current = {
+    onActiveTabChange,
+    onTabsMove,
+    onPanelsOpen,
+    onPanelSplit,
+    onTabsOpen,
+    onTabsClose,
+    onPanelsClose,
+  };
 
   const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -172,6 +325,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
       );
       if (!event) return false;
       resizeStateRef.current = nextState;
+      lifecycleStateRef.current = nextState;
       lastResizeEventRef.current = event;
       dispatch(resizeAction);
       onResize?.(event);
@@ -187,15 +341,36 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
     onResizeEnd?.({ ...event, phase: 'end' });
   }, [onResizeEnd]);
 
-  const dispatchWithMin = useCallback((action: TileryReducerAction) => {
+  const dispatchWithLifecycle = useCallback((action: TileryReducerAction) => {
+    const previousState = lifecycleStateRef.current;
+    const nextState = tileryReducer(previousState, action);
+    const events = makeLifecycleEvents<TData>(previousState, nextState, action);
+    lifecycleStateRef.current = nextState;
+    resizeStateRef.current = nextState;
     dispatch(action);
+    const {
+      onActiveTabChange,
+      onTabsMove,
+      onPanelsOpen,
+      onPanelSplit,
+      onTabsOpen,
+      onTabsClose,
+      onPanelsClose,
+    } = lifecycleCallbacksRef.current;
+    if (events.panelsOpen) onPanelsOpen?.(events.panelsOpen);
+    if (events.panelSplit) onPanelSplit?.(events.panelSplit);
+    if (events.tabsOpen) onTabsOpen?.(events.tabsOpen);
+    if (events.tabsMove) onTabsMove?.(events.tabsMove);
+    if (events.tabsClose) onTabsClose?.(events.tabsClose);
+    if (events.panelsClose) onPanelsClose?.(events.panelsClose);
+    if (events.activeTabChange) onActiveTabChange?.(events.activeTabChange);
   }, []);
 
   const getState = useCallback(() => stateRef.current, []);
 
   const tileryRef = useRef<TileryHandle | null>(null);
   if (!tileryRef.current) {
-    tileryRef.current = makeTileryHandle(getState, dispatchWithMin);
+    tileryRef.current = makeTileryHandle(getState, dispatchWithLifecycle);
   }
   useImperativeHandle(ref, () => tileryRef.current!, []);
 
@@ -565,6 +740,230 @@ function tileryPanelOrderFromState(state: TileryLayoutState): TileryPanelId[] {
 function tileryPanelOrderFromLayout(layout: TileryLayoutTree): TileryPanelId[] {
   if (layout.kind === 'panel') return [layout.panelId];
   return layout.children.flatMap((child) => tileryPanelOrderFromLayout(child));
+}
+
+function makeLifecycleEvents<TData>(
+  previousState: TileryLayoutState,
+  state: TileryLayoutState,
+  action: TileryReducerAction,
+): TileryLifecycleEvents<TData> {
+  const source = action.type;
+  const lifecycleSource = source as TileryLifecycleSource;
+  const activeTabChanges = makeActiveTabChanges(previousState, state);
+  const movedTabs = makeTabMoveChanges<TData>(previousState, state, action);
+  const openedPanels = tileryPanelOrderFromState(state)
+    .filter((panelId) => !previousState.panels[panelId])
+    .map((panelId) => makePanelLifecycleChange(state.panels[panelId]!));
+  const openedPanelTabs = openedPanels.flatMap((panel) =>
+    panel.tabIds.map((tabId) =>
+      makeTabLifecycleChange<TData>(state.tabs[tabId]!),
+    ),
+  );
+  const panelSplit = makePanelSplitEvent<TData>(previousState, state, action);
+  const openedTabs = Object.values(state.tabs)
+    .filter((tab) => !previousState.tabs[tab.id])
+    .map(makeTabLifecycleChange<TData>);
+  const closedTabs = Object.values(previousState.tabs)
+    .filter((tab) => !state.tabs[tab.id])
+    .map(makeTabLifecycleChange<TData>);
+  const closedPanels = tileryPanelOrderFromState(previousState)
+    .filter((panelId) => !state.panels[panelId])
+    .map((panelId) => makePanelLifecycleChange(previousState.panels[panelId]!));
+  const panelTabs = closedPanels.flatMap((panel) =>
+    panel.tabIds.map((tabId) =>
+      makeTabLifecycleChange<TData>(previousState.tabs[tabId]!),
+    ),
+  );
+
+  return {
+    activeTabChange:
+      activeTabChanges.length === 0
+        ? null
+        : {
+            source: lifecycleSource,
+            changes: activeTabChanges,
+            previousState,
+            state,
+          },
+    tabsMove:
+      movedTabs.length === 0
+        ? null
+        : {
+            source: lifecycleSource,
+            tabs: movedTabs,
+            previousState,
+            state,
+          },
+    panelsOpen:
+      openedPanels.length === 0
+        ? null
+        : {
+            source: lifecycleSource,
+            panels: openedPanels,
+            tabs: openedPanelTabs,
+            previousState,
+            state,
+          },
+    panelSplit,
+    tabsOpen:
+      openedTabs.length === 0
+        ? null
+        : {
+            source: lifecycleSource,
+            tabs: openedTabs,
+            previousState,
+            state,
+          },
+    tabsClose:
+      closedTabs.length === 0
+        ? null
+        : {
+            source: lifecycleSource,
+            tabs: closedTabs,
+            panels: closedPanels,
+            previousState,
+            state,
+          },
+    panelsClose:
+      closedPanels.length === 0
+        ? null
+        : {
+            source: lifecycleSource,
+            panels: closedPanels,
+            tabs: panelTabs,
+            previousState,
+            state,
+          },
+  };
+}
+
+function makeActiveTabChanges(
+  previousState: TileryLayoutState,
+  state: TileryLayoutState,
+): TileryActiveTabChange[] {
+  const changes: TileryActiveTabChange[] = [];
+  for (const panelId of tileryPanelOrderFromState(state)) {
+    const previousPanel = previousState.panels[panelId];
+    const panel = state.panels[panelId];
+    if (!previousPanel || !panel) continue;
+    if (previousPanel.activeTabId === panel.activeTabId) continue;
+    changes.push({
+      panelId,
+      previousTabId: previousPanel.activeTabId,
+      tabId: panel.activeTabId,
+    });
+  }
+  return changes;
+}
+
+function makeTabMoveChanges<TData>(
+  previousState: TileryLayoutState,
+  state: TileryLayoutState,
+  action: TileryReducerAction,
+): TileryTabMoveChange<TData>[] {
+  if (action.type !== 'MOVE_TAB') return [];
+  const previousTab = previousState.tabs[action.tabId];
+  const tab = state.tabs[action.tabId];
+  if (!previousTab || !tab) return [];
+  const previousPanel = previousState.panels[previousTab.panelId]!;
+  const panel = state.panels[tab.panelId]!;
+  const previousIndex = previousPanel.tabs.indexOf(action.tabId);
+  const index = panel.tabs.indexOf(action.tabId);
+  if (previousTab.panelId === tab.panelId && previousIndex === index) return [];
+  return [
+    {
+      id: tab.id,
+      previousPanelId: previousTab.panelId,
+      panelId: tab.panelId,
+      previousIndex,
+      index,
+      data: tab.data as TData,
+      /* v8 ignore next -- reducer-created tabs materialize closeable. */
+      closeable: tab.closeable ?? true,
+    },
+  ];
+}
+
+function makePanelSplitEvent<TData>(
+  previousState: TileryLayoutState,
+  state: TileryLayoutState,
+  action: TileryReducerAction,
+): TileryPanelSplitEvent<TData> | null {
+  if (action.type === 'SPLIT_PANEL') {
+    return makePanelSplitEventFromParts(
+      previousState,
+      state,
+      'SPLIT_PANEL',
+      action.panelId,
+      action.newPanelId,
+      action.direction,
+      action.sizePercent,
+    );
+  }
+  if (action.type === 'MOVE_TAB' && 'splitPanelId' in action.to) {
+    return makePanelSplitEventFromParts(
+      previousState,
+      state,
+      'MOVE_TAB',
+      action.to.splitPanelId,
+      action.to.newPanelId,
+      action.to.direction,
+      action.to.sizePercent,
+    );
+  }
+  return null;
+}
+
+function makePanelSplitEventFromParts<TData>(
+  previousState: TileryLayoutState,
+  state: TileryLayoutState,
+  source: TileryPanelSplitEvent['source'],
+  splitPanelId: TileryPanelId,
+  createdPanelId: TileryPanelId,
+  direction: TileryDirection,
+  size: number,
+): TileryPanelSplitEvent<TData> | null {
+  const splitPanel = state.panels[splitPanelId];
+  const createdPanel = state.panels[createdPanelId];
+  if (!previousState.panels[splitPanelId] || !splitPanel || !createdPanel) {
+    return null;
+  }
+  return {
+    source,
+    splitPanelId,
+    createdPanelId,
+    direction,
+    size,
+    splitPanel: makePanelLifecycleChange(splitPanel),
+    createdPanel: makePanelLifecycleChange(createdPanel),
+    tabs: createdPanel.tabs.map((tabId) =>
+      makeTabLifecycleChange<TData>(state.tabs[tabId]!),
+    ),
+    previousState,
+    state,
+  };
+}
+
+function makeTabLifecycleChange<TData>(
+  tab: NonNullable<TileryLayoutState['tabs'][string]>,
+): TileryTabLifecycleChange<TData> {
+  return {
+    id: tab.id,
+    panelId: tab.panelId,
+    data: tab.data as TData,
+    /* v8 ignore next -- reducer-created tabs materialize closeable. */
+    closeable: tab.closeable ?? true,
+  };
+}
+
+function makePanelLifecycleChange(
+  panel: NonNullable<TileryLayoutState['panels'][string]>,
+): TileryPanelLifecycleChange {
+  return {
+    id: panel.id,
+    tabIds: [...panel.tabs],
+    activeTabId: panel.activeTabId,
+  };
 }
 
 function makeResizeEvent(

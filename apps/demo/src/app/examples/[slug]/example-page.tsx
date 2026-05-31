@@ -9,6 +9,7 @@ import {
   ConstraintsExample,
   ControlledExample,
   PersistenceExample,
+  CallbacksExample,
   NestedExample,
 } from '../../../content/examples';
 
@@ -20,6 +21,7 @@ const registry: Record<string, React.ComponentType> = {
   constraints: ConstraintsExample,
   controlled: ControlledExample,
   persistence: PersistenceExample,
+  callbacks: CallbacksExample,
   nested: NestedExample,
 };
 
