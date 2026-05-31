@@ -109,8 +109,9 @@ describe('TileryJunction', () => {
     t.handlers.onPointerMove(pointerEvent({ clientX: 300, clientY: 600 }));
     expect(recorded).toEqual([{ id: 'j|v|h', x: 30, y: 75 }]);
     expect(t.el.style.cursor).toBe('move');
-    expect(t.el.style.width).toBe('14px');
+    expect(t.el.style.width).toBe('24px');
     expect(t.el.getAttribute('data-junction-kind')).toBe('t');
+    expect(t.el.getAttribute('aria-hidden')).toBe('true');
     t.cleanup();
   });
 

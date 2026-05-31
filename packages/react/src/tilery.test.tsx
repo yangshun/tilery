@@ -225,6 +225,39 @@ describe('Tilery — rendering', () => {
     t.cleanup();
   });
 
+  it('labels panels and exposes computed separator values for resize handles', () => {
+    const t = mount(lShapeLayout());
+    const panels = Array.from(
+      t.host.querySelectorAll<HTMLElement>('.tilery__panel'),
+    );
+    expect(panels.map((panel) => panel.id)).toEqual([
+      'tilery-panel-sidebar',
+      'tilery-panel-editor',
+      'tilery-panel-term',
+    ]);
+
+    const dividers = Array.from(
+      t.host.querySelectorAll<HTMLElement>('.tilery__divider'),
+    );
+    const vertical = dividers.find(
+      (divider) => divider.getAttribute('data-orientation') === 'vertical',
+    )!;
+    const horizontal = dividers.find(
+      (divider) => divider.getAttribute('data-orientation') === 'horizontal',
+    )!;
+
+    expect(vertical.getAttribute('aria-controls')).toBe('tilery-panel-sidebar');
+    expect(vertical.getAttribute('aria-valuenow')).toBe('40');
+    expect(vertical.getAttribute('aria-valuemin')).toBe('10');
+    expect(vertical.getAttribute('aria-valuemax')).toBe('90');
+    expect(horizontal.getAttribute('aria-controls')).toBe(
+      'tilery-panel-editor',
+    );
+    expect(horizontal.getAttribute('aria-valuenow')).toBe('50');
+    expect(horizontal.getAttribute('aria-valuetext')).toBe('50%');
+    t.cleanup();
+  });
+
   it('renders panels in initial split tree order', () => {
     const t = mount(simpleLayout());
     expect(
@@ -318,6 +351,41 @@ describe('Tilery — divider drag dispatch', () => {
     expect(t.handle().getPanel('sidebar')!.inset.right).toBe(70);
     expect(t.handle().getPanel('editor')!.inset.bottom).toBe(30);
     expect(t.handle().getPanel('term')!.inset.top).toBe(70);
+    t.cleanup();
+  });
+
+  it('keyboard resizing moves the focused divider on its axis', () => {
+    const t = mount(lShapeLayout());
+    const vertical = Array.from(
+      t.host.querySelectorAll<HTMLElement>('.tilery__divider'),
+    ).find(
+      (divider) => divider.getAttribute('data-orientation') === 'vertical',
+    )!;
+    const horizontal = Array.from(
+      t.host.querySelectorAll<HTMLElement>('.tilery__divider'),
+    ).find(
+      (divider) => divider.getAttribute('data-orientation') === 'horizontal',
+    )!;
+
+    act(() => {
+      reactProps(vertical).onKeyDown({
+        key: 'ArrowRight',
+        shiftKey: false,
+        preventDefault() {},
+        stopPropagation() {},
+      });
+    });
+    expect(t.handle().getPanel('sidebar')!.inset.right).toBe(58);
+
+    act(() => {
+      reactProps(horizontal).onKeyDown({
+        key: 'ArrowDown',
+        shiftKey: false,
+        preventDefault() {},
+        stopPropagation() {},
+      });
+    });
+    expect(t.handle().getPanel('editor')!.inset.bottom).toBe(48);
     t.cleanup();
   });
 });

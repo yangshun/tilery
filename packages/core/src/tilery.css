@@ -228,6 +228,11 @@
   z-index: 2;
 }
 
+.tilery__divider:focus-visible {
+  outline: 2px solid var(--tilery-accent, #3884ff);
+  outline-offset: -2px;
+}
+
 .tilery__junction {
   position: absolute;
   background: transparent;

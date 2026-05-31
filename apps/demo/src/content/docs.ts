@@ -141,6 +141,7 @@ function App() {
         body: [
           'Dividers are computed automatically from split boundaries in the layout tree.',
           'Resizing a divider updates one split at a time, then derives fresh flat panel insets for rendering.',
+          'Dividers are focusable separators with ARIA value metadata. Keyboard users can resize them with arrow keys, Shift+Arrow, Home, and End.',
         ],
       },
       {

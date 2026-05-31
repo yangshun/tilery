@@ -1,6 +1,7 @@
 'use client';
 
 import type { TileryPanelHandle, TileryTabHandle } from 'tilery/internal';
+import { tileryPanelDomId } from '../dom-ids';
 import { TabBar, type TabBarProps } from './tab-bar';
 
 export type PanelChromeProps = Omit<TabBarProps, 'panel' | 'renderHeader'> & {
@@ -25,6 +26,7 @@ export function PanelChrome({
   const isFullScreen = panel.fullScreen;
   return (
     <div
+      id={tileryPanelDomId(panel.id)}
       ref={registerPanel}
       className="tilery__panel"
       data-panel-id={panel.id}

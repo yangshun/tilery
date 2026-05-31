@@ -12,19 +12,22 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { PanelChrome } from './components/panel-chrome';
-import { TileryDivider } from './components/divider';
+import { TileryDivider, type DividerAccessibility } from './components/divider';
 import { TileryJunction } from './components/junction';
 import { DropOverlay } from './components/drop-overlay';
+import { tileryPanelDomId } from './dom-ids';
 import { useTileryDragController } from './use-drag-controller';
 import {
   tileryCreateInitialState,
   tileryReducer,
   makeTileryHandle,
+  tileryClampDividerPosition,
   tileryDeriveDividers,
   tileryDeriveJunctions,
   tileryGetFullScreenPanelId,
   type TileryReducerAction,
   type TileryInitialLayout,
+  type TileryDivider as TileryDividerState,
   type TileryLayoutState,
   type TileryLayoutTree,
   type TileryHandle,
@@ -237,6 +240,10 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
 
   const dividers = useMemo(() => tileryDeriveDividers(state), [state]);
   const junctions = useMemo(() => tileryDeriveJunctions(state), [state]);
+  const dividerAccessibility = useMemo(
+    () => makeDividerAccessibilityMap(state, dividers, minSize),
+    [dividers, minSize, state],
+  );
   const fullScreenPanelId = useMemo(
     () => tileryGetFullScreenPanelId(state),
     [state],
@@ -406,6 +413,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
           <TileryDivider
             key={d.id}
             divider={d}
+            accessibility={dividerAccessibility[d.id]!}
             onDrag={onDividerDrag}
             containerRef={containerRef}
           />
@@ -476,4 +484,62 @@ function tileryPanelOrderFromState(state: TileryLayoutState): TileryPanelId[] {
 function tileryPanelOrderFromLayout(layout: TileryLayoutTree): TileryPanelId[] {
   if (layout.kind === 'panel') return [layout.panelId];
   return layout.children.flatMap((child) => tileryPanelOrderFromLayout(child));
+}
+
+function makeDividerAccessibilityMap(
+  state: TileryLayoutState,
+  dividers: TileryDividerState[],
+  minSize: number,
+): Record<string, DividerAccessibility> {
+  const result: Record<string, DividerAccessibility> = {};
+  for (const divider of dividers) {
+    result[divider.id] = makeDividerAccessibility(state, divider, minSize);
+  }
+  return result;
+}
+
+function makeDividerAccessibility(
+  state: TileryLayoutState,
+  divider: TileryDividerState,
+  minSize: number,
+): DividerAccessibility {
+  const panels = [...divider.beforePanels, ...divider.afterPanels].map(
+    (id) => state.panels[id]!,
+  );
+  const axisStart =
+    divider.orientation === 'vertical'
+      ? Math.min(...panels.map((panel) => panel.inset.left))
+      : Math.min(...panels.map((panel) => panel.inset.top));
+  const axisEnd =
+    divider.orientation === 'vertical'
+      ? Math.max(...panels.map((panel) => 100 - panel.inset.right))
+      : Math.max(...panels.map((panel) => 100 - panel.inset.bottom));
+  const minPosition = tileryClampDividerPosition(state, divider, 0, minSize);
+  const maxPosition = tileryClampDividerPosition(state, divider, 100, minSize);
+  const valueMin = dividerValue(minPosition, axisStart, axisEnd);
+  const valueMax = dividerValue(maxPosition, axisStart, axisEnd);
+  const valueNow = dividerValue(divider.position, axisStart, axisEnd);
+
+  return {
+    label: `Resize ${divider.beforePanels.join(', ')} pane`,
+    controls: divider.beforePanels.map(tileryPanelDomId).join(' '),
+    valueMin: Math.min(valueMin, valueMax),
+    valueMax: Math.max(valueMin, valueMax),
+    valueNow,
+    valueText: `${valueNow}%`,
+    minPosition,
+    maxPosition,
+    axisStart,
+    axisEnd,
+  };
+}
+
+function dividerValue(
+  position: number,
+  axisStart: number,
+  axisEnd: number,
+): number {
+  return Number(
+    (((position - axisStart) / (axisEnd - axisStart)) * 100).toFixed(2),
+  );
 }

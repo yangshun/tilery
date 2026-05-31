@@ -32,6 +32,19 @@ const HORIZONTAL_DIVIDER: DividerType = {
   afterPanels: ['B'],
 };
 
+const DEFAULT_ACCESSIBILITY = {
+  label: 'Resize A pane',
+  controls: 'tilery-panel-A',
+  valueMin: 10,
+  valueMax: 90,
+  valueNow: 40,
+  valueText: '40%',
+  minPosition: 10,
+  maxPosition: 90,
+  axisStart: 0,
+  axisEnd: 100,
+};
+
 function mountWithRef({
   divider,
   populateRef,
@@ -71,6 +84,7 @@ function mountWithRef({
       },
       React.createElement(TileryDivider, {
         divider,
+        accessibility: DEFAULT_ACCESSIBILITY,
         onDrag,
         containerRef: ref,
       }),
@@ -116,6 +130,30 @@ function pointerEvent(
   } as unknown as React.PointerEvent;
 }
 
+function keyboardEvent(key: string, shiftKey = false) {
+  let prevented = false;
+  let stopped = false;
+  const event = {
+    key,
+    shiftKey,
+    preventDefault() {
+      prevented = true;
+    },
+    stopPropagation() {
+      stopped = true;
+    },
+  } as unknown as React.KeyboardEvent<HTMLDivElement>;
+  return {
+    event,
+    get prevented() {
+      return prevented;
+    },
+    get stopped() {
+      return stopped;
+    },
+  };
+}
+
 describe('TileryDivider — horizontal axis math', () => {
   it('uses clientY for horizontal dividers', () => {
     const recorded: Array<{ id: string; pct: number }> = [];
@@ -138,9 +176,47 @@ describe('TileryDivider — horizontal axis math', () => {
       onDrag: () => {},
     });
     expect(t.el.style.cursor).toBe('row-resize');
-    expect(t.el.style.height).toBe('8px');
+    expect(t.el.style.height).toBe('24px');
     expect(t.el.style.width).toBe('100%');
+    expect(t.el.getAttribute('role')).toBe('separator');
+    expect(t.el.tabIndex).toBe(0);
+    expect(t.el.getAttribute('aria-label')).toBe('Resize A pane');
+    expect(t.el.getAttribute('aria-controls')).toBe('tilery-panel-A');
     expect(t.el.getAttribute('aria-orientation')).toBe('horizontal');
+    expect(t.el.getAttribute('aria-valuemin')).toBe('10');
+    expect(t.el.getAttribute('aria-valuemax')).toBe('90');
+    expect(t.el.getAttribute('aria-valuenow')).toBe('40');
+    expect(t.el.getAttribute('aria-valuetext')).toBe('40%');
+    expect(t.el.getAttribute('aria-keyshortcuts')).toBe(
+      'ArrowUp ArrowDown Home End',
+    );
+    t.cleanup();
+  });
+
+  it('resizes horizontal dividers from the keyboard', () => {
+    const recorded: number[] = [];
+    const t = mountWithRef({
+      divider: HORIZONTAL_DIVIDER,
+      populateRef: true,
+      onDrag: (_, pct) => recorded.push(pct),
+    });
+    const up = keyboardEvent('ArrowUp');
+    const down = keyboardEvent('ArrowDown');
+    const home = keyboardEvent('Home');
+    const end = keyboardEvent('End');
+    const noop = keyboardEvent('ArrowLeft');
+
+    t.handlers.onKeyDown(up.event);
+    t.handlers.onKeyDown(down.event);
+    t.handlers.onKeyDown(home.event);
+    t.handlers.onKeyDown(end.event);
+    t.handlers.onKeyDown(noop.event);
+
+    expect(recorded).toEqual([48, 52, 10, 90]);
+    expect(up.prevented).toBe(true);
+    expect(up.stopped).toBe(true);
+    expect(noop.prevented).toBe(false);
+    expect(noop.stopped).toBe(false);
     t.cleanup();
   });
 });
@@ -156,6 +232,36 @@ describe('TileryDivider — defensive null container', () => {
     t.handlers.onPointerDown(pointerEvent());
     t.handlers.onPointerMove(pointerEvent({ clientX: 500, clientY: 400 }));
     expect(recorded).toEqual([]);
+    t.cleanup();
+  });
+});
+
+describe('TileryDivider — vertical keyboard resizing', () => {
+  it('resizes vertical dividers from the keyboard', () => {
+    const recorded: number[] = [];
+    const t = mountWithRef({
+      divider: VERTICAL_DIVIDER,
+      populateRef: true,
+      onDrag: (_, pct) => recorded.push(pct),
+    });
+    const left = keyboardEvent('ArrowLeft');
+    const right = keyboardEvent('ArrowRight');
+    const fastRight = keyboardEvent('ArrowRight', true);
+    const noop = keyboardEvent('ArrowDown');
+
+    t.handlers.onKeyDown(left.event);
+    t.handlers.onKeyDown(right.event);
+    t.handlers.onKeyDown(fastRight.event);
+    t.handlers.onKeyDown(noop.event);
+
+    expect(recorded).toEqual([38, 42, 50]);
+    expect(left.prevented).toBe(true);
+    expect(left.stopped).toBe(true);
+    expect(noop.prevented).toBe(false);
+    expect(noop.stopped).toBe(false);
+    expect(t.el.getAttribute('aria-keyshortcuts')).toBe(
+      'ArrowLeft ArrowRight Home End',
+    );
     t.cleanup();
   });
 });

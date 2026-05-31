@@ -10,7 +10,7 @@ export type JunctionProps = {
   containerRef: React.RefObject<HTMLDivElement | null>;
 };
 
-const HIT_SIZE_PX = 14;
+const HIT_SIZE_PX = 24;
 
 export function TileryJunction({
   junction,
@@ -48,8 +48,7 @@ export function TileryJunction({
       onPointerMove={handlers.onPointerMove}
       onPointerUp={handlers.onPointerUp}
       onPointerCancel={handlers.onPointerUp}
-      role="separator"
-      aria-label="Resize junction"
+      aria-hidden="true"
     />
   );
 }

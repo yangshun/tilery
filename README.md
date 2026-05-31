@@ -170,6 +170,10 @@ node's `size` is ignored.
 Panels can also define `minSize` and `maxSize` constraints as percentages.
 These constraints override the root `minSize` fallback when resizing dividers.
 
+Resize dividers are keyboard-accessible separators. Focus a divider, then use
+the arrow keys for axis-aligned resizing, Shift+Arrow for larger steps, and
+Home/End to move to the nearest minimum or maximum allowed size.
+
 A fullscreen panel renders over the full Tilery container, suppresses
 dividers and panel drop zones until it is restored.
 
