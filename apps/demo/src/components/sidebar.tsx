@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { RiCloseLine, RiMenuLine } from 'react-icons/ri';
 
 export type SidebarItem = {
   href: string;
@@ -15,15 +17,29 @@ export type SidebarGroup = {
 
 export function Sidebar({ groups }: { groups: SidebarGroup[] }) {
   const pathname = usePathname();
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${isOpen ? 'sidebar--open' : ''}`}>
       <div className="sidebar__header">
         <Link href="/" className="sidebar__logo">
           Tilery
         </Link>
+        <button
+          type="button"
+          className="sidebar__toggle"
+          aria-expanded={isOpen}
+          aria-controls="site-sidebar-nav"
+          aria-label={isOpen ? 'Close navigation menu' : 'Open navigation menu'}
+          onClick={() => setIsOpen((open) => !open)}>
+          {isOpen ? <RiCloseLine aria-hidden="true" /> : <RiMenuLine aria-hidden="true" />}
+        </button>
       </div>
-      <nav className="sidebar__nav">
+      <nav id="site-sidebar-nav" className="sidebar__nav">
         {groups.map((group) => (
           <div key={group.title} className="sidebar__group">
             <div className="sidebar__group-title">{group.title}</div>
