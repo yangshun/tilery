@@ -11,13 +11,10 @@ import type {
 type TabData = { title: string };
 
 const layout: TileryInitialLayout<TabData> = {
-  panels: [
-    {
-      id: 'main',
-      inset: { top: 0, right: 0, bottom: 0, left: 0 },
-      tabs: [{ id: 'welcome', data: { title: 'Welcome' } }],
-    },
-  ],
+  type: 'panel',
+  id: 'main',
+  size: 100,
+  tabs: [{ id: 'welcome', data: { title: 'Welcome' } }],
 };
 
 let counter = 0;
@@ -41,7 +38,7 @@ export function Example() {
     if (panels.length === 0) return;
     counter++;
     panels[0]!.split('right', {
-      sizePercent: 50,
+      size: 50,
       tabs: [{ data: { title: `Split ${counter}` } }],
     });
   };

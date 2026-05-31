@@ -12,6 +12,7 @@ import {
   tileryDeriveLayoutDividers,
   tileryDeriveLayoutInsets,
   tileryInsetToRect,
+  tileryNormalizeLayoutState,
   tileryPanelOrderFromLayout,
   tileryRectToInset,
   tileryRemovePanelFromLayout,
@@ -75,9 +76,10 @@ describe('tileryBuildLayoutTreeFromPanels', () => {
     expect(layout).toMatchObject({
       kind: 'split',
       direction: 'horizontal',
-      sizePercent: 40,
-      first: { kind: 'panel', panelId: 'A' },
-      second: { kind: 'panel', panelId: 'B' },
+      children: [
+        { kind: 'panel', panelId: 'A', size: 40 },
+        { kind: 'panel', panelId: 'B', size: 60 },
+      ],
     });
   });
 
@@ -89,9 +91,10 @@ describe('tileryBuildLayoutTreeFromPanels', () => {
     expect(layout).toMatchObject({
       kind: 'split',
       direction: 'vertical',
-      sizePercent: 30,
-      first: { kind: 'panel', panelId: 'T' },
-      second: { kind: 'panel', panelId: 'B' },
+      children: [
+        { kind: 'panel', panelId: 'T', size: 30 },
+        { kind: 'panel', panelId: 'B', size: 70 },
+      ],
     });
   });
 
@@ -106,13 +109,18 @@ describe('tileryBuildLayoutTreeFromPanels', () => {
     expect(layout).toMatchObject({
       kind: 'split',
       direction: 'horizontal',
-      sizePercent: 40,
-      first: { kind: 'panel', panelId: 'sidebar' },
-      second: {
-        kind: 'split',
-        direction: 'vertical',
-        sizePercent: 50,
-      },
+      children: [
+        { kind: 'panel', panelId: 'sidebar', size: 40 },
+        {
+          kind: 'split',
+          direction: 'vertical',
+          size: 60,
+          children: [
+            { kind: 'panel', panelId: 'editor', size: 50 },
+            { kind: 'panel', panelId: 'terminal', size: 50 },
+          ],
+        },
+      ],
     });
     expect(tileryPanelOrderFromLayout(layout)).toEqual([
       'sidebar',
@@ -140,9 +148,9 @@ describe('tileryDeriveLayoutDividers', () => {
     expect(tileryDeriveLayoutDividers(null)).toEqual([]);
     expect(dividers).toHaveLength(3);
     expect(dividers.map((divider) => divider.splitId)).toEqual([
-      'horizontal:BL,TL|BR,TR',
-      'vertical:TL|BL',
-      'vertical:TR|BR',
+      'horizontal:BL,TL|BR,TR#0',
+      'vertical:TL|BL#0',
+      'vertical:TR|BR#0',
     ]);
     expect(dividers.map((divider) => divider.orientation)).toEqual([
       'vertical',
@@ -154,6 +162,39 @@ describe('tileryDeriveLayoutDividers', () => {
       [0, 50],
       [50, 100],
     ]);
+  });
+});
+
+describe('tileryDeriveLayoutInsets', () => {
+  it('normalizes over-allocated and zero-sized child items', () => {
+    const overallocated = tileryDeriveLayoutInsets({
+      kind: 'split',
+      id: 'overallocated',
+      direction: 'horizontal',
+      children: [
+        { kind: 'panel', panelId: 'A', size: 100 },
+        { kind: 'panel', panelId: 'B' },
+      ],
+    });
+    expect(overallocated.A).toMatchObject({ top: 0, bottom: 0, left: 0 });
+    expect(overallocated.A!.right).toBeCloseTo(100 / 101);
+    expect(overallocated.B).toMatchObject({ top: 0, right: 0, bottom: 0 });
+    expect(overallocated.B!.left).toBeCloseTo(10000 / 101);
+
+    expect(
+      tileryDeriveLayoutInsets({
+        kind: 'split',
+        id: 'zeroes',
+        direction: 'horizontal',
+        children: [
+          { kind: 'panel', panelId: 'A', size: 0 },
+          { kind: 'panel', panelId: 'B', size: 0 },
+        ],
+      }),
+    ).toEqual({
+      A: { top: 0, right: 50, bottom: 0, left: 0 },
+      B: { top: 0, right: 0, bottom: 0, left: 50 },
+    });
   });
 });
 
@@ -210,6 +251,88 @@ describe('tilerySyncLayoutPanels', () => {
     const next = tilerySyncLayoutPanels(state);
     expect(next.panelOrder).toEqual([]);
     expect(next.panels.A!.inset).toEqual(full);
+  });
+
+  it('normalizes missing child sizes and flattens same-direction splits', () => {
+    const state: TileryLayoutState = {
+      panels: {
+        A: panel('A', full),
+        B: panel('B', full),
+        C: panel('C', full),
+      },
+      panelOrder: ['A', 'B', 'C'],
+      tabs: {},
+      layout: {
+        kind: 'split',
+        id: 'root',
+        direction: 'horizontal',
+        children: [
+          { kind: 'panel', panelId: 'A', size: 50 },
+          {
+            kind: 'split',
+            id: 'nested',
+            direction: 'horizontal',
+            size: 50,
+            children: [
+              { kind: 'panel', panelId: 'B' },
+              { kind: 'panel', panelId: 'C' },
+            ],
+          },
+        ],
+      },
+    };
+
+    const next = tilerySyncLayoutPanels(state);
+
+    expect(next.layout).toMatchObject({
+      kind: 'split',
+      children: [
+        { kind: 'panel', panelId: 'A', size: 50 },
+        { kind: 'panel', panelId: 'B', size: 25 },
+        { kind: 'panel', panelId: 'C', size: 25 },
+      ],
+    });
+    expect(next.panels).toMatchObject({
+      A: { inset: { top: 0, right: 50, bottom: 0, left: 0 } },
+      B: { inset: { top: 0, right: 25, bottom: 0, left: 50 } },
+      C: { inset: { top: 0, right: 0, bottom: 0, left: 75 } },
+    });
+  });
+
+  it('keeps an empty persisted split stable while deriving no panels', () => {
+    const state: TileryLayoutState = {
+      panels: { A: panel('A', full) },
+      panelOrder: ['A'],
+      tabs: {},
+      layout: {
+        kind: 'split',
+        id: 'empty',
+        direction: 'horizontal',
+        children: [],
+      },
+    };
+
+    const next = tilerySyncLayoutPanels(state);
+
+    expect(next.layout).toEqual(state.layout);
+    expect(next.panelOrder).toEqual([]);
+    expect(next.panels.A!.inset).toEqual(full);
+  });
+
+  it('normalizes non-tiling legacy state to an explicit null layout', () => {
+    const state: TileryLayoutState = {
+      panels: {
+        A: panel('A', { top: 0, right: 60, bottom: 0, left: 0 }),
+        B: panel('B', { top: 0, right: 0, bottom: 0, left: 60 }),
+      },
+      panelOrder: ['A', 'B'],
+      tabs: {},
+    };
+
+    const next = tileryNormalizeLayoutState(state);
+    expect(next).not.toBe(state);
+    expect(next.layout).toBeNull();
+    expect(next.panelOrder).toEqual(['A', 'B']);
   });
 });
 
@@ -372,26 +495,29 @@ describe('tree divider resize', () => {
     ).toBe(50);
   });
 
-  it('does not change a zero-span split when calculating a local size', () => {
+  it('resizes a nested split using the split axis even when the other axis is zero', () => {
     const layout: TileryLayoutTree = {
       kind: 'split',
       id: 'root',
       direction: 'horizontal',
-      sizePercent: 0,
-      first: {
-        kind: 'split',
-        id: 'zero',
-        direction: 'horizontal',
-        sizePercent: 25,
-        first: { kind: 'panel', panelId: 'A' },
-        second: { kind: 'panel', panelId: 'B' },
-      },
-      second: { kind: 'panel', panelId: 'C' },
+      children: [
+        {
+          kind: 'split',
+          id: 'zero',
+          direction: 'vertical',
+          size: 0,
+          children: [
+            { kind: 'panel', panelId: 'A', size: 25 },
+            { kind: 'panel', panelId: 'B', size: 75 },
+          ],
+        },
+        { kind: 'panel', panelId: 'C', size: 100 },
+      ],
     };
 
-    const resized = tileryResizeLayoutDivider(layout, 'zero', 10);
+    const resized = tileryResizeLayoutDivider(layout, 'zero#0', 10);
     const nested = (resized as Extract<TileryLayoutTree, { kind: 'split' }>)
-      .first as Extract<TileryLayoutTree, { kind: 'split' }>;
-    expect(nested.sizePercent).toBe(25);
+      .children[0] as Extract<TileryLayoutTree, { kind: 'split' }>;
+    expect(nested.children[0]!.size).toBe(10);
   });
 });

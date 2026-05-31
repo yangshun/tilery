@@ -6,15 +6,19 @@ import type { TileryInitialLayout, TileryTabHandle } from '@tilery/react';
 type TabData = { title: string };
 
 const layout: TileryInitialLayout<TabData> = {
-  panels: [
+  type: 'split',
+  direction: 'horizontal',
+  children: [
     {
+      type: 'panel',
       id: 'left',
-      inset: { top: 0, right: 50, bottom: 0, left: 0 },
+      size: 50,
       tabs: [{ id: 'tab-a', data: { title: 'Panel A' } }],
     },
     {
+      type: 'panel',
       id: 'right',
-      inset: { top: 0, right: 0, bottom: 0, left: 50 },
+      size: 50,
       tabs: [{ id: 'tab-b', data: { title: 'Panel B' } }],
     },
   ],

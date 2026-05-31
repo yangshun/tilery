@@ -11,10 +11,13 @@ import type {
 type TabData = { title: string; body: string };
 
 const layout: TileryInitialLayout<TabData> = {
-  panels: [
+  type: 'split',
+  direction: 'horizontal',
+  children: [
     {
+      type: 'panel',
       id: 'explorer',
-      inset: { top: 0, right: 70, bottom: 0, left: 0 },
+      size: 30,
       tabs: [
         {
           id: 'files',
@@ -26,35 +29,44 @@ const layout: TileryInitialLayout<TabData> = {
       ],
     },
     {
-      id: 'editor',
-      inset: { top: 0, right: 0, bottom: 38, left: 30 },
-      tabs: [
+      type: 'split',
+      direction: 'vertical',
+      size: 70,
+      children: [
         {
-          id: 'readme',
-          data: {
-            title: 'README.md',
-            body: 'The editor panel can be maximized and restored without changing its stored inset.',
-          },
+          type: 'panel',
+          id: 'editor',
+          size: 62,
+          tabs: [
+            {
+              id: 'readme',
+              data: {
+                title: 'README.md',
+                body: 'The editor panel can be maximized and restored without changing its stored inset.',
+              },
+            },
+            {
+              id: 'notes',
+              data: {
+                title: 'Notes',
+                body: 'Panel actions can add custom commands alongside built-in layout operations.',
+              },
+            },
+          ],
         },
         {
-          id: 'notes',
-          data: {
-            title: 'Notes',
-            body: 'Panel actions can add custom commands alongside built-in layout operations.',
-          },
-        },
-      ],
-    },
-    {
-      id: 'terminal',
-      inset: { top: 62, right: 0, bottom: 0, left: 30 },
-      tabs: [
-        {
-          id: 'shell',
-          data: {
-            title: 'Terminal',
-            body: '$ pnpm test',
-          },
+          type: 'panel',
+          id: 'terminal',
+          size: 38,
+          tabs: [
+            {
+              id: 'shell',
+              data: {
+                title: 'Terminal',
+                body: '$ pnpm test',
+              },
+            },
+          ],
         },
       ],
     },

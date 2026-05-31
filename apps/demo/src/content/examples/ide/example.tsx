@@ -9,10 +9,13 @@ type TabData = {
 };
 
 const layout: TileryInitialLayout<TabData> = {
-  panels: [
+  type: 'split',
+  direction: 'horizontal',
+  children: [
     {
+      type: 'panel',
       id: 'sidebar',
-      inset: { top: 0, right: 60, bottom: 0, left: 0 },
+      size: 40,
       tabs: [
         {
           id: 'explorer',
@@ -22,21 +25,30 @@ const layout: TileryInitialLayout<TabData> = {
       ],
     },
     {
-      id: 'editor',
-      inset: { top: 0, right: 0, bottom: 40, left: 40 },
-      tabs: [
-        { id: 'index-ts', data: { title: 'index.ts', kind: 'editor' } },
-        { id: 'app-tsx', data: { title: 'app.tsx', kind: 'editor' } },
-      ],
-    },
-    {
-      id: 'terminal',
-      inset: { top: 60, right: 0, bottom: 0, left: 40 },
-      tabs: [
+      type: 'split',
+      direction: 'vertical',
+      size: 60,
+      children: [
         {
-          id: 'bash',
-          data: { title: 'Terminal', kind: 'terminal' },
-          closeable: false,
+          type: 'panel',
+          id: 'editor',
+          size: 60,
+          tabs: [
+            { id: 'index-ts', data: { title: 'index.ts', kind: 'editor' } },
+            { id: 'app-tsx', data: { title: 'app.tsx', kind: 'editor' } },
+          ],
+        },
+        {
+          type: 'panel',
+          id: 'terminal',
+          size: 40,
+          tabs: [
+            {
+              id: 'bash',
+              data: { title: 'Terminal', kind: 'terminal' },
+              closeable: false,
+            },
+          ],
         },
       ],
     },

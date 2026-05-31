@@ -30,14 +30,14 @@ export type TileryLayoutTree =
   | {
       kind: 'panel';
       panelId: TileryPanelId;
+      size?: number;
     }
   | {
       kind: 'split';
       id: string;
       direction: 'horizontal' | 'vertical';
-      sizePercent: number;
-      first: TileryLayoutTree;
-      second: TileryLayoutTree;
+      size?: number;
+      children: TileryLayoutTree[];
     };
 
 export type TileryLayoutState = {
@@ -54,16 +54,25 @@ export type TileryTabInit<TData = unknown> = {
 };
 
 export type TileryPanelInit<TData = unknown> = {
+  type: 'panel';
   id?: TileryPanelId;
-  inset: TileryInset;
+  size?: number;
   tabs: TileryTabInit<TData>[];
   activeTabId?: TileryTabId;
   fullScreen?: boolean;
 };
 
-export type TileryInitialLayout<TData = unknown> = {
-  panels: TileryPanelInit<TData>[];
+export type TilerySplitInit<TData = unknown> = {
+  type: 'split';
+  id?: string;
+  direction: 'horizontal' | 'vertical';
+  size?: number;
+  children: TileryInitialLayout<TData>[];
 };
+
+export type TileryInitialLayout<TData = unknown> =
+  | TileryPanelInit<TData>
+  | TilerySplitInit<TData>;
 
 export type TileryMoveTarget =
   | { panel: TileryPanelId; index?: number }
@@ -72,7 +81,7 @@ export type TileryMoveTarget =
   | {
       splitPanel: TileryPanelId;
       direction: TileryDirection;
-      sizePercent?: number;
+      size?: number;
     };
 
 export type TileryDividerOrientation = 'vertical' | 'horizontal';
@@ -97,7 +106,7 @@ export type TileryHandle = {
     panelId: TileryPanelId,
     direction: TileryDirection,
     opts?: {
-      sizePercent?: number;
+      size?: number;
       tabs?: TileryTabInit[];
       activate?: boolean;
     },
@@ -138,7 +147,7 @@ export type TileryPanelHandle = {
   split(
     direction: TileryDirection,
     opts?: {
-      sizePercent?: number;
+      size?: number;
       tabs?: TileryTabInit[];
       activate?: boolean;
     },

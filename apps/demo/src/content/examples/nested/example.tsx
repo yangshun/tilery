@@ -6,30 +6,38 @@ import type { TileryInitialLayout, TileryTabHandle } from '@tilery/react';
 type TabData = { title: string; nested?: boolean };
 
 const innerLayout: TileryInitialLayout<TabData> = {
-  panels: [
+  type: 'split',
+  direction: 'horizontal',
+  children: [
     {
+      type: 'panel',
       id: 'inner-left',
-      inset: { top: 0, right: 50, bottom: 0, left: 0 },
+      size: 50,
       tabs: [{ id: 'inner-a', data: { title: 'Inner A' } }],
     },
     {
+      type: 'panel',
       id: 'inner-right',
-      inset: { top: 0, right: 0, bottom: 0, left: 50 },
+      size: 50,
       tabs: [{ id: 'inner-b', data: { title: 'Inner B' } }],
     },
   ],
 };
 
 const outerLayout: TileryInitialLayout<TabData> = {
-  panels: [
+  type: 'split',
+  direction: 'horizontal',
+  children: [
     {
+      type: 'panel',
       id: 'sidebar',
-      inset: { top: 0, right: 70, bottom: 0, left: 0 },
+      size: 30,
       tabs: [{ id: 'nav', data: { title: 'Navigation' }, closeable: false }],
     },
     {
+      type: 'panel',
       id: 'main',
-      inset: { top: 0, right: 0, bottom: 0, left: 30 },
+      size: 70,
       tabs: [
         { id: 'nested-tab', data: { title: 'Nested Tilery', nested: true } },
         { id: 'regular', data: { title: 'Regular Tab' } },

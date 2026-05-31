@@ -33,15 +33,19 @@ import type { TileryInitialLayout, TileryTabHandle } from '@tilery/react';
 type MyTabData = { title: string };
 
 const layout: TileryInitialLayout<MyTabData> = {
-  panels: [
+  type: 'split',
+  direction: 'horizontal',
+  children: [
     {
+      type: 'panel',
       id: 'sidebar',
-      inset: { top: 0, right: 70, bottom: 0, left: 0 },
+      size: 30,
       tabs: [{ id: 'explorer', data: { title: 'Explorer' } }],
     },
     {
+      type: 'panel',
       id: 'editor',
-      inset: { top: 0, right: 0, bottom: 0, left: 30 },
+      size: 70,
       tabs: [
         { id: 'file-a', data: { title: 'index.ts' } },
         { id: 'file-b', data: { title: 'app.tsx' } },
@@ -131,31 +135,35 @@ The main component. Renders a tiling panel layout.
 Describes the initial panel arrangement.
 
 ```ts
-type TileryInitialLayout<TData> = {
-  panels: TileryPanelInit<TData>[];
-};
-
-type TileryPanelInit<TData> = {
-  id?: string;
-  inset: { top: number; right: number; bottom: number; left: number };
-  tabs: TileryTabInit<TData>[];
-  activeTabId?: string;
-  fullScreen?: boolean;
-};
+type TileryInitialLayout<TData> =
+  | {
+      type: 'panel';
+      id?: string;
+      size?: number;
+      tabs: TileryTabInit<TData>[];
+      activeTabId?: string;
+      fullScreen?: boolean;
+    }
+  | {
+      type: 'split';
+      id?: string;
+      direction: 'horizontal' | 'vertical';
+      size?: number;
+      children: TileryInitialLayout<TData>[];
+    };
 
 type TileryTabInit<TData> = {
   id?: string;
   data: TData;
+  closeable?: boolean;
 };
 ```
 
-Panels are initialized via `inset` — percentage-based offsets from each edge of
-the container (like CSS `inset` but in `%`). For example, a panel taking the
-left 40% would be `{ top: 0, right: 60, bottom: 0, left: 0 }`.
-
-When the initial panels form a complete tiling, Tilery builds an internal split
-tree and derives the public panel insets from that tree. This keeps resizing and
-panel removal one-dimensional while preserving the flat DOM rendering model.
+Layouts are initialized as an n-ary split tree. A horizontal split places its
+children left to right; a vertical split places its children top to bottom.
+`size` belongs to each child item and controls that child's allocation
+inside its parent split. Omitted child sizes share the remaining space. A root
+node's `size` is ignored.
 
 A fullscreen panel renders over the full Tilery container, suppresses
 dividers and panel drop zones until it is restored.
@@ -228,7 +236,7 @@ type TileryMoveTarget =
   | {
       splitPanel: TileryPanelId;
       direction: TileryDirection;
-      sizePercent?: number;
+      size?: number;
     }; // Split into new panel
 ```
 

@@ -24,7 +24,7 @@ export const docs: DocPage[] = [
       {
         heading: 'Installation',
         body: [
-          'Install the React adapter — it includes the core package automatically.',
+          'Install the React adapter - it includes the core package automatically.',
         ],
         code: 'npm install @tilery/react',
         language: 'sh',
@@ -48,15 +48,19 @@ import type { TileryInitialLayout, TileryTabHandle } from '@tilery/react';
 type MyTab = { title: string };
 
 const layout: TileryInitialLayout<MyTab> = {
-  panels: [
+  type: 'split',
+  direction: 'horizontal',
+  children: [
     {
+      type: 'panel',
       id: 'left',
-      inset: { top: 0, right: 50, bottom: 0, left: 0 },
+      size: 50,
       tabs: [{ id: 'a', data: { title: 'Panel A' } }],
     },
     {
+      type: 'panel',
       id: 'right',
-      inset: { top: 0, right: 0, bottom: 0, left: 50 },
+      size: 50,
       tabs: [{ id: 'b', data: { title: 'Panel B' } }],
     },
   ],
@@ -89,27 +93,32 @@ function App() {
     group: 'Guide',
     sections: [
       {
-        heading: 'Inset-Based Positioning',
+        heading: 'Split Tree Layouts',
         body: [
-          'Panels are positioned using percentage-based insets from each edge of the container. This is similar to CSS inset but uses percentages of the Tilery container dimensions.',
-          'A panel taking the left 40% of the container would have: { top: 0, right: 60, bottom: 0, left: 0 }. The right inset of 60 means "60% from the right edge", leaving 40% width.',
+          'Initial layouts are authored as n-ary split trees. A horizontal split places children left to right; a vertical split places children top to bottom.',
+          "size belongs to each child item and controls that child's allocation inside its parent split. Omitted child sizes share the remaining space.",
         ],
-        code: `// Full width panel
-{ top: 0, right: 0, bottom: 0, left: 0 }
-
-// Left half
-{ top: 0, right: 50, bottom: 0, left: 0 }
-
-// Right half
-{ top: 0, right: 0, bottom: 0, left: 50 }
-
-// Top-right quadrant
-{ top: 0, right: 0, bottom: 50, left: 50 }`,
+        code: `{
+  type: 'split',
+  direction: 'horizontal',
+  children: [
+    { type: 'panel', id: 'sidebar', size: 40, tabs: [...] },
+    {
+      type: 'split',
+      direction: 'vertical',
+      size: 60,
+      children: [
+        { type: 'panel', id: 'editor', size: 60, tabs: [...] },
+        { type: 'panel', id: 'terminal', size: 40, tabs: [...] },
+      ],
+    },
+  ],
+}`,
       },
       {
         heading: 'Panels and Tabs',
         body: [
-          'A panel is a rectangular region containing a tab bar and a content area. Each panel holds one or more tabs. Only one tab is active (visible) at a time within each panel.',
+          'A panel is a rectangular region containing a tab bar and a content area. Each panel holds one or more tabs. Only one tab is active within each panel.',
           'Tabs can be dragged between panels, reordered within a panel, or dropped on a panel edge to split it into two.',
           'A fullscreen panel renders over the full container and suppresses dividers and panel drop zones until restored.',
         ],
@@ -117,7 +126,8 @@ function App() {
       {
         heading: 'State Model',
         body: [
-          'The public layout state keeps panels and tabs in flat lookup objects. When the panels form a complete tiling, Tilery also stores a nested split tree and derives panel insets from it for deterministic rendering.',
+          'The public layout state keeps panels and tabs in flat lookup objects for direct access, but layout geometry is stored as a nested split tree.',
+          'Tilery derives panel insets plus panelOrder from the tree for deterministic rendering.',
         ],
         code: `type TileryLayoutState = {
   panels: Record<TileryPanelId, TileryPanelState>;
@@ -136,7 +146,7 @@ function App() {
       {
         heading: 'State Preservation',
         body: [
-          'Tab content is rendered via React portals into stable DOM hosts. When a tab moves between panels, its portal target stays the same — React preserves the entire subtree including local state, refs, and uncontrolled inputs.',
+          'Tab content is rendered via React portals into stable DOM hosts. When a tab moves between panels, its portal target stays the same, so React preserves the subtree including local state, refs, and uncontrolled inputs.',
         ],
       },
     ],
@@ -203,7 +213,7 @@ function App() {
   {
     slug: 'api',
     title: 'API Reference',
-    description: 'Complete API documentation for tilery.',
+    description: 'Complete API documentation for Tilery.',
     group: 'Reference',
     sections: [
       {
@@ -296,7 +306,7 @@ function App() {
               'splitPanel(panelId, direction, opts?)',
               'Splits a panel, returns new PanelHandle',
             ],
-            ['removePanel(panelId)', 'Removes a panel (redistributes space)'],
+            ['removePanel(panelId)', 'Removes a panel and redistributes space'],
             ['maximizePanel(panelId)', 'Shows one panel fullscreen'],
             ['restorePanel(panelId)', 'Restores a fullscreen panel'],
             ['appendTab(panelId, tab, opts?)', 'Appends a tab to a panel'],
@@ -304,7 +314,7 @@ function App() {
               'insertTab(panelId, tab, index, opts?)',
               'Inserts a tab at a specific index',
             ],
-            ['removeTab(tabId)', 'Removes a tab (removes panel if last)'],
+            ['removeTab(tabId)', 'Removes a tab and removes panel if last'],
             ['moveTab(tabId, target)', 'Moves a tab to a target location'],
             ['setActiveTab(tabId)', 'Activates a tab'],
             ['swapPanels(panelA, panelB)', 'Swaps two panels positions'],
@@ -354,10 +364,10 @@ function App() {
         heading: 'TileryMoveTarget',
         body: ['Used with moveTab() and tabHandle.moveTo():'],
         code: `type TileryMoveTarget =
-  | { panel: TileryPanelId; index?: number }        // Move to panel at index
-  | { beforeTab: TileryTabId }                       // Insert before a tab
-  | { afterTab: TileryTabId }                        // Insert after a tab
-  | { splitPanel: TileryPanelId; direction: TileryDirection; sizePercent?: number };`,
+  | { panel: TileryPanelId; index?: number }
+  | { beforeTab: TileryTabId }
+  | { afterTab: TileryTabId }
+  | { splitPanel: TileryPanelId; direction: TileryDirection; size?: number };`,
       },
       {
         heading: 'TileryDirection',
@@ -365,21 +375,27 @@ function App() {
       },
       {
         heading: 'TileryInitialLayout<TData>',
-        code: `type TileryInitialLayout<TData> = {
-  panels: PanelInit<TData>[];
-};
-
-type PanelInit<TData> = {
-  id?: string;
-  inset: { top: number; right: number; bottom: number; left: number };
-  tabs: TabInit<TData>[];
-  activeTabId?: string;
-  fullScreen?: boolean;
-};
+        code: `type TileryInitialLayout<TData> =
+  | {
+      type: 'panel';
+      id?: string;
+      size?: number;
+      tabs: TabInit<TData>[];
+      activeTabId?: string;
+      fullScreen?: boolean;
+    }
+  | {
+      type: 'split';
+      id?: string;
+      direction: 'horizontal' | 'vertical';
+      size?: number;
+      children: TileryInitialLayout<TData>[];
+    };
 
 type TabInit<TData> = {
   id?: string;
   data: TData;
+  closeable?: boolean;
 };`,
       },
     ],

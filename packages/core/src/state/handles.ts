@@ -14,6 +14,7 @@ import {
   tileryTabInitToReducerInit,
   type TileryReducerAction,
 } from './reducer';
+import { tileryPanelOrderFromState } from './layout-tree';
 
 export type TileryDispatch = (action: TileryReducerAction) => void;
 export type TileryGetState = () => TileryLayoutState;
@@ -36,7 +37,7 @@ export function makeTileryHandle(
     },
     getPanels() {
       const state = getState();
-      return state.panelOrder
+      return tileryPanelOrderFromState(state)
         .map((id) => handle.getPanel(id))
         .filter((p): p is TileryPanelHandle => Boolean(p));
     },
@@ -53,7 +54,7 @@ export function makeTileryHandle(
         type: 'SPLIT_PANEL',
         panelId,
         direction,
-        sizePercent: opts?.sizePercent ?? 50,
+        sizePercent: opts?.size ?? 50,
         newPanelId,
         tabs,
         activate: opts?.activate ?? true,
@@ -113,7 +114,7 @@ function normalizeMoveTarget(target: TileryMoveTarget) {
     return {
       splitPanelId: target.splitPanel,
       direction: target.direction,
-      sizePercent: target.sizePercent ?? 50,
+      sizePercent: target.size ?? 50,
       newPanelId: tileryNextId('p'),
     };
   }

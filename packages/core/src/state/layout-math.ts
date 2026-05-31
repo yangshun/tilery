@@ -10,6 +10,7 @@ import type {
 import {
   tileryClampLayoutDividerPosition,
   tileryDeriveLayoutDividers,
+  tileryPanelOrderFromState,
   tileryResizeLayoutDivider,
   tilerySyncLayoutPanels,
 } from './layout-tree';
@@ -42,7 +43,9 @@ export function tileryGetFullScreenPanelId(
   state: TileryLayoutState,
 ): TileryPanelId | null {
   return (
-    state.panelOrder.find((id) => Boolean(state.panels[id]?.fullScreen)) ?? null
+    tileryPanelOrderFromState(state).find((id) =>
+      Boolean(state.panels[id]?.fullScreen),
+    ) ?? null
   );
 }
 

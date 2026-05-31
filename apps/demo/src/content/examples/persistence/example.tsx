@@ -12,15 +12,19 @@ import type {
 type TabData = { title: string };
 
 const defaultLayout: TileryInitialLayout<TabData> = {
-  panels: [
+  type: 'split',
+  direction: 'horizontal',
+  children: [
     {
+      type: 'panel',
       id: 'left',
-      inset: { top: 0, right: 50, bottom: 0, left: 0 },
+      size: 50,
       tabs: [{ id: 'notes', data: { title: 'Notes' } }],
     },
     {
+      type: 'panel',
       id: 'right',
-      inset: { top: 0, right: 0, bottom: 0, left: 50 },
+      size: 50,
       tabs: [{ id: 'preview', data: { title: 'Preview' } }],
     },
   ],
@@ -34,20 +38,51 @@ function getInitialLayout(): TileryInitialLayout<TabData> {
   if (!saved) return defaultLayout;
   try {
     const state = JSON.parse(saved) as TileryLayoutState;
-    return {
-      panels: Object.values(state.panels).map((p) => ({
-        id: p.id,
-        inset: p.inset,
-        activeTabId: p.activeTabId ?? undefined,
-        tabs: p.tabs.map((tid) => ({
-          id: tid,
-          data: (state.tabs[tid]?.data as TabData) ?? { title: tid },
-        })),
-      })),
-    };
+    return stateToInitialLayout(state) ?? defaultLayout;
   } catch {
     return defaultLayout;
   }
+}
+
+function stateToInitialLayout(
+  state: TileryLayoutState,
+): TileryInitialLayout<TabData> | null {
+  const walk = (
+    node: NonNullable<TileryLayoutState['layout']>,
+  ): TileryInitialLayout<TabData> | null => {
+    if (node.kind === 'split') {
+      const children = node.children
+        .map((child) => walk(child))
+        .filter((child): child is TileryInitialLayout<TabData> =>
+          Boolean(child),
+        );
+      if (children.length !== node.children.length) return null;
+      return {
+        type: 'split',
+        id: node.id,
+        direction: node.direction,
+        size: node.size,
+        children,
+      };
+    }
+
+    const panel = state.panels[node.panelId];
+    if (!panel) return null;
+    return {
+      type: 'panel',
+      id: panel.id,
+      size: node.size,
+      activeTabId: panel.activeTabId ?? undefined,
+      fullScreen: panel.fullScreen,
+      tabs: panel.tabs.map((tid) => ({
+        id: tid,
+        data: (state.tabs[tid]?.data as TabData) ?? { title: tid },
+        closeable: state.tabs[tid]?.closeable,
+      })),
+    };
+  };
+
+  return state.layout ? walk(state.layout) : null;
 }
 
 export function Example() {

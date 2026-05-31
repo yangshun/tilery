@@ -24,6 +24,7 @@ import {
   type TileryReducerAction,
   type TileryInitialLayout,
   type TileryLayoutState,
+  type TileryLayoutTree,
   type TileryHandle,
   type TileryPanelHandle,
   type TileryPanelId,
@@ -242,7 +243,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
   const activeByPanel = useMemo(() => {
     let fp = '';
     const next: Record<TileryPanelId, TileryTabId | null> = {};
-    for (const pid of state.panelOrder) {
+    for (const pid of tileryPanelOrderFromState(state)) {
       const p = state.panels[pid];
       /* v8 ignore next */
       if (!p) continue;
@@ -254,7 +255,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
     activeByPanelFp.current = fp;
     activeByPanelRef.current = next;
     return next;
-  }, [state.panelOrder, state.panels]);
+  }, [state]);
 
   const onTabClick = useCallback((tabId: string) => {
     tileryRef.current?.setActiveTab(tabId);
@@ -348,7 +349,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
   return (
     <div className="tilery">
       <div ref={containerRef} className="tilery__inner">
-        {state.panelOrder.map((panelId) => {
+        {tileryPanelOrderFromState(state).map((panelId) => {
           if (fullScreenPanelId && panelId !== fullScreenPanelId) return null;
           const panel = getCachedPanelHandle(panelId);
           /* v8 ignore next */
@@ -435,4 +436,17 @@ function resolvePanelVisibility(
   panel: TileryPanelHandle,
 ): boolean {
   return typeof value === 'function' ? value(panel) : value;
+}
+
+function tileryPanelOrderFromState(state: TileryLayoutState): TileryPanelId[] {
+  const order = state.layout
+    ? tileryPanelOrderFromLayout(state.layout)
+    : /* v8 ignore next -- React initial layouts always create a tree. */
+      state.panelOrder;
+  return order.filter((id) => Boolean(state.panels[id]));
+}
+
+function tileryPanelOrderFromLayout(layout: TileryLayoutTree): TileryPanelId[] {
+  if (layout.kind === 'panel') return [layout.panelId];
+  return layout.children.flatMap((child) => tileryPanelOrderFromLayout(child));
 }

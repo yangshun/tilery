@@ -16,29 +16,73 @@ import type { TileryInitialLayout, TileryHandle } from 'tilery/internal';
 
 type Data = { title: string };
 
-function lShapeLayout(): TileryInitialLayout<Data> {
+function lShapeLayout(
+  opts: { editorFullScreen?: boolean } = {},
+): TileryInitialLayout<Data> {
   // Sidebar + (editor / terminal) = two nested one-dimensional splits.
   return {
-    panels: [
+    type: 'split',
+    direction: 'horizontal',
+    children: [
       {
+        type: 'panel',
         id: 'sidebar',
-        inset: { top: 0, right: 60, bottom: 0, left: 0 },
+        size: 40,
         tabs: [{ id: 'side', data: { title: 'Side' } }],
       },
       {
-        id: 'editor',
-        inset: { top: 0, right: 0, bottom: 50, left: 40 },
-        tabs: [
-          { id: 'foo', data: { title: 'foo.ts' } },
-          { id: 'bar', data: { title: 'bar.ts' } },
+        type: 'split',
+        direction: 'vertical',
+        size: 60,
+        children: [
+          {
+            type: 'panel',
+            id: 'editor',
+            size: 50,
+            fullScreen: opts.editorFullScreen,
+            tabs: [
+              { id: 'foo', data: { title: 'foo.ts' } },
+              { id: 'bar', data: { title: 'bar.ts' } },
+            ],
+          },
+          {
+            type: 'panel',
+            id: 'term',
+            size: 50,
+            tabs: [{ id: 'sh', data: { title: 'bash' } }],
+          },
         ],
       },
+    ],
+  };
+}
+
+function simpleLayout(): TileryInitialLayout<Data> {
+  return {
+    type: 'split',
+    direction: 'horizontal',
+    children: [
       {
-        id: 'term',
-        inset: { top: 50, right: 0, bottom: 0, left: 40 },
-        tabs: [{ id: 'sh', data: { title: 'bash' } }],
+        type: 'panel',
+        id: 'left',
+        size: 60,
+        tabs: [{ id: 'left-tab', data: { title: 'Left' } }],
+      },
+      {
+        type: 'panel',
+        id: 'right',
+        size: 40,
+        tabs: [{ id: 'right-tab', data: { title: 'Right' } }],
       },
     ],
+  };
+}
+
+function singlePanelLayout(): TileryInitialLayout<Data> {
+  return {
+    type: 'panel',
+    id: 'solo',
+    tabs: [{ id: 'only', data: { title: 'Only' } }],
   };
 }
 
@@ -134,7 +178,7 @@ function pointerEvent(
 }
 
 describe('Tilery — rendering', () => {
-  it('renders one panel per initialLayout entry with the right tab strip', () => {
+  it('renders one panel per initial layout tree leaf with the right tab strip', () => {
     const t = mount(lShapeLayout());
     const panels = t.host.querySelectorAll('.tilery__panel');
     expect(panels).toHaveLength(3);
@@ -150,7 +194,7 @@ describe('Tilery — rendering', () => {
     t.cleanup();
   });
 
-  it('positions panels via inset percentages from the initialLayout', () => {
+  it('positions panels from the initial split tree', () => {
     const t = mount(lShapeLayout());
     const panels = Array.from(
       t.host.querySelectorAll<HTMLElement>('.tilery__panel'),
@@ -178,6 +222,27 @@ describe('Tilery — rendering', () => {
     // horizontal between editor and term inside the right split.
     expect(t.host.querySelectorAll('.tilery__divider')).toHaveLength(2);
     expect(t.host.querySelectorAll('.tilery__junction')).toHaveLength(0);
+    t.cleanup();
+  });
+
+  it('renders panels in initial split tree order', () => {
+    const t = mount(simpleLayout());
+    expect(
+      Array.from(t.host.querySelectorAll('.tilery__panel')).map((el) =>
+        el.getAttribute('data-panel-id'),
+      ),
+    ).toEqual(['left', 'right']);
+    expect(t.host.querySelectorAll('.tilery__divider')).toHaveLength(1);
+    t.cleanup();
+  });
+
+  it('renders an empty layout after removing the last panel', () => {
+    const t = mount(singlePanelLayout());
+    act(() => {
+      t.handle().getTab('only')!.remove();
+    });
+    expect(t.host.querySelectorAll('.tilery__panel')).toHaveLength(0);
+    expect(t.handle().getPanels()).toEqual([]);
     t.cleanup();
   });
 });
@@ -256,9 +321,7 @@ describe('Tilery — onChange callback', () => {
 
 describe('Tilery — panel modes', () => {
   it('renders only the fullscreen panel and suppresses dividers', () => {
-    const layout = lShapeLayout();
-    layout.panels[1] = { ...layout.panels[1]!, fullScreen: true };
-    const t = mount(layout);
+    const t = mount(lShapeLayout({ editorFullScreen: true }));
     const panels = t.host.querySelectorAll<HTMLElement>('.tilery__panel');
     expect(panels).toHaveLength(1);
     expect(panels[0]!.getAttribute('data-panel-id')).toBe('editor');
@@ -350,9 +413,7 @@ describe('Tilery — panel action UI', () => {
   });
 
   it('hides new-tab-only controls while fullscreen', () => {
-    const layout = lShapeLayout();
-    layout.panels[1] = { ...layout.panels[1]!, fullScreen: true };
-    const t = mount(layout, undefined, {
+    const t = mount(lShapeLayout({ editorFullScreen: true }), undefined, {
       showNewTabButton: true,
       onNewTab: () => ({ data: { title: 'New tab' } }),
     });
@@ -423,11 +484,13 @@ describe('Tilery — panel action UI', () => {
     expect(normalStops).toBe(1);
     normal.cleanup();
 
-    const layout = lShapeLayout();
-    layout.panels[1] = { ...layout.panels[1]!, fullScreen: true };
-    const fullscreen = mount(layout, undefined, {
-      showActionsButton: true,
-    });
+    const fullscreen = mount(
+      lShapeLayout({ editorFullScreen: true }),
+      undefined,
+      {
+        showActionsButton: true,
+      },
+    );
     const fullscreenActions = fullscreen.host.querySelector<HTMLElement>(
       '.tilery__panel-actions',
     )!;

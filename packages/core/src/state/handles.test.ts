@@ -1,16 +1,13 @@
 import { describe, expect, it } from 'vite-plus/test';
 import { makeTileryHandle } from './handles';
-import {
-  tileryCreateInitialState,
-  tileryReducer,
-  type TileryReducerAction,
-} from './reducer';
+import { tileryReducer, type TileryReducerAction } from './reducer';
+import { createStateFromPanels } from './test-helpers';
 import type { TileryLayoutState } from '../types';
 
 function makeStore(initial?: TileryLayoutState) {
   let state =
     initial ??
-    tileryCreateInitialState({
+    createStateFromPanels({
       panels: [
         {
           id: 'P1',
@@ -80,10 +77,10 @@ describe('TileryHandle mutations', () => {
     expect(action.activate).toBe(true);
     expect(newPanel.id).toBe(action.newPanelId);
   });
-  it('splitPanel forwards opts (sizePercent, activate, tabs)', () => {
+  it('splitPanel forwards opts (size, activate, tabs)', () => {
     const { handle, dispatched } = makeStore();
     handle.splitPanel('P1', 'bottom', {
-      sizePercent: 30,
+      size: 30,
       activate: false,
       tabs: [{ id: 'NEW', data: { title: 'new' } }],
     });
@@ -199,12 +196,12 @@ describe('TileryHandle.moveTab — every TileryMoveTarget shape', () => {
     if (action.type !== 'MOVE_TAB') throw new Error('expected MOVE_TAB');
     expect(action.to).toEqual({ afterTabId: 'T3' });
   });
-  it('splitPanel target maps to splitPanelId + direction + sizePercent + newPanelId', () => {
+  it('splitPanel target maps size to reducer sizePercent', () => {
     const { handle, dispatched } = makeStore();
     handle.moveTab('T1', {
       splitPanel: 'P2',
       direction: 'top',
-      sizePercent: 25,
+      size: 25,
     });
     const action = dispatched[0]!;
     if (action.type !== 'MOVE_TAB') throw new Error('expected MOVE_TAB');
@@ -215,7 +212,7 @@ describe('TileryHandle.moveTab — every TileryMoveTarget shape', () => {
     expect(action.to.sizePercent).toBe(25);
     expect(action.to.newPanelId).toMatch(/^p_/);
   });
-  it('splitPanel target defaults sizePercent to 50', () => {
+  it('splitPanel target defaults size to 50', () => {
     const { handle, dispatched } = makeStore();
     handle.moveTab('T1', { splitPanel: 'P2', direction: 'left' });
     const action = dispatched[0]!;
@@ -257,7 +254,7 @@ describe('TileryPanelHandle', () => {
     expect(panel.activeTab).toBeNull();
   });
   it('reads fullscreen panel mode metadata live from state', () => {
-    let state = tileryCreateInitialState({
+    let state = createStateFromPanels({
       panels: [
         {
           id: 'P',
@@ -285,7 +282,7 @@ describe('TileryPanelHandle', () => {
     expect(panel.fullScreen).toBe(false);
   });
   it('returns null activeTab when the panel exists but activeTabId is null', () => {
-    let state = tileryCreateInitialState({
+    let state = createStateFromPanels({
       panels: [
         { id: 'P', inset: { top: 0, right: 0, bottom: 0, left: 0 }, tabs: [] },
       ],
@@ -373,7 +370,7 @@ describe('TileryTabHandle', () => {
     expect(tab.index).toBe(-1);
   });
   it('index returns -1 if the panel back-ref is broken', () => {
-    let state = tileryCreateInitialState({
+    let state = createStateFromPanels({
       panels: [
         {
           id: 'P',

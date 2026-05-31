@@ -166,7 +166,7 @@ describe('tileryCommitDrag — every branch', () => {
     );
     expect(calls[0]).toEqual({
       tabId: 'TX',
-      target: { splitPanel: 'P', direction: 'right', sizePercent: 50 },
+      target: { splitPanel: 'P', direction: 'right', size: 50 },
     });
   });
   it('no hoverPanel and no tabBar is a no-op', () => {
@@ -318,7 +318,7 @@ describe('tileryCommitDrag — every branch', () => {
     expect(swapCalls).toEqual([]);
     expect(calls[0]).toEqual({
       tabId: 'T1',
-      target: { splitPanel: 'SELF', direction: 'left', sizePercent: 50 },
+      target: { splitPanel: 'SELF', direction: 'left', size: 50 },
     });
   });
   it('directional zone splits when target has 2+ tabs even with single-tab source', () => {
@@ -363,7 +363,7 @@ describe('tileryCommitDrag — every branch', () => {
     );
     expect(calls[0]).toEqual({
       tabId: 'TX',
-      target: { splitPanel: 'TGT', direction: 'left', sizePercent: 50 },
+      target: { splitPanel: 'TGT', direction: 'left', size: 50 },
     });
   });
   it('directional zone splits when source and target are not adjacent', () => {
@@ -385,7 +385,7 @@ describe('tileryCommitDrag — every branch', () => {
     expect(swapCalls).toEqual([]);
     expect(calls[0]).toEqual({
       tabId: 'TX',
-      target: { splitPanel: 'TGT', direction: 'left', sizePercent: 50 },
+      target: { splitPanel: 'TGT', direction: 'left', size: 50 },
     });
   });
   it('directional zone splits when adjacent panels do not share a full edge', () => {
@@ -408,7 +408,7 @@ describe('tileryCommitDrag — every branch', () => {
     expect(swapCalls).toEqual([]);
     expect(calls[0]).toEqual({
       tabId: 'TX',
-      target: { splitPanel: 'TGT', direction: 'left', sizePercent: 50 },
+      target: { splitPanel: 'TGT', direction: 'left', size: 50 },
     });
   });
   it('directional zone falls through to splitPanel moveTab when not a swap candidate (same side)', () => {
@@ -431,7 +431,7 @@ describe('tileryCommitDrag — every branch', () => {
     expect(swapCalls).toEqual([]);
     expect(calls[0]).toEqual({
       tabId: 'TX',
-      target: { splitPanel: 'TGT', direction: 'right', sizePercent: 50 },
+      target: { splitPanel: 'TGT', direction: 'right', size: 50 },
     });
   });
 });
@@ -680,7 +680,7 @@ describe('tileryCommitDrag — panelDrag=true (moves all tabs)', () => {
     expect(calls).toEqual([
       {
         tabId: 'T1',
-        target: { splitPanel: 'TGT', direction: 'right', sizePercent: 50 },
+        target: { splitPanel: 'TGT', direction: 'right', size: 50 },
       },
       { tabId: 'T2', target: { afterTab: 'T1' } },
       { tabId: 'T3', target: { afterTab: 'T2' } },
@@ -731,7 +731,7 @@ describe('tileryCommitDrag — panelDrag=true (moves all tabs)', () => {
     expect(calls).toEqual([
       {
         tabId: 'T1',
-        target: { splitPanel: 'SRC', direction: 'left', sizePercent: 50 },
+        target: { splitPanel: 'SRC', direction: 'left', size: 50 },
       },
       { tabId: 'T2', target: { afterTab: 'T1' } },
     ]);

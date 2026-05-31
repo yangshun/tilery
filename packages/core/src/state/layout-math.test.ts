@@ -14,7 +14,8 @@ import {
   tilerySplitFitsMin,
   tilerySplitInset,
 } from './layout-math';
-import { tileryCreateInitialState, tileryReducer } from './reducer';
+import { tileryReducer } from './reducer';
+import { createStateFromPanels } from './test-helpers';
 import type {
   TileryDirection,
   TileryLayoutState,
@@ -58,7 +59,7 @@ describe('tilerySplitInset', () => {
 
 describe('tileryDeriveDividers', () => {
   it('produces a single vertical divider for two side-by-side panels', () => {
-    const state = tileryCreateInitialState({
+    const state = createStateFromPanels({
       panels: [
         {
           id: 'A',
@@ -81,7 +82,7 @@ describe('tileryDeriveDividers', () => {
   });
 
   it('produces two dividers for a 3-panel L-shape (sidebar + editor + terminal)', () => {
-    const state = tileryCreateInitialState({
+    const state = createStateFromPanels({
       panels: [
         {
           id: 'sidebar',
@@ -116,7 +117,7 @@ describe('tileryDeriveDividers', () => {
   });
 
   it('produces the right dividers for a 2x2 grid', () => {
-    const state = tileryCreateInitialState({
+    const state = createStateFromPanels({
       panels: [
         {
           id: 'TL',
@@ -153,7 +154,7 @@ describe('tileryDeriveDividers', () => {
 
   it('merges touching ranges in the flat divider fallback', () => {
     const state = {
-      ...tileryCreateInitialState({
+      ...createStateFromPanels({
         panels: [
           {
             id: 'T',
@@ -187,7 +188,7 @@ describe('tileryDeriveDividers', () => {
 
 describe('tileryClampDividerPosition + tileryApplyDividerResize', () => {
   it('clamps the divider to respect min size on both sides', () => {
-    const state = tileryCreateInitialState({
+    const state = createStateFromPanels({
       panels: [
         {
           id: 'A',
@@ -214,7 +215,7 @@ describe('tileryClampDividerPosition + tileryApplyDividerResize', () => {
   });
 
   it('applies a resize correctly to both adjacent panels', () => {
-    const state = tileryCreateInitialState({
+    const state = createStateFromPanels({
       panels: [
         {
           id: 'A',
@@ -246,7 +247,7 @@ describe('tileryClampDividerPosition + tileryApplyDividerResize', () => {
 
   it('clamps and applies vertical resize through the flat fallback path', () => {
     const state = {
-      ...tileryCreateInitialState({
+      ...createStateFromPanels({
         panels: [
           {
             id: 'A',
@@ -275,7 +276,7 @@ describe('tileryClampDividerPosition + tileryApplyDividerResize', () => {
 
 describe('tileryReducer — split, move-tab, auto-remove', () => {
   const baseLayout = () =>
-    tileryCreateInitialState({
+    createStateFromPanels({
       panels: [
         {
           id: 'sidebar',
@@ -380,7 +381,7 @@ describe('tileryReducer — split, move-tab, auto-remove', () => {
   });
 
   it('MOVE_TAB out of last-tab panel removes the source panel', () => {
-    const state: TileryLayoutState = tileryCreateInitialState({
+    const state: TileryLayoutState = createStateFromPanels({
       panels: [
         {
           id: 'A',
@@ -412,7 +413,7 @@ describe('tileryReducer — split, move-tab, auto-remove', () => {
 
 describe('tileryFindRemovalFillers — edge cases', () => {
   it('expands a right neighbor over a removed left panel of equal height', () => {
-    const state = tileryCreateInitialState({
+    const state = createStateFromPanels({
       panels: [
         {
           id: 'L',
@@ -436,7 +437,7 @@ describe('tileryFindRemovalFillers — edge cases', () => {
   });
 
   it('expands a left neighbor over a removed right panel of equal height', () => {
-    const state = tileryCreateInitialState({
+    const state = createStateFromPanels({
       panels: [
         {
           id: 'L',
@@ -461,7 +462,7 @@ describe('tileryFindRemovalFillers — edge cases', () => {
 
   it('expands a top neighbor downward into a removed panel', () => {
     // Top: x=[0,100], y=[0,50]. Bottom: x=[0,100], y=[50,100]. Remove bottom.
-    const state = tileryCreateInitialState({
+    const state = createStateFromPanels({
       panels: [
         {
           id: 'T',
@@ -485,7 +486,7 @@ describe('tileryFindRemovalFillers — edge cases', () => {
   });
 
   it('expands a bottom neighbor upward when the removed panel is on top', () => {
-    const state = tileryCreateInitialState({
+    const state = createStateFromPanels({
       panels: [
         {
           id: 'T',
@@ -509,7 +510,7 @@ describe('tileryFindRemovalFillers — edge cases', () => {
   });
 
   it('returns no fillers when no adjacent side tiles the removed region', () => {
-    const state = tileryCreateInitialState({
+    const state = createStateFromPanels({
       panels: [
         // Two non-adjacent panels (gap between them)
         {
@@ -531,7 +532,7 @@ describe('tileryFindRemovalFillers — edge cases', () => {
 
   it('returns no fillers when neighbors do not fully cover the removed range', () => {
     // Two left neighbors stacked but their union doesn't reach the removed's top
-    const state = tileryCreateInitialState({
+    const state = createStateFromPanels({
       panels: [
         {
           id: 'L',
@@ -607,7 +608,7 @@ describe('tileryRectsOverlap', () => {
 
 describe('horizontal dividers — resize math', () => {
   const stacked = () =>
-    tileryCreateInitialState({
+    createStateFromPanels({
       panels: [
         {
           id: 'T',
@@ -656,7 +657,7 @@ describe('horizontal dividers — resize math', () => {
 
 describe('divider edge guards — horizontal', () => {
   it('tileryClampDividerPosition skips missing panels on horizontal divider both sides', () => {
-    const state = tileryCreateInitialState({
+    const state = createStateFromPanels({
       panels: [
         {
           id: 'T',
@@ -683,7 +684,7 @@ describe('divider edge guards — horizontal', () => {
 
 describe('divider edge guards', () => {
   it('tileryClampDividerPosition skips missing panels', () => {
-    const state = tileryCreateInitialState({
+    const state = createStateFromPanels({
       panels: [
         {
           id: 'L',
@@ -707,7 +708,7 @@ describe('divider edge guards', () => {
     expect(tileryClampDividerPosition(state, phantomDivider, 60, 10)).toBe(60);
   });
   it('tileryApplyDividerResize skips missing panels on both sides', () => {
-    const state = tileryCreateInitialState({
+    const state = createStateFromPanels({
       panels: [
         {
           id: 'L',
@@ -743,7 +744,7 @@ describe('divider edge guards', () => {
     });
   });
   it('tileryApplyDividerResize horizontal skips missing panels', () => {
-    const state = tileryCreateInitialState({
+    const state = createStateFromPanels({
       panels: [
         {
           id: 'T',
@@ -777,7 +778,7 @@ describe('tileryDeriveDividers — disjoint adjacency', () => {
     //   A2: x=[0,50], y=[70,100] (left, bottom)
     //   B:  x=[50,100], y=[40,60] (right, middle)
     // intersectRanges([[0,30],[70,100]], [[40,60]]) → all pairs non-overlapping
-    const state = tileryCreateInitialState({
+    const state = createStateFromPanels({
       panels: [
         {
           id: 'A1',
@@ -808,7 +809,7 @@ describe('tileryDeriveDividers — gap branches', () => {
   it('skips an x-coord that only has panels on one side (no opposing panel)', () => {
     // Single panel covers full width on top, plus a smaller panel on bottom only
     // x-coord at the inner edge of the bottom panel has no opposing side.
-    const state = tileryCreateInitialState({
+    const state = createStateFromPanels({
       panels: [
         {
           id: 'top',
@@ -830,7 +831,7 @@ describe('tileryDeriveDividers — gap branches', () => {
     ).toBe(true);
   });
   it('skips a y-coord that only has panels on one side', () => {
-    const state = tileryCreateInitialState({
+    const state = createStateFromPanels({
       panels: [
         {
           id: 'l',
@@ -861,7 +862,7 @@ describe('tileryDeriveDividers — gap branches', () => {
 // all views in the chain" test and dockview's multi-view-sash test.
 describe('tileryClampDividerPosition — multi-panel side (workspace shape)', () => {
   const workspace = (): TileryLayoutState =>
-    tileryCreateInitialState({
+    createStateFromPanels({
       panels: [
         {
           id: 'sidebar',
@@ -934,7 +935,7 @@ describe('tileryClampDividerPosition — over-determined constraints', () => {
     // must not crash on it. The two panels share the edge at y=10, so
     // tileryDeriveDividers returns one horizontal divider with both T and B as
     // its only constraint sources.
-    const state = tileryCreateInitialState({
+    const state = createStateFromPanels({
       panels: [
         {
           id: 'T',
@@ -1035,7 +1036,7 @@ describe('layout invariants — deterministic random fuzz', () => {
 
   it('200 random splits + resizes preserve no-overlap AND full coverage', () => {
     const rand = lcg(42);
-    let state = tileryCreateInitialState({
+    let state = createStateFromPanels({
       panels: [
         {
           id: 'P0',

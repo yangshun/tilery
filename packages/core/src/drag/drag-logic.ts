@@ -82,7 +82,7 @@ export function tileryCommitDrag(
     tilery.moveTab(tabId, {
       splitPanel: drag.hoverPanelId,
       direction: dir,
-      sizePercent: 50,
+      size: 50,
     });
     moveSiblingsPreservingOrder(tilery, tabsBefore, tabsAfter, tabId);
     if (panelDrag) tilery.setActiveTab(tabId);

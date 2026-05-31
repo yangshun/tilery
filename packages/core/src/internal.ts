@@ -4,6 +4,7 @@ export type {
   TileryDividerOrientation,
   TileryInset,
   TileryInitialLayout,
+  TilerySplitInit,
   TileryLayoutState,
   TileryLayoutTree,
   TileryHandle,
@@ -57,7 +58,9 @@ export {
   tileryBuildLayoutTreeFromPanels,
   tileryDeriveLayoutDividers,
   tileryDeriveLayoutInsets,
+  tileryNormalizeLayoutState,
   tileryPanelOrderFromLayout,
+  tileryPanelOrderFromState,
   tilerySyncLayoutPanels,
 } from './state/layout-tree';
 

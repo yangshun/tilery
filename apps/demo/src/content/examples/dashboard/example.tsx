@@ -6,46 +6,66 @@ import type { TileryInitialLayout, TileryTabHandle } from '@tilery/react';
 type TabData = { title: string; color: string };
 
 const layout: TileryInitialLayout<TabData> = {
-  panels: [
+  type: 'split',
+  direction: 'vertical',
+  children: [
     {
-      id: 'top-left',
-      inset: { top: 0, right: 50, bottom: 50, left: 0 },
-      tabs: [
+      type: 'split',
+      direction: 'horizontal',
+      size: 50,
+      children: [
         {
-          id: 'chart',
-          data: { title: 'Revenue Chart', color: '#3aaf6f' },
-          closeable: false,
+          type: 'panel',
+          id: 'top-left',
+          size: 50,
+          tabs: [
+            {
+              id: 'chart',
+              data: { title: 'Revenue Chart', color: '#3aaf6f' },
+              closeable: false,
+            },
+          ],
+        },
+        {
+          type: 'panel',
+          id: 'top-right',
+          size: 50,
+          tabs: [
+            {
+              id: 'metrics',
+              data: { title: 'Key Metrics', color: '#3884ff' },
+              closeable: false,
+            },
+          ],
         },
       ],
     },
     {
-      id: 'top-right',
-      inset: { top: 0, right: 0, bottom: 50, left: 50 },
-      tabs: [
+      type: 'split',
+      direction: 'horizontal',
+      size: 50,
+      children: [
         {
-          id: 'metrics',
-          data: { title: 'Key Metrics', color: '#3884ff' },
-          closeable: false,
+          type: 'panel',
+          id: 'bottom-left',
+          size: 50,
+          tabs: [
+            {
+              id: 'table',
+              data: { title: 'Data Table', color: '#d28e2a' },
+              closeable: false,
+            },
+          ],
         },
-      ],
-    },
-    {
-      id: 'bottom-left',
-      inset: { top: 50, right: 50, bottom: 0, left: 0 },
-      tabs: [
         {
-          id: 'table',
-          data: { title: 'Data Table', color: '#d28e2a' },
-          closeable: false,
+          type: 'panel',
+          id: 'bottom-right',
+          size: 50,
+          tabs: [
+            { id: 'logs', data: { title: 'Activity Log', color: '#9b5ad6' } },
+            { id: 'alerts', data: { title: 'Alerts', color: '#d6515a' } },
+          ],
         },
-      ],
-    },
-    {
-      id: 'bottom-right',
-      inset: { top: 50, right: 0, bottom: 0, left: 50 },
-      tabs: [
-        { id: 'logs', data: { title: 'Activity Log', color: '#9b5ad6' } },
-        { id: 'alerts', data: { title: 'Alerts', color: '#d6515a' } },
       ],
     },
   ],

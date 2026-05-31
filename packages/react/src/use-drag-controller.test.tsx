@@ -5,17 +5,14 @@ import React, { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { useTileryDragController } from './use-drag-controller';
 import { makeTileryHandle } from 'tilery/internal';
-import {
-  tileryCreateInitialState,
-  tileryReducer,
-  type TileryReducerAction,
-} from 'tilery/internal';
+import { tileryReducer, type TileryReducerAction } from 'tilery/internal';
 import type { TileryLayoutState } from 'tilery/internal';
+import { createStateFromPanels } from './test-helpers';
 
 type Controller = ReturnType<typeof useTileryDragController>;
 
 function setupStore() {
-  let state: TileryLayoutState = tileryCreateInitialState({
+  let state: TileryLayoutState = createStateFromPanels({
     panels: [
       {
         id: 'P1',
@@ -845,7 +842,7 @@ describe('useTileryDragController — hover detection', () => {
     // Layout: P1 [A] at x=[0,200], P2 [B] at x=[200,400]. B is to the right of P1.
     // Dragging B onto P1's LEFT zone is OPPOSITE to source (B is on right) → swap is the intent → zone shown.
     // Dragging B onto P1's RIGHT zone is SAME side as B → already-where-it-is → suppress.
-    let state: TileryLayoutState = tileryCreateInitialState({
+    let state: TileryLayoutState = createStateFromPanels({
       panels: [
         {
           id: 'P1',
@@ -960,7 +957,7 @@ describe('useTileryDragController — hover detection', () => {
     // Layout: P1 [A] top (y=[0,200]), P2 [B] bottom (y=[200,400]). B is below P1.
     // Dragging B onto P1's TOP zone is OPPOSITE to source → swap → shown.
     // Dragging B onto P1's BOTTOM zone is SAME side as source → suppress.
-    let state: TileryLayoutState = tileryCreateInitialState({
+    let state: TileryLayoutState = createStateFromPanels({
       panels: [
         {
           id: 'P1',
@@ -1062,7 +1059,7 @@ describe('useTileryDragController — hover detection', () => {
   it('does NOT suppress same-axis split when the source has multiple tabs (source will survive)', () => {
     // P1 [A] | P2 [B, C]. Dragging C onto P1: source P2 won't be removed, so
     // the split IS structurally meaningful (P2 keeps B). Allow left/right.
-    let state: TileryLayoutState = tileryCreateInitialState({
+    let state: TileryLayoutState = createStateFromPanels({
       panels: [
         {
           id: 'P1',
@@ -1136,7 +1133,7 @@ describe('useTileryDragController — hover detection', () => {
   it('does NOT suppress same-axis split when the target has multiple tabs (target keeps others)', () => {
     // P1 [A, B] | P2 [C]. Dragging C onto P1: target P1 keeps A and B in its
     // shrunk area, NEW gets C. Different shape, allow.
-    let state: TileryLayoutState = tileryCreateInitialState({
+    let state: TileryLayoutState = createStateFromPanels({
       panels: [
         {
           id: 'P1',
@@ -1212,7 +1209,7 @@ describe('useTileryDragController — hover detection', () => {
     // zone is the user's "put me to the left of B" intent — swap B and C
     // positions cleanly (preserves proportions). RIGHT zone (same side as C)
     // is suppressed.
-    let state: TileryLayoutState = tileryCreateInitialState({
+    let state: TileryLayoutState = createStateFromPanels({
       panels: [
         {
           id: 'P1',
@@ -1311,7 +1308,7 @@ describe('useTileryDragController — hover detection', () => {
     // Multi-tab panel: dragging one of its tabs onto its own split zone is a
     // valid operation (source survives with the other tabs). The redundancy
     // rule doesn't apply, and the zone should be shown.
-    let state: TileryLayoutState = tileryCreateInitialState({
+    let state: TileryLayoutState = createStateFromPanels({
       panels: [
         {
           id: 'MULTI',
@@ -1382,7 +1379,7 @@ describe('useTileryDragController — hover detection', () => {
   it('does NOT suppress same-axis split when the panels are not adjacent', () => {
     // Layout: P1 [A] top-left, P2 [B] bottom-right. Diagonal opposites — no
     // shared edge. Splitting either is a genuine layout change.
-    let state: TileryLayoutState = tileryCreateInitialState({
+    let state: TileryLayoutState = createStateFromPanels({
       panels: [
         {
           id: 'P1',
@@ -1475,7 +1472,7 @@ describe('useTileryDragController — hover detection', () => {
     // IDE shape: explorer full-height on the left, terminal bottom-right.
     // Terminal touches the explorer's right edge only across the lower portion,
     // so dropping Terminal on Explorer's right half should split Explorer.
-    let state: TileryLayoutState = tileryCreateInitialState({
+    let state: TileryLayoutState = createStateFromPanels({
       panels: [
         {
           id: 'explorer',
@@ -1553,7 +1550,7 @@ describe('useTileryDragController — hover detection', () => {
     // Single panel with one tab; dragging that tab over its own panel —
     // anywhere (split zones, center, or tab bar) — should produce NO hover
     // state, because every possible drop is a no-op.
-    let state: TileryLayoutState = tileryCreateInitialState({
+    let state: TileryLayoutState = createStateFromPanels({
       panels: [
         {
           id: 'SOLO',
