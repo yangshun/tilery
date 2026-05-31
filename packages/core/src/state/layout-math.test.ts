@@ -15,7 +15,7 @@ import {
   tilerySplitFitsMin,
   tilerySplitInset,
 } from './layout-math';
-import { tileryReducer } from './reducer';
+import { tileryCreateInitialState, tileryReducer } from './reducer';
 import { createStateFromPanels } from './test-helpers';
 import type {
   TileryDirection,
@@ -934,6 +934,52 @@ describe('tileryClampDividerPosition — multi-panel side (workspace shape)', ()
 
     expect(tileryClampDividerPosition(state, div, 5, 10)).toBe(60);
     expect(tileryClampDividerPosition(state, div, 95, 10)).toBe(65);
+  });
+
+  it('does not apply descendant constraints to an ancestor split divider', () => {
+    const state = tileryCreateInitialState({
+      type: 'split',
+      direction: 'horizontal',
+      children: [
+        {
+          type: 'panel',
+          id: 'navigator',
+          size: 24,
+          minSize: 18,
+          maxSize: 34,
+          tabs: [{ id: 'navigator-tab', data: {} }],
+        },
+        {
+          type: 'split',
+          direction: 'vertical',
+          size: 76,
+          children: [
+            {
+              type: 'panel',
+              id: 'editor',
+              size: 68,
+              minSize: 36,
+              tabs: [{ id: 'editor-tab', data: {} }],
+            },
+            {
+              type: 'panel',
+              id: 'console',
+              size: 32,
+              minSize: 18,
+              maxSize: 42,
+              tabs: [{ id: 'console-tab', data: {} }],
+            },
+          ],
+        },
+      ],
+    });
+    const div = tileryDeriveDividers(state).find(
+      (d) =>
+        d.orientation === 'vertical' && d.beforePanels.includes('navigator'),
+    )!;
+
+    expect(tileryClampDividerPosition(state, div, 5, 10)).toBe(18);
+    expect(tileryClampDividerPosition(state, div, 40, 10)).toBe(34);
   });
 
   it('keeps position when per-panel min and max constraints cannot fit', () => {

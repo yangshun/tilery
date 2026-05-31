@@ -97,6 +97,45 @@ function singlePanelLayout(): TileryInitialLayout<Data> {
   };
 }
 
+function constrainedLayout(): TileryInitialLayout<Data> {
+  return {
+    type: 'split',
+    direction: 'horizontal',
+    children: [
+      {
+        type: 'panel',
+        id: 'navigator',
+        size: 24,
+        minSize: 18,
+        maxSize: 34,
+        tabs: [{ id: 'navigator-tab', data: { title: 'Navigator' } }],
+      },
+      {
+        type: 'split',
+        direction: 'vertical',
+        size: 76,
+        children: [
+          {
+            type: 'panel',
+            id: 'editor',
+            size: 68,
+            minSize: 36,
+            tabs: [{ id: 'editor-tab', data: { title: 'Editor' } }],
+          },
+          {
+            type: 'panel',
+            id: 'console',
+            size: 32,
+            minSize: 18,
+            maxSize: 42,
+            tabs: [{ id: 'console-tab', data: { title: 'Console' } }],
+          },
+        ],
+      },
+    ],
+  };
+}
+
 // Stubs the container so percentage math is deterministic.
 function stubContainerRect(el: HTMLElement) {
   el.getBoundingClientRect = () =>
@@ -1405,6 +1444,37 @@ describe('Tilery — min panel size honored by handle', () => {
     const sidebar = t.handle().getPanel('sidebar')!;
     // Default min is 10%, so the right inset can't go below 10.
     expect(100 - sidebar.inset.right).toBeLessThanOrEqual(90 + 1e-6);
+    t.cleanup();
+  });
+
+  it('lets a constrained root panel resize within its direct split bounds', () => {
+    const t = mount(constrainedLayout());
+    const divider = Array.from(
+      t.host.querySelectorAll<HTMLElement>('.tilery__divider'),
+    ).find(
+      (el) => el.getAttribute('aria-controls') === 'tilery-panel-navigator',
+    )!;
+
+    expect(divider.getAttribute('aria-valuemin')).toBe('18');
+    expect(divider.getAttribute('aria-valuemax')).toBe('34');
+
+    act(() => {
+      reactProps(divider).onPointerDown(pointerEvent());
+      reactProps(divider).onPointerMove(
+        pointerEvent({ clientX: 500, clientY: 400 }),
+      );
+      reactProps(divider).onPointerUp(pointerEvent());
+    });
+    expect(100 - t.handle().getPanel('navigator')!.inset.right).toBe(34);
+
+    act(() => {
+      reactProps(divider).onPointerDown(pointerEvent());
+      reactProps(divider).onPointerMove(
+        pointerEvent({ clientX: 100, clientY: 400 }),
+      );
+      reactProps(divider).onPointerUp(pointerEvent());
+    });
+    expect(100 - t.handle().getPanel('navigator')!.inset.right).toBe(18);
     t.cleanup();
   });
 });

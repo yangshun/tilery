@@ -349,13 +349,14 @@ export function tileryClampDividerPosition(
   minSize: number = TILERY_DEFAULT_MIN_SIZE,
 ): number {
   if (divider.splitId && state.layout) {
-    const current = tileryClampLayoutDividerPosition(
+    const clamped = tileryClampLayoutDividerPosition(
       state.layout,
       divider.splitId,
-      divider.position,
+      targetPosition,
       minSize,
+      state.panels,
     );
-    if (current == null) return divider.position;
+    return clamped ?? divider.position;
   }
   let min = 0;
   let max = 100;

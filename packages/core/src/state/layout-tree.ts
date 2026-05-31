@@ -212,6 +212,7 @@ export function tileryClampLayoutDividerPosition(
   splitId: string,
   targetPosition: number,
   minSize: number,
+  panels: Record<TileryPanelId, TileryPanelState> = {},
 ): number | null {
   const match = findBoundaryWithRect(layout, splitId, ROOT_RECT);
   if (!match) return null;
@@ -226,8 +227,18 @@ export function tileryClampLayoutDividerPosition(
     pairStart + childSizes[boundaryIndex]! + childSizes[boundaryIndex + 1]!;
   const current =
     start + (span * (pairStart + childSizes[boundaryIndex]!)) / 100;
-  const min = start + (span * (pairStart + minSize)) / 100;
-  const max = start + (span * (pairEnd - minSize)) / 100;
+  const before = node.children[boundaryIndex]!;
+  const after = node.children[boundaryIndex + 1]!;
+  const minBoundary = Math.max(
+    pairStart + layoutChildMinSize(before, panels, minSize),
+    pairEnd - layoutChildMaxSize(after, panels),
+  );
+  const maxBoundary = Math.min(
+    pairStart + layoutChildMaxSize(before, panels),
+    pairEnd - layoutChildMinSize(after, panels, minSize),
+  );
+  const min = start + (span * minBoundary) / 100;
+  const max = start + (span * maxBoundary) / 100;
   if (min > max) return current;
   return Math.max(min, Math.min(max, targetPosition));
 }
@@ -628,6 +639,29 @@ function replacementForParent(
 
 function boundaryIdFor(split: SplitNode, index: number): string {
   return `${split.id}#${index}`;
+}
+
+function layoutChildMinSize(
+  child: TileryLayoutTree,
+  panels: Record<TileryPanelId, TileryPanelState>,
+  fallback: number,
+): number {
+  if (child.kind !== 'panel') return Math.max(0, fallback);
+  return finiteSize(panels[child.panelId]?.minSize) ?? Math.max(0, fallback);
+}
+
+function layoutChildMaxSize(
+  child: TileryLayoutTree,
+  panels: Record<TileryPanelId, TileryPanelState>,
+): number {
+  if (child.kind !== 'panel') return Infinity;
+  return finiteSize(panels[child.panelId]?.maxSize) ?? Infinity;
+}
+
+function finiteSize(value: number | undefined): number | null {
+  return typeof value === 'number' && Number.isFinite(value)
+    ? Math.max(0, value)
+    : null;
 }
 
 function rectCrossesCut(
