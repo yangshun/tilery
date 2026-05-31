@@ -310,6 +310,16 @@ describe('Tilery — rendering', () => {
     t.cleanup();
   });
 
+  it('applies the configured resize handle hit target size', () => {
+    const t = mount(lShapeLayout(), undefined, { resizeHandleHitSize: 36 });
+    const divider = t.host.querySelector<HTMLElement>('.tilery__divider')!;
+    const junction = t.host.querySelector<HTMLElement>('.tilery__junction')!;
+    expect(divider.style.width).toBe('36px');
+    expect(junction.style.width).toBe('36px');
+    expect(junction.style.height).toBe('36px');
+    t.cleanup();
+  });
+
   it('labels panels and exposes computed separator values for resize handles', () => {
     const t = mount(lShapeLayout());
     const panels = Array.from(

@@ -7,6 +7,7 @@ import { useTileryPointerDrag } from '../use-pointer-drag';
 export type DividerProps = {
   divider: DividerType;
   accessibility: DividerAccessibility;
+  hitSize?: number;
   onDrag: (
     dividerId: string,
     newPositionPercent: number,
@@ -29,18 +30,21 @@ export type DividerAccessibility = {
   axisEnd: number;
 };
 
-const HIT_SIZE_PX = 24;
+const DEFAULT_HIT_SIZE_PX = 24;
 const KEYBOARD_STEP_PERCENT = 2;
 const KEYBOARD_FAST_STEP_PERCENT = 10;
+const EPSILON = 0.0001;
 const noop = () => {};
 
 export function TileryDivider({
   divider,
   accessibility,
+  hitSize = DEFAULT_HIT_SIZE_PX,
   onDrag,
   onDragEnd = noop,
   containerRef,
 }: DividerProps) {
+  const resolvedHitSize = normalizeHitSize(hitSize);
   const onMove = useCallback(
     (e: React.PointerEvent) => {
       const container = containerRef.current;
@@ -56,6 +60,16 @@ export function TileryDivider({
   );
 
   const handlers = useTileryPointerDrag({ onMove });
+  const minPosition = Math.min(
+    accessibility.minPosition,
+    accessibility.maxPosition,
+  );
+  const maxPosition = Math.max(
+    accessibility.minPosition,
+    accessibility.maxPosition,
+  );
+  const isAtMin = divider.position <= minPosition + EPSILON;
+  const isAtMax = divider.position >= maxPosition - EPSILON;
 
   const onPointerUp = useCallback(
     (e: React.PointerEvent) => {
@@ -111,23 +125,26 @@ export function TileryDivider({
   const style: React.CSSProperties =
     divider.orientation === 'vertical'
       ? {
-          left: `calc(${divider.position}% - ${HIT_SIZE_PX / 2}px)`,
+          left: `calc(${divider.position}% - ${resolvedHitSize / 2}px)`,
           top: `${divider.start}%`,
           height: `${divider.end - divider.start}%`,
-          width: `${HIT_SIZE_PX}px`,
+          width: `${resolvedHitSize}px`,
           cursor: 'col-resize',
         }
       : {
-          top: `calc(${divider.position}% - ${HIT_SIZE_PX / 2}px)`,
+          top: `calc(${divider.position}% - ${resolvedHitSize / 2}px)`,
           left: `${divider.start}%`,
           width: `${divider.end - divider.start}%`,
-          height: `${HIT_SIZE_PX}px`,
+          height: `${resolvedHitSize}px`,
           cursor: 'row-resize',
         };
   return (
     <div
       className="tilery__divider"
       data-orientation={divider.orientation}
+      data-resize-active={handlers.isDragging ? '' : undefined}
+      data-resize-at-min={isAtMin ? '' : undefined}
+      data-resize-at-max={isAtMax ? '' : undefined}
       style={style}
       tabIndex={0}
       onPointerDown={handlers.onPointerDown}
@@ -150,4 +167,8 @@ export function TileryDivider({
       }
     />
   );
+}
+
+function normalizeHitSize(value: number): number {
+  return Number.isFinite(value) && value > 0 ? value : DEFAULT_HIT_SIZE_PX;
 }

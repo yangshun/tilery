@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 export type TileryPointerDragOptions = {
   onMove: (e: React.PointerEvent) => void;
@@ -8,6 +8,7 @@ export type TileryPointerDragOptions = {
 };
 
 export type TileryPointerDragHandlers = {
+  isDragging: boolean;
   onPointerDown: (e: React.PointerEvent) => void;
   onPointerMove: (e: React.PointerEvent) => void;
   onPointerUp: (e: React.PointerEvent) => void;
@@ -18,6 +19,7 @@ export function useTileryPointerDrag({
   stopPropagationOnDown = false,
 }: TileryPointerDragOptions): TileryPointerDragHandlers {
   const draggingRef = useRef(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   const onPointerDown = useCallback(
     (e: React.PointerEvent) => {
@@ -31,6 +33,7 @@ export function useTileryPointerDrag({
         // Synthetic events or stale pointerIds throw; ignore.
       }
       draggingRef.current = true;
+      setIsDragging(true);
     },
     [stopPropagationOnDown],
   );
@@ -51,7 +54,8 @@ export function useTileryPointerDrag({
       // ignore
     }
     draggingRef.current = false;
+    setIsDragging(false);
   }, []);
 
-  return { onPointerDown, onPointerMove, onPointerUp };
+  return { isDragging, onPointerDown, onPointerMove, onPointerUp };
 }

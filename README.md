@@ -141,6 +141,7 @@ The main component. Renders a tiling panel layout.
 | `onTabsClose`             | `(event: TileryTabsCloseEvent<TData>) => void`                           | No       | Called when tabs are removed                    |
 | `onPanelsClose`           | `(event: TileryPanelsCloseEvent<TData>) => void`                         | No       | Called when panels are removed                  |
 | `minSize`                 | `number`                                                                 | No       | Default minimum panel size percentage           |
+| `resizeHandleHitSize`     | `number`                                                                 | No       | Pointer hit target size for resize handles      |
 | `showActionsButton`       | `boolean \| (panel: TileryPanelHandle) => boolean`                       | No       | Shows the built-in panel action menu            |
 | `showNewTabButton`        | `boolean \| (panel: TileryPanelHandle) => boolean`                       | No       | Shows the optional new-tab button               |
 | `onNewTab`                | `(panel, ctx) => TileryTabInit<TData> \| void`                           | No       | Handles the new-tab button                      |
@@ -196,6 +197,15 @@ These constraints override the root `minSize` fallback when resizing dividers.
 Resize dividers are keyboard-accessible separators. Focus a divider, then use
 the arrow keys for axis-aligned resizing, Shift+Arrow for larger steps, and
 Home/End to move to the nearest minimum or maximum allowed size.
+Set `resizeHandleHitSize` to adjust the pointer target for dividers and
+T-junction resize handles.
+
+Resize handles expose stable styling attributes:
+
+- `data-orientation="vertical" | "horizontal"` on dividers
+- `data-resize-active` while a divider or junction is being dragged
+- `data-resize-at-min` when a divider is at its minimum position
+- `data-resize-at-max` when a divider is at its maximum position
 
 ### Layout snapshots
 

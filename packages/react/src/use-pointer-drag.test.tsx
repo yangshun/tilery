@@ -108,12 +108,19 @@ describe('useTileryPointerDrag — gating', () => {
 describe('useTileryPointerDrag — happy path', () => {
   it('starts dragging on pointerdown and routes moves to onMove', () => {
     const t = setup();
-    t.handlers().onPointerDown(t.fakeEvent());
+    expect(t.handlers().isDragging).toBe(false);
+    act(() => {
+      t.handlers().onPointerDown(t.fakeEvent());
+    });
+    expect(t.handlers().isDragging).toBe(true);
     t.handlers().onPointerMove(t.fakeEvent({ clientX: 100, clientY: 80 }));
     expect(t.moves).toHaveLength(1);
     expect(t.moves[0]!.clientX).toBe(100);
     expect(t.moves[0]!.clientY).toBe(80);
-    t.handlers().onPointerUp(t.fakeEvent());
+    act(() => {
+      t.handlers().onPointerUp(t.fakeEvent());
+    });
+    expect(t.handlers().isDragging).toBe(false);
     // After pointerup the drag is over — further moves are ignored.
     t.handlers().onPointerMove(t.fakeEvent({ clientX: 200, clientY: 200 }));
     expect(t.moves).toHaveLength(1);

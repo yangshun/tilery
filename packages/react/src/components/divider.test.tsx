@@ -47,10 +47,14 @@ const DEFAULT_ACCESSIBILITY = {
 
 function mountWithRef({
   divider,
+  accessibility = DEFAULT_ACCESSIBILITY,
+  hitSize,
   populateRef,
   onDrag,
 }: {
   divider: DividerType;
+  accessibility?: typeof DEFAULT_ACCESSIBILITY;
+  hitSize?: number;
   populateRef: boolean;
   onDrag: (
     id: string,
@@ -88,7 +92,8 @@ function mountWithRef({
       },
       React.createElement(TileryDivider, {
         divider,
-        accessibility: DEFAULT_ACCESSIBILITY,
+        accessibility,
+        hitSize,
         onDrag,
         containerRef: ref,
       }),
@@ -184,6 +189,10 @@ describe('TileryDivider — horizontal axis math', () => {
     expect(t.el.style.cursor).toBe('row-resize');
     expect(t.el.style.height).toBe('24px');
     expect(t.el.style.width).toBe('100%');
+    expect(t.el.getAttribute('data-orientation')).toBe('horizontal');
+    expect(t.el.hasAttribute('data-resize-active')).toBe(false);
+    expect(t.el.hasAttribute('data-resize-at-min')).toBe(false);
+    expect(t.el.hasAttribute('data-resize-at-max')).toBe(false);
     expect(t.el.getAttribute('role')).toBe('separator');
     expect(t.el.tabIndex).toBe(0);
     expect(t.el.getAttribute('aria-label')).toBe('Resize A pane');
@@ -196,6 +205,29 @@ describe('TileryDivider — horizontal axis math', () => {
     expect(t.el.getAttribute('aria-keyshortcuts')).toBe(
       'ArrowUp ArrowDown Home End',
     );
+    t.cleanup();
+  });
+
+  it('uses a custom hit target size', () => {
+    const t = mountWithRef({
+      divider: HORIZONTAL_DIVIDER,
+      hitSize: 32,
+      populateRef: true,
+      onDrag: () => {},
+    });
+    expect(t.el.style.height).toBe('32px');
+    expect(t.el.style.top).toBe('calc(50% - 16px)');
+    t.cleanup();
+  });
+
+  it('falls back to the default hit target size for invalid values', () => {
+    const t = mountWithRef({
+      divider: HORIZONTAL_DIVIDER,
+      hitSize: 0,
+      populateRef: true,
+      onDrag: () => {},
+    });
+    expect(t.el.style.height).toBe('24px');
     t.cleanup();
   });
 
@@ -247,6 +279,34 @@ describe('TileryDivider — defensive null container', () => {
 });
 
 describe('TileryDivider — vertical keyboard resizing', () => {
+  it('marks min, max, and active resize states with data attributes', () => {
+    const min = mountWithRef({
+      divider: { ...VERTICAL_DIVIDER, position: 10 },
+      populateRef: true,
+      onDrag: () => {},
+    });
+    expect(min.el.hasAttribute('data-resize-at-min')).toBe(true);
+    expect(min.el.hasAttribute('data-resize-at-max')).toBe(false);
+    min.cleanup();
+
+    const max = mountWithRef({
+      divider: { ...VERTICAL_DIVIDER, position: 90 },
+      populateRef: true,
+      onDrag: () => {},
+    });
+    expect(max.el.hasAttribute('data-resize-at-min')).toBe(false);
+    expect(max.el.hasAttribute('data-resize-at-max')).toBe(true);
+    act(() => {
+      max.handlers.onPointerDown(pointerEvent());
+    });
+    expect(max.el.hasAttribute('data-resize-active')).toBe(true);
+    act(() => {
+      max.handlers.onPointerUp(pointerEvent());
+    });
+    expect(max.el.hasAttribute('data-resize-active')).toBe(false);
+    max.cleanup();
+  });
+
   it('resizes vertical dividers from the keyboard', () => {
     const recorded: number[] = [];
     const t = mountWithRef({

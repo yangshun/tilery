@@ -17,9 +17,11 @@ const JUNCTION: JunctionType = {
 };
 
 function mountWithRef({
+  hitSize,
   populateRef,
   onDrag,
 }: {
+  hitSize?: number;
   populateRef: boolean;
   onDrag: (
     id: string,
@@ -58,6 +60,7 @@ function mountWithRef({
       },
       React.createElement(TileryJunction, {
         junction: JUNCTION,
+        hitSize,
         onDrag,
         containerRef: ref,
       }),
@@ -112,13 +115,43 @@ describe('TileryJunction', () => {
         recorded.push({ id, x, y });
       },
     });
-    t.handlers.onPointerDown(pointerEvent());
+    act(() => {
+      t.handlers.onPointerDown(pointerEvent());
+    });
     t.handlers.onPointerMove(pointerEvent({ clientX: 300, clientY: 600 }));
     expect(recorded).toEqual([{ id: 'j|v|h', x: 30, y: 75 }]);
     expect(t.el.style.cursor).toBe('move');
     expect(t.el.style.width).toBe('24px');
     expect(t.el.getAttribute('data-junction-kind')).toBe('t');
+    expect(t.el.hasAttribute('data-resize-active')).toBe(true);
     expect(t.el.getAttribute('aria-hidden')).toBe('true');
+    act(() => {
+      t.handlers.onPointerUp(pointerEvent());
+    });
+    expect(t.el.hasAttribute('data-resize-active')).toBe(false);
+    t.cleanup();
+  });
+
+  it('uses a custom hit target size', () => {
+    const t = mountWithRef({
+      hitSize: 36,
+      populateRef: true,
+      onDrag: () => {},
+    });
+    expect(t.el.style.width).toBe('36px');
+    expect(t.el.style.height).toBe('36px');
+    expect(t.el.style.left).toBe('calc(40% - 18px)');
+    t.cleanup();
+  });
+
+  it('falls back to the default hit target size for invalid values', () => {
+    const t = mountWithRef({
+      hitSize: Number.NaN,
+      populateRef: true,
+      onDrag: () => {},
+    });
+    expect(t.el.style.width).toBe('24px');
+    expect(t.el.style.height).toBe('24px');
     t.cleanup();
   });
 

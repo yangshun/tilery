@@ -227,6 +227,7 @@ export type TileryProps<TData = unknown> = {
   onTabsClose?: (event: TileryTabsCloseEvent<TData>) => void;
   onPanelsClose?: (event: TileryPanelsCloseEvent<TData>) => void;
   minSize?: number;
+  resizeHandleHitSize?: number;
   showActionsButton?: TileryPanelVisibility;
   showNewTabButton?: TileryPanelVisibility;
   onNewTab?: TileryNewTabHandler<TData>;
@@ -256,6 +257,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
     onTabsClose,
     onPanelsClose,
     minSize = 10,
+    resizeHandleHitSize,
     showActionsButton = false,
     showNewTabButton = false,
     onNewTab,
@@ -668,6 +670,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
             key={d.id}
             divider={d}
             accessibility={dividerAccessibility[d.id]!}
+            hitSize={resizeHandleHitSize}
             onDrag={onDividerDrag}
             onDragEnd={commitResize}
             containerRef={containerRef}
@@ -678,6 +681,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
           <TileryJunction
             key={junction.id}
             junction={junction}
+            hitSize={resizeHandleHitSize}
             onDrag={onJunctionDrag}
             onDragEnd={commitResize}
             containerRef={containerRef}

@@ -164,6 +164,8 @@ function App() {
           'Dividers are computed automatically from split boundaries in the layout tree.',
           'Resizing a divider updates one split at a time, then derives fresh flat panel insets for rendering.',
           'Dividers are focusable separators with ARIA value metadata. Keyboard users can resize them with arrow keys, Shift+Arrow, Home, and End.',
+          'Set resizeHandleHitSize to adjust the pointer target for divider and T-junction resize handles.',
+          'Resize handles expose data-orientation on dividers, data-resize-active while dragging, and data-resize-at-min / data-resize-at-max when a divider reaches its bounds.',
         ],
       },
       {
@@ -327,6 +329,12 @@ function App() {
               'number',
               'No',
               'Default minimum panel size percentage',
+            ],
+            [
+              'resizeHandleHitSize',
+              'number',
+              'No',
+              'Pointer hit target size for resize handles',
             ],
             [
               'showActionsButton',

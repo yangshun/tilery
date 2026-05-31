@@ -6,6 +6,7 @@ import { useTileryPointerDrag } from '../use-pointer-drag';
 
 export type JunctionProps = {
   junction: JunctionType;
+  hitSize?: number;
   onDrag: (
     junctionId: string,
     xPercent: number,
@@ -16,15 +17,17 @@ export type JunctionProps = {
   containerRef: React.RefObject<HTMLDivElement | null>;
 };
 
-const HIT_SIZE_PX = 24;
+const DEFAULT_HIT_SIZE_PX = 24;
 const noop = () => {};
 
 export function TileryJunction({
   junction,
+  hitSize = DEFAULT_HIT_SIZE_PX,
   onDrag,
   onDragEnd = noop,
   containerRef,
 }: JunctionProps) {
+  const resolvedHitSize = normalizeHitSize(hitSize);
   const onMove = useCallback(
     (e: React.PointerEvent) => {
       const container = containerRef.current;
@@ -54,11 +57,12 @@ export function TileryJunction({
     <div
       className="tilery__junction"
       data-junction-kind={junction.kind}
+      data-resize-active={handlers.isDragging ? '' : undefined}
       style={{
-        left: `calc(${junction.x}% - ${HIT_SIZE_PX / 2}px)`,
-        top: `calc(${junction.y}% - ${HIT_SIZE_PX / 2}px)`,
-        width: `${HIT_SIZE_PX}px`,
-        height: `${HIT_SIZE_PX}px`,
+        left: `calc(${junction.x}% - ${resolvedHitSize / 2}px)`,
+        top: `calc(${junction.y}% - ${resolvedHitSize / 2}px)`,
+        width: `${resolvedHitSize}px`,
+        height: `${resolvedHitSize}px`,
         cursor: 'move',
       }}
       onPointerDown={handlers.onPointerDown}
@@ -68,4 +72,8 @@ export function TileryJunction({
       aria-hidden="true"
     />
   );
+}
+
+function normalizeHitSize(value: number): number {
+  return Number.isFinite(value) && value > 0 ? value : DEFAULT_HIT_SIZE_PX;
 }
