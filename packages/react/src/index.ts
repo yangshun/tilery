@@ -4,6 +4,12 @@ export {
   type TileryPanelActionsRenderContext,
   type TileryPanelVisibility,
   type TileryProps,
+  type TileryResizeDimension,
+  type TileryResizeEvent,
+  type TileryResizeInput,
+  type TileryResizePanelChange,
+  type TileryResizePhase,
+  type TileryResizeSource,
 } from './tilery';
 export {
   useTileryPointerDrag,

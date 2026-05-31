@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vite-plus/test';
 import React, { act, createRef } from 'react';
 import { createRoot } from 'react-dom/client';
 
-import { Tilery, type TileryProps } from './tilery';
+import { Tilery, type TileryProps, type TileryResizeEvent } from './tilery';
 import type { TileryInitialLayout, TileryHandle } from 'tilery/internal';
 
 // Integration tests for the Tilery component itself. They exercise the
@@ -106,6 +106,7 @@ function mount(
   initialLayout: TileryInitialLayout<Data>,
   onChange?: (s: unknown) => void,
   extraProps: Partial<TileryProps<Data>> = {},
+  opts: { stubRect?: boolean } = {},
 ) {
   const host = document.createElement('div');
   document.body.appendChild(host);
@@ -128,7 +129,7 @@ function mount(
   // The container ref is `.tilery__inner` — stub its rect so any drag math
   // can convert clientX/Y into percentages without relying on jsdom layout.
   const inner = host.querySelector('.tilery__inner') as HTMLDivElement;
-  stubContainerRect(inner);
+  if (opts.stubRect !== false) stubContainerRect(inner);
 
   return {
     host,
@@ -338,6 +339,94 @@ describe('Tilery — divider drag dispatch', () => {
     t.cleanup();
   });
 
+  it('reports pointer divider resize lifecycle events with panel deltas', () => {
+    const resizeEvents: TileryResizeEvent[] = [];
+    const resizeEndEvents: TileryResizeEvent[] = [];
+    const t = mount(lShapeLayout(), undefined, {
+      onResize: (event) => resizeEvents.push(event),
+      onResizeEnd: (event) => resizeEndEvents.push(event),
+    });
+    const divider = Array.from(
+      t.host.querySelectorAll<HTMLElement>('.tilery__divider'),
+    ).find((el) => el.getAttribute('data-orientation') === 'vertical')!;
+
+    act(() => {
+      reactProps(divider).onPointerDown(pointerEvent());
+      reactProps(divider).onPointerMove(
+        pointerEvent({ clientX: 500, clientY: 400 }),
+      );
+      reactProps(divider).onPointerUp(pointerEvent());
+    });
+
+    expect(resizeEvents).toHaveLength(1);
+    expect(resizeEndEvents).toHaveLength(1);
+    expect(resizeEndEvents[0]).toMatchObject({
+      ...resizeEvents[0],
+      phase: 'end',
+    });
+    expect(resizeEvents[0]).toMatchObject({
+      phase: 'resize',
+      input: 'pointer',
+      source: {
+        type: 'divider',
+        orientation: 'vertical',
+        previousPosition: 40,
+        position: 50,
+      },
+      changes: [
+        {
+          panelId: 'sidebar',
+          dimension: 'width',
+          previousSize: 40,
+          size: 50,
+          previousPixelSize: 400,
+          pixelSize: 500,
+        },
+        {
+          panelId: 'editor',
+          dimension: 'width',
+          previousSize: 60,
+          size: 50,
+          previousPixelSize: 600,
+          pixelSize: 500,
+        },
+        {
+          panelId: 'term',
+          dimension: 'width',
+          previousSize: 60,
+          size: 50,
+          previousPixelSize: 600,
+          pixelSize: 500,
+        },
+      ],
+    });
+    t.cleanup();
+  });
+
+  it('does not report no-op resize lifecycle events', () => {
+    const resizeEvents: TileryResizeEvent[] = [];
+    const resizeEndEvents: TileryResizeEvent[] = [];
+    const t = mount(lShapeLayout(), undefined, {
+      onResize: (event) => resizeEvents.push(event),
+      onResizeEnd: (event) => resizeEndEvents.push(event),
+    });
+    const divider = Array.from(
+      t.host.querySelectorAll<HTMLElement>('.tilery__divider'),
+    ).find((el) => el.getAttribute('data-orientation') === 'vertical')!;
+
+    act(() => {
+      reactProps(divider).onPointerDown(pointerEvent());
+      reactProps(divider).onPointerMove(
+        pointerEvent({ clientX: 400, clientY: 400 }),
+      );
+      reactProps(divider).onPointerUp(pointerEvent());
+    });
+
+    expect(resizeEvents).toEqual([]);
+    expect(resizeEndEvents).toEqual([]);
+    t.cleanup();
+  });
+
   it('dragging the T-junction resizes both connected split axes', () => {
     const t = mount(lShapeLayout());
     const junction = t.host.querySelector<HTMLElement>('.tilery__junction')!;
@@ -351,6 +440,49 @@ describe('Tilery — divider drag dispatch', () => {
     expect(t.handle().getPanel('sidebar')!.inset.right).toBe(70);
     expect(t.handle().getPanel('editor')!.inset.bottom).toBe(30);
     expect(t.handle().getPanel('term')!.inset.top).toBe(70);
+    t.cleanup();
+  });
+
+  it('reports junction resize lifecycle events across both dimensions', () => {
+    const resizeEvents: TileryResizeEvent[] = [];
+    const resizeEndEvents: TileryResizeEvent[] = [];
+    const t = mount(lShapeLayout(), undefined, {
+      onResize: (event) => resizeEvents.push(event),
+      onResizeEnd: (event) => resizeEndEvents.push(event),
+    });
+    const junction = t.host.querySelector<HTMLElement>('.tilery__junction')!;
+
+    act(() => {
+      reactProps(junction).onPointerDown(pointerEvent());
+      reactProps(junction).onPointerMove(
+        pointerEvent({ clientX: 300, clientY: 560 }),
+      );
+      reactProps(junction).onPointerUp(pointerEvent());
+    });
+
+    expect(resizeEvents).toHaveLength(1);
+    expect(resizeEndEvents).toHaveLength(1);
+    expect(resizeEvents[0].source).toMatchObject({
+      type: 'junction',
+      previousX: 40,
+      previousY: 50,
+      x: 30,
+      y: 70,
+    });
+    expect(
+      resizeEvents[0].changes.map((change) => [
+        change.panelId,
+        change.dimension,
+        change.previousSize,
+        change.size,
+      ]),
+    ).toEqual([
+      ['sidebar', 'width', 40, 30],
+      ['editor', 'width', 60, 70],
+      ['editor', 'height', 50, 70],
+      ['term', 'width', 60, 70],
+      ['term', 'height', 50, 30],
+    ]);
     t.cleanup();
   });
 
@@ -386,6 +518,78 @@ describe('Tilery — divider drag dispatch', () => {
       });
     });
     expect(t.handle().getPanel('editor')!.inset.bottom).toBe(48);
+    t.cleanup();
+  });
+
+  it('reports keyboard resize as an immediate committed lifecycle', () => {
+    const resizeEvents: TileryResizeEvent[] = [];
+    const resizeEndEvents: TileryResizeEvent[] = [];
+    const t = mount(lShapeLayout(), undefined, {
+      onResize: (event) => resizeEvents.push(event),
+      onResizeEnd: (event) => resizeEndEvents.push(event),
+    });
+    const vertical = Array.from(
+      t.host.querySelectorAll<HTMLElement>('.tilery__divider'),
+    ).find(
+      (divider) => divider.getAttribute('data-orientation') === 'vertical',
+    )!;
+
+    act(() => {
+      reactProps(vertical).onKeyDown({
+        key: 'ArrowRight',
+        shiftKey: false,
+        preventDefault() {},
+        stopPropagation() {},
+      });
+    });
+
+    expect(resizeEvents).toHaveLength(1);
+    expect(resizeEndEvents).toHaveLength(1);
+    expect(resizeEvents[0]).toMatchObject({
+      phase: 'resize',
+      input: 'keyboard',
+      source: {
+        type: 'divider',
+        orientation: 'vertical',
+        previousPosition: 40,
+        position: 42,
+      },
+    });
+    expect(resizeEndEvents[0]).toMatchObject({
+      ...resizeEvents[0],
+      phase: 'end',
+    });
+    t.cleanup();
+  });
+
+  it('omits resize pixel sizes when the container has no measured size', () => {
+    const resizeEvents: TileryResizeEvent[] = [];
+    const t = mount(
+      lShapeLayout(),
+      undefined,
+      {
+        onResize: (event) => resizeEvents.push(event),
+      },
+      { stubRect: false },
+    );
+    const vertical = Array.from(
+      t.host.querySelectorAll<HTMLElement>('.tilery__divider'),
+    ).find(
+      (divider) => divider.getAttribute('data-orientation') === 'vertical',
+    )!;
+
+    act(() => {
+      reactProps(vertical).onKeyDown({
+        key: 'ArrowRight',
+        shiftKey: false,
+        preventDefault() {},
+        stopPropagation() {},
+      });
+    });
+
+    expect(resizeEvents).toHaveLength(1);
+    expect(resizeEvents[0].changes[0]).not.toHaveProperty('previousPixelSize');
+    expect(resizeEvents[0].changes[0]).not.toHaveProperty('pixelSize');
     t.cleanup();
   });
 });

@@ -7,7 +7,12 @@ import { useTileryPointerDrag } from '../use-pointer-drag';
 export type DividerProps = {
   divider: DividerType;
   accessibility: DividerAccessibility;
-  onDrag: (dividerId: string, newPositionPercent: number) => void;
+  onDrag: (
+    dividerId: string,
+    newPositionPercent: number,
+    input: 'keyboard' | 'pointer',
+  ) => boolean | void;
+  onDragEnd?: () => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
 };
 
@@ -27,11 +32,13 @@ export type DividerAccessibility = {
 const HIT_SIZE_PX = 24;
 const KEYBOARD_STEP_PERCENT = 2;
 const KEYBOARD_FAST_STEP_PERCENT = 10;
+const noop = () => {};
 
 export function TileryDivider({
   divider,
   accessibility,
   onDrag,
+  onDragEnd = noop,
   containerRef,
 }: DividerProps) {
   const onMove = useCallback(
@@ -43,12 +50,20 @@ export function TileryDivider({
         divider.orientation === 'vertical'
           ? ((e.clientX - rect.left) / rect.width) * 100
           : ((e.clientY - rect.top) / rect.height) * 100;
-      onDrag(divider.id, pct);
+      onDrag(divider.id, pct, 'pointer');
     },
     [containerRef, divider.id, divider.orientation, onDrag],
   );
 
   const handlers = useTileryPointerDrag({ onMove });
+
+  const onPointerUp = useCallback(
+    (e: React.PointerEvent) => {
+      handlers.onPointerUp(e);
+      onDragEnd();
+    },
+    [handlers, onDragEnd],
+  );
 
   const onKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -77,7 +92,8 @@ export function TileryDivider({
       if (next == null) return;
       e.preventDefault();
       e.stopPropagation();
-      onDrag(divider.id, Math.max(min, Math.min(max, next)));
+      onDrag(divider.id, Math.max(min, Math.min(max, next)), 'keyboard');
+      onDragEnd();
     },
     [
       accessibility.axisEnd,
@@ -88,6 +104,7 @@ export function TileryDivider({
       divider.orientation,
       divider.position,
       onDrag,
+      onDragEnd,
     ],
   );
 
@@ -115,8 +132,8 @@ export function TileryDivider({
       tabIndex={0}
       onPointerDown={handlers.onPointerDown}
       onPointerMove={handlers.onPointerMove}
-      onPointerUp={handlers.onPointerUp}
-      onPointerCancel={handlers.onPointerUp}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
       onKeyDown={onKeyDown}
       role="separator"
       aria-label={accessibility.label}

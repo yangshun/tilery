@@ -6,15 +6,23 @@ import { useTileryPointerDrag } from '../use-pointer-drag';
 
 export type JunctionProps = {
   junction: JunctionType;
-  onDrag: (junctionId: string, xPercent: number, yPercent: number) => void;
+  onDrag: (
+    junctionId: string,
+    xPercent: number,
+    yPercent: number,
+    input: 'pointer',
+  ) => boolean | void;
+  onDragEnd?: () => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
 };
 
 const HIT_SIZE_PX = 24;
+const noop = () => {};
 
 export function TileryJunction({
   junction,
   onDrag,
+  onDragEnd = noop,
   containerRef,
 }: JunctionProps) {
   const onMove = useCallback(
@@ -26,12 +34,21 @@ export function TileryJunction({
         junction.id,
         ((e.clientX - rect.left) / rect.width) * 100,
         ((e.clientY - rect.top) / rect.height) * 100,
+        'pointer',
       );
     },
     [containerRef, junction.id, onDrag],
   );
 
   const handlers = useTileryPointerDrag({ onMove });
+
+  const onPointerUp = useCallback(
+    (e: React.PointerEvent) => {
+      handlers.onPointerUp(e);
+      onDragEnd();
+    },
+    [handlers, onDragEnd],
+  );
 
   return (
     <div
@@ -46,8 +63,8 @@ export function TileryJunction({
       }}
       onPointerDown={handlers.onPointerDown}
       onPointerMove={handlers.onPointerMove}
-      onPointerUp={handlers.onPointerUp}
-      onPointerCancel={handlers.onPointerUp}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
       aria-hidden="true"
     />
   );

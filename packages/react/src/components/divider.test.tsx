@@ -52,7 +52,11 @@ function mountWithRef({
 }: {
   divider: DividerType;
   populateRef: boolean;
-  onDrag: (id: string, pct: number) => void;
+  onDrag: (
+    id: string,
+    pct: number,
+    input: 'keyboard' | 'pointer',
+  ) => boolean | void;
 }) {
   const host = document.createElement('div');
   document.body.appendChild(host);
@@ -160,7 +164,9 @@ describe('TileryDivider — horizontal axis math', () => {
     const t = mountWithRef({
       divider: HORIZONTAL_DIVIDER,
       populateRef: true,
-      onDrag: (id, pct) => recorded.push({ id, pct }),
+      onDrag: (id, pct) => {
+        recorded.push({ id, pct });
+      },
     });
     t.handlers.onPointerDown(pointerEvent());
     t.handlers.onPointerMove(pointerEvent({ clientX: 0, clientY: 200 }));
@@ -198,7 +204,9 @@ describe('TileryDivider — horizontal axis math', () => {
     const t = mountWithRef({
       divider: HORIZONTAL_DIVIDER,
       populateRef: true,
-      onDrag: (_, pct) => recorded.push(pct),
+      onDrag: (_, pct) => {
+        recorded.push(pct);
+      },
     });
     const up = keyboardEvent('ArrowUp');
     const down = keyboardEvent('ArrowDown');
@@ -227,7 +235,9 @@ describe('TileryDivider — defensive null container', () => {
     const t = mountWithRef({
       divider: VERTICAL_DIVIDER,
       populateRef: false, // ref never points at anything
-      onDrag: (_, pct) => recorded.push(pct),
+      onDrag: (_, pct) => {
+        recorded.push(pct);
+      },
     });
     t.handlers.onPointerDown(pointerEvent());
     t.handlers.onPointerMove(pointerEvent({ clientX: 500, clientY: 400 }));
@@ -242,7 +252,9 @@ describe('TileryDivider — vertical keyboard resizing', () => {
     const t = mountWithRef({
       divider: VERTICAL_DIVIDER,
       populateRef: true,
-      onDrag: (_, pct) => recorded.push(pct),
+      onDrag: (_, pct) => {
+        recorded.push(pct);
+      },
     });
     const left = keyboardEvent('ArrowLeft');
     const right = keyboardEvent('ArrowRight');
@@ -263,5 +275,49 @@ describe('TileryDivider — vertical keyboard resizing', () => {
       'ArrowLeft ArrowRight Home End',
     );
     t.cleanup();
+  });
+
+  it('allows keyboard resize commits without an onDragEnd handler', () => {
+    const recorded: Array<{ pct: number; input: string }> = [];
+    const t = mountWithRef({
+      divider: VERTICAL_DIVIDER,
+      populateRef: true,
+      onDrag: (_, pct, input) => {
+        recorded.push({ pct, input });
+        return true;
+      },
+    });
+
+    t.handlers.onKeyDown(keyboardEvent('ArrowRight').event);
+
+    expect(recorded).toEqual([{ pct: 42, input: 'keyboard' }]);
+    t.cleanup();
+  });
+
+  it('clamps keyboard resize commits to the accessible range', () => {
+    const recorded: number[] = [];
+    const min = mountWithRef({
+      divider: { ...VERTICAL_DIVIDER, position: 10 },
+      populateRef: true,
+      onDrag: (_, pct) => {
+        recorded.push(pct);
+        return true;
+      },
+    });
+    min.handlers.onKeyDown(keyboardEvent('ArrowLeft').event);
+    min.cleanup();
+
+    const max = mountWithRef({
+      divider: { ...VERTICAL_DIVIDER, position: 90 },
+      populateRef: true,
+      onDrag: (_, pct) => {
+        recorded.push(pct);
+        return true;
+      },
+    });
+    max.handlers.onKeyDown(keyboardEvent('ArrowRight').event);
+    max.cleanup();
+
+    expect(recorded).toEqual([10, 90]);
   });
 });

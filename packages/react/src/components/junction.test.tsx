@@ -21,7 +21,12 @@ function mountWithRef({
   onDrag,
 }: {
   populateRef: boolean;
-  onDrag: (id: string, x: number, y: number) => void;
+  onDrag: (
+    id: string,
+    x: number,
+    y: number,
+    input: 'pointer',
+  ) => boolean | void;
 }) {
   const host = document.createElement('div');
   document.body.appendChild(host);
@@ -103,7 +108,9 @@ describe('TileryJunction', () => {
     const recorded: Array<{ id: string; x: number; y: number }> = [];
     const t = mountWithRef({
       populateRef: true,
-      onDrag: (id, x, y) => recorded.push({ id, x, y }),
+      onDrag: (id, x, y) => {
+        recorded.push({ id, x, y });
+      },
     });
     t.handlers.onPointerDown(pointerEvent());
     t.handlers.onPointerMove(pointerEvent({ clientX: 300, clientY: 600 }));
@@ -119,11 +126,30 @@ describe('TileryJunction', () => {
     const recorded: Array<{ x: number; y: number }> = [];
     const t = mountWithRef({
       populateRef: false,
-      onDrag: (_, x, y) => recorded.push({ x, y }),
+      onDrag: (_, x, y) => {
+        recorded.push({ x, y });
+      },
     });
     t.handlers.onPointerDown(pointerEvent());
     t.handlers.onPointerMove(pointerEvent({ clientX: 300, clientY: 600 }));
     expect(recorded).toEqual([]);
+    t.cleanup();
+  });
+
+  it('allows pointer resize commits without an onDragEnd handler', () => {
+    const recorded: Array<{ x: number; y: number; input: string }> = [];
+    const t = mountWithRef({
+      populateRef: true,
+      onDrag: (_, x, y, input) => {
+        recorded.push({ x, y, input });
+        return true;
+      },
+    });
+    t.handlers.onPointerDown(pointerEvent());
+    t.handlers.onPointerMove(pointerEvent({ clientX: 300, clientY: 600 }));
+    t.handlers.onPointerUp(pointerEvent());
+
+    expect(recorded).toEqual([{ x: 30, y: 75, input: 'pointer' }]);
     t.cleanup();
   });
 });

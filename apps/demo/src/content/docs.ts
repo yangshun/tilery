@@ -247,6 +247,18 @@ function App() {
               'Called after every state change',
             ],
             [
+              'onResize',
+              '(event: TileryResizeEvent) => void',
+              'No',
+              'Called for each divider or junction resize',
+            ],
+            [
+              'onResizeEnd',
+              '(event: TileryResizeEvent) => void',
+              'No',
+              'Called when a resize interaction commits',
+            ],
+            [
               'minSize',
               'number',
               'No',
@@ -290,6 +302,44 @@ function App() {
             ],
           ],
         },
+      },
+      {
+        heading: 'TileryResizeEvent',
+        body: [
+          'onResize fires for each pointer or keyboard resize that changes panel sizes. onResizeEnd fires on pointer release for drag resizes and immediately after each keyboard resize.',
+        ],
+        code: `type TileryResizeEvent = {
+  phase: 'resize' | 'end';
+  input: 'keyboard' | 'pointer';
+  source:
+    | {
+        type: 'divider';
+        dividerId: string;
+        orientation: 'vertical' | 'horizontal';
+        previousPosition: number;
+        position: number;
+      }
+    | {
+        type: 'junction';
+        junctionId: string;
+        previousX: number;
+        previousY: number;
+        x: number;
+        y: number;
+        verticalDividerId: string;
+        horizontalDividerId: string;
+      };
+  changes: Array<{
+    panelId: string;
+    dimension: 'width' | 'height';
+    previousSize: number;
+    size: number;
+    previousPixelSize?: number;
+    pixelSize?: number;
+  }>;
+  previousState: TileryLayoutState;
+  state: TileryLayoutState;
+};`,
       },
       {
         heading: 'TileryHandle',

@@ -28,6 +28,7 @@ import {
   type TileryReducerAction,
   type TileryInitialLayout,
   type TileryDivider as TileryDividerState,
+  type TileryDividerOrientation,
   type TileryLayoutState,
   type TileryLayoutTree,
   type TileryHandle,
@@ -54,6 +55,52 @@ export type TileryPanelActionsRenderContext = {
   closeMenu: () => void;
 };
 
+export type TileryResizeInput = 'keyboard' | 'pointer';
+export type TileryResizePhase = 'resize' | 'end';
+export type TileryResizeDimension = 'width' | 'height';
+
+export type TileryResizePanelChange = {
+  panelId: TileryPanelId;
+  dimension: TileryResizeDimension;
+  previousSize: number;
+  size: number;
+  previousPixelSize?: number;
+  pixelSize?: number;
+};
+
+export type TileryResizeSource =
+  | {
+      type: 'divider';
+      dividerId: string;
+      orientation: TileryDividerOrientation;
+      previousPosition: number;
+      position: number;
+    }
+  | {
+      type: 'junction';
+      junctionId: string;
+      previousX: number;
+      previousY: number;
+      x: number;
+      y: number;
+      verticalDividerId: string;
+      horizontalDividerId: string;
+    };
+
+export type TileryResizeEvent = {
+  phase: TileryResizePhase;
+  input: TileryResizeInput;
+  source: TileryResizeSource;
+  changes: TileryResizePanelChange[];
+  previousState: TileryLayoutState;
+  state: TileryLayoutState;
+};
+
+type TileryResizeAction = Extract<
+  TileryReducerAction,
+  { type: 'RESIZE_DIVIDER' | 'RESIZE_JUNCTION' }
+>;
+
 export type TileryProps<TData = unknown> = {
   initialLayout: TileryInitialLayout<TData>;
   renderTabHeader: (
@@ -62,6 +109,8 @@ export type TileryProps<TData = unknown> = {
   ) => React.ReactNode;
   renderTabContent: (tab: TileryTabHandle<TData>) => React.ReactNode;
   onChange?: (state: TileryLayoutState) => void;
+  onResize?: (event: TileryResizeEvent) => void;
+  onResizeEnd?: (event: TileryResizeEvent) => void;
   minSize?: number;
   showActionsButton?: TileryPanelVisibility;
   showNewTabButton?: TileryPanelVisibility;
@@ -82,6 +131,8 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
     renderTabHeader,
     renderTabContent,
     onChange,
+    onResize,
+    onResizeEnd,
     minSize = 10,
     showActionsButton = false,
     showNewTabButton = false,
@@ -97,26 +148,48 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
   );
   const stateRef = useRef(state);
   stateRef.current = state;
+  const resizeStateRef = useRef(state);
+  resizeStateRef.current = state;
+  const lastResizeEventRef = useRef<TileryResizeEvent | null>(null);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  const dispatchWithMin = useCallback(
-    (action: TileryReducerAction) => {
-      if (
-        action.type === 'RESIZE_DIVIDER' ||
-        action.type === 'RESIZE_JUNCTION'
-      ) {
-        dispatch({
-          ...action,
-          /* v8 ignore next */
-          minSize: action.minSize ?? minSize,
-        });
-      } else {
-        dispatch(action);
-      }
+  const dispatchResize = useCallback(
+    (action: TileryResizeAction, input: TileryResizeInput): boolean => {
+      const resizeAction = {
+        ...action,
+        /* v8 ignore next */
+        minSize: action.minSize ?? minSize,
+      } as TileryResizeAction;
+      const previousState = resizeStateRef.current;
+      const nextState = tileryReducer(previousState, resizeAction);
+      const event = makeResizeEvent(
+        previousState,
+        nextState,
+        resizeAction,
+        input,
+        containerRef.current,
+      );
+      if (!event) return false;
+      resizeStateRef.current = nextState;
+      lastResizeEventRef.current = event;
+      dispatch(resizeAction);
+      onResize?.(event);
+      return true;
     },
-    [minSize],
+    [minSize, onResize],
   );
+
+  const commitResize = useCallback(() => {
+    const event = lastResizeEventRef.current;
+    if (!event) return;
+    lastResizeEventRef.current = null;
+    onResizeEnd?.({ ...event, phase: 'end' });
+  }, [onResizeEnd]);
+
+  const dispatchWithMin = useCallback((action: TileryReducerAction) => {
+    dispatch(action);
+  }, []);
 
   const getState = useCallback(() => stateRef.current, []);
 
@@ -277,27 +350,33 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
     tileryRef.current?.removeTab(tabId);
   }, []);
   const onDividerDrag = useCallback(
-    (dividerId: string, newPosition: number) => {
-      dispatchWithMin({
-        type: 'RESIZE_DIVIDER',
-        dividerId,
-        newPosition,
-        minSize,
-      });
+    (dividerId: string, newPosition: number, input: 'keyboard' | 'pointer') => {
+      return dispatchResize(
+        {
+          type: 'RESIZE_DIVIDER',
+          dividerId,
+          newPosition,
+          minSize,
+        },
+        input,
+      );
     },
-    [dispatchWithMin, minSize],
+    [dispatchResize, minSize],
   );
   const onJunctionDrag = useCallback(
-    (junctionId: string, x: number, y: number) => {
-      dispatchWithMin({
-        type: 'RESIZE_JUNCTION',
-        junctionId,
-        x,
-        y,
-        minSize,
-      });
+    (junctionId: string, x: number, y: number, input: 'pointer') => {
+      return dispatchResize(
+        {
+          type: 'RESIZE_JUNCTION',
+          junctionId,
+          x,
+          y,
+          minSize,
+        },
+        input,
+      );
     },
-    [dispatchWithMin, minSize],
+    [dispatchResize, minSize],
   );
 
   const renderHeaderAdapter = useCallback(
@@ -415,6 +494,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
             divider={d}
             accessibility={dividerAccessibility[d.id]!}
             onDrag={onDividerDrag}
+            onDragEnd={commitResize}
             containerRef={containerRef}
           />
         ))}
@@ -424,6 +504,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
             key={junction.id}
             junction={junction}
             onDrag={onJunctionDrag}
+            onDragEnd={commitResize}
             containerRef={containerRef}
           />
         ))}
@@ -484,6 +565,135 @@ function tileryPanelOrderFromState(state: TileryLayoutState): TileryPanelId[] {
 function tileryPanelOrderFromLayout(layout: TileryLayoutTree): TileryPanelId[] {
   if (layout.kind === 'panel') return [layout.panelId];
   return layout.children.flatMap((child) => tileryPanelOrderFromLayout(child));
+}
+
+function makeResizeEvent(
+  previousState: TileryLayoutState,
+  state: TileryLayoutState,
+  action: TileryResizeAction,
+  input: TileryResizeInput,
+  container: HTMLElement | null,
+): TileryResizeEvent | null {
+  const source = makeResizeSource(previousState, state, action);
+  /* v8 ignore next -- UI resize actions always target a rendered handle. */
+  if (!source) return null;
+  const changes = makeResizePanelChanges(previousState, state, container);
+  if (changes.length === 0) return null;
+  return {
+    phase: 'resize',
+    input,
+    source,
+    changes,
+    previousState,
+    state,
+  };
+}
+
+function makeResizeSource(
+  previousState: TileryLayoutState,
+  state: TileryLayoutState,
+  action: TileryResizeAction,
+): TileryResizeSource | null {
+  if (action.type === 'RESIZE_DIVIDER') {
+    const previousDivider = tileryDeriveDividers(previousState).find(
+      (divider) => divider.id === action.dividerId,
+    );
+    /* v8 ignore next -- guarded by rendered divider ids. */
+    if (!previousDivider) return null;
+    const nextDivider = tileryDeriveDividers(state).find(
+      (item) => item.id === action.dividerId,
+    );
+    /* v8 ignore next -- successful divider resizes keep the divider rendered. */
+    const divider = nextDivider ?? previousDivider;
+    return {
+      type: 'divider',
+      dividerId: action.dividerId,
+      orientation: previousDivider.orientation,
+      previousPosition: previousDivider.position,
+      position: divider.position,
+    };
+  }
+
+  const previousJunction = tileryDeriveJunctions(previousState).find(
+    (junction) => junction.id === action.junctionId,
+  );
+  /* v8 ignore next -- guarded by rendered junction ids. */
+  if (!previousJunction) return null;
+  const nextJunction = tileryDeriveJunctions(state).find(
+    (item) => item.id === action.junctionId,
+  );
+  /* v8 ignore next -- successful junction resizes keep the junction rendered. */
+  const junction = nextJunction ?? previousJunction;
+  return {
+    type: 'junction',
+    junctionId: action.junctionId,
+    previousX: previousJunction.x,
+    previousY: previousJunction.y,
+    x: junction.x,
+    y: junction.y,
+    verticalDividerId: previousJunction.verticalDividerId,
+    horizontalDividerId: previousJunction.horizontalDividerId,
+  };
+}
+
+function makeResizePanelChanges(
+  previousState: TileryLayoutState,
+  state: TileryLayoutState,
+  container: HTMLElement | null,
+): TileryResizePanelChange[] {
+  const rect = container?.getBoundingClientRect();
+  const changes: TileryResizePanelChange[] = [];
+  for (const panelId of tileryPanelOrderFromState(state)) {
+    const previousPanel = previousState.panels[panelId];
+    const panel = state.panels[panelId];
+    /* v8 ignore next -- resize operations do not create panels. */
+    if (!previousPanel || !panel) continue;
+    for (const dimension of resizeDimensions) {
+      const previousSize = panelSize(previousPanel, dimension);
+      const size = panelSize(panel, dimension);
+      if (Math.abs(size - previousSize) < 0.0001) continue;
+      const previousPixelSize = panelPixelSize(previousSize, dimension, rect);
+      const pixelSize = panelPixelSize(size, dimension, rect);
+      changes.push({
+        panelId,
+        dimension,
+        previousSize,
+        size,
+        ...(previousPixelSize == null ? {} : { previousPixelSize }),
+        ...(pixelSize == null ? {} : { pixelSize }),
+      });
+    }
+  }
+  return changes;
+}
+
+const resizeDimensions: TileryResizeDimension[] = ['width', 'height'];
+
+function panelSize(
+  panel: NonNullable<TileryLayoutState['panels'][string]>,
+  dimension: TileryResizeDimension,
+): number {
+  const size =
+    dimension === 'width'
+      ? 100 - panel.inset.left - panel.inset.right
+      : 100 - panel.inset.top - panel.inset.bottom;
+  return roundResizeSize(size);
+}
+
+function panelPixelSize(
+  size: number,
+  dimension: TileryResizeDimension,
+  rect: DOMRect | undefined,
+): number | undefined {
+  /* v8 ignore next -- mounted Tilery resize events always have a container. */
+  if (!rect) return undefined;
+  const containerSize = dimension === 'width' ? rect.width : rect.height;
+  if (containerSize <= 0) return undefined;
+  return roundResizeSize((size / 100) * containerSize);
+}
+
+function roundResizeSize(size: number): number {
+  return Number(size.toFixed(4));
 }
 
 function makeDividerAccessibilityMap(

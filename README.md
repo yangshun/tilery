@@ -104,6 +104,8 @@ The main component. Renders a tiling panel layout.
   renderTabHeader={renderTabHeader}
   renderTabContent={renderTabContent}
   onChange={handleChange}
+  onResize={handleResize}
+  onResizeEnd={handleResizeEnd}
   minSize={10}
   showActionsButton
   showNewTabButton={(panel) => panel.id === 'editor'}
@@ -122,6 +124,8 @@ The main component. Renders a tiling panel layout.
 | `renderTabHeader`         | `(tab: TileryTabHandle<TData>, ctx: { isActive: boolean }) => ReactNode` | Yes      | Renders the tab button content                  |
 | `renderTabContent`        | `(tab: TileryTabHandle<TData>) => ReactNode`                             | Yes      | Renders the tab panel content                   |
 | `onChange`                | `(state: TileryLayoutState) => void`                                     | No       | Called after every state change                 |
+| `onResize`                | `(event: TileryResizeEvent) => void`                                     | No       | Called for each divider or junction resize      |
+| `onResizeEnd`             | `(event: TileryResizeEvent) => void`                                     | No       | Called when a resize interaction commits        |
 | `minSize`                 | `number`                                                                 | No       | Default minimum panel size percentage           |
 | `showActionsButton`       | `boolean \| (panel: TileryPanelHandle) => boolean`                       | No       | Shows the built-in panel action menu            |
 | `showNewTabButton`        | `boolean \| (panel: TileryPanelHandle) => boolean`                       | No       | Shows the optional new-tab button               |
@@ -173,6 +177,47 @@ These constraints override the root `minSize` fallback when resizing dividers.
 Resize dividers are keyboard-accessible separators. Focus a divider, then use
 the arrow keys for axis-aligned resizing, Shift+Arrow for larger steps, and
 Home/End to move to the nearest minimum or maximum allowed size.
+
+### `TileryResizeEvent`
+
+`onResize` fires for each pointer or keyboard resize that changes panel sizes.
+`onResizeEnd` fires when that resize is committed: on pointer release for drag
+resizes, and immediately after each keyboard resize.
+
+```ts
+type TileryResizeEvent = {
+  phase: 'resize' | 'end';
+  input: 'keyboard' | 'pointer';
+  source:
+    | {
+        type: 'divider';
+        dividerId: string;
+        orientation: 'vertical' | 'horizontal';
+        previousPosition: number;
+        position: number;
+      }
+    | {
+        type: 'junction';
+        junctionId: string;
+        previousX: number;
+        previousY: number;
+        x: number;
+        y: number;
+        verticalDividerId: string;
+        horizontalDividerId: string;
+      };
+  changes: Array<{
+    panelId: string;
+    dimension: 'width' | 'height';
+    previousSize: number;
+    size: number;
+    previousPixelSize?: number;
+    pixelSize?: number;
+  }>;
+  previousState: TileryLayoutState;
+  state: TileryLayoutState;
+};
+```
 
 A fullscreen panel renders over the full Tilery container, suppresses
 dividers and panel drop zones until it is restored.
