@@ -3,9 +3,9 @@
 import { useCallback, useRef, useState } from 'react';
 import type { TileryHandle, TileryPanelId, TileryTabId } from 'tilery/internal';
 import {
+  tileryAdjacencySide,
   tileryTabBarDropAt,
   tileryZoneAt,
-  tileryAdjacencySide,
   tileryClassifyByZoneAndSide,
   tileryCommitDrag,
   tileryGetFullScreenPanelId,
@@ -105,6 +105,7 @@ export function useTileryDragController(tilery: () => TileryHandle | null) {
       if (target.tabs.length !== 1) return 'split';
       const side = tileryAdjacencySide(source, target);
       if (!side) return 'split';
+      if (!shareFullEdge(source.inset, target.inset, side)) return 'split';
       return tileryClassifyByZoneAndSide(zone, side);
     },
     [tilery],
@@ -323,4 +324,16 @@ export function useTileryDragController(tilery: () => TileryHandle | null) {
     onTabBarPointerDown,
     onTabBarPointerUp,
   };
+}
+
+function shareFullEdge(
+  a: { top: number; right: number; bottom: number; left: number },
+  b: { top: number; right: number; bottom: number; left: number },
+  side: 'left' | 'right' | 'above' | 'below',
+): boolean {
+  const EPS = 0.0001;
+  if (side === 'left' || side === 'right') {
+    return Math.abs(a.top - b.top) < EPS && Math.abs(a.bottom - b.bottom) < EPS;
+  }
+  return Math.abs(a.left - b.left) < EPS && Math.abs(a.right - b.right) < EPS;
 }

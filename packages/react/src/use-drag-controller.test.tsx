@@ -1471,6 +1471,84 @@ describe('useTileryDragController — hover detection', () => {
     p1El.remove();
   });
 
+  it('does NOT suppress same-side split when adjacent panels share only a partial edge', () => {
+    // IDE shape: explorer full-height on the left, terminal bottom-right.
+    // Terminal touches the explorer's right edge only across the lower portion,
+    // so dropping Terminal on Explorer's right half should split Explorer.
+    let state: TileryLayoutState = tileryCreateInitialState({
+      panels: [
+        {
+          id: 'explorer',
+          inset: { top: 0, right: 60, bottom: 0, left: 0 },
+          tabs: [{ id: 'Explorer', data: {} }],
+        },
+        {
+          id: 'editor',
+          inset: { top: 0, right: 0, bottom: 40, left: 40 },
+          tabs: [{ id: 'Editor', data: {} }],
+        },
+        {
+          id: 'terminal',
+          inset: { top: 60, right: 0, bottom: 0, left: 40 },
+          tabs: [{ id: 'Terminal', data: {} }],
+        },
+      ],
+    });
+    const dispatch = (a: TileryReducerAction) => {
+      state = tileryReducer(state, a);
+    };
+    const handle = makeTileryHandle(() => state, dispatch);
+    const hook = renderHook(() => useTileryDragController(() => handle));
+    const explorerEl = document.createElement('div');
+    const terminalTabEl = document.createElement('div');
+    document.body.appendChild(explorerEl);
+    document.body.appendChild(terminalTabEl);
+    setBoundingClientRect(explorerEl, {
+      left: 0,
+      top: 0,
+      right: 400,
+      bottom: 1000,
+      width: 400,
+      height: 1000,
+    });
+    setBoundingClientRect(terminalTabEl, {
+      left: 410,
+      top: 610,
+      right: 500,
+      bottom: 640,
+      width: 90,
+      height: 30,
+    });
+    act(() => {
+      hook.current().registerPanel('explorer', explorerEl);
+    });
+    act(() => {
+      const down = pointerEvent('pointerdown', {
+        clientX: 455,
+        clientY: 625,
+        pointerId: 93,
+      });
+      Object.defineProperty(down, 'currentTarget', {
+        value: terminalTabEl,
+        configurable: true,
+      });
+      hook.current().onTabPointerDown(asReact(down), 'Terminal');
+    });
+    act(() => {
+      const move = pointerEvent('pointermove', {
+        clientX: 380,
+        clientY: 500,
+        pointerId: 93,
+      });
+      hook.current().onTabPointerMove(asReact(move));
+    });
+    expect(hook.current().dragState?.hoverPanelId).toBe('explorer');
+    expect(hook.current().dragState?.hoverZone).toBe('right');
+    hook.unmount();
+    terminalTabEl.remove();
+    explorerEl.remove();
+  });
+
   it('suppresses ALL hover feedback over the source panel when it has only one tab', () => {
     // Single panel with one tab; dragging that tab over its own panel —
     // anywhere (split zones, center, or tab bar) — should produce NO hover
