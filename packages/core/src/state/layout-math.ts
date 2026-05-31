@@ -3,6 +3,7 @@ import type {
   TileryDivider,
   TileryDividerOrientation,
   TileryInset,
+  TileryJunction,
   TileryLayoutState,
   TileryPanelId,
   TileryPanelState,
@@ -153,6 +154,104 @@ export function tileryDeriveDividers(
     }
   }
   return dividers;
+}
+
+export function tileryDeriveJunctions(
+  state: TileryLayoutState,
+): TileryJunction[] {
+  if (tileryGetFullScreenPanelId(state)) return [];
+  return deriveTJunctions(tileryDeriveDividers(state));
+}
+
+export function tileryApplyJunctionResize(
+  state: TileryLayoutState,
+  junction: TileryJunction,
+  position: { x: number; y: number },
+  minSizePercent: number = TILERY_DEFAULT_MIN_PANEL_SIZE,
+): TileryLayoutState {
+  const dividers = tileryDeriveDividers(state);
+  const vertical = dividers.find((d) => d.id === junction.verticalDividerId);
+  const horizontal = dividers.find(
+    (d) => d.id === junction.horizontalDividerId,
+  );
+  if (!vertical || !horizontal) return state;
+
+  const x = tileryClampDividerPosition(
+    state,
+    vertical,
+    position.x,
+    minSizePercent,
+  );
+  const y = tileryClampDividerPosition(
+    state,
+    horizontal,
+    position.y,
+    minSizePercent,
+  );
+  return tileryApplyDividerResize(
+    tileryApplyDividerResize(state, vertical, x),
+    horizontal,
+    y,
+  );
+}
+
+type JunctionCandidate = {
+  x: number;
+  y: number;
+  vertical: TileryDivider;
+  horizontal: TileryDivider;
+};
+
+function deriveTJunctions(dividers: TileryDivider[]): TileryJunction[] {
+  const candidatesByPoint = new Map<string, JunctionCandidate[]>();
+  const verticals = dividers.filter((d) => d.orientation === 'vertical');
+  const horizontals = dividers.filter((d) => d.orientation === 'horizontal');
+
+  for (const vertical of verticals) {
+    for (const horizontal of horizontals) {
+      const verticalInterior =
+        horizontal.position > vertical.start + EPSILON &&
+        horizontal.position < vertical.end - EPSILON;
+      const horizontalInterior =
+        vertical.position > horizontal.start + EPSILON &&
+        vertical.position < horizontal.end - EPSILON;
+      const verticalEndpoint =
+        eq(horizontal.position, vertical.start) ||
+        eq(horizontal.position, vertical.end);
+      const horizontalEndpoint =
+        eq(vertical.position, horizontal.start) ||
+        eq(vertical.position, horizontal.end);
+      const isT =
+        (verticalInterior && horizontalEndpoint) ||
+        (horizontalInterior && verticalEndpoint);
+      if (!isT) continue;
+      const key = `${roundCoord(vertical.position)}|${roundCoord(horizontal.position)}`;
+      const candidates = candidatesByPoint.get(key) ?? [];
+      candidates.push({
+        x: vertical.position,
+        y: horizontal.position,
+        vertical,
+        horizontal,
+      });
+      candidatesByPoint.set(key, candidates);
+    }
+  }
+
+  // Multiple candidates at one point are cross junctions, which need a
+  // different resolver from the T-junction behavior supported here.
+  return [...candidatesByPoint.values()]
+    .filter((candidates) => candidates.length === 1)
+    .map((candidates) => {
+      const candidate = candidates[0]!;
+      return {
+        id: `j|${candidate.vertical.id}|${candidate.horizontal.id}`,
+        kind: 't' as const,
+        x: candidate.x,
+        y: candidate.y,
+        verticalDividerId: candidate.vertical.id,
+        horizontalDividerId: candidate.horizontal.id,
+      };
+    });
 }
 
 function roundCoord(n: number): string {

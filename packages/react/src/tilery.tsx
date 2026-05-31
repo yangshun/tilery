@@ -13,6 +13,7 @@ import {
 import { createPortal } from 'react-dom';
 import { PanelChrome } from './components/panel-chrome';
 import { TileryDivider } from './components/divider';
+import { TileryJunction } from './components/junction';
 import { DropOverlay } from './components/drop-overlay';
 import { useTileryDragController } from './use-drag-controller';
 import {
@@ -20,6 +21,7 @@ import {
   tileryReducer,
   makeTileryHandle,
   tileryDeriveDividers,
+  tileryDeriveJunctions,
   tileryGetFullScreenPanelId,
   type TileryReducerAction,
   type TileryInitialLayout,
@@ -97,7 +99,10 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
 
   const dispatchWithMin = useCallback(
     (action: TileryReducerAction) => {
-      if (action.type === 'RESIZE_DIVIDER') {
+      if (
+        action.type === 'RESIZE_DIVIDER' ||
+        action.type === 'RESIZE_JUNCTION'
+      ) {
         dispatch({
           ...action,
           /* v8 ignore next */
@@ -231,6 +236,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
   }, [state.tabs, contentSlots, limboEl]);
 
   const dividers = useMemo(() => tileryDeriveDividers(state), [state]);
+  const junctions = useMemo(() => tileryDeriveJunctions(state), [state]);
   const fullScreenPanelId = useMemo(
     () => tileryGetFullScreenPanelId(state),
     [state],
@@ -269,6 +275,18 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
         type: 'RESIZE_DIVIDER',
         dividerId,
         newPosition,
+        minSizePercent: minPanelSizePercent,
+      });
+    },
+    [dispatchWithMin, minPanelSizePercent],
+  );
+  const onJunctionDrag = useCallback(
+    (junctionId: string, x: number, y: number) => {
+      dispatchWithMin({
+        type: 'RESIZE_JUNCTION',
+        junctionId,
+        x,
+        y,
         minSizePercent: minPanelSizePercent,
       });
     },
@@ -389,6 +407,15 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
             key={d.id}
             divider={d}
             onDrag={onDividerDrag}
+            containerRef={containerRef}
+          />
+        ))}
+
+        {junctions.map((junction) => (
+          <TileryJunction
+            key={junction.id}
+            junction={junction}
+            onDrag={onJunctionDrag}
             containerRef={containerRef}
           />
         ))}

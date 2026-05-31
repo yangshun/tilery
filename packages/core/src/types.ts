@@ -97,6 +97,15 @@ export type TileryDivider = {
   splitId?: string;
 };
 
+export type TileryJunction = {
+  id: string;
+  kind: 't';
+  x: number;
+  y: number;
+  verticalDividerId: string;
+  horizontalDividerId: string;
+};
+
 export type TileryHandle = {
   getPanel(id: TileryPanelId): TileryPanelHandle | null;
   getTab(id: TileryTabId): TileryTabHandle | null;

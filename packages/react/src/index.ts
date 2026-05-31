@@ -18,6 +18,7 @@ export type {
   TileryDividerOrientation,
   TileryInset,
   TileryInitialLayout,
+  TileryJunction,
   TilerySplitInit,
   TileryLayoutState,
   TileryLayoutTree,

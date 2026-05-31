@@ -13,8 +13,10 @@ import type {
 import {
   TILERY_DEFAULT_MIN_PANEL_SIZE,
   tileryApplyDividerResize,
+  tileryApplyJunctionResize,
   tileryClampDividerPosition,
   tileryDeriveDividers,
+  tileryDeriveJunctions,
   tileryFindRemovalFillers,
   tilerySplitFitsMin,
   tilerySplitInset,
@@ -78,6 +80,13 @@ export type TileryReducerAction =
       type: 'RESIZE_DIVIDER';
       dividerId: string;
       newPosition: number;
+      minSizePercent?: number;
+    }
+  | {
+      type: 'RESIZE_JUNCTION';
+      junctionId: string;
+      x: number;
+      y: number;
       minSizePercent?: number;
     }
   | { type: 'SWAP_PANELS'; panelA: TileryPanelId; panelB: TileryPanelId }
@@ -568,6 +577,18 @@ export function tileryReducer(
         min,
       );
       return tileryApplyDividerResize(current, target, clamped);
+    }
+    case 'RESIZE_JUNCTION': {
+      const junction = tileryDeriveJunctions(current).find(
+        (j) => j.id === action.junctionId,
+      );
+      if (!junction) return current;
+      return tileryApplyJunctionResize(
+        current,
+        junction,
+        { x: action.x, y: action.y },
+        action.minSizePercent ?? TILERY_DEFAULT_MIN_PANEL_SIZE,
+      );
     }
     case 'SWAP_PANELS': {
       const a = current.panels[action.panelA];

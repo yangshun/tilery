@@ -4,6 +4,7 @@ export type {
   TileryDividerOrientation,
   TileryInset,
   TileryInitialLayout,
+  TileryJunction,
   TilerySplitInit,
   TileryLayoutState,
   TileryLayoutTree,
@@ -38,7 +39,9 @@ export {
 
 export {
   TILERY_DEFAULT_MIN_PANEL_SIZE,
+  tileryApplyJunctionResize,
   tileryDeriveDividers,
+  tileryDeriveJunctions,
   tilerySplitInset,
   tilerySplitFitsMin,
   tileryClampDividerPosition,

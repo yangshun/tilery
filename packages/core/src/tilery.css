@@ -228,6 +228,13 @@
   z-index: 2;
 }
 
+.tilery__junction {
+  position: absolute;
+  background: transparent;
+  touch-action: none;
+  z-index: 3;
+}
+
 .tilery__drop-overlay {
   position: absolute;
   z-index: 4;

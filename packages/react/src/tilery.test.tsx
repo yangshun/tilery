@@ -216,12 +216,12 @@ describe('Tilery — rendering', () => {
     t.cleanup();
   });
 
-  it('derives one-dimensional dividers without junction handles for the L-shape', () => {
+  it('derives one-dimensional dividers and a T-junction for the L-shape', () => {
     const t = mount(lShapeLayout());
     // 2 dividers: 1 vertical between sidebar and editor/term, then 1
     // horizontal between editor and term inside the right split.
     expect(t.host.querySelectorAll('.tilery__divider')).toHaveLength(2);
-    expect(t.host.querySelectorAll('.tilery__junction')).toHaveLength(0);
+    expect(t.host.querySelectorAll('.tilery__junction')).toHaveLength(1);
     t.cleanup();
   });
 
@@ -302,6 +302,22 @@ describe('Tilery — divider drag dispatch', () => {
     const after = t.handle().getPanel('sidebar')!.inset.right;
     expect(after).not.toBe(before);
     expect(after).toBe(50); // 500 / 1000 = 50%
+    t.cleanup();
+  });
+
+  it('dragging the T-junction resizes both connected split axes', () => {
+    const t = mount(lShapeLayout());
+    const junction = t.host.querySelector<HTMLElement>('.tilery__junction')!;
+    act(() => {
+      reactProps(junction).onPointerDown(pointerEvent());
+      reactProps(junction).onPointerMove(
+        pointerEvent({ clientX: 300, clientY: 560 }),
+      );
+      reactProps(junction).onPointerUp(pointerEvent());
+    });
+    expect(t.handle().getPanel('sidebar')!.inset.right).toBe(70);
+    expect(t.handle().getPanel('editor')!.inset.bottom).toBe(30);
+    expect(t.handle().getPanel('term')!.inset.top).toBe(70);
     t.cleanup();
   });
 });

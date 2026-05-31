@@ -6,7 +6,7 @@ import {
   tileryReducer,
   tileryTabInitToReducerInit,
 } from './reducer';
-import { tileryDeriveDividers } from './layout-math';
+import { tileryDeriveDividers, tileryDeriveJunctions } from './layout-math';
 import { createStateFromPanels } from './test-helpers';
 import type { TileryLayoutState } from '../types';
 
@@ -44,6 +44,27 @@ const nonTilingSideBySide = (): TileryLayoutState =>
         id: 'R',
         inset: { top: 0, right: 0, bottom: 0, left: 60 },
         tabs: [{ id: 'R1', data: { title: 'r1' } }],
+      },
+    ],
+  });
+
+const tJunctionLayout = (): TileryLayoutState =>
+  createStateFromPanels({
+    panels: [
+      {
+        id: 'sidebar',
+        inset: { top: 0, right: 60, bottom: 0, left: 0 },
+        tabs: [{ id: 'side', data: {} }],
+      },
+      {
+        id: 'editor',
+        inset: { top: 0, right: 0, bottom: 50, left: 40 },
+        tabs: [{ id: 'file', data: {} }],
+      },
+      {
+        id: 'terminal',
+        inset: { top: 50, right: 0, bottom: 0, left: 40 },
+        tabs: [{ id: 'shell', data: {} }],
       },
     ],
   });
@@ -1124,6 +1145,36 @@ describe('tileryReducer dispatch matrix', () => {
       type: 'RESIZE_DIVIDER',
       dividerId: 'phantom',
       newPosition: 50,
+    });
+    expect(next).toBe(state);
+  });
+
+  it('RESIZE_JUNCTION updates both divider axes for a T-junction', () => {
+    const state = tJunctionLayout();
+    const junction = tileryDeriveJunctions(state)[0]!;
+    const next = tileryReducer(state, {
+      type: 'RESIZE_JUNCTION',
+      junctionId: junction.id,
+      x: 30,
+      y: 70,
+    });
+    expect(next.panels.sidebar!.inset.right).toBe(70);
+    expect(next.panels.editor!.inset).toEqual({
+      top: 0,
+      right: 0,
+      bottom: 30,
+      left: 30,
+    });
+    expect(next.panels.terminal!.inset.top).toBe(70);
+  });
+
+  it('RESIZE_JUNCTION is a no-op for an unknown junction id', () => {
+    const state = tJunctionLayout();
+    const next = tileryReducer(state, {
+      type: 'RESIZE_JUNCTION',
+      junctionId: 'phantom',
+      x: 30,
+      y: 70,
     });
     expect(next).toBe(state);
   });

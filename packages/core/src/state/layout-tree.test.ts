@@ -7,6 +7,10 @@ import type {
   TileryPanelState,
 } from '../types';
 import {
+  tileryApplyJunctionResize,
+  tileryDeriveJunctions,
+} from './layout-math';
+import {
   tileryBuildLayoutTreeFromPanels,
   tileryClampLayoutDividerPosition,
   tileryDeriveLayoutDividers,
@@ -29,6 +33,15 @@ function panel(id: string, inset: TileryInset): TileryPanelState {
     inset,
     tabs: [],
     activeTabId: null,
+  };
+}
+
+function stateFromPanels(panels: TileryPanelState[]): TileryLayoutState {
+  return {
+    panels: Object.fromEntries(panels.map((p) => [p.id, p])),
+    panelOrder: panels.map((p) => p.id),
+    tabs: {},
+    layout: tileryBuildLayoutTreeFromPanels(panels),
   };
 }
 
@@ -162,6 +175,110 @@ describe('tileryDeriveLayoutDividers', () => {
       [0, 50],
       [50, 100],
     ]);
+  });
+});
+
+describe('tileryDeriveJunctions', () => {
+  it('derives and resizes a T-junction from crossing divider endpoints', () => {
+    const state = stateFromPanels([
+      panel('sidebar', { top: 0, right: 60, bottom: 0, left: 0 }),
+      panel('editor', { top: 0, right: 0, bottom: 50, left: 40 }),
+      panel('terminal', { top: 50, right: 0, bottom: 0, left: 40 }),
+    ]);
+
+    const junctions = tileryDeriveJunctions(state);
+    expect(junctions).toHaveLength(1);
+    expect(junctions[0]).toMatchObject({
+      kind: 't',
+      x: 40,
+      y: 50,
+    });
+    expect(junctions[0]!.verticalDividerId).toContain('horizontal:sidebar');
+    expect(junctions[0]!.horizontalDividerId).toContain('vertical:editor');
+
+    const resized = tileryApplyJunctionResize(
+      state,
+      junctions[0]!,
+      { x: 30, y: 70 },
+      10,
+    );
+
+    expect(resized.panels.sidebar!.inset).toEqual({
+      top: 0,
+      right: 70,
+      bottom: 0,
+      left: 0,
+    });
+    expect(resized.panels.editor!.inset).toEqual({
+      top: 0,
+      right: 0,
+      bottom: 30,
+      left: 30,
+    });
+    expect(resized.panels.terminal!.inset).toEqual({
+      top: 70,
+      right: 0,
+      bottom: 0,
+      left: 30,
+    });
+  });
+
+  it('skips cross junctions and missing divider resize targets', () => {
+    const panels = [
+      panel('TL', { top: 0, right: 50, bottom: 50, left: 0 }),
+      panel('TR', { top: 0, right: 0, bottom: 50, left: 50 }),
+      panel('BL', { top: 50, right: 50, bottom: 0, left: 0 }),
+      panel('BR', { top: 50, right: 0, bottom: 0, left: 50 }),
+    ];
+    const flatGrid: TileryLayoutState = {
+      panels: Object.fromEntries(panels.map((p) => [p.id, p])),
+      panelOrder: panels.map((p) => p.id),
+      tabs: {},
+      layout: null,
+    };
+    expect(tileryDeriveJunctions(flatGrid)).toEqual([]);
+
+    const state = stateFromPanels([
+      panel('sidebar', { top: 0, right: 60, bottom: 0, left: 0 }),
+      panel('editor', { top: 0, right: 0, bottom: 50, left: 40 }),
+      panel('terminal', { top: 50, right: 0, bottom: 0, left: 40 }),
+    ]);
+    const junction = tileryDeriveJunctions(state)[0]!;
+    expect(
+      tileryApplyJunctionResize(
+        state,
+        { ...junction, verticalDividerId: 'missing' },
+        { x: 30, y: 70 },
+      ),
+    ).toBe(state);
+    expect(
+      tileryApplyJunctionResize(
+        state,
+        { ...junction, horizontalDividerId: 'missing' },
+        { x: 30, y: 70 },
+      ),
+    ).toBe(state);
+  });
+
+  it('derives the opposite T orientation and hides junctions while fullscreen', () => {
+    const state = stateFromPanels([
+      panel('top', { top: 0, right: 0, bottom: 60, left: 0 }),
+      panel('left', { top: 40, right: 50, bottom: 0, left: 0 }),
+      panel('right', { top: 40, right: 0, bottom: 0, left: 50 }),
+    ]);
+    expect(tileryDeriveJunctions(state)).toMatchObject([
+      { kind: 't', x: 50, y: 40 },
+    ]);
+
+    expect(
+      tileryDeriveJunctions({
+        ...state,
+        panels: {
+          ...state.panels,
+          top: { ...state.panels.top!, fullScreen: true },
+        },
+      }),
+    ).toEqual([]);
   });
 });
 
