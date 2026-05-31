@@ -14,7 +14,8 @@ implementation in `~/Developer/greatfrontend/gfe/apps/web/src/react-tiling`.
 - React adapter with portal-based tab content preservation.
 - Tab drag/reorder/drop, tab moves between panels, and drag into new splits.
 - Programmatic split/remove/append/insert/move/activate APIs.
-- Divider resizing and 2D junction handles using absolute inset layout math.
+- Nested split-tree layout model with flat panel insets derived for rendering.
+- Divider resizing against one-dimensional split boundaries.
 
 ## Missing parity with `react-tiling`
 
@@ -35,7 +36,7 @@ Implemented behavior:
 - Reducer actions and handle APIs support maximizing and restoring panels.
 - Fullscreen panels render over the full container without mutating stored
   insets.
-- Dividers, junctions, and panel drop zones are suppressed while a panel is
+- Dividers and panel drop zones are suppressed while a panel is
   fullscreen; tab-bar reordering remains available for the fullscreen panel.
 
 Deferred behavior:
@@ -45,8 +46,8 @@ Deferred behavior:
 
 ### P0: Built-in panel action UI (implemented)
 
-`react-tiling` includes an action menu for panel operations. `tilery` currently
-only renders tabs, content, dividers, junctions, and drag overlays.
+`react-tiling` includes an action menu for panel operations. `tilery` previously
+only rendered tabs, content, dividers, and drag overlays.
 
 Implemented behavior:
 
@@ -144,5 +145,5 @@ These areas already exist in `tilery` and should not be duplicated as
 - Closeable tabs.
 - Active tab state.
 - Resizable dividers.
-- 2D junction resize handles.
+- Nested split-tree state with flat DOM rendering.
 - Demo site and package documentation.

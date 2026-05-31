@@ -19,6 +19,7 @@ export type {
   TileryInset,
   TileryInitialLayout,
   TileryLayoutState,
+  TileryLayoutTree,
   TileryHandle,
   TileryMoveTarget,
   TileryPanelHandle,
@@ -29,6 +30,5 @@ export type {
   TileryTabId,
   TileryTabInit,
   TileryTabState,
-  TileryJunction,
   TileryDragState,
 } from 'tilery';

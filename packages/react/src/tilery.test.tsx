@@ -10,14 +10,14 @@ import type { TileryInitialLayout, TileryHandle } from 'tilery/internal';
 // Integration tests for the Tilery component itself. They exercise the
 // JSX tree that the per-piece unit tests don't reach: panel-chrome, tab,
 // tab-bar, divider, drop-overlay, and the wiring in tilery.tsx itself
-// (handle caches, the tab portal effect, junction-drag dispatch). Each
+// (handle caches, the tab portal effect, divider-drag dispatch). Each
 // test mounts a small layout, performs a single interaction, and asserts
 // the resulting DOM and the imperative-handle state.
 
 type Data = { title: string };
 
 function lShapeLayout(): TileryInitialLayout<Data> {
-  // Sidebar + (editor / terminal) = exactly one junction at (40, 50).
+  // Sidebar + (editor / terminal) = two nested one-dimensional splits.
   return {
     panels: [
       {
@@ -172,12 +172,12 @@ describe('Tilery — rendering', () => {
     t.cleanup();
   });
 
-  it('derives both a divider and a junction handle for the L-shape', () => {
+  it('derives one-dimensional dividers without junction handles for the L-shape', () => {
     const t = mount(lShapeLayout());
-    // 2 dividers (1 vertical between sidebar and editor/term, 1 horizontal
-    // between editor and term) plus 1 junction handle at their crossing.
+    // 2 dividers: 1 vertical between sidebar and editor/term, then 1
+    // horizontal between editor and term inside the right split.
     expect(t.host.querySelectorAll('.tilery__divider')).toHaveLength(2);
-    expect(t.host.querySelectorAll('.tilery__junction')).toHaveLength(1);
+    expect(t.host.querySelectorAll('.tilery__junction')).toHaveLength(0);
     t.cleanup();
   });
 });
@@ -219,7 +219,7 @@ describe('Tilery — tab click + close', () => {
   });
 });
 
-describe('Tilery — divider + junction drag dispatch', () => {
+describe('Tilery — divider drag dispatch', () => {
   it('dragging the vertical divider resizes both adjacent panels', () => {
     const t = mount(lShapeLayout());
     // Find the vertical divider by its orientation attribute.
@@ -237,24 +237,6 @@ describe('Tilery — divider + junction drag dispatch', () => {
     const after = t.handle().getPanel('sidebar')!.inset.right;
     expect(after).not.toBe(before);
     expect(after).toBe(50); // 500 / 1000 = 50%
-    t.cleanup();
-  });
-
-  it('dragging the junction handle resizes both axes in one gesture', () => {
-    const t = mount(lShapeLayout());
-    const junction = t.host.querySelector('.tilery__junction') as HTMLElement;
-    act(() => {
-      reactProps(junction).onPointerDown(pointerEvent());
-      reactProps(junction).onPointerMove(
-        pointerEvent({ clientX: 600, clientY: 600 }),
-      );
-      reactProps(junction).onPointerUp(pointerEvent());
-    });
-    const sidebar = t.handle().getPanel('sidebar')!.inset;
-    const term = t.handle().getPanel('term')!.inset;
-    // 600 / 1000 = 60% vertical, 600 / 800 = 75% horizontal.
-    expect(sidebar.right).toBe(40);
-    expect(term.top).toBe(75);
     t.cleanup();
   });
 });

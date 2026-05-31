@@ -5,6 +5,7 @@ export type {
   TileryInset,
   TileryInitialLayout,
   TileryLayoutState,
+  TileryLayoutTree,
   TileryHandle,
   TileryMoveTarget,
   TileryPanelHandle,
@@ -17,5 +18,4 @@ export type {
   TileryTabState,
 } from './types';
 
-export type { TileryJunction } from './state/layout-math';
 export type { TileryDragState } from './drag/drag-logic';

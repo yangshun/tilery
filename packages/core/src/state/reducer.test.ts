@@ -136,7 +136,50 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.panels.NEW!.activeTabId).toBeNull();
     expect(next.panelOrder).toEqual(['L', 'NEW', 'R']);
   });
-  it('SPLIT_PANEL appends to the end of panelOrder when source is somehow not in order', () => {
+  it('SPLIT_PANEL falls back to flat insets when no layout tree exists', () => {
+    const state: TileryLayoutState = { ...twoSideBySide(), layout: null };
+    const next = tileryReducer(state, {
+      type: 'SPLIT_PANEL',
+      panelId: 'L',
+      direction: 'right',
+      sizePercent: 50,
+      newPanelId: 'NEW',
+      tabs: [],
+      activate: true,
+    });
+    expect(next.layout).toBeNull();
+    expect(next.panels.L!.inset).toEqual({
+      top: 0,
+      right: 75,
+      bottom: 0,
+      left: 0,
+    });
+    expect(next.panels.NEW!.inset).toEqual({
+      top: 0,
+      right: 50,
+      bottom: 0,
+      left: 25,
+    });
+  });
+  it('SPLIT_PANEL keeps flat fallback behavior when the layout tree misses the source', () => {
+    const state: TileryLayoutState = {
+      ...twoSideBySide(),
+      layout: { kind: 'panel', panelId: 'R' },
+    };
+    const next = tileryReducer(state, {
+      type: 'SPLIT_PANEL',
+      panelId: 'L',
+      direction: 'right',
+      sizePercent: 50,
+      newPanelId: 'NEW',
+      tabs: [],
+      activate: true,
+    });
+    expect(next.layout).toBeNull();
+    expect(next.panels.L!.inset.right).toBe(75);
+    expect(next.panels.NEW!.inset.left).toBe(25);
+  });
+  it('SPLIT_PANEL repairs panelOrder from the canonical layout tree', () => {
     const state: TileryLayoutState = twoSideBySide();
     const broken: TileryLayoutState = {
       ...state,
@@ -151,7 +194,7 @@ describe('tileryReducer dispatch matrix', () => {
       tabs: [],
       activate: true,
     });
-    expect(next.panelOrder[next.panelOrder.length - 1]).toBe('NEW');
+    expect(next.panelOrder).toEqual(['L', 'NEW', 'R']);
   });
 
   it('REMOVE_PANEL is a no-op if the panel is missing', () => {
@@ -172,6 +215,43 @@ describe('tileryReducer dispatch matrix', () => {
         },
       ],
     });
+    const next = tileryReducer(state, {
+      type: 'REMOVE_PANEL',
+      panelId: 'only',
+    });
+    expect(next.panels.only).toBeUndefined();
+    expect(next.tabs.T).toBeUndefined();
+    expect(next.panelOrder).toEqual([]);
+  });
+  it('REMOVE_PANEL uses the flat fallback when no layout tree exists', () => {
+    const state: TileryLayoutState = { ...twoSideBySide(), layout: null };
+    const next = tileryReducer(state, {
+      type: 'REMOVE_PANEL',
+      panelId: 'R',
+    });
+    expect(next.layout).toBeUndefined();
+    expect(next.panels.R).toBeUndefined();
+    expect(next.panels.L!.inset).toEqual({
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+    });
+    expect(next.tabs.R1).toBeUndefined();
+  });
+  it('REMOVE_PANEL flat fallback handles the final remaining panel', () => {
+    const state: TileryLayoutState = {
+      ...tileryCreateInitialState({
+        panels: [
+          {
+            id: 'only',
+            inset: { top: 0, right: 0, bottom: 0, left: 0 },
+            tabs: [{ id: 'T', data: {} }],
+          },
+        ],
+      }),
+      layout: null,
+    };
     const next = tileryReducer(state, {
       type: 'REMOVE_PANEL',
       panelId: 'only',
@@ -458,6 +538,27 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.tabs.L1!.panelId).toBe('NEWP');
   });
 
+  it('MOVE_TAB splitPanel keeps flat fallback behavior when the layout tree misses the target', () => {
+    const state: TileryLayoutState = {
+      ...twoSideBySide(),
+      layout: { kind: 'panel', panelId: 'phantom' },
+    };
+    const next = tileryReducer(state, {
+      type: 'MOVE_TAB',
+      tabId: 'L1',
+      to: {
+        splitPanelId: 'R',
+        direction: 'right',
+        sizePercent: 50,
+        newPanelId: 'NEWP',
+      },
+    });
+    expect(next.layout).toBeNull();
+    expect(next.panels.R!.inset.right).toBe(25);
+    expect(next.panels.NEWP!.inset.left).toBe(75);
+    expect(next.tabs.L1!.panelId).toBe('NEWP');
+  });
+
   it('MOVE_TAB splitPanel is a no-op when source is the same panel and has only this tab', () => {
     // A single-tab panel cannot be split by its own only tab — there would
     // be nothing to leave behind, and the result would be empty space.
@@ -716,6 +817,19 @@ describe('tileryReducer dispatch matrix', () => {
     // Tabs and ids unchanged
     expect(next.panels.L!.tabs).toEqual(state.panels.L!.tabs);
     expect(next.panels.R!.tabs).toEqual(state.panels.R!.tabs);
+  });
+  it('SWAP_PANELS swaps flat insets when no layout tree exists', () => {
+    const state: TileryLayoutState = { ...twoSideBySide(), layout: null };
+    const beforeL = state.panels.L!.inset;
+    const beforeR = state.panels.R!.inset;
+    const next = tileryReducer(state, {
+      type: 'SWAP_PANELS',
+      panelA: 'L',
+      panelB: 'R',
+    });
+    expect(next.layout).toBeNull();
+    expect(next.panels.L!.inset).toEqual(beforeR);
+    expect(next.panels.R!.inset).toEqual(beforeL);
   });
   it('SWAP_PANELS is a no-op when either panel is missing', () => {
     const state = twoSideBySide();

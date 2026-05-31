@@ -13,7 +13,6 @@ import {
 import { createPortal } from 'react-dom';
 import { PanelChrome } from './components/panel-chrome';
 import { TileryDivider } from './components/divider';
-import { JunctionHandle } from './components/junction-handle';
 import { DropOverlay } from './components/drop-overlay';
 import { useTileryDragController } from './use-drag-controller';
 import {
@@ -21,10 +20,8 @@ import {
   tileryReducer,
   makeTileryHandle,
   tileryDeriveDividers,
-  tileryDeriveJunctions,
   tileryGetFullScreenPanelId,
   type TileryReducerAction,
-  type TileryJunction,
   type TileryInitialLayout,
   type TileryLayoutState,
   type TileryHandle,
@@ -233,7 +230,6 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
   }, [state.tabs, contentSlots, limboEl]);
 
   const dividers = useMemo(() => tileryDeriveDividers(state), [state]);
-  const junctions = useMemo(() => tileryDeriveJunctions(dividers), [dividers]);
   const fullScreenPanelId = useMemo(
     () => tileryGetFullScreenPanelId(state),
     [state],
@@ -272,24 +268,6 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
         type: 'RESIZE_DIVIDER',
         dividerId,
         newPosition,
-        minSizePercent: minPanelSizePercent,
-      });
-    },
-    [dispatchWithMin, minPanelSizePercent],
-  );
-
-  const onJunctionDrag = useCallback(
-    (junction: TileryJunction, xPct: number, yPct: number) => {
-      dispatchWithMin({
-        type: 'RESIZE_DIVIDER',
-        dividerId: junction.verticalDividerId,
-        newPosition: xPct,
-        minSizePercent: minPanelSizePercent,
-      });
-      dispatchWithMin({
-        type: 'RESIZE_DIVIDER',
-        dividerId: junction.horizontalDividerId,
-        newPosition: yPct,
         minSizePercent: minPanelSizePercent,
       });
     },
@@ -410,15 +388,6 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
             key={d.id}
             divider={d}
             onDrag={onDividerDrag}
-            containerRef={containerRef}
-          />
-        ))}
-
-        {junctions.map((j) => (
-          <JunctionHandle
-            key={j.id}
-            junction={j}
-            onDrag={onJunctionDrag}
             containerRef={containerRef}
           />
         ))}

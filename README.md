@@ -7,7 +7,7 @@ A tiling panel layout engine for React. Build IDE-like interfaces, dashboard bui
 ## Features
 
 - Drag tabs between panels or into new splits
-- Resize panels via dividers and 2D junction handles
+- Resize panels via split dividers
 - Maximize one panel fullscreen
 - Preserves React state across tab moves (portal-based rendering)
 - Framework-agnostic core with a React adapter
@@ -149,10 +149,16 @@ type TileryTabInit<TData> = {
 };
 ```
 
-Panels are positioned via `inset` — percentage-based offsets from each edge of the container (like CSS `inset` but in `%`). For example, a panel taking the left 40% would be `{ top: 0, right: 60, bottom: 0, left: 0 }`.
+Panels are initialized via `inset` — percentage-based offsets from each edge of
+the container (like CSS `inset` but in `%`). For example, a panel taking the
+left 40% would be `{ top: 0, right: 60, bottom: 0, left: 0 }`.
+
+When the initial panels form a complete tiling, Tilery builds an internal split
+tree and derives the public panel insets from that tree. This keeps resizing and
+panel removal one-dimensional while preserving the flat DOM rendering model.
 
 A fullscreen panel renders over the full Tilery container, suppresses
-dividers/junctions, and disables panel drop zones until it is restored.
+dividers and panel drop zones until it is restored.
 
 ### `TileryHandle`
 

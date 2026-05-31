@@ -111,25 +111,26 @@ function App() {
         body: [
           'A panel is a rectangular region containing a tab bar and a content area. Each panel holds one or more tabs. Only one tab is active (visible) at a time within each panel.',
           'Tabs can be dragged between panels, reordered within a panel, or dropped on a panel edge to split it into two.',
-          'A fullscreen panel renders over the full container and suppresses dividers, junctions, and panel drop zones until restored.',
+          'A fullscreen panel renders over the full container and suppresses dividers and panel drop zones until restored.',
         ],
       },
       {
         heading: 'State Model',
         body: [
-          'The layout state is a flat structure with panels and tabs stored in lookup objects. Panel order is tracked separately for deterministic rendering.',
+          'The public layout state keeps panels and tabs in flat lookup objects. When the panels form a complete tiling, Tilery also stores a nested split tree and derives panel insets from it for deterministic rendering.',
         ],
         code: `type TileryLayoutState = {
   panels: Record<TileryPanelId, TileryPanelState>;
   panelOrder: TileryPanelId[];
   tabs: Record<TileryTabId, TileryTabState>;
+  layout?: TileryLayoutTree | null;
 };`,
       },
       {
-        heading: 'Dividers and Junctions',
+        heading: 'Dividers',
         body: [
-          'Dividers are computed automatically from panel geometry — wherever two panels share an edge, a draggable divider appears.',
-          'Junctions are 2D resize handles that appear where a vertical divider crosses a horizontal divider, allowing diagonal resizing.',
+          'Dividers are computed automatically from split boundaries in the layout tree.',
+          'Resizing a divider updates one split at a time, then derives fresh flat panel insets for rendering.',
         ],
       },
       {

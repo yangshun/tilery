@@ -3,7 +3,6 @@ import {
   tileryApplyDividerResize,
   tileryClampDividerPosition,
   tileryDeriveDividers,
-  tileryDeriveJunctions,
   tileryFindRemovalFillers,
   tileryPanelBottom,
   tileryPanelHeight,
@@ -145,11 +144,44 @@ describe('tileryDeriveDividers', () => {
     const v = dividers.filter((d) => d.orientation === 'vertical');
     const h = dividers.filter((d) => d.orientation === 'horizontal');
     expect(v).toHaveLength(1);
-    expect(h).toHaveLength(1);
+    expect(h).toHaveLength(2);
     expect(v[0]!.beforePanels.sort()).toEqual(['BL', 'TL']);
     expect(v[0]!.afterPanels.sort()).toEqual(['BR', 'TR']);
-    expect(h[0]!.beforePanels.sort()).toEqual(['TL', 'TR']);
-    expect(h[0]!.afterPanels.sort()).toEqual(['BL', 'BR']);
+    expect(h.map((divider) => divider.beforePanels)).toEqual([['TL'], ['TR']]);
+    expect(h.map((divider) => divider.afterPanels)).toEqual([['BL'], ['BR']]);
+  });
+
+  it('merges touching ranges in the flat divider fallback', () => {
+    const state = {
+      ...tileryCreateInitialState({
+        panels: [
+          {
+            id: 'T',
+            inset: { top: 0, right: 50, bottom: 50, left: 0 },
+            tabs: [{ id: 't', data: {} }],
+          },
+          {
+            id: 'B',
+            inset: { top: 50, right: 50, bottom: 0, left: 0 },
+            tabs: [{ id: 'b', data: {} }],
+          },
+          {
+            id: 'R',
+            inset: { top: 0, right: 0, bottom: 0, left: 50 },
+            tabs: [{ id: 'r', data: {} }],
+          },
+        ],
+      }),
+      layout: null,
+    };
+
+    const divider = tileryDeriveDividers(state).find(
+      (d) => d.orientation === 'vertical' && d.position === 50,
+    )!;
+    expect(divider.start).toBe(0);
+    expect(divider.end).toBe(100);
+    expect(divider.beforePanels).toEqual(['T', 'B']);
+    expect(divider.afterPanels).toEqual(['R']);
   });
 });
 
@@ -176,6 +208,9 @@ describe('tileryClampDividerPosition + tileryApplyDividerResize', () => {
     expect(tileryClampDividerPosition(state, div, 98, 10)).toBe(90);
     // Within bounds, no clamp.
     expect(tileryClampDividerPosition(state, div, 30, 10)).toBe(30);
+    expect(
+      tileryClampDividerPosition(state, { ...div, splitId: 'missing' }, 30, 10),
+    ).toBe(div.position);
   });
 
   it('applies a resize correctly to both adjacent panels', () => {
@@ -207,6 +242,34 @@ describe('tileryClampDividerPosition + tileryApplyDividerResize', () => {
       bottom: 0,
       left: 70,
     });
+  });
+
+  it('clamps and applies vertical resize through the flat fallback path', () => {
+    const state = {
+      ...tileryCreateInitialState({
+        panels: [
+          {
+            id: 'A',
+            inset: { top: 0, right: 50, bottom: 0, left: 0 },
+            tabs: [{ id: 'ta', data: {} }],
+          },
+          {
+            id: 'B',
+            inset: { top: 0, right: 0, bottom: 0, left: 50 },
+            tabs: [{ id: 'tb', data: {} }],
+          },
+        ],
+      }),
+      layout: null,
+    };
+    const div = { ...tileryDeriveDividers(state)[0]!, splitId: undefined };
+    expect(tileryClampDividerPosition(state, div, 5, 10)).toBe(10);
+    expect(tileryClampDividerPosition(state, div, 95, 10)).toBe(90);
+    expect(tileryClampDividerPosition(state, div, 30, 10)).toBe(30);
+
+    const next = tileryApplyDividerResize(state, div, 70);
+    expect(next.panels.A!.inset.right).toBe(30);
+    expect(next.panels.B!.inset.left).toBe(70);
   });
 });
 
@@ -348,6 +411,30 @@ describe('tileryReducer — split, move-tab, auto-remove', () => {
 });
 
 describe('tileryFindRemovalFillers — edge cases', () => {
+  it('expands a right neighbor over a removed left panel of equal height', () => {
+    const state = tileryCreateInitialState({
+      panels: [
+        {
+          id: 'L',
+          inset: { top: 0, right: 50, bottom: 0, left: 0 },
+          tabs: [{ id: 'l', data: {} }],
+        },
+        {
+          id: 'R',
+          inset: { top: 0, right: 0, bottom: 0, left: 50 },
+          tabs: [{ id: 'r', data: {} }],
+        },
+      ],
+    });
+    const fillers = tileryFindRemovalFillers(
+      Object.values(state.panels),
+      state.panels.L!,
+    );
+    expect(fillers).toHaveLength(1);
+    expect(fillers[0]!.id).toBe('R');
+    expect(fillers[0]!.inset).toEqual({ top: 0, right: 0, bottom: 0, left: 0 });
+  });
+
   it('expands a left neighbor over a removed right panel of equal height', () => {
     const state = tileryCreateInitialState({
       panels: [
@@ -544,9 +631,23 @@ describe('horizontal dividers — resize math', () => {
     const div = tileryDeriveDividers(state)[0]!;
     expect(tileryClampDividerPosition(state, div, 99, 10)).toBe(90);
   });
+  it('clamps horizontal resize through the flat fallback path', () => {
+    const state = { ...stacked(), layout: null };
+    const div = { ...tileryDeriveDividers(state)[0]!, splitId: undefined };
+    expect(tileryClampDividerPosition(state, div, 1, 10)).toBe(10);
+    expect(tileryClampDividerPosition(state, div, 99, 10)).toBe(90);
+    expect(tileryClampDividerPosition(state, div, 60, 10)).toBe(60);
+  });
   it('applies horizontal resize correctly', () => {
     const state = stacked();
     const div = tileryDeriveDividers(state)[0]!;
+    const next = tileryApplyDividerResize(state, div, 70);
+    expect(next.panels.T!.inset.bottom).toBe(30);
+    expect(next.panels.B!.inset.top).toBe(70);
+  });
+  it('applies horizontal resize through the flat fallback path', () => {
+    const state = { ...stacked(), layout: null };
+    const div = { ...tileryDeriveDividers(state)[0]!, splitId: undefined };
     const next = tileryApplyDividerResize(state, div, 70);
     expect(next.panels.T!.inset.bottom).toBe(30);
     expect(next.panels.B!.inset.top).toBe(70);
@@ -572,6 +673,7 @@ describe('divider edge guards — horizontal', () => {
     const div = tileryDeriveDividers(state)[0]!;
     const phantomDivider = {
       ...div,
+      splitId: undefined,
       beforePanels: ['phantom-top'],
       afterPanels: ['phantom-bottom'],
     };
@@ -598,6 +700,7 @@ describe('divider edge guards', () => {
     const div = tileryDeriveDividers(state)[0]!;
     const phantomDivider = {
       ...div,
+      splitId: undefined,
       beforePanels: ['phantom'],
       afterPanels: ['phantom2'],
     };
@@ -621,6 +724,7 @@ describe('divider edge guards', () => {
     const div = tileryDeriveDividers(state)[0]!;
     const phantomDivider = {
       ...div,
+      splitId: undefined,
       beforePanels: ['phantom'],
       afterPanels: ['phantom2'],
     };
@@ -656,6 +760,7 @@ describe('divider edge guards', () => {
     const div = tileryDeriveDividers(state)[0]!;
     const phantomDivider = {
       ...div,
+      splitId: undefined,
       beforePanels: ['phantom'],
       afterPanels: ['phantom2'],
     };
@@ -982,186 +1087,5 @@ describe('layout invariants — deterministic random fuzz', () => {
         expect(tileryPanelHeight(p)).toBeGreaterThanOrEqual(-0.001);
       }
     }
-  });
-});
-
-describe('tileryDeriveJunctions', () => {
-  it('returns no junctions for two side-by-side panels (vertical divider only)', () => {
-    const state = tileryCreateInitialState({
-      panels: [
-        {
-          id: 'A',
-          inset: { top: 0, right: 50, bottom: 0, left: 0 },
-          tabs: [{ id: 'a', data: {} }],
-        },
-        {
-          id: 'B',
-          inset: { top: 0, right: 0, bottom: 0, left: 50 },
-          tabs: [{ id: 'b', data: {} }],
-        },
-      ],
-    });
-    const dividers = tileryDeriveDividers(state);
-    expect(tileryDeriveJunctions(dividers)).toEqual([]);
-  });
-
-  it('returns no junctions for two stacked panels (horizontal divider only)', () => {
-    const state = tileryCreateInitialState({
-      panels: [
-        {
-          id: 'T',
-          inset: { top: 0, right: 0, bottom: 50, left: 0 },
-          tabs: [{ id: 't', data: {} }],
-        },
-        {
-          id: 'B',
-          inset: { top: 50, right: 0, bottom: 0, left: 0 },
-          tabs: [{ id: 'b', data: {} }],
-        },
-      ],
-    });
-    const dividers = tileryDeriveDividers(state);
-    expect(tileryDeriveJunctions(dividers)).toEqual([]);
-  });
-
-  it('finds one junction at the L-shape corner', () => {
-    // Sidebar + (editor over terminal). The horizontal divider spans
-    // x∈[40,100], the vertical divider spans y∈[0,100]; they cross at
-    // exactly (40, 50).
-    const state = tileryCreateInitialState({
-      panels: [
-        {
-          id: 'sidebar',
-          inset: { top: 0, right: 60, bottom: 0, left: 0 },
-          tabs: [{ id: 's', data: {} }],
-        },
-        {
-          id: 'editor',
-          inset: { top: 0, right: 0, bottom: 50, left: 40 },
-          tabs: [{ id: 'e', data: {} }],
-        },
-        {
-          id: 'terminal',
-          inset: { top: 50, right: 0, bottom: 0, left: 40 },
-          tabs: [{ id: 't', data: {} }],
-        },
-      ],
-    });
-    const dividers = tileryDeriveDividers(state);
-    const junctions = tileryDeriveJunctions(dividers);
-    expect(junctions).toHaveLength(1);
-    expect(junctions[0]!.x).toBe(40);
-    expect(junctions[0]!.y).toBe(50);
-    expect(
-      dividers.find((d) => d.id === junctions[0]!.verticalDividerId)
-        ?.orientation,
-    ).toBe('vertical');
-    expect(
-      dividers.find((d) => d.id === junctions[0]!.horizontalDividerId)
-        ?.orientation,
-    ).toBe('horizontal');
-  });
-
-  it('finds one junction at the centre of a 2x2 grid (cross-junction)', () => {
-    const state = tileryCreateInitialState({
-      panels: [
-        {
-          id: 'TL',
-          inset: { top: 0, right: 50, bottom: 50, left: 0 },
-          tabs: [{ id: 'tl', data: {} }],
-        },
-        {
-          id: 'TR',
-          inset: { top: 0, right: 0, bottom: 50, left: 50 },
-          tabs: [{ id: 'tr', data: {} }],
-        },
-        {
-          id: 'BL',
-          inset: { top: 50, right: 50, bottom: 0, left: 0 },
-          tabs: [{ id: 'bl', data: {} }],
-        },
-        {
-          id: 'BR',
-          inset: { top: 50, right: 0, bottom: 0, left: 50 },
-          tabs: [{ id: 'br', data: {} }],
-        },
-      ],
-    });
-    const dividers = tileryDeriveDividers(state);
-    const junctions = tileryDeriveJunctions(dividers);
-    expect(junctions).toHaveLength(1);
-    expect(junctions[0]!.x).toBe(50);
-    expect(junctions[0]!.y).toBe(50);
-  });
-
-  it('does not report a junction when the spans miss each other', () => {
-    // Construct a fabricated divider pair where the horizontal's y is
-    // outside the vertical's span — exercises the disjoint-span branch.
-    const dividers = [
-      {
-        id: 'v|A|B',
-        orientation: 'vertical' as const,
-        position: 40,
-        start: 0,
-        end: 30,
-        beforePanels: ['A'],
-        afterPanels: ['B'],
-      },
-      {
-        id: 'h|C|D',
-        orientation: 'horizontal' as const,
-        position: 50,
-        start: 0,
-        end: 100,
-        beforePanels: ['C'],
-        afterPanels: ['D'],
-      },
-    ];
-    expect(tileryDeriveJunctions(dividers)).toEqual([]);
-  });
-
-  it('returns one junction per crossing for a workspace 5-panel shape', () => {
-    // FE + (Editor over Terminal/Tests) + Preview + AI: two vertical
-    // dividers (FE-edge and Preview-edge) and one horizontal divider
-    // spanning the centre column. Two junctions.
-    const state = tileryCreateInitialState({
-      panels: [
-        {
-          id: 'fe',
-          inset: { top: 0, right: 85, bottom: 0, left: 0 },
-          tabs: [{ id: 'fe', data: {} }],
-        },
-        {
-          id: 'editor',
-          inset: { top: 0, right: 35, bottom: 35, left: 15 },
-          tabs: [{ id: 'ed', data: {} }],
-        },
-        {
-          id: 'term',
-          inset: { top: 65, right: 35, bottom: 0, left: 15 },
-          tabs: [{ id: 'tm', data: {} }],
-        },
-        {
-          id: 'preview',
-          inset: { top: 0, right: 15, bottom: 0, left: 65 },
-          tabs: [{ id: 'pv', data: {} }],
-        },
-        {
-          id: 'ai',
-          inset: { top: 0, right: 0, bottom: 0, left: 85 },
-          tabs: [{ id: 'ai', data: {} }],
-        },
-      ],
-    });
-    const dividers = tileryDeriveDividers(state);
-    const junctions = tileryDeriveJunctions(dividers);
-    expect(junctions).toHaveLength(2);
-    const points = junctions
-      .map((j): [number, number] => [j.x, j.y])
-      .sort((a, b) => a[0] - b[0] || a[1] - b[1]);
-    expect(points).toEqual([
-      [15, 65],
-      [65, 65],
-    ]);
   });
 });

@@ -18,6 +18,13 @@ import {
   tilerySplitFitsMin,
   tilerySplitInset,
 } from './layout-math';
+import {
+  tileryBuildLayoutTreeFromPanels,
+  tileryRemovePanelFromLayout,
+  tilerySplitPanelInLayout,
+  tilerySwapPanelsInLayout,
+  tilerySyncLayoutPanels,
+} from './layout-tree';
 
 export type TileryReducerAction =
   | {
@@ -87,6 +94,7 @@ export function tileryCreateInitialState(
     panels: {},
     panelOrder: [],
     tabs: {},
+    layout: null,
   };
   let hasFullScreenPanel = false;
   for (const init of initial.panels) {
@@ -118,7 +126,10 @@ export function tileryCreateInitialState(
     };
     state.panelOrder.push(panelId);
   }
-  return state;
+  const layout = tileryBuildLayoutTreeFromPanels(
+    state.panelOrder.map((id) => state.panels[id]!).filter(Boolean),
+  );
+  return layout ? tilerySyncLayoutPanels({ ...state, layout }, layout) : state;
 }
 
 export function tileryReducer(
@@ -168,7 +179,7 @@ export function tileryReducer(
         action.newPanelId,
         ...state.panelOrder.slice(insertAt),
       ];
-      return {
+      const nextState: TileryLayoutState = {
         panels: {
           ...state.panels,
           [action.panelId]: {
@@ -180,7 +191,21 @@ export function tileryReducer(
         },
         panelOrder: nextOrder,
         tabs: newTabs,
+        layout: state.layout,
       };
+      if (state.layout) {
+        const layout = tilerySplitPanelInLayout(
+          state.layout,
+          action.panelId,
+          action.newPanelId,
+          action.direction,
+          action.sizePercent,
+        );
+        if (layout)
+          return tilerySyncLayoutPanels({ ...nextState, layout }, layout);
+        return { ...nextState, layout: null };
+      }
+      return nextState;
     }
     case 'REMOVE_PANEL': {
       const target = state.panels[action.panelId];
@@ -359,7 +384,7 @@ export function tileryReducer(
           action.to.direction,
           action.to.sizePercent,
         );
-        let next = { ...state };
+        let next: TileryLayoutState = { ...state };
         next = {
           ...next,
           panels: {
@@ -389,6 +414,18 @@ export function tileryReducer(
           action.to.newPanelId,
           ...next.panelOrder.slice(targetIdx + 1),
         ];
+        if (state.layout) {
+          const layout = tilerySplitPanelInLayout(
+            state.layout,
+            targetSource.id,
+            action.to.newPanelId,
+            action.to.direction,
+            action.to.sizePercent,
+          );
+          if (layout)
+            next = tilerySyncLayoutPanels({ ...next, layout }, layout);
+          else next = { ...next, layout: null };
+        }
         const sourceTabs = sourcePanel.tabs.filter((id) => id !== action.tabId);
         next.tabs = {
           ...next.tabs,
@@ -492,6 +529,14 @@ export function tileryReducer(
       const b = state.panels[action.panelB];
       if (!a || !b) return state;
       if (a.id === b.id) return state;
+      if (state.layout) {
+        const layout = tilerySwapPanelsInLayout(
+          state.layout,
+          action.panelA,
+          action.panelB,
+        );
+        return tilerySyncLayoutPanels({ ...state, layout }, layout);
+      }
       return {
         ...state,
         panels: {
@@ -562,6 +607,22 @@ function removePanelAndFill(
   state: TileryLayoutState,
   removed: TileryPanelState,
 ): TileryLayoutState {
+  if (state.layout) {
+    const { [removed.id]: _drop, ...nextPanels } = state.panels;
+    const nextTabs = { ...state.tabs };
+    for (const tid of removed.tabs) delete nextTabs[tid];
+    const layout =
+      tileryRemovePanelFromLayout(state.layout, removed.id) ?? null;
+    return tilerySyncLayoutPanels(
+      {
+        panels: nextPanels,
+        panelOrder: state.panelOrder.filter((id) => id !== removed.id),
+        tabs: nextTabs,
+        layout,
+      },
+      layout,
+    );
+  }
   const otherPanels = state.panelOrder
     .map((id) => state.panels[id])
     .filter((p): p is TileryPanelState => Boolean(p) && p.id !== removed.id);

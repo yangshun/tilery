@@ -7,6 +7,12 @@ import type {
   TileryPanelId,
   TileryPanelState,
 } from '../types';
+import {
+  tileryClampLayoutDividerPosition,
+  tileryDeriveLayoutDividers,
+  tileryResizeLayoutDivider,
+  tilerySyncLayoutPanels,
+} from './layout-tree';
 
 export const TILERY_DEFAULT_MIN_PANEL_SIZE = 10;
 const EPSILON = 0.0001;
@@ -79,6 +85,7 @@ export function tileryDeriveDividers(
   state: TileryLayoutState,
 ): TileryDivider[] {
   if (tileryGetFullScreenPanelId(state)) return [];
+  if (state.layout) return tileryDeriveLayoutDividers(state.layout);
 
   const panels = state.panelOrder
     .map((id) => state.panels[id])
@@ -147,41 +154,6 @@ export function tileryDeriveDividers(
 
 function roundCoord(n: number): string {
   return n.toFixed(3);
-}
-
-export type TileryJunction = {
-  id: string;
-  x: number;
-  y: number;
-  verticalDividerId: string;
-  horizontalDividerId: string;
-};
-
-export function tileryDeriveJunctions(
-  dividers: TileryDivider[],
-): TileryJunction[] {
-  const verticals = dividers.filter((d) => d.orientation === 'vertical');
-  const horizontals = dividers.filter((d) => d.orientation === 'horizontal');
-  const out: TileryJunction[] = [];
-  for (const v of verticals) {
-    for (const h of horizontals) {
-      if (
-        h.position >= v.start - EPSILON &&
-        h.position <= v.end + EPSILON &&
-        v.position >= h.start - EPSILON &&
-        v.position <= h.end + EPSILON
-      ) {
-        out.push({
-          id: `j|${v.id}|${h.id}`,
-          x: v.position,
-          y: h.position,
-          verticalDividerId: v.id,
-          horizontalDividerId: h.id,
-        });
-      }
-    }
-  }
-  return out;
 }
 
 type Segment = {
@@ -255,6 +227,16 @@ export function tileryClampDividerPosition(
   targetPosition: number,
   minSizePercent: number = TILERY_DEFAULT_MIN_PANEL_SIZE,
 ): number {
+  if (divider.splitId && state.layout) {
+    return (
+      tileryClampLayoutDividerPosition(
+        state.layout,
+        divider.splitId,
+        targetPosition,
+        minSizePercent,
+      ) ?? divider.position
+    );
+  }
   let min = 0;
   let max = 100;
   if (divider.orientation === 'vertical') {
@@ -316,6 +298,14 @@ export function tileryApplyDividerResize(
   divider: TileryDivider,
   newPosition: number,
 ): TileryLayoutState {
+  if (divider.splitId && state.layout) {
+    const layout = tileryResizeLayoutDivider(
+      state.layout,
+      divider.splitId,
+      newPosition,
+    );
+    return tilerySyncLayoutPanels({ ...state, layout }, layout);
+  }
   const nextPanels = { ...state.panels };
   if (divider.orientation === 'vertical') {
     for (const id of divider.beforePanels) {

@@ -5,6 +5,7 @@ export type {
   TileryInset,
   TileryInitialLayout,
   TileryLayoutState,
+  TileryLayoutTree,
   TileryHandle,
   TileryMoveTarget,
   TileryPanelHandle,
@@ -37,7 +38,6 @@ export {
 export {
   TILERY_DEFAULT_MIN_PANEL_SIZE,
   tileryDeriveDividers,
-  tileryDeriveJunctions,
   tilerySplitInset,
   tilerySplitFitsMin,
   tileryClampDividerPosition,
@@ -51,8 +51,15 @@ export {
   tileryPanelBottom,
   tileryPanelWidth,
   tileryPanelHeight,
-  type TileryJunction,
 } from './state/layout-math';
+
+export {
+  tileryBuildLayoutTreeFromPanels,
+  tileryDeriveLayoutDividers,
+  tileryDeriveLayoutInsets,
+  tileryPanelOrderFromLayout,
+  tilerySyncLayoutPanels,
+} from './state/layout-tree';
 
 export {
   tileryCommitDrag,

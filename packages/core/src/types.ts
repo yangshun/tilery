@@ -26,10 +26,25 @@ export type TileryTabState<TData = unknown> = {
   closeable?: boolean;
 };
 
+export type TileryLayoutTree =
+  | {
+      kind: 'panel';
+      panelId: TileryPanelId;
+    }
+  | {
+      kind: 'split';
+      id: string;
+      direction: 'horizontal' | 'vertical';
+      sizePercent: number;
+      first: TileryLayoutTree;
+      second: TileryLayoutTree;
+    };
+
 export type TileryLayoutState = {
   panels: Record<TileryPanelId, TileryPanelState>;
   panelOrder: TileryPanelId[];
   tabs: Record<TileryTabId, TileryTabState>;
+  layout?: TileryLayoutTree | null;
 };
 
 export type TileryTabInit<TData = unknown> = {
@@ -70,6 +85,7 @@ export type TileryDivider = {
   end: number;
   beforePanels: TileryPanelId[];
   afterPanels: TileryPanelId[];
+  splitId?: string;
 };
 
 export type TileryHandle = {

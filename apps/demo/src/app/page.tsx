@@ -23,7 +23,7 @@ const capabilities = [
   ],
   [
     'Resize model',
-    'Dividers and junction handles are derived from layout geometry automatically.',
+    'Split dividers are derived from the layout tree automatically.',
   ],
   [
     'Rendering control',
