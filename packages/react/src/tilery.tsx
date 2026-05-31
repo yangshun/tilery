@@ -32,9 +32,24 @@ import {
   type TileryPanelId,
   type TileryTabHandle,
   type TileryTabId,
+  type TileryTabInit,
 } from 'tilery/internal';
 
 import 'tilery/style.css';
+
+export type TileryPanelVisibility =
+  | boolean
+  | ((panel: TileryPanelHandle) => boolean);
+
+export type TileryNewTabHandler<TData = unknown> = (
+  panel: TileryPanelHandle,
+  ctx: { tilery: TileryHandle },
+) => TileryTabInit<TData> | void;
+
+export type TileryPanelActionsRenderContext = {
+  tilery: TileryHandle;
+  closeMenu: () => void;
+};
 
 export type TileryProps<TData = unknown> = {
   initialLayout: TileryInitialLayout<TData>;
@@ -45,6 +60,14 @@ export type TileryProps<TData = unknown> = {
   renderTabContent: (tab: TileryTabHandle<TData>) => React.ReactNode;
   onChange?: (state: TileryLayoutState) => void;
   minPanelSizePercent?: number;
+  showActionsButton?: TileryPanelVisibility;
+  showNewTabButton?: TileryPanelVisibility;
+  onNewTab?: TileryNewTabHandler<TData>;
+  renderPanelActions?: (
+    panel: TileryPanelHandle,
+    ctx: TileryPanelActionsRenderContext,
+  ) => React.ReactNode;
+  renderActionsButtonIcon?: (panel: TileryPanelHandle) => React.ReactNode;
 };
 
 export const Tilery = forwardRef(function Tilery<TData = unknown>(
@@ -57,6 +80,11 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
     renderTabContent,
     onChange,
     minPanelSizePercent = 10,
+    showActionsButton = false,
+    showNewTabButton = false,
+    onNewTab,
+    renderPanelActions,
+    renderActionsButtonIcon,
   } = props;
 
   const [state, dispatch] = useReducer(
@@ -351,6 +379,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
             <PanelChrome
               key={panelId}
               panel={panel}
+              tilery={tileryRef.current!}
               renderHeader={renderHeaderAdapter}
               registerPanel={getRegisterPanel(panelId)}
               registerContentSlot={getRegisterContentSlot(panelId)}
@@ -364,6 +393,14 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
               onTabBarPointerUp={drag.onTabBarPointerUp}
               onTabClick={onTabClick}
               onTabClose={onTabClose}
+              showActionsButton={resolvePanelVisibility(
+                showActionsButton,
+                panel,
+              )}
+              showNewTabButton={resolvePanelVisibility(showNewTabButton, panel)}
+              onNewTab={onNewTab}
+              renderPanelActions={renderPanelActions}
+              renderActionsButtonIcon={renderActionsButtonIcon}
             />
           );
         })}
@@ -423,3 +460,10 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
 }) as <TData = unknown>(
   props: TileryProps<TData> & { ref?: React.Ref<TileryHandle> },
 ) => React.ReactElement;
+
+function resolvePanelVisibility(
+  value: TileryPanelVisibility,
+  panel: TileryPanelHandle,
+): boolean {
+  return typeof value === 'function' ? value(panel) : value;
+}

@@ -100,15 +100,11 @@ describe('TileryHandle mutations', () => {
     handle.removePanel('P1');
     expect(dispatched[0]).toEqual({ type: 'REMOVE_PANEL', panelId: 'P1' });
   });
-  it('dispatches panel mode actions', () => {
+  it('dispatches fullscreen panel mode actions', () => {
     const { handle, dispatched } = makeStore();
-    handle.collapsePanel('P1');
-    handle.expandPanel('P1');
     handle.maximizePanel('P1');
     handle.restorePanel('P1');
     expect(dispatched).toEqual([
-      { type: 'SET_PANEL_COLLAPSED', panelId: 'P1', collapsed: true },
-      { type: 'SET_PANEL_COLLAPSED', panelId: 'P1', collapsed: false },
       { type: 'SET_PANEL_FULLSCREEN', panelId: 'P1', fullScreen: true },
       { type: 'SET_PANEL_FULLSCREEN', panelId: 'P1', fullScreen: false },
     ]);
@@ -260,16 +256,13 @@ describe('TileryPanelHandle', () => {
     handle.removePanel('P1');
     expect(panel.activeTab).toBeNull();
   });
-  it('reads panel mode metadata live from state', () => {
+  it('reads fullscreen panel mode metadata live from state', () => {
     let state = tileryCreateInitialState({
       panels: [
         {
           id: 'P',
           inset: { top: 0, right: 0, bottom: 0, left: 0 },
           tabs: [{ id: 'T', data: {} }],
-          collapsed: true,
-          collapsedTitle: 'Collapsed',
-          collapsible: true,
           fullScreen: false,
         },
       ],
@@ -281,14 +274,15 @@ describe('TileryPanelHandle', () => {
       },
     );
     const panel = handle.getPanel('P')!;
-    expect(panel.collapsed).toBe(true);
-    expect(panel.collapsedTitle).toBe('Collapsed');
-    expect(panel.collapsible).toBe(true);
     expect(panel.fullScreen).toBe(false);
-    panel.expand();
     panel.maximize();
-    expect(panel.collapsed).toBe(false);
     expect(panel.fullScreen).toBe(true);
+  });
+  it('returns false for fullscreen when the panel no longer exists', () => {
+    const { handle } = makeStore();
+    const panel = handle.getPanel('P1')!;
+    handle.removePanel('P1');
+    expect(panel.fullScreen).toBe(false);
   });
   it('returns null activeTab when the panel exists but activeTabId is null', () => {
     let state = tileryCreateInitialState({
@@ -328,16 +322,12 @@ describe('TileryPanelHandle', () => {
     panel.remove();
     expect(dispatched[0]).toEqual({ type: 'REMOVE_PANEL', panelId: 'P1' });
   });
-  it('panel mode methods delegate to the root handle', () => {
+  it('fullscreen panel mode methods delegate to the root handle', () => {
     const { handle, dispatched } = makeStore();
     const panel = handle.getPanel('P1')!;
-    panel.collapse();
-    panel.expand();
     panel.maximize();
     panel.restore();
     expect(dispatched).toEqual([
-      { type: 'SET_PANEL_COLLAPSED', panelId: 'P1', collapsed: true },
-      { type: 'SET_PANEL_COLLAPSED', panelId: 'P1', collapsed: false },
       { type: 'SET_PANEL_FULLSCREEN', panelId: 'P1', fullScreen: true },
       { type: 'SET_PANEL_FULLSCREEN', panelId: 'P1', fullScreen: false },
     ]);

@@ -78,9 +78,6 @@ describe('tileryCreateInitialState', () => {
           id: 'P1',
           inset: { top: 0, right: 50, bottom: 0, left: 0 },
           tabs: [{ id: 'T1', data: {} }],
-          collapsed: true,
-          collapsedTitle: 'Files',
-          collapsible: true,
           fullScreen: true,
         },
         {
@@ -92,14 +89,9 @@ describe('tileryCreateInitialState', () => {
       ],
     });
     expect(state.panels.P1).toMatchObject({
-      collapsed: false,
-      collapsedTitle: 'Files',
-      collapsible: true,
       fullScreen: true,
     });
     expect(state.panels.P2).toMatchObject({
-      collapsed: false,
-      collapsible: false,
       fullScreen: false,
     });
   });
@@ -547,7 +539,7 @@ describe('tileryReducer dispatch matrix', () => {
     });
     expect(next.panels.L!.activeTabId).toBe('L2');
   });
-  it('MOVE_TAB splitPanel auto-collapses source when source loses its last tab', () => {
+  it('MOVE_TAB splitPanel removes source when source loses its last tab', () => {
     const state = tileryCreateInitialState({
       panels: [
         {
@@ -1003,7 +995,7 @@ describe('MOVE_TAB — cross-panel beforeTab / afterTab', () => {
     expect(next.panels.R!.activeTabId).toBe('L2');
   });
 
-  it('auto-collapses the source panel when its last tab moves out via beforeTab', () => {
+  it('removes the source panel when its last tab moves out via beforeTab', () => {
     const state = tileryCreateInitialState({
       panels: [
         {
@@ -1031,35 +1023,30 @@ describe('MOVE_TAB — cross-panel beforeTab / afterTab', () => {
 });
 
 describe('tileryReducer — panel mode state', () => {
-  it('SET_PANEL_COLLAPSED toggles collapsed state and clears fullscreen when collapsing', () => {
-    let state = twoSideBySide();
-    state = tileryReducer(state, {
-      type: 'SET_PANEL_FULLSCREEN',
-      panelId: 'L',
-      fullScreen: true,
-    });
-    const collapsed = tileryReducer(state, {
-      type: 'SET_PANEL_COLLAPSED',
-      panelId: 'L',
-      collapsed: true,
-    });
-    expect(collapsed.panels.L!.collapsed).toBe(true);
-    expect(collapsed.panels.L!.fullScreen).toBe(false);
-    const expanded = tileryReducer(collapsed, {
-      type: 'SET_PANEL_COLLAPSED',
-      panelId: 'L',
-      collapsed: false,
-    });
-    expect(expanded.panels.L!.collapsed).toBe(false);
+  it('SET_PANEL_FULLSCREEN is a no-op for missing or already-restored panels', () => {
+    const state = twoSideBySide();
+    expect(
+      tileryReducer(state, {
+        type: 'SET_PANEL_FULLSCREEN',
+        panelId: 'phantom',
+        fullScreen: true,
+      }),
+    ).toBe(state);
+    expect(
+      tileryReducer(state, {
+        type: 'SET_PANEL_FULLSCREEN',
+        panelId: 'L',
+        fullScreen: false,
+      }),
+    ).toBe(state);
   });
 
-  it('SET_PANEL_FULLSCREEN makes one panel fullscreen at a time and expands it', () => {
+  it('SET_PANEL_FULLSCREEN makes one panel fullscreen at a time', () => {
     const base = twoSideBySide();
     const state: TileryLayoutState = {
       ...base,
       panels: {
         ...base.panels,
-        L: { ...base.panels.L!, collapsed: true },
         R: { ...base.panels.R!, fullScreen: true },
       },
     };
@@ -1069,8 +1056,22 @@ describe('tileryReducer — panel mode state', () => {
       fullScreen: true,
     });
     expect(next.panels.L!.fullScreen).toBe(true);
-    expect(next.panels.L!.collapsed).toBe(false);
     expect(next.panels.R!.fullScreen).toBe(false);
+  });
+
+  it('SET_PANEL_FULLSCREEN true is a no-op when the panel is already fullscreen', () => {
+    const state = tileryReducer(twoSideBySide(), {
+      type: 'SET_PANEL_FULLSCREEN',
+      panelId: 'L',
+      fullScreen: true,
+    });
+    expect(
+      tileryReducer(state, {
+        type: 'SET_PANEL_FULLSCREEN',
+        panelId: 'L',
+        fullScreen: true,
+      }),
+    ).toBe(state);
   });
 
   it('SET_PANEL_FULLSCREEN false restores a fullscreen panel', () => {
@@ -1085,40 +1086,6 @@ describe('tileryReducer — panel mode state', () => {
       fullScreen: false,
     });
     expect(next.panels.L!.fullScreen).toBe(false);
-  });
-
-  it('SET_ACTIVE_TAB expands a collapsed panel', () => {
-    const base = twoSideBySide();
-    const state: TileryLayoutState = {
-      ...base,
-      panels: {
-        ...base.panels,
-        L: { ...base.panels.L!, collapsed: true },
-      },
-    };
-    const next = tileryReducer(state, {
-      type: 'SET_ACTIVE_TAB',
-      tabId: 'L2',
-    });
-    expect(next.panels.L!.activeTabId).toBe('L2');
-    expect(next.panels.L!.collapsed).toBe(false);
-  });
-
-  it('SET_ACTIVE_TAB expands a collapsed panel even when the tab is already active', () => {
-    const base = twoSideBySide();
-    const state: TileryLayoutState = {
-      ...base,
-      panels: {
-        ...base.panels,
-        L: { ...base.panels.L!, collapsed: true },
-      },
-    };
-    const next = tileryReducer(state, {
-      type: 'SET_ACTIVE_TAB',
-      tabId: 'L1',
-    });
-    expect(next.panels.L!.activeTabId).toBe('L1');
-    expect(next.panels.L!.collapsed).toBe(false);
   });
 
   it('suppresses dividers and fullscreen-target splits while a panel is fullscreen', () => {

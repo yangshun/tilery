@@ -349,7 +349,7 @@ export function tileryApplyDividerResize(
   return { ...state, panels: nextPanels };
 }
 
-export function tileryFindCollapseFillers(
+export function tileryFindRemovalFillers(
   panels: TileryPanelState[],
   removed: TileryPanelState,
 ): { id: TileryPanelId; inset: TileryInset }[] {

@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vite-plus/test';
 import React, { act, createRef } from 'react';
 import { createRoot } from 'react-dom/client';
 
-import { Tilery } from './tilery';
+import { Tilery, type TileryProps } from './tilery';
 import type { TileryInitialLayout, TileryHandle } from 'tilery/internal';
 
 // Integration tests for the Tilery component itself. They exercise the
@@ -61,6 +61,7 @@ function stubContainerRect(el: HTMLElement) {
 function mount(
   initialLayout: TileryInitialLayout<Data>,
   onChange?: (s: unknown) => void,
+  extraProps: Partial<TileryProps<Data>> = {},
 ) {
   const host = document.createElement('div');
   document.body.appendChild(host);
@@ -76,6 +77,7 @@ function mount(
           <div data-content-of={tab.id}>{tab.data.title}</div>
         )}
         onChange={onChange}
+        {...extraProps}
       />,
     );
   });
@@ -285,38 +287,276 @@ describe('Tilery — panel modes', () => {
     expect(t.handle().getPanel('editor')!.fullScreen).toBe(true);
     t.cleanup();
   });
+});
 
-  it('hides collapsed panel content and expands from a collapsed title', () => {
-    const layout = lShapeLayout();
-    layout.panels[0] = {
-      ...layout.panels[0]!,
-      collapsed: true,
-      collapsedTitle: 'Sidebar',
-      collapsible: true,
-    };
-    const t = mount(layout);
-    const sidebar = t.host.querySelector<HTMLElement>(
-      '.tilery__panel[data-panel-id="sidebar"]',
-    )!;
-    expect(sidebar.getAttribute('data-collapsed')).toBe('true');
-    expect(
-      sidebar
-        .querySelector<HTMLElement>('.tilery__panel-content')!
-        .hasAttribute('hidden'),
-    ).toBe(true);
-    const title = sidebar.querySelector<HTMLElement>(
-      '.tilery__collapsed-title',
-    )!;
-    expect(title.textContent).toBe('Sidebar');
-    act(() => {
-      reactProps(title).onClick({});
+describe('Tilery — panel action UI', () => {
+  it('does not render panel actions by default', () => {
+    const t = mount(lShapeLayout());
+    expect(t.host.querySelector('.tilery__panel-actions')).toBeNull();
+    t.cleanup();
+  });
+
+  it('adds a tab through the optional new-tab button', () => {
+    const t = mount(lShapeLayout(), undefined, {
+      showNewTabButton: true,
+      onNewTab: (panel) => ({
+        id: `${panel.id}-new`,
+        data: { title: 'New tab' },
+      }),
     });
-    expect(t.handle().getPanel('sidebar')!.collapsed).toBe(false);
+    const button = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="sidebar"] .tilery__panel-action-button[aria-label="New tab"]',
+    )!;
+    act(() => {
+      reactProps(button).onClick({});
+    });
     expect(
-      t.host
-        .querySelector('.tilery__panel[data-panel-id="sidebar"]')
-        ?.getAttribute('data-collapsed'),
-    ).toBe('false');
+      t
+        .handle()
+        .getPanel('sidebar')!
+        .tabs.map((tab) => tab.id),
+    ).toEqual(['side', 'sidebar-new']);
+    t.cleanup();
+  });
+
+  it('leaves the new-tab button inert without a created tab', () => {
+    const withoutHandler = mount(lShapeLayout(), undefined, {
+      showNewTabButton: true,
+    });
+    const disabledButton = withoutHandler.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="sidebar"] .tilery__panel-action-button[aria-label="New tab"]',
+    )!;
+    expect(disabledButton.hasAttribute('disabled')).toBe(true);
+    act(() => {
+      reactProps(disabledButton).onClick({});
+    });
+    expect(withoutHandler.handle().getPanel('sidebar')!.tabs).toHaveLength(1);
+    withoutHandler.cleanup();
+
+    const withoutTab = mount(lShapeLayout(), undefined, {
+      showNewTabButton: true,
+      onNewTab: () => undefined,
+    });
+    const button = withoutTab.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="sidebar"] .tilery__panel-action-button[aria-label="New tab"]',
+    )!;
+    expect(button.hasAttribute('disabled')).toBe(false);
+    act(() => {
+      reactProps(button).onClick({});
+    });
+    expect(withoutTab.handle().getPanel('sidebar')!.tabs).toHaveLength(1);
+    withoutTab.cleanup();
+  });
+
+  it('applies per-panel action visibility predicates', () => {
+    const t = mount(lShapeLayout(), undefined, {
+      showActionsButton: (panel) => panel.id === 'editor',
+      showNewTabButton: (panel) => panel.id === 'editor',
+      onNewTab: () => ({ data: { title: 'New tab' } }),
+    });
+    expect(
+      t.host.querySelector(
+        '.tilery__panel[data-panel-id="sidebar"] .tilery__panel-actions',
+      ),
+    ).toBeNull();
+    expect(
+      t.host.querySelectorAll(
+        '.tilery__panel[data-panel-id="editor"] .tilery__panel-action-button',
+      ),
+    ).toHaveLength(2);
+    t.cleanup();
+  });
+
+  it('hides new-tab-only controls while fullscreen', () => {
+    const layout = lShapeLayout();
+    layout.panels[1] = { ...layout.panels[1]!, fullScreen: true };
+    const t = mount(layout, undefined, {
+      showNewTabButton: true,
+      onNewTab: () => ({ data: { title: 'New tab' } }),
+    });
+    expect(t.host.querySelector('.tilery__panel-actions')).toBeNull();
+    t.cleanup();
+  });
+
+  it('invokes built-in maximize and restores from a fullscreen minimize button', () => {
+    const t = mount(lShapeLayout(), undefined, {
+      showActionsButton: true,
+      showNewTabButton: true,
+    });
+    const button = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="editor"] .tilery__panel-action-button[aria-label="Panel actions"]',
+    )!;
+    expect(button.querySelector('svg')).not.toBeNull();
+    act(() => {
+      reactProps(button).onClick({});
+    });
+    const maximize = Array.from(
+      t.host.querySelectorAll<HTMLElement>('.tilery__panel-menu-item'),
+    ).find((el) => el.textContent === 'Maximize')!;
+    act(() => {
+      reactProps(maximize).onClick({});
+    });
+    expect(t.handle().getPanel('editor')!.fullScreen).toBe(true);
+    expect(t.host.querySelectorAll('.tilery__panel')).toHaveLength(1);
+    expect(t.host.querySelector('.tilery__panel-menu')).toBeNull();
+    expect(
+      t.host.querySelector(
+        '.tilery__panel-action-button[aria-label="Panel actions"]',
+      ),
+    ).toBeNull();
+    expect(
+      t.host.querySelector(
+        '.tilery__panel-action-button[aria-label="New tab"]',
+      ),
+    ).toBeNull();
+
+    const fullscreenButton = t.host.querySelectorAll<HTMLElement>(
+      '.tilery__panel-action-button[aria-label="Minimize panel"]',
+    );
+    expect(fullscreenButton).toHaveLength(1);
+    expect(fullscreenButton[0]!.querySelector('svg')).not.toBeNull();
+    act(() => {
+      reactProps(fullscreenButton[0]!).onClick({});
+    });
+    expect(t.handle().getPanel('editor')!.fullScreen).toBe(false);
+    expect(t.host.querySelectorAll('.tilery__panel')).toHaveLength(3);
+    t.cleanup();
+  });
+
+  it('stops pointerdown propagation from normal and fullscreen panel actions', () => {
+    const normal = mount(lShapeLayout(), undefined, {
+      showActionsButton: true,
+    });
+    const normalActions = normal.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="sidebar"] .tilery__panel-actions',
+    )!;
+    let normalStops = 0;
+    act(() => {
+      reactProps(normalActions).onPointerDown({
+        stopPropagation() {
+          normalStops++;
+        },
+      });
+    });
+    expect(normalStops).toBe(1);
+    normal.cleanup();
+
+    const layout = lShapeLayout();
+    layout.panels[1] = { ...layout.panels[1]!, fullScreen: true };
+    const fullscreen = mount(layout, undefined, {
+      showActionsButton: true,
+    });
+    const fullscreenActions = fullscreen.host.querySelector<HTMLElement>(
+      '.tilery__panel-actions',
+    )!;
+    let fullscreenStops = 0;
+    act(() => {
+      reactProps(fullscreenActions).onPointerDown({
+        stopPropagation() {
+          fullscreenStops++;
+        },
+      });
+    });
+    expect(fullscreenStops).toBe(1);
+    fullscreen.cleanup();
+  });
+
+  it('keeps the action menu open for regular keys and closes it on Escape', () => {
+    const t = mount(lShapeLayout(), undefined, {
+      showActionsButton: true,
+    });
+    const button = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="sidebar"] .tilery__panel-action-button[aria-label="Panel actions"]',
+    )!;
+    act(() => {
+      reactProps(button).onClick({});
+    });
+    const menu = t.host.querySelector<HTMLElement>('.tilery__panel-menu')!;
+    act(() => {
+      reactProps(menu).onKeyDown({ key: 'Enter' });
+    });
+    expect(t.host.querySelector('.tilery__panel-menu')).not.toBeNull();
+    act(() => {
+      reactProps(menu).onKeyDown({ key: 'Escape' });
+    });
+    expect(t.host.querySelector('.tilery__panel-menu')).toBeNull();
+    t.cleanup();
+  });
+
+  it('runs split actions from the built-in panel action menu', () => {
+    const t = mount(lShapeLayout(), undefined, {
+      showActionsButton: true,
+    });
+    const button = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="sidebar"] .tilery__panel-action-button[aria-label="Panel actions"]',
+    )!;
+    act(() => {
+      reactProps(button).onClick({});
+    });
+    const splitLeft = Array.from(
+      t.host.querySelectorAll<HTMLElement>('.tilery__panel-menu-item'),
+    ).find((el) => el.textContent === 'Split left')!;
+    act(() => {
+      reactProps(splitLeft).onClick({});
+    });
+    expect(t.handle().getPanels()).toHaveLength(4);
+    expect(t.host.querySelector('.tilery__panel-menu')).toBeNull();
+    t.cleanup();
+  });
+
+  it('runs close-panel actions from the built-in panel action menu', () => {
+    const t = mount(lShapeLayout(), undefined, {
+      showActionsButton: true,
+    });
+    const button = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="term"] .tilery__panel-action-button[aria-label="Panel actions"]',
+    )!;
+    act(() => {
+      reactProps(button).onClick({});
+    });
+    const close = Array.from(
+      t.host.querySelectorAll<HTMLElement>('.tilery__panel-menu-item'),
+    ).find((el) => el.textContent === 'Close panel')!;
+    act(() => {
+      reactProps(close).onClick({});
+    });
+    expect(t.handle().getPanel('term')).toBeNull();
+    expect(t.host.querySelector('.tilery__panel-menu')).toBeNull();
+    t.cleanup();
+  });
+
+  it('renders custom action content and custom action button icon', () => {
+    let selected = false;
+    const t = mount(lShapeLayout(), undefined, {
+      showActionsButton: true,
+      renderActionsButtonIcon: () => <span data-custom-icon="">••</span>,
+      renderPanelActions: (_panel, ctx) => (
+        <button
+          type="button"
+          className="tilery__panel-menu-item"
+          onClick={() => {
+            selected = true;
+            ctx.closeMenu();
+          }}>
+          Custom action
+        </button>
+      ),
+    });
+    expect(t.host.querySelector('[data-custom-icon]')).not.toBeNull();
+    const button = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="sidebar"] .tilery__panel-action-button[aria-label="Panel actions"]',
+    )!;
+    act(() => {
+      reactProps(button).onClick({});
+    });
+    const customAction = Array.from(
+      t.host.querySelectorAll<HTMLElement>('.tilery__panel-menu-item'),
+    ).find((el) => el.textContent === 'Custom action')!;
+    act(() => {
+      reactProps(customAction).onClick({});
+    });
+    expect(selected).toBe(true);
+    expect(t.host.querySelector('.tilery__panel-menu')).toBeNull();
     t.cleanup();
   });
 });
@@ -367,6 +607,36 @@ describe('Tilery — drag flow covers the drop overlay path', () => {
     expect(t.host.querySelector('.tilery__drag-ghost')).toBeNull();
     t.cleanup();
   });
+
+  it('shows sibling count while panel-dragging and falls back if that tab is removed', () => {
+    const t = mount(lShapeLayout());
+    const editorBar = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="editor"] .tilery__tab-bar',
+    )!;
+    editorBar.setPointerCapture = () => {};
+    editorBar.releasePointerCapture = () => {};
+    const down = pointerEvent({ clientX: 250, clientY: 10, pointerId: 12 });
+    Object.assign(down as unknown as Record<string, unknown>, {
+      currentTarget: editorBar,
+      target: editorBar,
+    });
+    act(() => {
+      reactProps(editorBar).onPointerDown(down);
+      reactProps(editorBar).onPointerMove(
+        pointerEvent({ clientX: 260, clientY: 80, pointerId: 12 }),
+      );
+    });
+    expect(t.host.querySelector('.tilery__drag-ghost')?.textContent).toBe(
+      'foo.ts+1',
+    );
+    act(() => {
+      t.handle().getTab('foo')!.remove();
+    });
+    expect(t.host.querySelector('.tilery__drag-ghost')?.textContent).toBe(
+      'Tab',
+    );
+    t.cleanup();
+  });
 });
 
 describe('Tilery — handle cache invalidation', () => {
@@ -384,13 +654,12 @@ describe('Tilery — handle cache invalidation', () => {
     t.cleanup();
   });
 
-  it('drops a panel handle from the cache after the panel is removed via auto-collapse', () => {
+  it('drops a panel handle from the cache after the panel is removed', () => {
     const t = mount(lShapeLayout());
     const h = t.handle();
     expect(h.getPanel('term')).not.toBeNull();
     act(() => {
-      // Removing the only tab in `term` triggers an auto-collapse that
-      // deletes the panel itself.
+      // Removing the only tab in `term` deletes the panel itself.
       h.getTab('sh')!.remove();
     });
     expect(h.getPanel('term')).toBeNull();

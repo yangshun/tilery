@@ -42,7 +42,7 @@ export {
   tilerySplitFitsMin,
   tileryClampDividerPosition,
   tileryApplyDividerResize,
-  tileryFindCollapseFillers,
+  tileryFindRemovalFillers,
   tileryGetFullScreenPanelId,
   tileryRectsOverlap,
   tileryPanelLeft,

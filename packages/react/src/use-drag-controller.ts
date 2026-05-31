@@ -127,7 +127,6 @@ export function useTileryDragController(tilery: () => TileryHandle | null) {
       for (const [panelId, tabBarEl] of refs.current.tabBarEls) {
         if (fullScreenPanelId && panelId !== fullScreenPanelId) continue;
         const panel = m?.getPanel(panelId);
-        if (panel?.collapsed) continue;
         const r = tabBarEl.getBoundingClientRect();
         if (x < r.left || x > r.right || y < r.top || y > r.bottom) continue;
         if (isOwnSoloPanel(panelId, draggedTabId)) continue;
@@ -148,8 +147,6 @@ export function useTileryDragController(tilery: () => TileryHandle | null) {
 
       if (!hoverTabBar && !fullScreenPanelId) {
         for (const [panelId, panelEl] of refs.current.panelEls) {
-          const panel = m?.getPanel(panelId);
-          if (panel?.collapsed) continue;
           const r = panelEl.getBoundingClientRect();
           const z = tileryZoneAt(
             { left: r.left, top: r.top, width: r.width, height: r.height },

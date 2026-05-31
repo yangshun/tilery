@@ -18,7 +18,7 @@ implementation in `~/Developer/greatfrontend/gfe/apps/web/src/react-tiling`.
 
 ## Missing parity with `react-tiling`
 
-### P0: Panel mode state (implemented)
+### P0: Panel mode state (partial)
 
 `react-tiling` supports panel-level mode fields that are not represented in
 `tilery` state:
@@ -30,30 +30,32 @@ implementation in `~/Developer/greatfrontend/gfe/apps/web/src/react-tiling`.
 
 Implemented behavior:
 
-- Panel mode metadata is represented on `TileryPanelState` and
+- Fullscreen panel metadata is represented on `TileryPanelState` and
   `TileryPanelInit`.
-- Reducer actions and handle APIs support collapsing, expanding, maximizing, and
-  restoring panels.
-- Collapsed panels keep their absolute inset, hide content, and can show a
-  collapsed title. Fullscreen panels render over the full container without
-  mutating stored insets.
+- Reducer actions and handle APIs support maximizing and restoring panels.
+- Fullscreen panels render over the full container without mutating stored
+  insets.
 - Dividers, junctions, and panel drop zones are suppressed while a panel is
   fullscreen; tab-bar reordering remains available for the fullscreen panel.
 
-### P0: Built-in panel action UI
+Deferred behavior:
+
+- `collapsed`, `collapsedTitle`, and `collapsible` need a cleaner design before
+  being added to public state or handles.
+
+### P0: Built-in panel action UI (implemented)
 
 `react-tiling` includes an action menu for panel operations. `tilery` currently
 only renders tabs, content, dividers, junctions, and drag overlays.
 
-Needed work:
+Implemented behavior:
 
-- Provide optional built-in controls for split, close, collapse, expand,
-  maximize, and restore.
-- Support custom action sections/components comparable to
-  `getCustomActionsOrComponents`.
-- Support custom dropdown icon behavior comparable to `getDropdownIcon`.
-- Add visibility controls comparable to `showActionsButton` and
-  `showNewTabButton`.
+- `showActionsButton` enables built-in split, close, and maximize/restore menu
+  actions.
+- `showNewTabButton` plus `onNewTab` supports host-supplied tab creation.
+- `renderPanelActions` appends custom actions/components to the panel action
+  menu.
+- `renderActionsButtonIcon` customizes the action menu trigger icon.
 
 ### P1: Tab metadata parity
 
@@ -114,8 +116,8 @@ Needed work:
   `TileryInitialLayout`.
 - Consider a reverse converter if existing persisted `react-tiling` layouts need
   to round-trip.
-- Document limitations around `defaultSize`, nested group identity, and collapsed
-  panel state.
+- Document limitations around `defaultSize`, nested group identity, and omitted
+  panel mode state.
 
 ### P2: Richer tab row behavior
 

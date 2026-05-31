@@ -299,6 +299,60 @@ describe('useTileryDragController — pointer flow', () => {
     panel2El.remove();
   });
 
+  it('computes hover state when the tilery handle is temporarily unavailable', () => {
+    const hook = renderHook(() => useTileryDragController(() => null));
+    const tabEl = document.createElement('div');
+    const panelEl = document.createElement('div');
+    document.body.append(tabEl, panelEl);
+    setBoundingClientRect(tabEl, {
+      left: 0,
+      top: 0,
+      right: 50,
+      bottom: 30,
+      width: 50,
+      height: 30,
+    });
+    setBoundingClientRect(panelEl, {
+      left: 100,
+      top: 100,
+      right: 300,
+      bottom: 300,
+      width: 200,
+      height: 200,
+    });
+    act(() => {
+      hook.current().registerPanel('P1', panelEl);
+    });
+    act(() => {
+      const down = pointerEvent('pointerdown', {
+        clientX: 25,
+        clientY: 15,
+        pointerId: 44,
+      });
+      Object.defineProperty(down, 'currentTarget', {
+        value: tabEl,
+        configurable: true,
+      });
+      hook.current().onTabPointerDown(asReact(down), 'T1');
+    });
+    act(() => {
+      hook.current().onTabPointerMove(
+        asReact(
+          pointerEvent('pointermove', {
+            clientX: 200,
+            clientY: 200,
+            pointerId: 44,
+          }),
+        ),
+      );
+    });
+    expect(hook.current().dragState?.hoverPanelId).toBe('P1');
+    expect(hook.current().dragState?.hoverZone).toBe('center');
+    hook.unmount();
+    tabEl.remove();
+    panelEl.remove();
+  });
+
   it('ignores pointermove with a different pointerId', () => {
     const { handle } = setupStore();
     const hook = renderHook(() => useTileryDragController(() => handle));
@@ -1006,7 +1060,7 @@ describe('useTileryDragController — hover detection', () => {
   });
 
   it('does NOT suppress same-axis split when the source has multiple tabs (source will survive)', () => {
-    // P1 [A] | P2 [B, C]. Dragging C onto P1: source P2 won't collapse, so
+    // P1 [A] | P2 [B, C]. Dragging C onto P1: source P2 won't be removed, so
     // the split IS structurally meaningful (P2 keeps B). Allow left/right.
     let state: TileryLayoutState = tileryCreateInitialState({
       panels: [

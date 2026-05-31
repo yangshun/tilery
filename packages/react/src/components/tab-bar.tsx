@@ -1,11 +1,17 @@
 'use client';
 
 import { useCallback } from 'react';
-import type { TileryPanelHandle, TileryTabHandle } from 'tilery/internal';
+import type {
+  TileryHandle,
+  TileryPanelHandle,
+  TileryTabHandle,
+} from 'tilery/internal';
+import { PanelActions, type PanelActionsProps } from './panel-actions';
 import { Tab } from './tab';
 
 export type TabBarProps = {
   panel: TileryPanelHandle;
+  tilery: TileryHandle;
   renderHeader: (
     tab: TileryTabHandle,
     ctx: { isActive: boolean },
@@ -24,7 +30,14 @@ export type TabBarProps = {
   onTabBarPointerUp: (e: React.PointerEvent) => void;
   onTabClick: (tabId: string) => void;
   onTabClose: (tabId: string) => void;
-};
+} & Pick<
+  PanelActionsProps,
+  | 'showActionsButton'
+  | 'showNewTabButton'
+  | 'onNewTab'
+  | 'renderPanelActions'
+  | 'renderActionsButtonIcon'
+>;
 
 function TabRow({
   tab,
@@ -79,6 +92,7 @@ function TabRow({
 
 export function TabBar({
   panel,
+  tilery,
   renderHeader,
   registerTabBar,
   registerTab,
@@ -90,6 +104,11 @@ export function TabBar({
   onTabBarPointerUp,
   onTabClick,
   onTabClose,
+  showActionsButton,
+  showNewTabButton,
+  onNewTab,
+  renderPanelActions,
+  renderActionsButtonIcon,
 }: TabBarProps) {
   const panelId = panel.id;
   /* v8 ignore next */
@@ -99,29 +118,38 @@ export function TabBar({
   );
   return (
     <div
-      ref={registerTabBar}
       className="tilery__tab-bar"
-      role="tablist"
       data-panel-id={panel.id}
       onPointerDown={handleBarDown}
       onPointerMove={onTabPointerMove}
       onPointerUp={onTabBarPointerUp}
       onPointerCancel={onTabPointerCancel}>
-      {panel.tabs.map((tab) => (
-        <TabRow
-          key={tab.id}
-          tab={tab}
-          isActive={panel.activeTab?.id === tab.id}
-          renderHeader={renderHeader}
-          registerTab={registerTab}
-          onTabPointerDown={onTabPointerDown}
-          onTabPointerMove={onTabPointerMove}
-          onTabPointerUp={onTabPointerUp}
-          onTabPointerCancel={onTabPointerCancel}
-          onTabClick={onTabClick}
-          onTabClose={onTabClose}
-        />
-      ))}
+      <div ref={registerTabBar} className="tilery__tab-list" role="tablist">
+        {panel.tabs.map((tab) => (
+          <TabRow
+            key={tab.id}
+            tab={tab}
+            isActive={panel.activeTab?.id === tab.id}
+            renderHeader={renderHeader}
+            registerTab={registerTab}
+            onTabPointerDown={onTabPointerDown}
+            onTabPointerMove={onTabPointerMove}
+            onTabPointerUp={onTabPointerUp}
+            onTabPointerCancel={onTabPointerCancel}
+            onTabClick={onTabClick}
+            onTabClose={onTabClose}
+          />
+        ))}
+      </div>
+      <PanelActions
+        panel={panel}
+        tilery={tilery}
+        showActionsButton={showActionsButton}
+        showNewTabButton={showNewTabButton}
+        onNewTab={onNewTab}
+        renderPanelActions={renderPanelActions}
+        renderActionsButtonIcon={renderActionsButtonIcon}
+      />
     </div>
   );
 }

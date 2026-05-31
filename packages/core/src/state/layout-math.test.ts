@@ -4,7 +4,7 @@ import {
   tileryClampDividerPosition,
   tileryDeriveDividers,
   tileryDeriveJunctions,
-  tileryFindCollapseFillers,
+  tileryFindRemovalFillers,
   tileryPanelBottom,
   tileryPanelHeight,
   tileryPanelLeft,
@@ -210,7 +210,7 @@ describe('tileryClampDividerPosition + tileryApplyDividerResize', () => {
   });
 });
 
-describe('tileryReducer — split, move-tab, auto-collapse', () => {
+describe('tileryReducer — split, move-tab, auto-remove', () => {
   const baseLayout = () =>
     tileryCreateInitialState({
       panels: [
@@ -275,9 +275,9 @@ describe('tileryReducer — split, move-tab, auto-collapse', () => {
     expect(next.tabs.te1!.panelId).toBe('terminal');
   });
 
-  it('REMOVE_TAB auto-collapses a panel when last tab is removed (vertical neighbor reflows)', () => {
+  it('REMOVE_TAB removes a panel when last tab is removed (vertical neighbor reflows)', () => {
     const state = baseLayout();
-    // Remove sidebar's only tab — sidebar auto-collapses; editor + terminal both extend left
+    // Remove sidebar's only tab; editor + terminal both extend left.
     const next = tileryReducer(state, { type: 'REMOVE_TAB', tabId: 'ts' });
     expect(next.panels.sidebar).toBeUndefined();
     expect(next.panelOrder).not.toContain('sidebar');
@@ -296,10 +296,10 @@ describe('tileryReducer — split, move-tab, auto-collapse', () => {
     expect(next.tabs.ts).toBeUndefined();
   });
 
-  it('REMOVE_TAB auto-collapses with horizontal neighbor reflow', () => {
+  it('REMOVE_TAB removes an empty panel with horizontal neighbor reflow', () => {
     const state = baseLayout();
     const next = tileryReducer(state, { type: 'REMOVE_TAB', tabId: 'tt' });
-    // terminal collapses; editor extends down to fill the bottom half
+    // Terminal is removed; editor extends down to fill the bottom half.
     expect(next.panels.terminal).toBeUndefined();
     expect(next.panels.editor!.inset).toEqual({
       top: 0,
@@ -309,14 +309,14 @@ describe('tileryReducer — split, move-tab, auto-collapse', () => {
     });
   });
 
-  it('REMOVE_TAB without auto-collapse selects a neighbor as active when the active is removed', () => {
+  it('REMOVE_TAB without panel removal selects a neighbor as active when the active is removed', () => {
     const state = baseLayout();
     const next = tileryReducer(state, { type: 'REMOVE_TAB', tabId: 'te1' });
     expect(next.panels.editor!.tabs).toEqual(['te2']);
     expect(next.panels.editor!.activeTabId).toBe('te2');
   });
 
-  it('MOVE_TAB out of last-tab panel auto-collapses the source panel', () => {
+  it('MOVE_TAB out of last-tab panel removes the source panel', () => {
     const state: TileryLayoutState = tileryCreateInitialState({
       panels: [
         {
@@ -347,7 +347,7 @@ describe('tileryReducer — split, move-tab, auto-collapse', () => {
   });
 });
 
-describe('tileryFindCollapseFillers — edge cases', () => {
+describe('tileryFindRemovalFillers — edge cases', () => {
   it('expands a left neighbor over a removed right panel of equal height', () => {
     const state = tileryCreateInitialState({
       panels: [
@@ -363,7 +363,7 @@ describe('tileryFindCollapseFillers — edge cases', () => {
         },
       ],
     });
-    const fillers = tileryFindCollapseFillers(
+    const fillers = tileryFindRemovalFillers(
       Object.values(state.panels),
       state.panels.R!,
     );
@@ -388,7 +388,7 @@ describe('tileryFindCollapseFillers — edge cases', () => {
         },
       ],
     });
-    const fillers = tileryFindCollapseFillers(
+    const fillers = tileryFindRemovalFillers(
       Object.values(state.panels),
       state.panels.B!,
     );
@@ -412,7 +412,7 @@ describe('tileryFindCollapseFillers — edge cases', () => {
         },
       ],
     });
-    const fillers = tileryFindCollapseFillers(
+    const fillers = tileryFindRemovalFillers(
       Object.values(state.panels),
       state.panels.T!,
     );
@@ -438,7 +438,7 @@ describe('tileryFindCollapseFillers — edge cases', () => {
       ],
     });
     expect(
-      tileryFindCollapseFillers(Object.values(state.panels), state.panels.A!),
+      tileryFindRemovalFillers(Object.values(state.panels), state.panels.A!),
     ).toEqual([]);
   });
 
@@ -459,7 +459,7 @@ describe('tileryFindCollapseFillers — edge cases', () => {
       ],
     });
     expect(
-      tileryFindCollapseFillers(Object.values(state.panels), state.panels.R!),
+      tileryFindRemovalFillers(Object.values(state.panels), state.panels.R!),
     ).toEqual([]);
   });
 });

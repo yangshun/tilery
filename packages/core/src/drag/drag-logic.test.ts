@@ -556,7 +556,7 @@ describe('tileryCommitDrag — panelDrag=true (moves all tabs)', () => {
   }
 
   it('tab-bar append moves all tabs from source panel', () => {
-    const { handle, calls, activeCalls } = panelDragHandle();
+    const { handle, calls } = panelDragHandle();
     tileryCommitDrag(
       handle,
       {
@@ -576,7 +576,7 @@ describe('tileryCommitDrag — panelDrag=true (moves all tabs)', () => {
   });
 
   it('preserves original tab order when active tab is not the first tab', () => {
-    const { handle, calls, activeCalls } = panelDragHandle();
+    const { handle, calls } = panelDragHandle();
     // T2 is the active/lead tab (middle position in [T1, T2, T3])
     tileryCommitDrag(
       handle,
@@ -598,7 +598,7 @@ describe('tileryCommitDrag — panelDrag=true (moves all tabs)', () => {
   });
 
   it('tab-bar before moves all tabs from source panel', () => {
-    const { handle, calls, activeCalls } = panelDragHandle();
+    const { handle, calls } = panelDragHandle();
     tileryCommitDrag(
       handle,
       {
@@ -621,7 +621,7 @@ describe('tileryCommitDrag — panelDrag=true (moves all tabs)', () => {
   });
 
   it('tab-bar after moves all tabs from source panel', () => {
-    const { handle, calls, activeCalls } = panelDragHandle();
+    const { handle, calls } = panelDragHandle();
     tileryCommitDrag(
       handle,
       {
@@ -644,7 +644,7 @@ describe('tileryCommitDrag — panelDrag=true (moves all tabs)', () => {
   });
 
   it('center zone moves all tabs to target panel', () => {
-    const { handle, calls, activeCalls } = panelDragHandle();
+    const { handle, calls } = panelDragHandle();
     tileryCommitDrag(
       handle,
       {
@@ -664,7 +664,7 @@ describe('tileryCommitDrag — panelDrag=true (moves all tabs)', () => {
   });
 
   it('directional zone splits and moves all tabs when panelDrag=true', () => {
-    const { handle, calls, swapCalls, activeCalls } = panelDragHandle();
+    const { handle, calls, swapCalls } = panelDragHandle();
     tileryCommitDrag(
       handle,
       {

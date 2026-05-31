@@ -63,12 +63,6 @@ export function makeTileryHandle(
     removePanel(panelId) {
       dispatch({ type: 'REMOVE_PANEL', panelId });
     },
-    collapsePanel(panelId) {
-      dispatch({ type: 'SET_PANEL_COLLAPSED', panelId, collapsed: true });
-    },
-    expandPanel(panelId) {
-      dispatch({ type: 'SET_PANEL_COLLAPSED', panelId, collapsed: false });
-    },
     maximizePanel(panelId) {
       dispatch({ type: 'SET_PANEL_FULLSCREEN', panelId, fullScreen: true });
     },
@@ -156,15 +150,6 @@ export function tileryMakePanelHandle(
       if (!p || !p.activeTabId) return null;
       return tileryMakeTabHandle(p.activeTabId, getState, dispatch, tilery);
     },
-    get collapsed() {
-      return getState().panels[id]?.collapsed ?? false;
-    },
-    get collapsedTitle() {
-      return getState().panels[id]?.collapsedTitle;
-    },
-    get collapsible() {
-      return getState().panels[id]?.collapsible ?? false;
-    },
     get fullScreen() {
       return getState().panels[id]?.fullScreen ?? false;
     },
@@ -179,12 +164,6 @@ export function tileryMakePanelHandle(
     },
     remove() {
       tilery.removePanel(id);
-    },
-    collapse() {
-      tilery.collapsePanel(id);
-    },
-    expand() {
-      tilery.expandPanel(id);
     },
     maximize() {
       tilery.maximizePanel(id);

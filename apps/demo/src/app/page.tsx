@@ -17,12 +17,30 @@ const principles = [
 ];
 
 const capabilities = [
-  ['Tab movement', 'Reorder tabs, move them across panels, or drop them into new split zones.'],
-  ['Resize model', 'Dividers and junction handles are derived from layout geometry automatically.'],
-  ['Rendering control', 'Bring your own tab headers, panel content, icons, and interaction chrome.'],
-  ['Styling system', 'Tune the default surface with CSS variables instead of replacing the whole renderer.'],
-  ['Core package', 'Keep state and layout operations framework-agnostic, with React as the first adapter.'],
-  ['Imperative API', 'Split, append, insert, remove, activate, swap, and inspect layouts from product code.'],
+  [
+    'Tab movement',
+    'Reorder tabs, move them across panels, or drop them into new split zones.',
+  ],
+  [
+    'Resize model',
+    'Dividers and junction handles are derived from layout geometry automatically.',
+  ],
+  [
+    'Rendering control',
+    'Bring your own tab headers, panel content, icons, and interaction chrome.',
+  ],
+  [
+    'Styling system',
+    'Tune the default surface with CSS variables instead of replacing the whole renderer.',
+  ],
+  [
+    'Core package',
+    'Keep state and layout operations framework-agnostic, with React as the first adapter.',
+  ],
+  [
+    'Imperative API',
+    'Split, append, insert, remove, activate, swap, and inspect layouts from product code.',
+  ],
 ];
 
 const links = [
@@ -42,10 +60,14 @@ export default function Home() {
           state, and programmable workspaces.
         </p>
         <div className="home-actions">
-          <Link className="home-button home-button--primary" href="/docs/getting-started">
+          <Link
+            className="home-button home-button--primary"
+            href="/docs/getting-started">
             Start building
           </Link>
-          <Link className="home-button home-button--secondary" href="/examples/ide">
+          <Link
+            className="home-button home-button--secondary"
+            href="/examples/ide">
             Open the IDE example
           </Link>
         </div>
@@ -61,7 +83,9 @@ export default function Home() {
         <HomeDemo />
       </section>
 
-      <section className="home-principles" aria-label="Tilery design principles">
+      <section
+        className="home-principles"
+        aria-label="Tilery design principles">
         {principles.map((item) => (
           <article key={item.title} className="home-principle">
             <h2>{item.title}</h2>
@@ -70,7 +94,9 @@ export default function Home() {
         ))}
       </section>
 
-      <section className="home-capabilities" aria-labelledby="capabilities-title">
+      <section
+        className="home-capabilities"
+        aria-labelledby="capabilities-title">
         <div>
           <h2 id="capabilities-title">The primitives for panel-based apps.</h2>
         </div>

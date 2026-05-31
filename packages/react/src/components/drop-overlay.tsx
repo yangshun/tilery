@@ -55,7 +55,7 @@ function renderTabBarInsertion(
 ): React.ReactNode {
   const { panelId, hit } = hoverTabBar;
   const tabBar = container.querySelector<HTMLElement>(
-    `.tilery__panel[data-panel-id="${cssEscape(panelId)}"] .tilery__tab-bar`,
+    `.tilery__panel[data-panel-id="${cssEscape(panelId)}"] .tilery__tab-list, .tilery__panel[data-panel-id="${cssEscape(panelId)}"] .tilery__tab-bar`,
   );
   if (!tabBar) return null;
   const barRect = tabBar.getBoundingClientRect();

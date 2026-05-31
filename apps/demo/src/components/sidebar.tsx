@@ -36,7 +36,11 @@ export function Sidebar({ groups }: { groups: SidebarGroup[] }) {
           aria-controls="site-sidebar-nav"
           aria-label={isOpen ? 'Close navigation menu' : 'Open navigation menu'}
           onClick={() => setIsOpen((open) => !open)}>
-          {isOpen ? <RiCloseLine aria-hidden="true" /> : <RiMenuLine aria-hidden="true" />}
+          {isOpen ? (
+            <RiCloseLine aria-hidden="true" />
+          ) : (
+            <RiMenuLine aria-hidden="true" />
+          )}
         </button>
       </div>
       <nav id="site-sidebar-nav" className="sidebar__nav">

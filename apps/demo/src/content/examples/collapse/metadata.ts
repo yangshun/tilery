@@ -1,5 +1,5 @@
 export const metadata = {
   slug: 'collapse',
-  title: 'Collapsing Panels',
-  description: 'Collapse, expand, maximize, and restore panel modes.',
+  title: 'Panel Actions',
+  description: 'Built-in panel actions, custom menu items, and new-tab hooks.',
 };

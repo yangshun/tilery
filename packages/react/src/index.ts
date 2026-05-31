@@ -1,4 +1,10 @@
-export { Tilery, type TileryProps } from './tilery';
+export {
+  Tilery,
+  type TileryNewTabHandler,
+  type TileryPanelActionsRenderContext,
+  type TileryPanelVisibility,
+  type TileryProps,
+} from './tilery';
 export {
   useTileryPointerDrag,
   type TileryPointerDragOptions,
