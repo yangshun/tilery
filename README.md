@@ -104,7 +104,7 @@ The main component. Renders a tiling panel layout.
   renderTabHeader={renderTabHeader}
   renderTabContent={renderTabContent}
   onChange={handleChange}
-  minPanelSizePercent={10}
+  minSize={10}
   showActionsButton
   showNewTabButton={(panel) => panel.id === 'editor'}
   onNewTab={(panel) => ({ data: { title: 'Untitled' } })}
@@ -116,19 +116,19 @@ The main component. Renders a tiling panel layout.
 
 #### Props
 
-| Prop                      | Type                                                                     | Required | Description                                        |
-| ------------------------- | ------------------------------------------------------------------------ | -------- | -------------------------------------------------- |
-| `initialLayout`           | `TileryInitialLayout<TData>`                                             | Yes      | The initial panel and tab configuration            |
-| `renderTabHeader`         | `(tab: TileryTabHandle<TData>, ctx: { isActive: boolean }) => ReactNode` | Yes      | Renders the tab button content                     |
-| `renderTabContent`        | `(tab: TileryTabHandle<TData>) => ReactNode`                             | Yes      | Renders the tab panel content                      |
-| `onChange`                | `(state: TileryLayoutState) => void`                                     | No       | Called after every state change                    |
-| `minPanelSizePercent`     | `number`                                                                 | No       | Minimum panel size as a percentage (default: `10`) |
-| `showActionsButton`       | `boolean \| (panel: TileryPanelHandle) => boolean`                       | No       | Shows the built-in panel action menu               |
-| `showNewTabButton`        | `boolean \| (panel: TileryPanelHandle) => boolean`                       | No       | Shows the optional new-tab button                  |
-| `onNewTab`                | `(panel, ctx) => TileryTabInit<TData> \| void`                           | No       | Handles the new-tab button                         |
-| `renderPanelActions`      | `(panel, ctx) => ReactNode`                                              | No       | Appends custom content to the panel action menu    |
-| `renderActionsButtonIcon` | `(panel) => ReactNode`                                                   | No       | Customizes the action menu button icon             |
-| `ref`                     | `Ref<TileryHandle>`                                                      | No       | Imperative handle for programmatic control         |
+| Prop                      | Type                                                                     | Required | Description                                     |
+| ------------------------- | ------------------------------------------------------------------------ | -------- | ----------------------------------------------- |
+| `initialLayout`           | `TileryInitialLayout<TData>`                                             | Yes      | The initial panel and tab configuration         |
+| `renderTabHeader`         | `(tab: TileryTabHandle<TData>, ctx: { isActive: boolean }) => ReactNode` | Yes      | Renders the tab button content                  |
+| `renderTabContent`        | `(tab: TileryTabHandle<TData>) => ReactNode`                             | Yes      | Renders the tab panel content                   |
+| `onChange`                | `(state: TileryLayoutState) => void`                                     | No       | Called after every state change                 |
+| `minSize`                 | `number`                                                                 | No       | Default minimum panel size percentage           |
+| `showActionsButton`       | `boolean \| (panel: TileryPanelHandle) => boolean`                       | No       | Shows the built-in panel action menu            |
+| `showNewTabButton`        | `boolean \| (panel: TileryPanelHandle) => boolean`                       | No       | Shows the optional new-tab button               |
+| `onNewTab`                | `(panel, ctx) => TileryTabInit<TData> \| void`                           | No       | Handles the new-tab button                      |
+| `renderPanelActions`      | `(panel, ctx) => ReactNode`                                              | No       | Appends custom content to the panel action menu |
+| `renderActionsButtonIcon` | `(panel) => ReactNode`                                                   | No       | Customizes the action menu button icon          |
+| `ref`                     | `Ref<TileryHandle>`                                                      | No       | Imperative handle for programmatic control      |
 
 ### `TileryInitialLayout<TData>`
 
@@ -140,6 +140,8 @@ type TileryInitialLayout<TData> =
       type: 'panel';
       id?: string;
       size?: number;
+      minSize?: number;
+      maxSize?: number;
       tabs: TileryTabInit<TData>[];
       activeTabId?: string;
       fullScreen?: boolean;
@@ -164,6 +166,9 @@ children left to right; a vertical split places its children top to bottom.
 `size` belongs to each child item and controls that child's allocation
 inside its parent split. Omitted child sizes share the remaining space. A root
 node's `size` is ignored.
+
+Panels can also define `minSize` and `maxSize` constraints as percentages.
+These constraints override the root `minSize` fallback when resizing dividers.
 
 A fullscreen panel renders over the full Tilery container, suppresses
 dividers and panel drop zones until it is restored.
@@ -201,6 +206,8 @@ Returned by `getPanel()`. Provides panel-scoped operations.
 | `tabs`                         | Array of `TileryTabHandle` for this panel          |
 | `activeTab`                    | The active `TileryTabHandle` or `null`             |
 | `fullScreen`                   | Whether this panel is currently fullscreen         |
+| `minSize`                      | Panel minimum size constraint, if set              |
+| `maxSize`                      | Panel maximum size constraint, if set              |
 | `appendTab(tab, opts?)`        | Append a tab to this panel                         |
 | `insertTab(tab, index, opts?)` | Insert a tab at index                              |
 | `split(direction, opts?)`      | Split this panel                                   |
@@ -237,6 +244,8 @@ type TileryMoveTarget =
       splitPanel: TileryPanelId;
       direction: TileryDirection;
       size?: number;
+      minSize?: number;
+      maxSize?: number;
     }; // Split into new panel
 ```
 

@@ -211,7 +211,7 @@ export function tileryClampLayoutDividerPosition(
   layout: TileryLayoutTree | null | undefined,
   splitId: string,
   targetPosition: number,
-  minSizePercent: number,
+  minSize: number,
 ): number | null {
   const match = findBoundaryWithRect(layout, splitId, ROOT_RECT);
   if (!match) return null;
@@ -226,8 +226,8 @@ export function tileryClampLayoutDividerPosition(
     pairStart + childSizes[boundaryIndex]! + childSizes[boundaryIndex + 1]!;
   const current =
     start + (span * (pairStart + childSizes[boundaryIndex]!)) / 100;
-  const min = start + (span * (pairStart + minSizePercent)) / 100;
-  const max = start + (span * (pairEnd - minSizePercent)) / 100;
+  const min = start + (span * (pairStart + minSize)) / 100;
+  const max = start + (span * (pairEnd - minSize)) / 100;
   if (min > max) return current;
   return Math.max(min, Math.min(max, targetPosition));
 }

@@ -59,7 +59,7 @@ export type TileryProps<TData = unknown> = {
   ) => React.ReactNode;
   renderTabContent: (tab: TileryTabHandle<TData>) => React.ReactNode;
   onChange?: (state: TileryLayoutState) => void;
-  minPanelSizePercent?: number;
+  minSize?: number;
   showActionsButton?: TileryPanelVisibility;
   showNewTabButton?: TileryPanelVisibility;
   onNewTab?: TileryNewTabHandler<TData>;
@@ -79,7 +79,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
     renderTabHeader,
     renderTabContent,
     onChange,
-    minPanelSizePercent = 10,
+    minSize = 10,
     showActionsButton = false,
     showNewTabButton = false,
     onNewTab,
@@ -106,13 +106,13 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
         dispatch({
           ...action,
           /* v8 ignore next */
-          minSizePercent: action.minSizePercent ?? minPanelSizePercent,
+          minSize: action.minSize ?? minSize,
         });
       } else {
         dispatch(action);
       }
     },
-    [minPanelSizePercent],
+    [minSize],
   );
 
   const getState = useCallback(() => stateRef.current, []);
@@ -275,10 +275,10 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
         type: 'RESIZE_DIVIDER',
         dividerId,
         newPosition,
-        minSizePercent: minPanelSizePercent,
+        minSize,
       });
     },
-    [dispatchWithMin, minPanelSizePercent],
+    [dispatchWithMin, minSize],
   );
   const onJunctionDrag = useCallback(
     (junctionId: string, x: number, y: number) => {
@@ -287,10 +287,10 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
         junctionId,
         x,
         y,
-        minSizePercent: minPanelSizePercent,
+        minSize,
       });
     },
-    [dispatchWithMin, minPanelSizePercent],
+    [dispatchWithMin, minSize],
   );
 
   const renderHeaderAdapter = useCallback(

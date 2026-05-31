@@ -81,12 +81,16 @@ describe('TileryHandle mutations', () => {
     const { handle, dispatched } = makeStore();
     handle.splitPanel('P1', 'bottom', {
       size: 30,
+      minSize: 20,
+      maxSize: 80,
       activate: false,
       tabs: [{ id: 'NEW', data: { title: 'new' } }],
     });
     const action = dispatched[0]!;
     if (action.type !== 'SPLIT_PANEL') throw new Error('expected SPLIT_PANEL');
     expect(action.sizePercent).toBe(30);
+    expect(action.minSize).toBe(20);
+    expect(action.maxSize).toBe(80);
     expect(action.activate).toBe(false);
     expect(action.tabs).toEqual([
       { id: 'NEW', data: { title: 'new' }, closeable: true },
@@ -202,6 +206,8 @@ describe('TileryHandle.moveTab — every TileryMoveTarget shape', () => {
       splitPanel: 'P2',
       direction: 'top',
       size: 25,
+      minSize: 15,
+      maxSize: 65,
     });
     const action = dispatched[0]!;
     if (action.type !== 'MOVE_TAB') throw new Error('expected MOVE_TAB');
@@ -210,6 +216,8 @@ describe('TileryHandle.moveTab — every TileryMoveTarget shape', () => {
     expect(action.to.splitPanelId).toBe('P2');
     expect(action.to.direction).toBe('top');
     expect(action.to.sizePercent).toBe(25);
+    expect(action.to.minSize).toBe(15);
+    expect(action.to.maxSize).toBe(65);
     expect(action.to.newPanelId).toMatch(/^p_/);
   });
   it('splitPanel target defaults size to 50', () => {
@@ -261,6 +269,8 @@ describe('TileryPanelHandle', () => {
           inset: { top: 0, right: 0, bottom: 0, left: 0 },
           tabs: [{ id: 'T', data: {} }],
           fullScreen: false,
+          minSize: 20,
+          maxSize: 80,
         },
       ],
     });
@@ -272,6 +282,8 @@ describe('TileryPanelHandle', () => {
     );
     const panel = handle.getPanel('P')!;
     expect(panel.fullScreen).toBe(false);
+    expect(panel.minSize).toBe(20);
+    expect(panel.maxSize).toBe(80);
     panel.maximize();
     expect(panel.fullScreen).toBe(true);
   });
@@ -280,6 +292,8 @@ describe('TileryPanelHandle', () => {
     const panel = handle.getPanel('P1')!;
     handle.removePanel('P1');
     expect(panel.fullScreen).toBe(false);
+    expect(panel.minSize).toBeUndefined();
+    expect(panel.maxSize).toBeUndefined();
   });
   it('returns null activeTab when the panel exists but activeTabId is null', () => {
     let state = createStateFromPanels({

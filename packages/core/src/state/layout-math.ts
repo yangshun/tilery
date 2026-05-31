@@ -16,7 +16,7 @@ import {
   tilerySyncLayoutPanels,
 } from './layout-tree';
 
-export const TILERY_DEFAULT_MIN_PANEL_SIZE = 10;
+export const TILERY_DEFAULT_MIN_SIZE = 10;
 const EPSILON = 0.0001;
 
 const eq = (a: number, b: number) => Math.abs(a - b) < EPSILON;
@@ -167,7 +167,7 @@ export function tileryApplyJunctionResize(
   state: TileryLayoutState,
   junction: TileryJunction,
   position: { x: number; y: number },
-  minSizePercent: number = TILERY_DEFAULT_MIN_PANEL_SIZE,
+  minSize: number = TILERY_DEFAULT_MIN_SIZE,
 ): TileryLayoutState {
   const dividers = tileryDeriveDividers(state);
   const vertical = dividers.find((d) => d.id === junction.verticalDividerId);
@@ -176,18 +176,8 @@ export function tileryApplyJunctionResize(
   );
   if (!vertical || !horizontal) return state;
 
-  const x = tileryClampDividerPosition(
-    state,
-    vertical,
-    position.x,
-    minSizePercent,
-  );
-  const y = tileryClampDividerPosition(
-    state,
-    horizontal,
-    position.y,
-    minSizePercent,
-  );
+  const x = tileryClampDividerPosition(state, vertical, position.x, minSize);
+  const y = tileryClampDividerPosition(state, horizontal, position.y, minSize);
   return tileryApplyDividerResize(
     tileryApplyDividerResize(state, vertical, x),
     horizontal,
@@ -323,21 +313,49 @@ function computeAdjacentSegments(
   });
 }
 
+function finiteSize(value: number | undefined): number | null {
+  return typeof value === 'number' && Number.isFinite(value)
+    ? Math.max(0, value)
+    : null;
+}
+
+type SizeConstraints = {
+  minSize?: number;
+  maxSize?: number;
+};
+
+function panelMinSize(panel: TileryPanelState, fallback: number): number {
+  return finiteSize(panel.minSize) ?? Math.max(0, fallback);
+}
+
+function panelMaxSize(panel: TileryPanelState): number {
+  return finiteSize(panel.maxSize) ?? Infinity;
+}
+
+function sizeFits(
+  size: number,
+  constraints: SizeConstraints,
+  fallbackMinSize: number,
+): boolean {
+  const min = finiteSize(constraints.minSize) ?? Math.max(0, fallbackMinSize);
+  const max = finiteSize(constraints.maxSize) ?? Infinity;
+  return size >= min - EPSILON && size <= max + EPSILON;
+}
+
 export function tileryClampDividerPosition(
   state: TileryLayoutState,
   divider: TileryDivider,
   targetPosition: number,
-  minSizePercent: number = TILERY_DEFAULT_MIN_PANEL_SIZE,
+  minSize: number = TILERY_DEFAULT_MIN_SIZE,
 ): number {
   if (divider.splitId && state.layout) {
-    return (
-      tileryClampLayoutDividerPosition(
-        state.layout,
-        divider.splitId,
-        targetPosition,
-        minSizePercent,
-      ) ?? divider.position
+    const current = tileryClampLayoutDividerPosition(
+      state.layout,
+      divider.splitId,
+      divider.position,
+      minSize,
     );
+    if (current == null) return divider.position;
   }
   let min = 0;
   let max = 100;
@@ -345,37 +363,27 @@ export function tileryClampDividerPosition(
     for (const id of divider.beforePanels) {
       const p = state.panels[id];
       if (!p) continue;
-      const newRight = 100 - targetPosition;
-      const width = 100 - p.inset.left - newRight;
-      if (width < minSizePercent) {
-        min = Math.max(min, p.inset.left + minSizePercent);
-      }
+      min = Math.max(min, p.inset.left + panelMinSize(p, minSize));
+      max = Math.min(max, p.inset.left + panelMaxSize(p));
     }
     for (const id of divider.afterPanels) {
       const p = state.panels[id];
       if (!p) continue;
-      const width = 100 - targetPosition - p.inset.right;
-      if (width < minSizePercent) {
-        max = Math.min(max, 100 - p.inset.right - minSizePercent);
-      }
+      min = Math.max(min, 100 - p.inset.right - panelMaxSize(p));
+      max = Math.min(max, 100 - p.inset.right - panelMinSize(p, minSize));
     }
   } else {
     for (const id of divider.beforePanels) {
       const p = state.panels[id];
       if (!p) continue;
-      const newBottom = 100 - targetPosition;
-      const h = 100 - p.inset.top - newBottom;
-      if (h < minSizePercent) {
-        min = Math.max(min, p.inset.top + minSizePercent);
-      }
+      min = Math.max(min, p.inset.top + panelMinSize(p, minSize));
+      max = Math.min(max, p.inset.top + panelMaxSize(p));
     }
     for (const id of divider.afterPanels) {
       const p = state.panels[id];
       if (!p) continue;
-      const h = 100 - targetPosition - p.inset.bottom;
-      if (h < minSizePercent) {
-        max = Math.min(max, 100 - p.inset.bottom - minSizePercent);
-      }
+      min = Math.max(min, 100 - p.inset.bottom - panelMaxSize(p));
+      max = Math.min(max, 100 - p.inset.bottom - panelMinSize(p, minSize));
     }
   }
   if (min > max) return divider.position;
@@ -386,13 +394,43 @@ export function tilerySplitFitsMin(
   inset: TileryInset,
   direction: TileryDirection,
   sizePercent: number,
-  minSizePercent: number = TILERY_DEFAULT_MIN_PANEL_SIZE,
+  minSize: number = TILERY_DEFAULT_MIN_SIZE,
 ): boolean {
   const { source, created } = tilerySplitInset(inset, direction, sizePercent);
-  const tol = minSizePercent - EPSILON;
+  const tol = minSize - EPSILON;
   const fits = (i: TileryInset) =>
     100 - i.left - i.right >= tol && 100 - i.top - i.bottom >= tol;
   return fits(source) && fits(created);
+}
+
+export function tilerySplitFitsPanelConstraints(
+  sourcePanel: TileryPanelState,
+  direction: TileryDirection,
+  sizePercent: number,
+  createdConstraints: SizeConstraints = {},
+  minSize: number = TILERY_DEFAULT_MIN_SIZE,
+): boolean {
+  const { source, created } = tilerySplitInset(
+    sourcePanel.inset,
+    direction,
+    sizePercent,
+  );
+  const axisSize =
+    direction === 'left' || direction === 'right'
+      ? tileryPanelWidth
+      : tileryPanelHeight;
+  return (
+    sizeFits(
+      axisSize({ ...sourcePanel, inset: source }),
+      sourcePanel,
+      minSize,
+    ) &&
+    sizeFits(
+      axisSize({ ...sourcePanel, inset: created }),
+      createdConstraints,
+      minSize,
+    )
+  );
 }
 
 export function tileryApplyDividerResize(

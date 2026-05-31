@@ -136,6 +136,8 @@ describe('tileryCreateInitialState', () => {
           size: 50,
           tabs: [{ id: 'T1', data: {} }],
           fullScreen: true,
+          minSize: 20,
+          maxSize: 70,
         },
         {
           type: 'panel',
@@ -148,6 +150,8 @@ describe('tileryCreateInitialState', () => {
     });
     expect(state.panels.P1).toMatchObject({
       fullScreen: true,
+      minSize: 20,
+      maxSize: 70,
     });
     expect(state.panels.P2).toMatchObject({
       fullScreen: false,
@@ -241,11 +245,15 @@ describe('tileryReducer dispatch matrix', () => {
       direction: 'right',
       sizePercent: 50,
       newPanelId: 'NEW',
+      minSize: 15,
+      maxSize: 55,
       tabs: [],
       activate: true,
     });
     expect(next.panels.NEW!.tabs).toEqual([]);
     expect(next.panels.NEW!.activeTabId).toBeNull();
+    expect(next.panels.NEW!.minSize).toBe(15);
+    expect(next.panels.NEW!.maxSize).toBe(55);
     expect(next.panelOrder).toEqual(['L', 'NEW', 'R']);
   });
   it('SPLIT_PANEL falls back to flat insets when no layout tree exists', () => {
@@ -711,11 +719,15 @@ describe('tileryReducer dispatch matrix', () => {
         direction: 'right',
         sizePercent: 50,
         newPanelId: 'NEWP',
+        minSize: 12,
+        maxSize: 45,
       },
     });
     expect(next.panels.NEWP!.tabs).toEqual(['L1']);
     expect(next.panels.L!.tabs).toEqual(['L2']);
     expect(next.tabs.L1!.panelId).toBe('NEWP');
+    expect(next.panels.NEWP!.minSize).toBe(12);
+    expect(next.panels.NEWP!.maxSize).toBe(45);
   });
 
   it('MOVE_TAB splitPanel uses flat fallback when no layout tree exists', () => {
@@ -1118,7 +1130,7 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.panels.L!.inset.right).toBe(30);
     expect(next.panels.R!.inset.left).toBe(70);
   });
-  it('RESIZE_DIVIDER honors min size (defaults to TILERY_DEFAULT_MIN_PANEL_SIZE = 10)', () => {
+  it('RESIZE_DIVIDER honors min size (defaults to TILERY_DEFAULT_MIN_SIZE = 10)', () => {
     const state = twoSideBySide();
     const div = tileryDeriveDividers(state)[0]!;
     const next = tileryReducer(state, {
@@ -1128,14 +1140,14 @@ describe('tileryReducer dispatch matrix', () => {
     });
     expect(next.panels.L!.inset.right).toBe(90);
   });
-  it('RESIZE_DIVIDER honors caller-provided minSizePercent', () => {
+  it('RESIZE_DIVIDER honors caller-provided minSize', () => {
     const state = twoSideBySide();
     const div = tileryDeriveDividers(state)[0]!;
     const next = tileryReducer(state, {
       type: 'RESIZE_DIVIDER',
       dividerId: div.id,
       newPosition: 2,
-      minSizePercent: 25,
+      minSize: 25,
     });
     expect(next.panels.L!.inset.right).toBe(75);
   });

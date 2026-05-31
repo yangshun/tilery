@@ -1,149 +1,60 @@
 # Roadmap
 
-This roadmap tracks gaps between `tilery` and the original `react-tiling`
-implementation in `~/Developer/greatfrontend/gfe/apps/web/src/react-tiling`.
+This roadmap tracks remaining gaps between `tilery` and comparable panel
+systems. Completed parity work should stay out of this file unless it helps
+explain a partial gap.
 
-## Current baseline
+## Compared Libraries
 
-`tilery` already has several foundations that go beyond the app-local
-`react-tiling` implementation:
+| Library                  | Why it matters                                                                                                            |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| `react-tiling`           | Original app-local target for tabs, panel modes, and app workflow parity.                                                 |
+| `react-resizable-panels` | Best resize API benchmark: units, constraints, collapse, callbacks, and accessible separators.                            |
+| Dockview                 | Closest IDE-layout benchmark: dock groups, floating groups, popout windows, serialization, and multi-framework core.      |
+| FlexLayout               | Mature React docking benchmark: tabsets, border tabsets, popouts, submodels, overflow, and rich layout model actions.     |
+| rc-dock                  | React dock-layout benchmark with controlled/uncontrolled layouts, floatbox/dockbox model, save/load, and tab update APIs. |
+| GoldenLayout             | Established docking benchmark for popup windows, load/save layouts, focus, theming, and framework integration.            |
+| react-mosaic             | Tree-layout benchmark for controlled/uncontrolled tiling, drag-rearrange, toolbar controls, and migration helpers.        |
+| Allotment                | Splitter UX benchmark: min/max/preferred sizes, snapping, reset, visibility, and sash states.                             |
+| React-Grid-Layout        | Dashboard-grid benchmark: responsive breakpoints, item constraints, static widgets, packing, and serialization.           |
+| Gridstack                | Dashboard-grid benchmark: nested grids, responsive layout, drag/resize toggles, and framework-agnostic usage.             |
 
-- Package-ready monorepo with `tilery` core, `@tilery/react`, demo app, README,
-  tests, and build scripts.
-- Framework-agnostic core state and drag logic.
-- React adapter with portal-based tab content preservation.
-- Tab drag/reorder/drop, tab moves between panels, and drag into new splits.
-- Programmatic split/remove/append/insert/move/activate APIs.
-- Nested split-tree layout model with flat panel insets derived for rendering.
-- Divider resizing against one-dimensional split boundaries.
+## Feature Gaps
 
-## Missing parity with `react-tiling`
+| Priority | Feature                                 | Covered by                                                                                                        | Tilery status | Remaining work                                                                                                                                                                                                               |
+| -------- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| P0       | Collapsed panel modes                   | `react-tiling`, `react-resizable-panels`, Allotment, Dockview Paneview                                            | Gap           | Add `collapsed`, `collapsedTitle`, `collapsible`, `collapsedSize`, drag-to-collapse rules, pre-collapse restore size, and panel handle APIs for `collapse()`, `expand()`, `isCollapsed()`, and `resize(size)`.               |
+| P1       | Flexible size units                     | `react-resizable-panels`, Allotment                                                                               | Partial       | Evolve `size` beyond percentage numbers to support pixels, percentages, font-relative units, and viewport-relative units without another rename.                                                                             |
+| P1       | Unit-aware resize constraints           | `react-resizable-panels`, Allotment, React-Grid-Layout, Gridstack, Dockview                                       | Partial       | Numeric per-panel `minSize` and `maxSize` constraints exist. Add unit-aware constraints and clamp them against the measured container.                                                                                       |
+| P1       | Container resize behavior               | `react-resizable-panels`, Allotment, React-Grid-Layout                                                            | Gap           | Add behavior for preserving relative size versus pixel size when the container changes; test mixed-unit and zero-size edge cases.                                                                                            |
+| P1       | Resize lifecycle callbacks              | `react-resizable-panels`, Allotment, React-Grid-Layout, Gridstack                                                 | Partial       | Split high-frequency resize changes from committed resize changes. Add layout-only callbacks and per-panel callbacks with current size, previous size, and measured pixel size.                                              |
+| P1       | Layout persistence API                  | Dockview, FlexLayout, rc-dock, GoldenLayout, `react-resizable-panels`, react-mosaic, React-Grid-Layout, Gridstack | Partial       | Add `getLayout()` / `setLayout(layout)` for persisted layout restoration without replacing full app state. Document localStorage and cookie/SSR restoration patterns.                                                        |
+| P1       | Accessible resize handles               | `react-resizable-panels`                                                                                          | Gap           | Add keyboard resizing for dividers and supported junction handles. Add complete separator ARIA state/value attributes and focus styling.                                                                                     |
+| P1       | Resize handle states and hit targets    | `react-resizable-panels`, Allotment                                                                               | Partial       | Add stable data attributes for hover, drag, focus, disabled, minimum, and maximum states. Add configurable hit-target sizing for fine and coarse pointers.                                                                   |
+| P1       | Resize disabling and locking            | `react-resizable-panels`, Allotment, rc-dock, Dockview, FlexLayout, React-Grid-Layout, Gridstack                  | Gap           | Add global resize disable, per-panel resize disable, per-divider/per-junction disable, and panel/tab locking rules that block direct and indirect moves where appropriate.                                                   |
+| P1       | Double-click reset and snapping         | `react-resizable-panels`, Allotment                                                                               | Gap           | Add double-click reset to a panel's default/preferred size, separator opt-out, and snap-to-zero/collapse semantics.                                                                                                          |
+| P1       | Floating detached panels                | Dockview, FlexLayout, rc-dock, GoldenLayout                                                                       | Gap           | Add floating groups/panels inside the same browser window, with serialization, focus behavior, z-ordering, and docking back into the tree.                                                                                   |
+| P2       | Native popout windows                   | Dockview, FlexLayout, rc-dock, GoldenLayout                                                                       | Gap           | Add browser-window popouts only after same-document floating is stable. Define same-origin host page requirements, style copying, owner-document-safe events, and fallback behavior when popups are blocked.                 |
+| P1       | Edge and border groups                  | Dockview, FlexLayout                                                                                              | Gap           | Add pinned edge/border tabsets or sidebars that can hold tabs independently from the main tiled grid.                                                                                                                        |
+| P1       | Tab overflow and tab-row scrolling      | `react-tiling`, FlexLayout                                                                                        | Partial       | Add active-tab scroll-into-view, tab-row wheel handling, overflow menu behavior, and tests for narrow tab bars.                                                                                                              |
+| P1       | Link tabs and tab metadata              | `react-tiling`, FlexLayout, rc-dock                                                                               | Partial       | Decide whether `href` and `allowOverflow` belong in first-class tab state or documented consumer-owned `data`.                                                                                                               |
+| P1       | High-level tab workflow APIs            | `react-tiling`, FlexLayout, rc-dock, Dockview                                                                     | Partial       | Add `changeTabId(oldTabId, newTabId)` and an optional helper for "activate if open, otherwise open near a related tab".                                                                                                      |
+| P1       | Open/close lifecycle callbacks          | `react-tiling`, FlexLayout, Dockview, rc-dock                                                                     | Gap           | Add lifecycle callbacks for tab open, tab close, and panel close. Report all affected tabs when closing a panel or moving all tabs out.                                                                                      |
+| P2       | Layout migration helpers                | `react-tiling`, react-mosaic                                                                                      | Gap           | Add a converter from `TilesPanelConfig`-style recursive layouts to `TileryInitialLayout` if persisted `react-tiling` layouts need to be imported. Document `defaultSize`, generated split IDs, and omitted panel mode state. |
+| P2       | Controlled layout mode                  | rc-dock, react-mosaic, React-Grid-Layout                                                                          | Partial       | Decide whether `tilery` should expose a fully controlled `layout` prop in addition to `initialLayout`, or keep mutation through handles and callbacks only.                                                                  |
+| P2       | External drag sources                   | Dockview, React-Grid-Layout, Gridstack                                                                            | Gap           | Add a documented path for dragging tabs/panels from outside Tilery into a target panel, split zone, or tab row.                                                                                                              |
+| P2       | Nested Tilery instances and sub-layouts | FlexLayout, Dockview, react-mosaic                                                                                | Partial       | Document supported nested usage, event isolation, drag boundary behavior, and serialization strategy for nested layouts.                                                                                                     |
+| P3       | Responsive dashboard-grid behavior      | React-Grid-Layout, Gridstack                                                                                      | Deferred      | Consider only if Tilery explicitly expands beyond IDE-style panel layouts into dashboard builders. Candidate scope: breakpoints, per-breakpoint layouts, packing/collision rules, and nested dashboard grids.                |
+| P3       | Cross-junction resizing                 | Dockview/Gridview-style layout systems                                                                            | Deferred      | T-junction resizing exists. Cross junctions still need a resolver for competing horizontal and vertical divider groups before enabling handles at four-way intersections.                                                    |
 
-### P0: Panel mode state (partial)
+## References
 
-`react-tiling` supports panel-level mode fields that are not represented in
-`tilery` state:
-
-- `collapsed`
-- `collapsedTitle`
-- `collapsible`
-- `fullScreen`
-
-Implemented behavior:
-
-- Fullscreen panel metadata is represented on `TileryPanelState` and
-  `TileryPanelInit`.
-- Reducer actions and handle APIs support maximizing and restoring panels.
-- Fullscreen panels render over the full container without mutating stored
-  insets.
-- Dividers and panel drop zones are suppressed while a panel is
-  fullscreen; tab-bar reordering remains available for the fullscreen panel.
-
-Deferred behavior:
-
-- `collapsed`, `collapsedTitle`, and `collapsible` need a cleaner design before
-  being added to public state or handles.
-
-### P0: Built-in panel action UI (implemented)
-
-`react-tiling` includes an action menu for panel operations. `tilery` previously
-only rendered tabs, content, dividers, and drag overlays.
-
-Implemented behavior:
-
-- `showActionsButton` enables built-in split, close, and maximize/restore menu
-  actions.
-- `showNewTabButton` plus `onNewTab` supports host-supplied tab creation.
-- `renderPanelActions` appends custom actions/components to the panel action
-  menu.
-- `renderActionsButtonIcon` customizes the action menu trigger icon.
-
-### P1: Tab metadata parity
-
-`react-tiling` tab config supports metadata not modeled directly in `tilery`:
-
-- `href`
-- `allowOverflow`
-
-Needed work:
-
-- Decide whether these belong in core tab state or should remain consumer-owned
-  `data`.
-- If first-class, add typed fields to `TileryTabState` and `TileryTabInit`.
-- If consumer-owned, document recommended patterns for link tabs and overflow
-  handling.
-
-### P1: High-level tab workflows
-
-`react-tiling` has app-level actions/utilities that do not have direct `tilery`
-equivalents:
-
-- `tab-change-id`
-- `tab-set-active-otherwise-open`
-- `queryTabByPattern`
-- `getActiveTabIdByPanelId`
-- `activeTabScrollIntoView`
-
-Needed work:
-
-- Add `changeTabId(oldTabId, newTabId)` or equivalent.
-- Add an optional helper for "activate if open, otherwise open near a related
-  tab".
-- Add query helpers for tabs by predicate or pattern.
-- Add active-tab lookup by panel ID as a public convenience API.
-- Add controlled active-tab scroll behavior for overflowing tab bars.
-
-### P1: Open/close lifecycle callbacks
-
-`react-tiling` actions can report opened/closed tabs through `onTabsOpen` and
-`onTabsClose`. `tilery` currently exposes only root-level `onChange`.
-
-Needed work:
-
-- Add lifecycle callbacks for tab open, close, and panel close.
-- Ensure callbacks report all affected tabs when closing a panel or moving all
-  tabs out of a panel.
-- Decide whether imperative methods should return created/removed IDs or only
-  invoke callbacks.
-
-### P2: Config compatibility layer
-
-`react-tiling` uses recursive `group` / `item` layout config with `defaultSize`.
-`tilery` uses flat panels with percentage-based absolute insets.
-
-Needed work:
-
-- Add a converter from `TilesPanelConfig`-style recursive layouts to
-  `TileryInitialLayout`.
-- Consider a reverse converter if existing persisted `react-tiling` layouts need
-  to round-trip.
-- Document limitations around `defaultSize`, nested group identity, and omitted
-  panel mode state.
-
-### P2: Richer tab row behavior
-
-`react-tiling` has richer horizontal tab row behavior, including active tab
-scroll-into-view and link-style tabs. `tilery` only provides base overflow
-styling and custom tab header rendering.
-
-Needed work:
-
-- Add optional active tab scroll-into-view behavior.
-- Add tab-row wheel handling for horizontal scrolling.
-- Document or expose a first-class link-tab rendering path.
-
-## Explicitly not missing
-
-These areas already exist in `tilery` and should not be duplicated as
-`react-tiling` parity work:
-
-- Tab drag and reorder.
-- Moving tabs between panels.
-- Dragging tabs into panel split zones.
-- Moving all tabs from a panel via panel drag behavior.
-- Splitting and removing panels.
-- Closeable tabs.
-- Active tab state.
-- Resizable dividers.
-- Nested split-tree state with flat DOM rendering.
-- Demo site and package documentation.
+- [react-resizable-panels](https://react-resizable-panels.vercel.app/)
+- [Dockview](https://dockview.dev/docs/overview/introduction/)
+- [FlexLayout](https://github.com/caplin/FlexLayout)
+- [rc-dock](https://ticlo.github.io/rc-dock/)
+- [GoldenLayout](https://github.com/golden-layout/golden-layout)
+- [react-mosaic](https://nomcopter.github.io/react-mosaic/)
+- [Allotment](https://github.com/johnwalley/allotment)
+- [React-Grid-Layout](https://github.com/react-grid-layout/react-grid-layout)
+- [Gridstack](https://gridstackjs.com/)

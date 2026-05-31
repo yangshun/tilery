@@ -38,7 +38,7 @@ export {
 } from './state/handles';
 
 export {
-  TILERY_DEFAULT_MIN_PANEL_SIZE,
+  TILERY_DEFAULT_MIN_SIZE,
   tileryApplyJunctionResize,
   tileryDeriveDividers,
   tileryDeriveJunctions,

@@ -764,7 +764,7 @@ describe('Tilery — handle cache invalidation', () => {
 });
 
 describe('Tilery — min panel size honored by handle', () => {
-  it('forwards minPanelSizePercent to RESIZE_DIVIDER clamps', () => {
+  it('forwards minSize to RESIZE_DIVIDER clamps', () => {
     const t = mount(lShapeLayout());
     const divider = Array.from(
       t.host.querySelectorAll<HTMLElement>('.tilery__divider'),

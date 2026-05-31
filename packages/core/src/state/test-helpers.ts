@@ -17,6 +17,8 @@ type FlatPanelInit = {
   tabs: { id?: string; data: unknown; closeable?: boolean }[];
   activeTabId?: string;
   fullScreen?: boolean;
+  minSize?: number;
+  maxSize?: number;
 };
 
 export function createStateFromPanels(initial: {
@@ -54,6 +56,8 @@ export function createStateFromPanels(initial: {
           ? init.activeTabId
           : (tabs[0] ?? null),
       fullScreen,
+      minSize: init.minSize,
+      maxSize: init.maxSize,
     } satisfies TileryPanelState;
     state.panelOrder.push(panelId);
   }

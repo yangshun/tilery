@@ -56,6 +56,8 @@ export function makeTileryHandle(
         direction,
         sizePercent: opts?.size ?? 50,
         newPanelId,
+        minSize: opts?.minSize,
+        maxSize: opts?.maxSize,
         tabs,
         activate: opts?.activate ?? true,
       });
@@ -116,6 +118,8 @@ function normalizeMoveTarget(target: TileryMoveTarget) {
       direction: target.direction,
       sizePercent: target.size ?? 50,
       newPanelId: tileryNextId('p'),
+      minSize: target.minSize,
+      maxSize: target.maxSize,
     };
   }
   return {
@@ -153,6 +157,12 @@ export function tileryMakePanelHandle(
     },
     get fullScreen() {
       return getState().panels[id]?.fullScreen ?? false;
+    },
+    get minSize() {
+      return getState().panels[id]?.minSize;
+    },
+    get maxSize() {
+      return getState().panels[id]?.maxSize;
     },
     appendTab(tab: TileryTabInit, opts) {
       return tilery.appendTab(id, tab, opts);

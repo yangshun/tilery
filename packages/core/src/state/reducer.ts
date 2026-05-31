@@ -11,14 +11,14 @@ import type {
   TileryTabState,
 } from '../types';
 import {
-  TILERY_DEFAULT_MIN_PANEL_SIZE,
+  TILERY_DEFAULT_MIN_SIZE,
   tileryApplyDividerResize,
   tileryApplyJunctionResize,
   tileryClampDividerPosition,
   tileryDeriveDividers,
   tileryDeriveJunctions,
   tileryFindRemovalFillers,
-  tilerySplitFitsMin,
+  tilerySplitFitsPanelConstraints,
   tilerySplitInset,
 } from './layout-math';
 import {
@@ -37,6 +37,8 @@ export type TileryReducerAction =
       direction: TileryDirection;
       sizePercent: number;
       newPanelId: TileryPanelId;
+      minSize?: number;
+      maxSize?: number;
       tabs: { id: TileryTabId; data: unknown; closeable?: boolean }[];
       activate: boolean;
     }
@@ -72,6 +74,8 @@ export type TileryReducerAction =
             direction: TileryDirection;
             sizePercent: number;
             newPanelId: TileryPanelId;
+            minSize?: number;
+            maxSize?: number;
           };
     }
   | { type: 'SET_ACTIVE_TAB'; tabId: TileryTabId }
@@ -80,14 +84,14 @@ export type TileryReducerAction =
       type: 'RESIZE_DIVIDER';
       dividerId: string;
       newPosition: number;
-      minSizePercent?: number;
+      minSize?: number;
     }
   | {
       type: 'RESIZE_JUNCTION';
       junctionId: string;
       x: number;
       y: number;
-      minSizePercent?: number;
+      minSize?: number;
     }
   | { type: 'SWAP_PANELS'; panelA: TileryPanelId; panelB: TileryPanelId }
   | { type: 'REPLACE_STATE'; state: TileryLayoutState };
@@ -134,6 +138,8 @@ function buildInitialLayoutTree(
       tabs,
       activeTabId,
       fullScreen,
+      minSize: init.minSize,
+      maxSize: init.maxSize,
     };
     return { kind: 'panel', panelId, size: init.size };
   }
@@ -193,7 +199,12 @@ export function tileryReducer(
       if (!source) return current;
       if (source.fullScreen) return current;
       if (
-        !tilerySplitFitsMin(source.inset, action.direction, action.sizePercent)
+        !tilerySplitFitsPanelConstraints(
+          source,
+          action.direction,
+          action.sizePercent,
+          { minSize: action.minSize, maxSize: action.maxSize },
+        )
       ) {
         return current;
       }
@@ -220,6 +231,8 @@ export function tileryReducer(
         tabs: tabIds,
         activeTabId: tabIds[0] ?? null,
         fullScreen: false,
+        minSize: action.minSize,
+        maxSize: action.maxSize,
       };
       const currentOrder = tileryPanelOrderFromState(current);
       const sourceIdx = currentOrder.indexOf(action.panelId);
@@ -421,10 +434,11 @@ export function tileryReducer(
           return current;
         }
         if (
-          !tilerySplitFitsMin(
-            targetSource.inset,
+          !tilerySplitFitsPanelConstraints(
+            targetSource,
             action.to.direction,
             action.to.sizePercent,
+            { minSize: action.to.minSize, maxSize: action.to.maxSize },
           )
         ) {
           return current;
@@ -453,6 +467,8 @@ export function tileryReducer(
           tabs: [action.tabId],
           activeTabId: action.tabId,
           fullScreen: false,
+          minSize: action.to.minSize,
+          maxSize: action.to.maxSize,
         };
         next = {
           ...next,
@@ -569,7 +585,7 @@ export function tileryReducer(
       const dividers = tileryDeriveDividers(current);
       const target = dividers.find((d) => d.id === action.dividerId);
       if (!target) return current;
-      const min = action.minSizePercent ?? TILERY_DEFAULT_MIN_PANEL_SIZE;
+      const min = action.minSize ?? TILERY_DEFAULT_MIN_SIZE;
       const clamped = tileryClampDividerPosition(
         current,
         target,
@@ -587,7 +603,7 @@ export function tileryReducer(
         current,
         junction,
         { x: action.x, y: action.y },
-        action.minSizePercent ?? TILERY_DEFAULT_MIN_PANEL_SIZE,
+        action.minSize ?? TILERY_DEFAULT_MIN_SIZE,
       );
     }
     case 'SWAP_PANELS': {

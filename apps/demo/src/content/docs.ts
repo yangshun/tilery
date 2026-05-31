@@ -246,10 +246,10 @@ function App() {
               'Called after every state change',
             ],
             [
-              'minPanelSizePercent',
+              'minSize',
               'number',
               'No',
-              'Minimum panel size in percent (default: 10)',
+              'Default minimum panel size percentage',
             ],
             [
               'showActionsButton',
@@ -333,6 +333,8 @@ function App() {
             ['tabs', 'Array of TileryTabHandle for this panel'],
             ['activeTab', 'The active TileryTabHandle or null'],
             ['fullScreen', 'Whether this panel is currently fullscreen'],
+            ['minSize', 'Panel minimum size constraint, if set'],
+            ['maxSize', 'Panel maximum size constraint, if set'],
             ['appendTab(tab, opts?)', 'Append a tab to this panel'],
             ['insertTab(tab, index, opts?)', 'Insert a tab at index'],
             ['split(direction, opts?)', 'Split this panel'],
@@ -367,7 +369,13 @@ function App() {
   | { panel: TileryPanelId; index?: number }
   | { beforeTab: TileryTabId }
   | { afterTab: TileryTabId }
-  | { splitPanel: TileryPanelId; direction: TileryDirection; size?: number };`,
+  | {
+      splitPanel: TileryPanelId;
+      direction: TileryDirection;
+      size?: number;
+      minSize?: number;
+      maxSize?: number;
+    };`,
       },
       {
         heading: 'TileryDirection',
@@ -380,6 +388,8 @@ function App() {
       type: 'panel';
       id?: string;
       size?: number;
+      minSize?: number;
+      maxSize?: number;
       tabs: TabInit<TData>[];
       activeTabId?: string;
       fullScreen?: boolean;

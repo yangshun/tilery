@@ -11,6 +11,7 @@ import {
   tileryPanelTop,
   tileryPanelWidth,
   tileryRectsOverlap,
+  tilerySplitFitsPanelConstraints,
   tilerySplitFitsMin,
   tilerySplitInset,
 } from './layout-math';
@@ -901,13 +902,60 @@ describe('tileryClampDividerPosition — multi-panel side (workspace shape)', ()
     expect(tileryClampDividerPosition(state, div, 95, 10)).toBe(90);
   });
 
-  it('respects a stricter custom minSizePercent across all afterPanels', () => {
+  it('respects a stricter custom minSize across all afterPanels', () => {
     const state = workspace();
     const div = tileryDeriveDividers(state).find(
       (d) => d.orientation === 'vertical',
     )!;
-    // minSizePercent=20 → divider can go no higher than 80.
+    // minSize=20 → divider can go no higher than 80.
     expect(tileryClampDividerPosition(state, div, 95, 20)).toBe(80);
+  });
+
+  it('uses per-panel minSize and maxSize constraints when clamping', () => {
+    const state = createStateFromPanels({
+      panels: [
+        {
+          id: 'L',
+          inset: { top: 0, right: 50, bottom: 0, left: 0 },
+          tabs: [{ id: 'left', data: {} }],
+          minSize: 30,
+          maxSize: 65,
+        },
+        {
+          id: 'R',
+          inset: { top: 0, right: 0, bottom: 0, left: 50 },
+          tabs: [{ id: 'right', data: {} }],
+          minSize: 20,
+          maxSize: 40,
+        },
+      ],
+    });
+    const div = tileryDeriveDividers(state)[0]!;
+
+    expect(tileryClampDividerPosition(state, div, 5, 10)).toBe(60);
+    expect(tileryClampDividerPosition(state, div, 95, 10)).toBe(65);
+  });
+
+  it('keeps position when per-panel min and max constraints cannot fit', () => {
+    const state = createStateFromPanels({
+      panels: [
+        {
+          id: 'L',
+          inset: { top: 0, right: 50, bottom: 0, left: 0 },
+          tabs: [{ id: 'left', data: {} }],
+          minSize: 70,
+        },
+        {
+          id: 'R',
+          inset: { top: 0, right: 0, bottom: 0, left: 50 },
+          tabs: [{ id: 'right', data: {} }],
+          minSize: 40,
+        },
+      ],
+    });
+    const div = tileryDeriveDividers(state)[0]!;
+
+    expect(tileryClampDividerPosition(state, div, 20, 10)).toBe(div.position);
   });
 
   it('tileryApplyDividerResize updates EVERY panel sharing the after edge', () => {
@@ -961,10 +1009,10 @@ describe('tileryClampDividerPosition — over-determined constraints', () => {
   });
 });
 
-// tilerySplitFitsMin is the policy gate the tileryReducer uses to refuse SPLIT_PANEL
-// actions that would shrink either half below the minimum. Without this,
-// repeated splits of a small panel produced sub-min panels, which in turn
-// broke divider math (see fuzz regression test above).
+// Split-fit checks refuse SPLIT_PANEL actions that would shrink either half
+// below the minimum. Without this, repeated splits of a small panel produced
+// sub-min panels, which in turn broke divider math (see fuzz regression test
+// above).
 describe('tilerySplitFitsMin', () => {
   it('accepts a 50/50 split of a full-bleed panel', () => {
     expect(tilerySplitFitsMin(fullInset, 'right', 50, 10)).toBe(true);
@@ -999,6 +1047,34 @@ describe('tilerySplitFitsMin', () => {
         50,
         10,
       ),
+    ).toBe(false);
+  });
+
+  it('checks per-panel split constraints for the source and created panel', () => {
+    const panel: TileryPanelState = {
+      id: 'P',
+      kind: 'tiled',
+      inset: fullInset,
+      tabs: [],
+      activeTabId: null,
+      minSize: 30,
+      maxSize: 80,
+    };
+
+    expect(
+      tilerySplitFitsPanelConstraints(
+        panel,
+        'right',
+        40,
+        { minSize: 20, maxSize: 45 },
+        10,
+      ),
+    ).toBe(true);
+    expect(
+      tilerySplitFitsPanelConstraints(panel, 'right', 80, { minSize: 30 }, 10),
+    ).toBe(false);
+    expect(
+      tilerySplitFitsPanelConstraints(panel, 'right', 10, { maxSize: 5 }, 10),
     ).toBe(false);
   });
 });
