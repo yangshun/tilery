@@ -32,6 +32,14 @@ export function tileryPanelHeight(p: TileryPanelState): number {
   return 100 - p.inset.top - p.inset.bottom;
 }
 
+export function tileryGetFullScreenPanelId(
+  state: TileryLayoutState,
+): TileryPanelId | null {
+  return (
+    state.panelOrder.find((id) => Boolean(state.panels[id]?.fullScreen)) ?? null
+  );
+}
+
 export function tilerySplitInset(
   inset: TileryInset,
   direction: TileryDirection,
@@ -70,6 +78,8 @@ export function tilerySplitInset(
 export function tileryDeriveDividers(
   state: TileryLayoutState,
 ): TileryDivider[] {
+  if (tileryGetFullScreenPanelId(state)) return [];
+
   const panels = state.panelOrder
     .map((id) => state.panels[id])
     .filter((p): p is TileryPanelState => Boolean(p));

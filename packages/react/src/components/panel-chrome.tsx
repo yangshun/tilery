@@ -21,19 +21,37 @@ export function PanelChrome({
   ...tabBarProps
 }: PanelChromeProps) {
   const { top, right, bottom, left } = panel.inset;
+  const isCollapsed = panel.collapsed;
+  const isFullScreen = panel.fullScreen;
   return (
     <div
       ref={registerPanel}
       className="tilery__panel"
       data-panel-id={panel.id}
+      data-collapsed={isCollapsed}
+      data-full-screen={isFullScreen}
+      aria-expanded={!isCollapsed}
       style={{
-        top: `${top}%`,
-        right: `${right}%`,
-        bottom: `${bottom}%`,
-        left: `${left}%`,
+        top: isFullScreen ? '0%' : `${top}%`,
+        right: isFullScreen ? '0%' : `${right}%`,
+        bottom: isFullScreen ? '0%' : `${bottom}%`,
+        left: isFullScreen ? '0%' : `${left}%`,
       }}>
-      <TabBar panel={panel} renderHeader={renderHeader} {...tabBarProps} />
-      <div ref={registerContentSlot} className="tilery__panel-content" />
+      {isCollapsed && panel.collapsedTitle ? (
+        <button
+          type="button"
+          className="tilery__collapsed-title"
+          onClick={() => panel.expand()}>
+          {panel.collapsedTitle}
+        </button>
+      ) : (
+        <TabBar panel={panel} renderHeader={renderHeader} {...tabBarProps} />
+      )}
+      <div
+        ref={registerContentSlot}
+        className="tilery__panel-content"
+        hidden={isCollapsed}
+      />
     </div>
   );
 }

@@ -31,6 +31,16 @@ export type TileryReducerAction =
     }
   | { type: 'REMOVE_PANEL'; panelId: TileryPanelId }
   | {
+      type: 'SET_PANEL_COLLAPSED';
+      panelId: TileryPanelId;
+      collapsed: boolean;
+    }
+  | {
+      type: 'SET_PANEL_FULLSCREEN';
+      panelId: TileryPanelId;
+      fullScreen: boolean;
+    }
+  | {
       type: 'APPEND_TAB';
       panelId: TileryPanelId;
       tab: { id: TileryTabId; data: unknown; closeable?: boolean };
@@ -83,6 +93,7 @@ export function tileryCreateInitialState(
     panelOrder: [],
     tabs: {},
   };
+  let hasFullScreenPanel = false;
   for (const init of initial.panels) {
     const panelId = init.id ?? tileryNextId('p');
     const tabs: TileryTabId[] = [];
@@ -100,12 +111,18 @@ export function tileryCreateInitialState(
       init.activeTabId && tabs.includes(init.activeTabId)
         ? init.activeTabId
         : (tabs[0] ?? null);
+    const fullScreen = Boolean(init.fullScreen && !hasFullScreenPanel);
+    if (fullScreen) hasFullScreenPanel = true;
     state.panels[panelId] = {
       id: panelId,
       kind: 'tiled',
       inset: { ...init.inset },
       tabs,
       activeTabId,
+      collapsed: fullScreen ? false : (init.collapsed ?? false),
+      collapsedTitle: init.collapsedTitle,
+      collapsible: init.collapsible ?? false,
+      fullScreen,
     };
     state.panelOrder.push(panelId);
   }
@@ -122,6 +139,7 @@ export function tileryReducer(
     case 'SPLIT_PANEL': {
       const source = state.panels[action.panelId];
       if (!source) return state;
+      if (source.fullScreen) return state;
       if (
         !tilerySplitFitsMin(source.inset, action.direction, action.sizePercent)
       ) {
@@ -149,6 +167,9 @@ export function tileryReducer(
         inset: createdInset,
         tabs: tabIds,
         activeTabId: tabIds[0] ?? null,
+        collapsed: false,
+        collapsible: false,
+        fullScreen: false,
       };
       const sourceIdx = state.panelOrder.indexOf(action.panelId);
       const insertAt = sourceIdx >= 0 ? sourceIdx + 1 : state.panelOrder.length;
@@ -160,7 +181,12 @@ export function tileryReducer(
       return {
         panels: {
           ...state.panels,
-          [action.panelId]: { ...source, inset: sourceInset },
+          [action.panelId]: {
+            ...source,
+            inset: sourceInset,
+            collapsed: false,
+            fullScreen: false,
+          },
           [action.newPanelId]: newPanel,
         },
         panelOrder: nextOrder,
@@ -171,6 +197,54 @@ export function tileryReducer(
       const target = state.panels[action.panelId];
       if (!target) return state;
       return collapsePanel(state, target);
+    }
+    case 'SET_PANEL_COLLAPSED': {
+      const panel = state.panels[action.panelId];
+      if (!panel) return state;
+      if (Boolean(panel.collapsed) === action.collapsed) return state;
+      return {
+        ...state,
+        panels: {
+          ...state.panels,
+          [action.panelId]: {
+            ...panel,
+            collapsed: action.collapsed,
+            fullScreen: action.collapsed ? false : panel.fullScreen,
+          },
+        },
+      };
+    }
+    case 'SET_PANEL_FULLSCREEN': {
+      const panel = state.panels[action.panelId];
+      if (!panel) return state;
+      if (!action.fullScreen) {
+        if (!panel.fullScreen) return state;
+        return {
+          ...state,
+          panels: {
+            ...state.panels,
+            [action.panelId]: { ...panel, fullScreen: false },
+          },
+        };
+      }
+      const nextPanels: Record<TileryPanelId, TileryPanelState> = {};
+      let changed = !panel.fullScreen || panel.collapsed;
+      for (const panelId of Object.keys(state.panels)) {
+        const current = state.panels[panelId]!;
+        const next =
+          panelId === action.panelId
+            ? { ...current, collapsed: false, fullScreen: true }
+            : { ...current, fullScreen: false };
+        if (
+          next.fullScreen !== current.fullScreen ||
+          next.collapsed !== current.collapsed
+        ) {
+          changed = true;
+        }
+        nextPanels[panelId] = next;
+      }
+      if (!changed) return state;
+      return { ...state, panels: nextPanels };
     }
     case 'APPEND_TAB': {
       const panel = state.panels[action.panelId];
@@ -185,6 +259,7 @@ export function tileryReducer(
             activeTabId: action.activate
               ? action.tab.id
               : (panel.activeTabId ?? action.tab.id),
+            collapsed: action.activate ? false : panel.collapsed,
           },
         },
         tabs: {
@@ -214,6 +289,7 @@ export function tileryReducer(
             activeTabId: action.activate
               ? action.tab.id
               : (panel.activeTabId ?? action.tab.id),
+            collapsed: action.activate ? false : panel.collapsed,
           },
         },
         tabs: {
@@ -296,6 +372,7 @@ export function tileryReducer(
       if ('splitPanelId' in action.to) {
         const targetSource = state.panels[action.to.splitPanelId];
         if (!targetSource) return state;
+        if (targetSource.fullScreen) return state;
         if (
           targetSource.id === sourcePanel.id &&
           sourcePanel.tabs.length === 1
@@ -321,7 +398,12 @@ export function tileryReducer(
           ...next,
           panels: {
             ...next.panels,
-            [targetSource.id]: { ...targetSource, inset: srcInset },
+            [targetSource.id]: {
+              ...targetSource,
+              inset: srcInset,
+              collapsed: false,
+              fullScreen: false,
+            },
           },
         };
         const newPanel: TileryPanelState = {
@@ -330,6 +412,9 @@ export function tileryReducer(
           inset: createdInset,
           tabs: [action.tabId],
           activeTabId: action.tabId,
+          collapsed: false,
+          collapsible: false,
+          fullScreen: false,
         };
         next = {
           ...next,
@@ -406,12 +491,16 @@ export function tileryReducer(
       if (!tab) return state;
       const panel = state.panels[tab.panelId];
       if (!panel) return state;
-      if (panel.activeTabId === action.tabId) return state;
+      if (panel.activeTabId === action.tabId && !panel.collapsed) return state;
       return {
         ...state,
         panels: {
           ...state.panels,
-          [tab.panelId]: { ...panel, activeTabId: action.tabId },
+          [tab.panelId]: {
+            ...panel,
+            activeTabId: action.tabId,
+            collapsed: false,
+          },
         },
       };
     }
@@ -482,6 +571,7 @@ function finishTabMove(
       ...targetPanel,
       tabs: nextTabsInTarget,
       activeTabId: tab.id,
+      collapsed: false,
     },
   };
   const sourceTabs = sourcePanel.tabs.filter((id) => id !== tab.id);

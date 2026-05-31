@@ -71,6 +71,38 @@ describe('tileryCreateInitialState', () => {
     });
     expect(state.panels.P!.activeTabId).toBeNull();
   });
+  it('hydrates panel mode metadata and keeps only the first fullscreen panel active', () => {
+    const state = tileryCreateInitialState({
+      panels: [
+        {
+          id: 'P1',
+          inset: { top: 0, right: 50, bottom: 0, left: 0 },
+          tabs: [{ id: 'T1', data: {} }],
+          collapsed: true,
+          collapsedTitle: 'Files',
+          collapsible: true,
+          fullScreen: true,
+        },
+        {
+          id: 'P2',
+          inset: { top: 0, right: 0, bottom: 0, left: 50 },
+          tabs: [{ id: 'T2', data: {} }],
+          fullScreen: true,
+        },
+      ],
+    });
+    expect(state.panels.P1).toMatchObject({
+      collapsed: false,
+      collapsedTitle: 'Files',
+      collapsible: true,
+      fullScreen: true,
+    });
+    expect(state.panels.P2).toMatchObject({
+      collapsed: false,
+      collapsible: false,
+      fullScreen: false,
+    });
+  });
 });
 
 describe('tileryReducer dispatch matrix', () => {
@@ -995,5 +1027,129 @@ describe('MOVE_TAB — cross-panel beforeTab / afterTab', () => {
     expect(next.panels.L).toBeUndefined();
     expect(next.panels.R!.inset.left).toBe(0);
     expect(next.panels.R!.tabs).toEqual(['only', 'R1']);
+  });
+});
+
+describe('tileryReducer — panel mode state', () => {
+  it('SET_PANEL_COLLAPSED toggles collapsed state and clears fullscreen when collapsing', () => {
+    let state = twoSideBySide();
+    state = tileryReducer(state, {
+      type: 'SET_PANEL_FULLSCREEN',
+      panelId: 'L',
+      fullScreen: true,
+    });
+    const collapsed = tileryReducer(state, {
+      type: 'SET_PANEL_COLLAPSED',
+      panelId: 'L',
+      collapsed: true,
+    });
+    expect(collapsed.panels.L!.collapsed).toBe(true);
+    expect(collapsed.panels.L!.fullScreen).toBe(false);
+    const expanded = tileryReducer(collapsed, {
+      type: 'SET_PANEL_COLLAPSED',
+      panelId: 'L',
+      collapsed: false,
+    });
+    expect(expanded.panels.L!.collapsed).toBe(false);
+  });
+
+  it('SET_PANEL_FULLSCREEN makes one panel fullscreen at a time and expands it', () => {
+    const base = twoSideBySide();
+    const state: TileryLayoutState = {
+      ...base,
+      panels: {
+        ...base.panels,
+        L: { ...base.panels.L!, collapsed: true },
+        R: { ...base.panels.R!, fullScreen: true },
+      },
+    };
+    const next = tileryReducer(state, {
+      type: 'SET_PANEL_FULLSCREEN',
+      panelId: 'L',
+      fullScreen: true,
+    });
+    expect(next.panels.L!.fullScreen).toBe(true);
+    expect(next.panels.L!.collapsed).toBe(false);
+    expect(next.panels.R!.fullScreen).toBe(false);
+  });
+
+  it('SET_PANEL_FULLSCREEN false restores a fullscreen panel', () => {
+    const state = tileryReducer(twoSideBySide(), {
+      type: 'SET_PANEL_FULLSCREEN',
+      panelId: 'L',
+      fullScreen: true,
+    });
+    const next = tileryReducer(state, {
+      type: 'SET_PANEL_FULLSCREEN',
+      panelId: 'L',
+      fullScreen: false,
+    });
+    expect(next.panels.L!.fullScreen).toBe(false);
+  });
+
+  it('SET_ACTIVE_TAB expands a collapsed panel', () => {
+    const base = twoSideBySide();
+    const state: TileryLayoutState = {
+      ...base,
+      panels: {
+        ...base.panels,
+        L: { ...base.panels.L!, collapsed: true },
+      },
+    };
+    const next = tileryReducer(state, {
+      type: 'SET_ACTIVE_TAB',
+      tabId: 'L2',
+    });
+    expect(next.panels.L!.activeTabId).toBe('L2');
+    expect(next.panels.L!.collapsed).toBe(false);
+  });
+
+  it('SET_ACTIVE_TAB expands a collapsed panel even when the tab is already active', () => {
+    const base = twoSideBySide();
+    const state: TileryLayoutState = {
+      ...base,
+      panels: {
+        ...base.panels,
+        L: { ...base.panels.L!, collapsed: true },
+      },
+    };
+    const next = tileryReducer(state, {
+      type: 'SET_ACTIVE_TAB',
+      tabId: 'L1',
+    });
+    expect(next.panels.L!.activeTabId).toBe('L1');
+    expect(next.panels.L!.collapsed).toBe(false);
+  });
+
+  it('suppresses dividers and fullscreen-target splits while a panel is fullscreen', () => {
+    const state = tileryReducer(twoSideBySide(), {
+      type: 'SET_PANEL_FULLSCREEN',
+      panelId: 'L',
+      fullScreen: true,
+    });
+    expect(tileryDeriveDividers(state)).toEqual([]);
+    expect(
+      tileryReducer(state, {
+        type: 'SPLIT_PANEL',
+        panelId: 'L',
+        direction: 'right',
+        sizePercent: 50,
+        newPanelId: 'NEW',
+        tabs: [],
+        activate: true,
+      }),
+    ).toBe(state);
+    expect(
+      tileryReducer(state, {
+        type: 'MOVE_TAB',
+        tabId: 'R1',
+        to: {
+          splitPanelId: 'L',
+          direction: 'right',
+          sizePercent: 50,
+          newPanelId: 'NEW',
+        },
+      }),
+    ).toBe(state);
   });
 });

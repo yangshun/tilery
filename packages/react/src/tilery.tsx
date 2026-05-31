@@ -22,6 +22,7 @@ import {
   makeTileryHandle,
   tileryDeriveDividers,
   tileryDeriveJunctions,
+  tileryGetFullScreenPanelId,
   type TileryReducerAction,
   type TileryJunction,
   type TileryInitialLayout,
@@ -205,6 +206,10 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
 
   const dividers = useMemo(() => tileryDeriveDividers(state), [state]);
   const junctions = useMemo(() => tileryDeriveJunctions(dividers), [dividers]);
+  const fullScreenPanelId = useMemo(
+    () => tileryGetFullScreenPanelId(state),
+    [state],
+  );
 
   const activeByPanelRef = useRef<Record<TileryPanelId, TileryTabId | null>>(
     {},
@@ -338,6 +343,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
     <div className="tilery">
       <div ref={containerRef} className="tilery__inner">
         {state.panelOrder.map((panelId) => {
+          if (fullScreenPanelId && panelId !== fullScreenPanelId) return null;
           const panel = getCachedPanelHandle(panelId);
           /* v8 ignore next */
           if (!panel) return null;

@@ -8,6 +8,7 @@ import {
   tileryAdjacencySide,
   tileryClassifyByZoneAndSide,
   tileryCommitDrag,
+  tileryGetFullScreenPanelId,
   type TileryPanelZone,
   type TileryDragState,
 } from 'tilery/internal';
@@ -118,13 +119,19 @@ export function useTileryDragController(tilery: () => TileryHandle | null) {
       let hoverPanelId: TileryPanelId | null = null;
       let hoverZone: TileryPanelZone | null = null;
       let hoverTabBar: TileryDragState['hoverTabBar'] = null;
+      const m = tilery();
+      const fullScreenPanelId = m
+        ? tileryGetFullScreenPanelId(m.getState())
+        : null;
 
       for (const [panelId, tabBarEl] of refs.current.tabBarEls) {
+        if (fullScreenPanelId && panelId !== fullScreenPanelId) continue;
+        const panel = m?.getPanel(panelId);
+        if (panel?.collapsed) continue;
         const r = tabBarEl.getBoundingClientRect();
         if (x < r.left || x > r.right || y < r.top || y > r.bottom) continue;
         if (isOwnSoloPanel(panelId, draggedTabId)) continue;
         const tabRects: { tabId: string; left: number; right: number }[] = [];
-        const panel = tilery()?.getPanel(panelId);
         if (panel) {
           for (const t of panel.tabs) {
             const el = refs.current.tabEls.get(t.id);
@@ -139,8 +146,10 @@ export function useTileryDragController(tilery: () => TileryHandle | null) {
         break;
       }
 
-      if (!hoverTabBar) {
+      if (!hoverTabBar && !fullScreenPanelId) {
         for (const [panelId, panelEl] of refs.current.panelEls) {
+          const panel = m?.getPanel(panelId);
+          if (panel?.collapsed) continue;
           const r = panelEl.getBoundingClientRect();
           const z = tileryZoneAt(
             { left: r.left, top: r.top, width: r.width, height: r.height },

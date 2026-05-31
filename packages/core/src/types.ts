@@ -16,6 +16,10 @@ export type TileryPanelState = {
   inset: TileryInset;
   tabs: TileryTabId[];
   activeTabId: TileryTabId | null;
+  collapsed?: boolean;
+  collapsedTitle?: string;
+  collapsible?: boolean;
+  fullScreen?: boolean;
 };
 
 export type TileryTabState<TData = unknown> = {
@@ -42,6 +46,10 @@ export type TileryPanelInit<TData = unknown> = {
   inset: TileryInset;
   tabs: TileryTabInit<TData>[];
   activeTabId?: TileryTabId;
+  collapsed?: boolean;
+  collapsedTitle?: string;
+  collapsible?: boolean;
+  fullScreen?: boolean;
 };
 
 export type TileryInitialLayout<TData = unknown> = {
@@ -85,6 +93,10 @@ export type TileryHandle = {
     },
   ): TileryPanelHandle;
   removePanel(panelId: TileryPanelId): void;
+  collapsePanel(panelId: TileryPanelId): void;
+  expandPanel(panelId: TileryPanelId): void;
+  maximizePanel(panelId: TileryPanelId): void;
+  restorePanel(panelId: TileryPanelId): void;
   appendTab(
     panelId: TileryPanelId,
     tab: TileryTabInit,
@@ -108,6 +120,10 @@ export type TileryPanelHandle = {
   readonly inset: Readonly<TileryInset>;
   readonly tabs: readonly TileryTabHandle[];
   readonly activeTab: TileryTabHandle | null;
+  readonly collapsed: boolean;
+  readonly collapsedTitle: string | undefined;
+  readonly collapsible: boolean;
+  readonly fullScreen: boolean;
   appendTab(tab: TileryTabInit, opts?: { activate?: boolean }): TileryTabHandle;
   insertTab(
     tab: TileryTabInit,
@@ -123,6 +139,10 @@ export type TileryPanelHandle = {
     },
   ): TileryPanelHandle;
   remove(): void;
+  collapse(): void;
+  expand(): void;
+  maximize(): void;
+  restore(): void;
   setActiveTab(id: TileryTabId): void;
 };
 

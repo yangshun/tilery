@@ -1,6 +1,7 @@
 export { Example as BasicExample } from './basic/example';
 export { Example as IdeExample } from './ide/example';
 export { Example as DashboardExample } from './dashboard/example';
+export { Example as CollapseExample } from './collapse/example';
 export { Example as ControlledExample } from './controlled/example';
 export { Example as PersistenceExample } from './persistence/example';
 export { Example as NestedExample } from './nested/example';
@@ -8,6 +9,7 @@ export { Example as NestedExample } from './nested/example';
 export { metadata as basicMeta } from './basic/metadata';
 export { metadata as ideMeta } from './ide/metadata';
 export { metadata as dashboardMeta } from './dashboard/metadata';
+export { metadata as collapseMeta } from './collapse/metadata';
 export { metadata as controlledMeta } from './controlled/metadata';
 export { metadata as persistenceMeta } from './persistence/metadata';
 export { metadata as nestedMeta } from './nested/metadata';
@@ -27,6 +29,11 @@ export const examples = [
     slug: 'dashboard',
     title: 'Dashboard',
     description: '2x2 grid of panels like an analytics dashboard.',
+  },
+  {
+    slug: 'collapse',
+    title: 'Collapsing Panels',
+    description: 'Collapse, expand, maximize, and restore panel modes.',
   },
   {
     slug: 'controlled',

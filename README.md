@@ -8,6 +8,7 @@ A tiling panel layout engine for React. Build IDE-like interfaces, dashboard bui
 
 - Drag tabs between panels or into new splits
 - Resize panels via dividers and 2D junction handles
+- Collapse panels or maximize one panel fullscreen
 - Preserves React state across tab moves (portal-based rendering)
 - Framework-agnostic core with a React adapter
 - Fully customizable tab headers and content
@@ -128,6 +129,10 @@ type PanelInit<TData> = {
   inset: { top: number; right: number; bottom: number; left: number };
   tabs: TabInit<TData>[];
   activeTabId?: string;
+  collapsed?: boolean;
+  collapsedTitle?: string;
+  collapsible?: boolean;
+  fullScreen?: boolean;
 };
 
 type TabInit<TData> = {
@@ -137,6 +142,11 @@ type TabInit<TData> = {
 ```
 
 Panels are positioned via `inset` — percentage-based offsets from each edge of the container (like CSS `inset` but in `%`). For example, a panel taking the left 40% would be `{ top: 0, right: 60, bottom: 0, left: 0 }`.
+
+Panel mode fields do not mutate the stored inset. A collapsed panel keeps its
+layout rectangle and hides its content. A fullscreen panel renders over the full
+Tilery container, suppresses dividers/junctions, and disables panel drop zones
+until it is restored.
 
 ### `TileryHandle`
 
@@ -150,6 +160,10 @@ The imperative API exposed via `ref`. Use it for programmatic layout manipulatio
 | `getTabs()`                             | Returns all `TabHandle[]`                     |
 | `splitPanel(panelId, direction, opts?)` | Splits a panel, returns the new `PanelHandle` |
 | `removePanel(panelId)`                  | Removes a panel (redistributes space)         |
+| `collapsePanel(panelId)`                | Collapses a panel                             |
+| `expandPanel(panelId)`                  | Expands a collapsed panel                     |
+| `maximizePanel(panelId)`                | Shows one panel fullscreen                    |
+| `restorePanel(panelId)`                 | Restores a fullscreen panel                   |
 | `appendTab(panelId, tab, opts?)`        | Appends a tab to a panel                      |
 | `insertTab(panelId, tab, index, opts?)` | Inserts a tab at a specific index             |
 | `removeTab(tabId)`                      | Removes a tab (collapses panel if last)       |
@@ -168,10 +182,18 @@ Returned by `getPanel()`. Provides panel-scoped operations.
 | `inset`                        | Current `{ top, right, bottom, left }` percentages |
 | `tabs`                         | Array of `TabHandle` for this panel                |
 | `activeTab`                    | The active `TabHandle` or `null`                   |
+| `collapsed`                    | Whether panel content is hidden                    |
+| `collapsedTitle`               | Optional title shown for a collapsed panel         |
+| `collapsible`                  | Consumer metadata for collapse-capable panels      |
+| `fullScreen`                   | Whether this panel is currently fullscreen         |
 | `appendTab(tab, opts?)`        | Append a tab to this panel                         |
 | `insertTab(tab, index, opts?)` | Insert a tab at index                              |
 | `split(direction, opts?)`      | Split this panel                                   |
 | `remove()`                     | Remove this panel                                  |
+| `collapse()`                   | Collapse this panel                                |
+| `expand()`                     | Expand this panel                                  |
+| `maximize()`                   | Show this panel fullscreen                         |
+| `restore()`                    | Restore this panel from fullscreen                 |
 | `setActiveTab(tabId)`          | Set the active tab                                 |
 
 ### `TabHandle<TData>`

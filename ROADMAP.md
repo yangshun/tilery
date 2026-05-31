@@ -18,7 +18,7 @@ implementation in `~/Developer/greatfrontend/gfe/apps/web/src/react-tiling`.
 
 ## Missing parity with `react-tiling`
 
-### P0: Panel mode state
+### P0: Panel mode state (implemented)
 
 `react-tiling` supports panel-level mode fields that are not represented in
 `tilery` state:
@@ -28,14 +28,17 @@ implementation in `~/Developer/greatfrontend/gfe/apps/web/src/react-tiling`.
 - `collapsible`
 - `fullScreen`
 
-Needed work:
+Implemented behavior:
 
-- Add panel mode metadata to `TileryPanelState` and `TileryPanelInit`.
-- Add reducer actions and handle APIs for collapsing, expanding, maximizing, and
+- Panel mode metadata is represented on `TileryPanelState` and
+  `TileryPanelInit`.
+- Reducer actions and handle APIs support collapsing, expanding, maximizing, and
   restoring panels.
-- Define how collapsed and fullscreen panels interact with absolute inset layout
-  and divider resizing.
-- Disable or adjust drop behavior while a panel is fullscreen.
+- Collapsed panels keep their absolute inset, hide content, and can show a
+  collapsed title. Fullscreen panels render over the full container without
+  mutating stored insets.
+- Dividers, junctions, and panel drop zones are suppressed while a panel is
+  fullscreen; tab-bar reordering remains available for the fullscreen panel.
 
 ### P0: Built-in panel action UI
 

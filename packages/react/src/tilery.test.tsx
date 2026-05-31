@@ -270,6 +270,57 @@ describe('Tilery — onChange callback', () => {
   });
 });
 
+describe('Tilery — panel modes', () => {
+  it('renders only the fullscreen panel and suppresses dividers', () => {
+    const layout = lShapeLayout();
+    layout.panels[1] = { ...layout.panels[1]!, fullScreen: true };
+    const t = mount(layout);
+    const panels = t.host.querySelectorAll<HTMLElement>('.tilery__panel');
+    expect(panels).toHaveLength(1);
+    expect(panels[0]!.getAttribute('data-panel-id')).toBe('editor');
+    expect(panels[0]!.getAttribute('data-full-screen')).toBe('true');
+    expect(panels[0]!.style.left).toBe('0%');
+    expect(panels[0]!.style.right).toBe('0%');
+    expect(t.host.querySelectorAll('.tilery__divider')).toHaveLength(0);
+    expect(t.handle().getPanel('editor')!.fullScreen).toBe(true);
+    t.cleanup();
+  });
+
+  it('hides collapsed panel content and expands from a collapsed title', () => {
+    const layout = lShapeLayout();
+    layout.panels[0] = {
+      ...layout.panels[0]!,
+      collapsed: true,
+      collapsedTitle: 'Sidebar',
+      collapsible: true,
+    };
+    const t = mount(layout);
+    const sidebar = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="sidebar"]',
+    )!;
+    expect(sidebar.getAttribute('data-collapsed')).toBe('true');
+    expect(
+      sidebar
+        .querySelector<HTMLElement>('.tilery__panel-content')!
+        .hasAttribute('hidden'),
+    ).toBe(true);
+    const title = sidebar.querySelector<HTMLElement>(
+      '.tilery__collapsed-title',
+    )!;
+    expect(title.textContent).toBe('Sidebar');
+    act(() => {
+      reactProps(title).onClick({});
+    });
+    expect(t.handle().getPanel('sidebar')!.collapsed).toBe(false);
+    expect(
+      t.host
+        .querySelector('.tilery__panel[data-panel-id="sidebar"]')
+        ?.getAttribute('data-collapsed'),
+    ).toBe('false');
+    t.cleanup();
+  });
+});
+
 describe('Tilery — tab close button', () => {
   it('stops propagation on pointerdown so the underlying tab drag is not engaged', () => {
     const t = mount(lShapeLayout());

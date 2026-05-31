@@ -1671,3 +1671,128 @@ describe('useTileryDragController — panel drag from tab bar', () => {
     tabBarEl.remove();
   });
 });
+
+describe('useTileryDragController — fullscreen mode', () => {
+  it('suppresses hidden panel drop targets while keeping the fullscreen tab bar interactive', () => {
+    const { handle } = setupStore();
+    act(() => {
+      handle.maximizePanel('P1');
+    });
+    const hook = renderHook(() => useTileryDragController(() => handle));
+
+    const p2PanelEl = document.createElement('div');
+    const p1TabBarEl = document.createElement('div');
+    const p2TabBarEl = document.createElement('div');
+    const t1El = document.createElement('div');
+    const t2El = document.createElement('div');
+    document.body.append(p2PanelEl, p1TabBarEl, p2TabBarEl, t1El, t2El);
+    setBoundingClientRect(p2PanelEl, {
+      left: 200,
+      top: 0,
+      right: 400,
+      bottom: 200,
+      width: 200,
+      height: 200,
+    });
+    setBoundingClientRect(p1TabBarEl, {
+      left: 0,
+      top: 0,
+      right: 200,
+      bottom: 30,
+      width: 200,
+      height: 30,
+    });
+    setBoundingClientRect(p2TabBarEl, {
+      left: 200,
+      top: 0,
+      right: 400,
+      bottom: 30,
+      width: 200,
+      height: 30,
+    });
+    setBoundingClientRect(t1El, {
+      left: 0,
+      top: 0,
+      right: 50,
+      bottom: 30,
+      width: 50,
+      height: 30,
+    });
+    setBoundingClientRect(t2El, {
+      left: 50,
+      top: 0,
+      right: 100,
+      bottom: 30,
+      width: 50,
+      height: 30,
+    });
+    act(() => {
+      hook.current().registerPanel('P2', p2PanelEl);
+      hook.current().registerTabBar('P1', p1TabBarEl);
+      hook.current().registerTabBar('P2', p2TabBarEl);
+      hook.current().registerTab('T1', t1El);
+      hook.current().registerTab('T2', t2El);
+    });
+
+    const sourceEl = document.createElement('div');
+    document.body.appendChild(sourceEl);
+    setBoundingClientRect(sourceEl, {
+      left: 500,
+      top: 500,
+      right: 550,
+      bottom: 530,
+      width: 50,
+      height: 30,
+    });
+    act(() => {
+      const down = pointerEvent('pointerdown', {
+        clientX: 525,
+        clientY: 515,
+        pointerId: 72,
+      });
+      Object.defineProperty(down, 'currentTarget', {
+        value: sourceEl,
+        configurable: true,
+      });
+      hook.current().onTabPointerDown(asReact(down), 'T1');
+    });
+
+    act(() => {
+      hook.current().onTabPointerMove(
+        asReact(
+          pointerEvent('pointermove', {
+            clientX: 250,
+            clientY: 15,
+            pointerId: 72,
+          }),
+        ),
+      );
+    });
+    expect(hook.current().dragState?.hoverTabBar).toBeNull();
+    expect(hook.current().dragState?.hoverPanelId).toBeNull();
+
+    act(() => {
+      hook.current().onTabPointerMove(
+        asReact(
+          pointerEvent('pointermove', {
+            clientX: 60,
+            clientY: 15,
+            pointerId: 72,
+          }),
+        ),
+      );
+    });
+    expect(hook.current().dragState?.hoverTabBar).toEqual({
+      panelId: 'P1',
+      hit: { kind: 'before', tabId: 'T2' },
+    });
+
+    hook.unmount();
+    p2PanelEl.remove();
+    p1TabBarEl.remove();
+    p2TabBarEl.remove();
+    t1El.remove();
+    t2El.remove();
+    sourceEl.remove();
+  });
+});

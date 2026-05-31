@@ -111,6 +111,7 @@ function App() {
         body: [
           'A panel is a rectangular region containing a tab bar and a content area. Each panel holds one or more tabs. Only one tab is active (visible) at a time within each panel.',
           'Tabs can be dragged between panels, reordered within a panel, or dropped on a panel edge to split it into two.',
+          'Panel mode fields are presentation state over the same inset geometry. Collapsed panels keep their layout rectangle and hide content. A fullscreen panel renders over the full container and suppresses dividers, junctions, and panel drop zones until restored.',
         ],
       },
       {
@@ -264,6 +265,10 @@ function App() {
               'Splits a panel, returns new PanelHandle',
             ],
             ['removePanel(panelId)', 'Removes a panel (redistributes space)'],
+            ['collapsePanel(panelId)', 'Collapses a panel'],
+            ['expandPanel(panelId)', 'Expands a collapsed panel'],
+            ['maximizePanel(panelId)', 'Shows one panel fullscreen'],
+            ['restorePanel(panelId)', 'Restores a fullscreen panel'],
             ['appendTab(panelId, tab, opts?)', 'Appends a tab to a panel'],
             [
               'insertTab(panelId, tab, index, opts?)',
@@ -287,10 +292,18 @@ function App() {
             ['inset', 'Current { top, right, bottom, left } percentages'],
             ['tabs', 'Array of TileryTabHandle for this panel'],
             ['activeTab', 'The active TileryTabHandle or null'],
+            ['collapsed', 'Whether panel content is hidden'],
+            ['collapsedTitle', 'Optional title shown for a collapsed panel'],
+            ['collapsible', 'Consumer metadata for collapse-capable panels'],
+            ['fullScreen', 'Whether this panel is currently fullscreen'],
             ['appendTab(tab, opts?)', 'Append a tab to this panel'],
             ['insertTab(tab, index, opts?)', 'Insert a tab at index'],
             ['split(direction, opts?)', 'Split this panel'],
             ['remove()', 'Remove this panel'],
+            ['collapse()', 'Collapse this panel'],
+            ['expand()', 'Expand this panel'],
+            ['maximize()', 'Show this panel fullscreen'],
+            ['restore()', 'Restore this panel from fullscreen'],
             ['setActiveTab(tabId)', 'Set the active tab'],
           ],
         },
@@ -336,6 +349,10 @@ type PanelInit<TData> = {
   inset: { top: number; right: number; bottom: number; left: number };
   tabs: TabInit<TData>[];
   activeTabId?: string;
+  collapsed?: boolean;
+  collapsedTitle?: string;
+  collapsible?: boolean;
+  fullScreen?: boolean;
 };
 
 type TabInit<TData> = {
