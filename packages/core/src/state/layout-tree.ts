@@ -43,6 +43,12 @@ type BoundaryMatch = {
   childSizes: number[];
 };
 
+export type TileryLayoutDividerConstraintRange = {
+  current: number;
+  min: number;
+  max: number;
+};
+
 const eq = (a: number, b: number) => Math.abs(a - b) < EPSILON;
 
 export function tileryInsetToRect(inset: TileryInset): Rect {
@@ -234,6 +240,25 @@ export function tileryClampLayoutDividerPosition(
   panels: Record<TileryPanelId, TileryPanelState> = {},
   sizeContext?: TilerySizeResolutionContext,
 ): number | null {
+  const range = tileryGetLayoutDividerConstraintRange(
+    layout,
+    splitId,
+    minSize,
+    panels,
+    sizeContext,
+  );
+  if (!range) return null;
+  if (range.min > range.max) return range.current;
+  return Math.max(range.min, Math.min(range.max, targetPosition));
+}
+
+export function tileryGetLayoutDividerConstraintRange(
+  layout: TileryLayoutTree | null | undefined,
+  splitId: string,
+  minSize: TilerySize,
+  panels: Record<TileryPanelId, TileryPanelState> = {},
+  sizeContext?: TilerySizeResolutionContext,
+): TileryLayoutDividerConstraintRange | null {
   const match = findBoundaryWithRect(layout, splitId, ROOT_RECT);
   if (!match) return null;
   const { node, rect, boundaryIndex, childSizes } = match;
@@ -260,8 +285,7 @@ export function tileryClampLayoutDividerPosition(
   );
   const min = start + (span * minBoundary) / 100;
   const max = start + (span * maxBoundary) / 100;
-  if (min > max) return current;
-  return Math.max(min, Math.min(max, targetPosition));
+  return { current, min, max };
 }
 
 export function tileryResizeLayoutDivider(

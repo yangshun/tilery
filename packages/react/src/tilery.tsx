@@ -26,6 +26,7 @@ import {
   tileryDeriveDividers,
   tileryDeriveJunctions,
   tileryGetFullScreenPanelId,
+  tileryWarnForConstraintDiagnostics,
   type TileryReducerAction,
   type TileryDirection,
   type TileryInitialLayout,
@@ -356,6 +357,11 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
         sizeContext: nextSizeContext,
       } as TileryResizeAction;
       const previousState = resizeStateRef.current;
+      tileryWarnForConstraintDiagnostics(previousState, {
+        minSize: resizeAction.minSize,
+        sizeContext: nextSizeContext,
+        warnUnresolvedPixels: true,
+      });
       const nextState = tileryReducer(previousState, resizeAction);
       const event = makeResizeEvent(
         previousState,

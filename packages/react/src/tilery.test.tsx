@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { describe, expect, it } from 'vite-plus/test';
+import { afterEach, describe, expect, it, vi } from 'vite-plus/test';
 import React, { act, createRef } from 'react';
 import { createRoot } from 'react-dom/client';
 
@@ -26,6 +26,10 @@ import type { TileryInitialLayout, TileryHandle } from 'tilery/internal';
 // the resulting DOM and the imperative-handle state.
 
 type Data = { title: string };
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 function lShapeLayout(
   opts: { editorFullScreen?: boolean } = {},
@@ -176,6 +180,29 @@ function pixelConstrainedLayout(): TileryInitialLayout<Data> {
         id: 'right',
         size: 70,
         minSize: '100px',
+        tabs: [{ id: 'right-tab', data: { title: 'Right' } }],
+      },
+    ],
+  };
+}
+
+function impossiblePixelConstrainedLayout(): TileryInitialLayout<Data> {
+  return {
+    type: 'split',
+    direction: 'horizontal',
+    children: [
+      {
+        type: 'panel',
+        id: 'left',
+        size: 50,
+        minSize: '700px',
+        tabs: [{ id: 'left-tab', data: { title: 'Left' } }],
+      },
+      {
+        type: 'panel',
+        id: 'right',
+        size: 50,
+        minSize: '400px',
         tabs: [{ id: 'right-tab', data: { title: 'Right' } }],
       },
     ],
@@ -1644,6 +1671,45 @@ describe('Tilery — min panel size honored by handle', () => {
     });
     expect(100 - t.handle().getPanel('left')!.inset.right).toBe(40);
     expect(divider.hasAttribute('data-resize-at-max')).toBe(true);
+    t.cleanup();
+  });
+
+  it('warns when measured pixel constraints cannot all be met', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const t = mount(impossiblePixelConstrainedLayout());
+    const divider = t.host.querySelector<HTMLElement>('.tilery__divider')!;
+
+    act(() => {
+      reactProps(divider).onPointerDown(pointerEvent());
+      reactProps(divider).onPointerMove(
+        pointerEvent({ clientX: 300, clientY: 400 }),
+      );
+      reactProps(divider).onPointerUp(pointerEvent());
+    });
+
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn.mock.calls[0]![0]).toContain(
+      'Constraints around divider "tree|initial:horizontal:left|right#0" cannot all be satisfied',
+    );
+    expect(100 - t.handle().getPanel('left')!.inset.right).toBe(50);
+    t.cleanup();
+  });
+
+  it('does not warn when a valid resize clamps at a boundary', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const t = mount(pixelConstrainedLayout());
+    const divider = t.host.querySelector<HTMLElement>('.tilery__divider')!;
+
+    act(() => {
+      reactProps(divider).onPointerDown(pointerEvent());
+      reactProps(divider).onPointerMove(
+        pointerEvent({ clientX: 50, clientY: 400 }),
+      );
+      reactProps(divider).onPointerUp(pointerEvent());
+    });
+
+    expect(warn).not.toHaveBeenCalled();
+    expect(100 - t.handle().getPanel('left')!.inset.right).toBe(20);
     t.cleanup();
   });
 

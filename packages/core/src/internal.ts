@@ -74,6 +74,7 @@ export {
   tileryApplyJunctionResize,
   tileryDeriveDividers,
   tileryDeriveJunctions,
+  tileryGetDividerConstraintRange,
   tilerySplitInset,
   tilerySplitFitsMin,
   tileryClampDividerPosition,
@@ -88,6 +89,15 @@ export {
   tileryPanelWidth,
   tileryPanelHeight,
 } from './state/layout-math';
+
+export {
+  tileryCollectConstraintWarnings,
+  tileryResetDevWarnings,
+  tileryWarnForConstraintDiagnostics,
+  tileryWarnOnce,
+  type TileryConstraintDiagnosticsOptions,
+  type TileryConstraintWarning,
+} from './state/diagnostics';
 
 export {
   tileryBuildLayoutTreeFromPanels,

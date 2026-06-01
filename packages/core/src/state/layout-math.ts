@@ -11,7 +11,7 @@ import type {
   TilerySizeResolutionContext,
 } from '../types';
 import {
-  tileryClampLayoutDividerPosition,
+  tileryGetLayoutDividerConstraintRange,
   tileryDeriveLayoutDividers,
   tileryPanelOrderFromState,
   tileryResizeLayoutDivider,
@@ -23,6 +23,12 @@ export const TILERY_DEFAULT_MIN_SIZE = 10;
 const EPSILON = 0.0001;
 
 const eq = (a: number, b: number) => Math.abs(a - b) < EPSILON;
+
+export type TileryDividerConstraintRange = {
+  current: number;
+  min: number;
+  max: number;
+};
 
 export function tileryPanelLeft(p: TileryPanelState): number {
   return p.inset.left;
@@ -379,16 +385,38 @@ export function tileryClampDividerPosition(
   sizeContext?: TilerySizeResolutionContext,
 ): number {
   if (divider.disabled) return divider.position;
+  const range = tileryGetDividerConstraintRange(
+    state,
+    divider,
+    minSize,
+    sizeContext,
+  );
+  if (!range) return divider.position;
+  if (range.min > range.max) return range.current;
+  return Math.max(range.min, Math.min(range.max, targetPosition));
+}
+
+export function tileryGetDividerConstraintRange(
+  state: TileryLayoutState,
+  divider: TileryDivider,
+  minSize: TilerySize = TILERY_DEFAULT_MIN_SIZE,
+  sizeContext?: TilerySizeResolutionContext,
+): TileryDividerConstraintRange | null {
+  if (divider.disabled) {
+    return {
+      current: divider.position,
+      min: divider.position,
+      max: divider.position,
+    };
+  }
   if (divider.splitId && state.layout) {
-    const clamped = tileryClampLayoutDividerPosition(
+    return tileryGetLayoutDividerConstraintRange(
       state.layout,
       divider.splitId,
-      targetPosition,
       minSize,
       state.panels,
       sizeContext,
     );
-    return clamped ?? divider.position;
   }
   let min = 0;
   let max = 100;
@@ -429,8 +457,7 @@ export function tileryClampDividerPosition(
       );
     }
   }
-  if (min > max) return divider.position;
-  return Math.max(min, Math.min(max, targetPosition));
+  return { current: divider.position, min, max };
 }
 
 export function tilerySplitFitsMin(

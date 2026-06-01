@@ -44,6 +44,7 @@ import {
   tileryApplyTabBehaviorUpdate,
   tileryNormalizeTabBehavior,
 } from './tab-behavior';
+import { tileryWarnForConstraintDiagnostics } from './diagnostics';
 
 type TileryReducerTabInit = {
   id: TileryTabId;
@@ -249,7 +250,9 @@ export function tileryCreateInitialState(
     tabs: ctx.tabs,
     layout,
   };
-  return tilerySyncLayoutPanels(state, layout);
+  const next = tilerySyncLayoutPanels(state, layout);
+  tileryWarnForConstraintDiagnostics(next);
+  return next;
 }
 
 export function tileryReducer(
@@ -258,8 +261,11 @@ export function tileryReducer(
 ): TileryLayoutState {
   const current = tileryNormalizeLayoutState(state);
   switch (action.type) {
-    case 'REPLACE_STATE':
-      return tileryNormalizeLayoutState(action.state);
+    case 'REPLACE_STATE': {
+      const next = tileryNormalizeLayoutState(action.state);
+      tileryWarnForConstraintDiagnostics(next);
+      return next;
+    }
     case 'SPLIT_PANEL': {
       const source = current.panels[action.panelId];
       if (!source) return current;

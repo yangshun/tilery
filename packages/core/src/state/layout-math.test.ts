@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vite-plus/test';
+import { afterEach, describe, expect, it, vi } from 'vite-plus/test';
 import {
   tileryApplyDividerResize,
   tileryApplyJunctionResize,
@@ -6,6 +6,7 @@ import {
   tileryDeriveDividers,
   tileryDeriveJunctions,
   tileryFindRemovalFillers,
+  tileryGetDividerConstraintRange,
   tileryPanelBottom,
   tileryPanelHeight,
   tileryPanelLeft,
@@ -17,15 +18,26 @@ import {
   tilerySplitFitsMin,
   tilerySplitInset,
 } from './layout-math';
+import {
+  tileryCollectConstraintWarnings,
+  tileryResetDevWarnings,
+  tileryWarnForConstraintDiagnostics,
+} from './diagnostics';
 import { tileryCreateInitialState, tileryReducer } from './reducer';
 import { createStateFromPanels } from './test-helpers';
 import type {
   TileryDirection,
   TileryLayoutState,
   TileryPanelState,
+  TilerySize,
 } from '../types';
 
 const fullInset = { top: 0, right: 0, bottom: 0, left: 0 };
+
+afterEach(() => {
+  vi.restoreAllMocks();
+  tileryResetDevWarnings();
+});
 
 describe('tilerySplitInset', () => {
   it('splits to the right with 50%', () => {
@@ -1260,6 +1272,189 @@ describe('tileryClampDividerPosition — over-determined constraints', () => {
     // value like `Math.max(15, Math.min(5, 10)) = 15`.
     expect(tileryClampDividerPosition(state, div, div.position, 10)).toBe(
       div.position,
+    );
+  });
+});
+
+describe('constraint diagnostics', () => {
+  it('reports panel minSize greater than maxSize', () => {
+    const state = createStateFromPanels({
+      panels: [
+        {
+          id: 'A',
+          inset: fullInset,
+          tabs: [{ id: 'ta', data: {} }],
+          minSize: 70,
+          maxSize: 40,
+        },
+      ],
+    });
+
+    expect(tileryCollectConstraintWarnings(state)).toEqual([
+      {
+        key: 'panel:A:any:min-max',
+        message: 'Panel "A" has minSize 70 greater than maxSize 40.',
+      },
+    ]);
+  });
+
+  it('reports mixed-unit minSize greater than maxSize when measured', () => {
+    const state = createStateFromPanels({
+      panels: [
+        {
+          id: 'A',
+          inset: fullInset,
+          tabs: [{ id: 'ta', data: {} }],
+          minSize: '600px',
+          maxSize: '50%',
+        },
+      ],
+    });
+
+    expect(
+      tileryCollectConstraintWarnings(state, {
+        sizeContext: { width: 1000 },
+      }),
+    ).toEqual([
+      {
+        key: 'panel:A:horizontal:min-max',
+        message:
+          'Panel "A" has minSize "600px" greater than maxSize "50%" on the horizontal axis.',
+      },
+    ]);
+  });
+
+  it('ignores malformed runtime size constraints', () => {
+    const state = createStateFromPanels({
+      panels: [
+        {
+          id: 'A',
+          inset: fullInset,
+          tabs: [{ id: 'ta', data: {} }],
+          minSize: 'wide' as unknown as TilerySize,
+          maxSize: Number.POSITIVE_INFINITY as TilerySize,
+        },
+      ],
+    });
+
+    expect(tileryCollectConstraintWarnings(state)).toEqual([]);
+  });
+
+  it('reports over-constrained dividers', () => {
+    const state = createStateFromPanels({
+      panels: [
+        {
+          id: 'L',
+          inset: { top: 0, right: 50, bottom: 0, left: 0 },
+          tabs: [{ id: 'left', data: {} }],
+          minSize: 70,
+        },
+        {
+          id: 'R',
+          inset: { top: 0, right: 0, bottom: 0, left: 50 },
+          tabs: [{ id: 'right', data: {} }],
+          minSize: 40,
+        },
+      ],
+    });
+    const divider = tileryDeriveDividers(state)[0]!;
+    expect(tileryGetDividerConstraintRange(state, divider, 10)).toMatchObject({
+      current: 50,
+      min: 70,
+      max: 60,
+    });
+
+    expect(tileryCollectConstraintWarnings(state)).toEqual([
+      {
+        key: `divider:${divider.id}:overconstrained`,
+        message: `Constraints around divider "${divider.id}" cannot all be satisfied; resize is locked at the current position.`,
+      },
+    ]);
+  });
+
+  it('reports unresolved pixel constraints only when requested', () => {
+    const state = createStateFromPanels({
+      panels: [
+        {
+          id: 'L',
+          inset: { top: 0, right: 50, bottom: 0, left: 0 },
+          tabs: [{ id: 'left', data: {} }],
+          minSize: '200px',
+          maxSize: '600px',
+        },
+        {
+          id: 'R',
+          inset: { top: 0, right: 0, bottom: 0, left: 50 },
+          tabs: [{ id: 'right', data: {} }],
+          maxSize: '600px',
+        },
+      ],
+    });
+
+    expect(tileryCollectConstraintWarnings(state)).toEqual([]);
+    expect(
+      tileryCollectConstraintWarnings(state, {
+        warnUnresolvedPixels: true,
+      }),
+    ).toEqual([
+      {
+        key: 'panel:L:horizontal:unresolved-pixels',
+        message:
+          'Panel "L" uses pixel minSize and maxSize, but Tilery has no measured horizontal size; pixel constraints on that axis are ignored until the container is measurable.',
+      },
+      {
+        key: 'panel:R:horizontal:unresolved-pixels',
+        message:
+          'Panel "R" uses pixel maxSize, but Tilery has no measured horizontal size; pixel constraints on that axis are ignored until the container is measurable.',
+      },
+    ]);
+  });
+
+  it('returns a fixed range for disabled dividers', () => {
+    const state = createStateFromPanels({
+      panels: [
+        {
+          id: 'L',
+          inset: { top: 0, right: 50, bottom: 0, left: 0 },
+          tabs: [{ id: 'left', data: {} }],
+        },
+        {
+          id: 'R',
+          inset: { top: 0, right: 0, bottom: 0, left: 50 },
+          tabs: [{ id: 'right', data: {} }],
+        },
+      ],
+    });
+    const divider = { ...tileryDeriveDividers(state)[0]!, disabled: true };
+
+    expect(tileryGetDividerConstraintRange(state, divider)).toEqual({
+      current: 50,
+      min: 50,
+      max: 50,
+    });
+    expect(tileryCollectConstraintWarnings(state)).toEqual([]);
+  });
+
+  it('deduplicates development warnings', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const state = createStateFromPanels({
+      panels: [
+        {
+          id: 'A',
+          inset: fullInset,
+          tabs: [{ id: 'ta', data: {} }],
+          minSize: 70,
+          maxSize: 40,
+        },
+      ],
+    });
+
+    tileryWarnForConstraintDiagnostics(state);
+    tileryWarnForConstraintDiagnostics(state);
+
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn).toHaveBeenCalledWith(
+      '[Tilery] Panel "A" has minSize 70 greater than maxSize 40.',
     );
   });
 });
