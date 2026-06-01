@@ -209,6 +209,51 @@ function impossiblePixelConstrainedLayout(): TileryInitialLayout<Data> {
   };
 }
 
+function containerResizeConstrainedLayout(): TileryInitialLayout<Data> {
+  return {
+    type: 'split',
+    direction: 'horizontal',
+    children: [
+      {
+        type: 'panel',
+        id: 'left',
+        size: 30,
+        minSize: '400px',
+        tabs: [{ id: 'left-tab', data: { title: 'Left' } }],
+      },
+      {
+        type: 'panel',
+        id: 'right',
+        size: 70,
+        tabs: [{ id: 'right-tab', data: { title: 'Right' } }],
+      },
+    ],
+  };
+}
+
+function installResizeObserverMock() {
+  const original = window.ResizeObserver;
+  const observers: { callback: ResizeObserverCallback }[] = [];
+  class ResizeObserverMock {
+    readonly callback: ResizeObserverCallback;
+    constructor(callback: ResizeObserverCallback) {
+      this.callback = callback;
+      observers.push(this);
+    }
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  }
+  window.ResizeObserver =
+    ResizeObserverMock as unknown as typeof window.ResizeObserver;
+  return {
+    observers,
+    restore() {
+      window.ResizeObserver = original;
+    },
+  };
+}
+
 // Stubs the container so percentage math is deterministic.
 function stubContainerRect(el: HTMLElement) {
   el.getBoundingClientRect = () =>
@@ -1711,6 +1756,40 @@ describe('Tilery — min panel size honored by handle', () => {
     expect(warn).not.toHaveBeenCalled();
     expect(100 - t.handle().getPanel('left')!.inset.right).toBe(20);
     t.cleanup();
+  });
+
+  it('normalizes pixel constraints when ResizeObserver reports a container size', () => {
+    const resizeObserver = installResizeObserverMock();
+    const t = mount(containerResizeConstrainedLayout());
+
+    expect(100 - t.handle().getPanel('left')!.inset.right).toBe(30);
+    act(() => {
+      resizeObserver.observers[0]!.callback(
+        [],
+        resizeObserver.observers[0] as never,
+      );
+    });
+
+    expect(100 - t.handle().getPanel('left')!.inset.right).toBe(40);
+    expect(t.handle().getPanel('right')!.inset.left).toBe(40);
+    t.cleanup();
+    resizeObserver.restore();
+  });
+
+  it('keeps proportions on container resize when constraints already fit', () => {
+    const resizeObserver = installResizeObserverMock();
+    const t = mount(pixelConstrainedLayout());
+
+    act(() => {
+      resizeObserver.observers[0]!.callback(
+        [],
+        resizeObserver.observers[0] as never,
+      );
+    });
+
+    expect(100 - t.handle().getPanel('left')!.inset.right).toBe(30);
+    t.cleanup();
+    resizeObserver.restore();
   });
 
   it('disables all resize handles when resizable is false', () => {

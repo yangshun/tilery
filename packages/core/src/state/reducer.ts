@@ -26,6 +26,7 @@ import {
 } from './layout-math';
 import {
   tileryNormalizeLayoutState,
+  tileryNormalizeLayoutForContainerResize,
   tileryPanelOrderFromState,
   tileryRemovePanelFromLayout,
   tilerySplitPanelInLayout,
@@ -135,6 +136,11 @@ export type TileryReducerAction =
       junctionId: string;
       x: number;
       y: number;
+      minSize?: TilerySize;
+      sizeContext?: TilerySizeResolutionContext;
+    }
+  | {
+      type: 'NORMALIZE_CONTAINER_SIZE';
       minSize?: TilerySize;
       sizeContext?: TilerySizeResolutionContext;
     }
@@ -731,6 +737,21 @@ export function tileryReducer(
         action.minSize ?? TILERY_DEFAULT_MIN_SIZE,
         action.sizeContext,
       );
+    }
+    case 'NORMALIZE_CONTAINER_SIZE': {
+      if (!current.layout) return current;
+      tileryWarnForConstraintDiagnostics(current, {
+        minSize: action.minSize,
+        sizeContext: action.sizeContext,
+      });
+      const layout = tileryNormalizeLayoutForContainerResize(
+        current.layout,
+        current.panels,
+        action.minSize ?? TILERY_DEFAULT_MIN_SIZE,
+        action.sizeContext,
+      );
+      if (layout === current.layout) return current;
+      return tilerySyncLayoutPanels({ ...current, layout }, layout);
     }
     case 'SWAP_PANELS': {
       const a = current.panels[action.panelA];

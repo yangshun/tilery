@@ -167,6 +167,7 @@ function App() {
           'Dividers are focusable separators with ARIA value metadata. Keyboard users can resize them with arrow keys, Shift+Arrow, Home, and End.',
           'Set resizable=false on Tilery to disable all resize handles globally. On layout items, resizable controls adjacent divider resizing, draggable controls moving tabs out of the item, and droppable controls dropping tabs into or splitting over the item.',
           'Panel minSize and maxSize constraints accept numbers, percentage strings, or pixel strings. Pixel constraints are resolved against the measured resize axis.',
+          'When the container resizes, Tilery preserves split proportions by default and adjusts panels only when measured constraints would otherwise be violated.',
           'In development, impossible constraint combinations warn once. Runtime resize behavior still clamps or no-ops instead of throwing.',
           'Set resizeHandleHitSize to adjust the pointer target for divider and T-junction resize handles.',
           'Resize handles expose data-orientation on dividers, data-resize-active while dragging, data-resize-disabled when locked, and data-resize-at-min / data-resize-at-max when a divider reaches its bounds.',

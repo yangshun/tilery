@@ -288,6 +288,22 @@ export function tileryGetLayoutDividerConstraintRange(
   return { current, min, max };
 }
 
+export function tileryNormalizeLayoutForContainerResize(
+  layout: TileryLayoutTree | null | undefined,
+  panels: Record<TileryPanelId, TileryPanelState> = {},
+  minSize: TilerySize,
+  sizeContext?: TilerySizeResolutionContext,
+): TileryLayoutTree | null | undefined {
+  if (!layout) return layout;
+  return normalizeLayoutForContainerResizeNode(
+    normalizeLayoutNode(layout),
+    ROOT_RECT,
+    panels,
+    minSize,
+    sizeContext,
+  );
+}
+
 export function tileryResizeLayoutDivider(
   layout: TileryLayoutTree | null | undefined,
   splitId: string,
@@ -448,6 +464,53 @@ function walkSplitDividers(
   node.children.forEach((child, index) => {
     walkSplitDividers(child, childRects[index]!, out);
   });
+}
+
+function normalizeLayoutForContainerResizeNode(
+  node: TileryLayoutTree,
+  rect: Rect,
+  panels: Record<TileryPanelId, TileryPanelState>,
+  minSize: TilerySize,
+  sizeContext: TilerySizeResolutionContext | undefined,
+): TileryLayoutTree {
+  if (node.kind === 'panel') return node;
+
+  const children = normalizedChildren(node.children);
+  const sizes = childSizes(children);
+  const span =
+    node.direction === 'horizontal'
+      ? rect.right - rect.left
+      : rect.bottom - rect.top;
+  const axisPixels = tileryAxisPixels(sizeContext, node.direction, span);
+  const constraints = children.map((child) => ({
+    min: layoutChildMinSize(child, panels, minSize, axisPixels),
+    max: layoutChildMaxSize(child, panels, axisPixels),
+  }));
+  const nextSizes = constrainChildSizes(sizes, constraints);
+  const sizedChildren = children.map((child, index) =>
+    sizeEqual(child.size, nextSizes[index]!)
+      ? child
+      : { ...child, size: nextSizes[index]! },
+  );
+  const childRects = splitChildRects(rect, {
+    ...node,
+    children: sizedChildren,
+  });
+  const nextChildren = sizedChildren.map((child, index) =>
+    normalizeLayoutForContainerResizeNode(
+      child,
+      childRects[index]!,
+      panels,
+      minSize,
+      sizeContext,
+    ),
+  );
+  const unchanged =
+    arraysEqual(children, node.children) &&
+    arraysEqual(sizedChildren, children) &&
+    arraysEqual(nextChildren, sizedChildren);
+  if (unchanged) return node;
+  return createSplit(node.id, node.direction, nextChildren, node.size, node)!;
 }
 
 function splitChildRects(rect: Rect, node: SplitNode): Rect[] {
@@ -773,6 +836,100 @@ function layoutChildMaxSize(
     tileryResolveSizePercent(panels[child.panelId]?.maxSize, axisPixels) ??
     Infinity
   );
+}
+
+type ChildSizeConstraint = {
+  min: number;
+  max: number;
+};
+
+function constrainChildSizes(
+  sizes: number[],
+  constraints: ChildSizeConstraint[],
+): number[] {
+  /* v8 ignore next -- normalized splits always have children. */
+  if (sizes.length === 0) return sizes;
+  const mins = constraints.map((constraint) =>
+    sanitizeConstraint(constraint.min),
+  );
+  const rawMaxes = constraints.map((constraint) =>
+    sanitizeConstraint(constraint.max, Infinity),
+  );
+  const totalMin = sum(mins);
+  if (totalMin > 100 + EPSILON) return scaleToTotal(mins, 100);
+
+  const totalRawMax = rawMaxes.includes(Infinity) ? Infinity : sum(rawMaxes);
+  if (totalRawMax < 100 - EPSILON) return scaleToTotal(rawMaxes, 100);
+
+  const maxes = rawMaxes.map((max, index) => Math.max(max, mins[index]!));
+  const next = sizes.map((size, index) =>
+    Math.max(mins[index]!, Math.min(maxes[index]!, size)),
+  );
+  const total = sum(next);
+  if (total < 100 - EPSILON) {
+    distributeDelta(next, sizes, maxes, 100 - total, 'grow');
+  } else if (total > 100 + EPSILON) {
+    distributeDelta(next, sizes, mins, total - 100, 'shrink');
+  }
+  return fixTotal(next, mins, maxes);
+}
+
+function distributeDelta(
+  sizes: number[],
+  weights: number[],
+  limits: number[],
+  delta: number,
+  mode: 'grow' | 'shrink',
+) {
+  let remaining = delta;
+  while (remaining > EPSILON) {
+    const candidates = sizes
+      .map((size, index) => ({
+        index,
+        capacity:
+          mode === 'grow' ? limits[index]! - size : size - limits[index]!,
+        weight: Math.max(weights[index]!, EPSILON),
+      }))
+      .filter((candidate) => candidate.capacity > EPSILON);
+    /* v8 ignore next -- feasible constraints always leave capacity. */
+    if (candidates.length === 0) return;
+    const totalWeight = sum(candidates.map((candidate) => candidate.weight));
+    let used = 0;
+    for (const candidate of candidates) {
+      const share = (remaining * candidate.weight) / totalWeight;
+      const applied = Math.min(candidate.capacity, share);
+      sizes[candidate.index] += mode === 'grow' ? applied : -applied;
+      used += applied;
+    }
+    /* v8 ignore next -- candidates with capacity always apply a delta. */
+    if (used <= EPSILON) return;
+    remaining -= used;
+  }
+}
+
+/* v8 ignore next 12 -- residual repair is for floating point edge cases. */
+function fixTotal(sizes: number[], mins: number[], maxes: number[]): number[] {
+  const delta = 100 - sum(sizes);
+  if (Math.abs(delta) <= EPSILON) return sizes;
+  const candidateIndex = sizes.findIndex((size, index) =>
+    delta > 0
+      ? maxes[index]! - size > Math.abs(delta) - EPSILON
+      : size - mins[index]! > Math.abs(delta) - EPSILON,
+  );
+  if (candidateIndex < 0) return sizes;
+  sizes[candidateIndex] += delta;
+  return sizes;
+}
+
+function scaleToTotal(values: number[], total: number): number[] {
+  const finiteValues = values.map((value) => Math.max(0, value));
+  const current = sum(finiteValues);
+  if (current <= EPSILON) return values.map(() => total / values.length);
+  return finiteValues.map((value) => (value / current) * total);
+}
+
+function sanitizeConstraint(value: number, fallback = 0): number {
+  return Number.isFinite(value) ? Math.max(0, value) : fallback;
 }
 
 function rectCrossesCut(

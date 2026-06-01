@@ -323,6 +323,23 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
     () => measureContainer(containerRef.current),
     [],
   );
+  const normalizeContainerSize = useCallback(
+    (nextSizeContext: TilerySizeResolutionContext) => {
+      const action: TileryReducerAction = {
+        type: 'NORMALIZE_CONTAINER_SIZE',
+        minSize,
+        sizeContext: nextSizeContext,
+      };
+      const previousState = stateRef.current;
+      const nextState = tileryReducer(previousState, action);
+      if (nextState === previousState) return;
+      stateRef.current = nextState;
+      resizeStateRef.current = nextState;
+      lifecycleStateRef.current = nextState;
+      dispatch(action);
+    },
+    [minSize],
+  );
 
   useLayoutEffect(() => {
     const container = containerRef.current;
@@ -332,6 +349,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
       const next = measureContainer(container);
       /* v8 ignore next -- duplicate size reports are only a render optimization. */
       setSizeContext((prev) => (sizeContextEqual(prev, next) ? prev : next));
+      normalizeContainerSize(next);
     };
     updateSizeContext();
     /* v8 ignore start -- ResizeObserver delivery is browser-provided. */
@@ -342,7 +360,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
     observer.observe(container);
     return () => observer.disconnect();
     /* v8 ignore stop */
-  }, []);
+  }, [normalizeContainerSize]);
 
   const dispatchResize = useCallback(
     (action: TileryResizeAction, input: TileryResizeInput): boolean => {

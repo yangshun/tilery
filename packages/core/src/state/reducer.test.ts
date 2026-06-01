@@ -1646,6 +1646,105 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next).toBe(state);
   });
 
+  it('NORMALIZE_CONTAINER_SIZE adjusts layout for measured pixel constraints', () => {
+    const state = tileryCreateInitialState({
+      type: 'split',
+      direction: 'horizontal',
+      children: [
+        {
+          type: 'panel',
+          id: 'L',
+          size: 30,
+          minSize: '400px',
+          tabs: [{ id: 'left', data: {} }],
+        },
+        {
+          type: 'panel',
+          id: 'R',
+          size: 70,
+          tabs: [{ id: 'right', data: {} }],
+        },
+      ],
+    });
+
+    const next = tileryReducer(state, {
+      type: 'NORMALIZE_CONTAINER_SIZE',
+      sizeContext: { width: 1000 },
+    });
+
+    expect(100 - next.panels.L!.inset.right).toBe(40);
+    expect(next.panels.R!.inset.left).toBe(40);
+  });
+
+  it('NORMALIZE_CONTAINER_SIZE no-ops when constraints already fit', () => {
+    const state = tileryCreateInitialState({
+      type: 'split',
+      direction: 'horizontal',
+      children: [
+        {
+          type: 'panel',
+          id: 'L',
+          size: 30,
+          minSize: '200px',
+          tabs: [{ id: 'left', data: {} }],
+        },
+        {
+          type: 'panel',
+          id: 'R',
+          size: 70,
+          tabs: [{ id: 'right', data: {} }],
+        },
+      ],
+    });
+
+    expect(
+      tileryReducer(state, {
+        type: 'NORMALIZE_CONTAINER_SIZE',
+        sizeContext: { width: 1000 },
+      }),
+    ).toBe(state);
+  });
+
+  it('NORMALIZE_CONTAINER_SIZE no-ops without a layout tree', () => {
+    const state = {
+      ...twoSideBySide(),
+      layout: null,
+      panels: {
+        L: {
+          ...twoSideBySide().panels.L!,
+          inset: { top: 0, right: 60, bottom: 0, left: 0 },
+        },
+        R: {
+          ...twoSideBySide().panels.R!,
+          inset: { top: 0, right: 0, bottom: 0, left: 70 },
+        },
+      },
+    };
+
+    const next = tileryReducer(state, {
+      type: 'NORMALIZE_CONTAINER_SIZE',
+      sizeContext: { width: 1000 },
+    });
+
+    expect(next.layout).toBeNull();
+    expect(next.panelOrder).toEqual(['L', 'R']);
+  });
+
+  it('NORMALIZE_CONTAINER_SIZE normalizes legacy tiling state first', () => {
+    const state = { ...twoSideBySide(), layout: null };
+
+    const next = tileryReducer(state, {
+      type: 'NORMALIZE_CONTAINER_SIZE',
+      sizeContext: { width: 1000 },
+    });
+
+    expect(next.layout).toMatchObject({
+      kind: 'split',
+      direction: 'horizontal',
+    });
+    expect(next.panelOrder).toEqual(['L', 'R']);
+  });
+
   it('RESIZE_JUNCTION updates both divider axes for a T-junction', () => {
     const state = tJunctionLayout();
     const junction = tileryDeriveJunctions(state)[0]!;

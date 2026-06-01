@@ -16,6 +16,7 @@ import {
   tileryDeriveLayoutDividers,
   tileryDeriveLayoutInsets,
   tileryInsetToRect,
+  tileryNormalizeLayoutForContainerResize,
   tileryNormalizeLayoutState,
   tileryPanelOrderFromLayout,
   tileryRectToInset,
@@ -453,6 +454,223 @@ describe('tilerySyncLayoutPanels', () => {
     expect(next).not.toBe(state);
     expect(next.layout).toBeNull();
     expect(next.panelOrder).toEqual(['A', 'B']);
+  });
+});
+
+describe('tileryNormalizeLayoutForContainerResize', () => {
+  it('returns nullish layouts unchanged', () => {
+    expect(
+      tileryNormalizeLayoutForContainerResize(null, {}, 10, { width: 1000 }),
+    ).toBeNull();
+    expect(
+      tileryNormalizeLayoutForContainerResize(undefined, {}, 10, {
+        width: 1000,
+      }),
+    ).toBeUndefined();
+  });
+
+  it('preserves proportions when the resized container still satisfies constraints', () => {
+    const state = stateFromPanels([
+      {
+        ...panel('L', { top: 0, right: 70, bottom: 0, left: 0 }),
+        minSize: '200px',
+      },
+      panel('R', { top: 0, right: 0, bottom: 0, left: 30 }),
+    ]);
+
+    expect(
+      tileryNormalizeLayoutForContainerResize(state.layout, state.panels, 10, {
+        width: 1000,
+      }),
+    ).toBe(state.layout);
+  });
+
+  it('expands a pixel-constrained panel after the container resizes', () => {
+    const state = stateFromPanels([
+      {
+        ...panel('L', { top: 0, right: 70, bottom: 0, left: 0 }),
+        minSize: '400px',
+      },
+      panel('R', { top: 0, right: 0, bottom: 0, left: 30 }),
+    ]);
+    const layout = tileryNormalizeLayoutForContainerResize(
+      state.layout,
+      state.panels,
+      10,
+      { width: 1000 },
+    );
+    const next = tilerySyncLayoutPanels({ ...state, layout }, layout);
+
+    expect(layout).toMatchObject({
+      kind: 'split',
+      children: [
+        { kind: 'panel', panelId: 'L', size: 40 },
+        { kind: 'panel', panelId: 'R', size: 60 },
+      ],
+    });
+    expect(next.panels.L!.inset).toEqual({
+      top: 0,
+      right: 60,
+      bottom: 0,
+      left: 0,
+    });
+  });
+
+  it('normalizes nested splits against their direct measured span', () => {
+    const state = stateFromPanels([
+      panel('L', { top: 0, right: 50, bottom: 0, left: 0 }),
+      {
+        ...panel('T', { top: 0, right: 0, bottom: 80, left: 50 }),
+        minSize: '200px',
+      },
+      panel('B', { top: 20, right: 0, bottom: 0, left: 50 }),
+    ]);
+    const layout = tileryNormalizeLayoutForContainerResize(
+      state.layout,
+      state.panels,
+      10,
+      { width: 1000, height: 600 },
+    );
+    const next = tilerySyncLayoutPanels({ ...state, layout }, layout);
+
+    expect(next.panels.L!.inset).toEqual({
+      top: 0,
+      right: 50,
+      bottom: 0,
+      left: 0,
+    });
+    expect(next.panels.T!.inset.top).toBe(0);
+    expect(next.panels.T!.inset.bottom).toBeCloseTo(200 / 3);
+    expect(next.panels.B!.inset.top).toBeCloseTo(100 / 3);
+  });
+
+  it('uses a deterministic fallback when minimum constraints cannot all fit', () => {
+    const state = stateFromPanels([
+      {
+        ...panel('L', { top: 0, right: 50, bottom: 0, left: 0 }),
+        minSize: '700px',
+      },
+      {
+        ...panel('R', { top: 0, right: 0, bottom: 0, left: 50 }),
+        minSize: '400px',
+      },
+    ]);
+    const layout = tileryNormalizeLayoutForContainerResize(
+      state.layout,
+      state.panels,
+      10,
+      { width: 1000 },
+    );
+    const next = tilerySyncLayoutPanels({ ...state, layout }, layout);
+
+    expect(100 - next.panels.L!.inset.right).toBeCloseTo(700 / 11);
+    expect(next.panels.R!.inset.left).toBeCloseTo(700 / 11);
+  });
+
+  it('shrinks unconstrained siblings when another child is raised to its minimum', () => {
+    const layout: TileryLayoutTree = {
+      kind: 'split',
+      id: 'root',
+      direction: 'horizontal',
+      children: [
+        { kind: 'panel', panelId: 'L', size: 30 },
+        { kind: 'panel', panelId: 'M', size: 70 },
+        { kind: 'panel', panelId: 'R', size: 0 },
+      ],
+    };
+    const panels = {
+      L: { ...panel('L', full), minSize: 40 },
+      M: panel('M', full),
+      R: panel('R', full),
+    };
+
+    expect(
+      tileryNormalizeLayoutForContainerResize(layout, panels, 0, {
+        width: 1000,
+      }),
+    ).toMatchObject({
+      kind: 'split',
+      children: [
+        { kind: 'panel', panelId: 'L', size: 40 },
+        { kind: 'panel', panelId: 'M', size: 60 },
+        { kind: 'panel', panelId: 'R', size: 0 },
+      ],
+    });
+  });
+
+  it('grows unconstrained siblings when another child is lowered to its maximum', () => {
+    const layout: TileryLayoutTree = {
+      kind: 'split',
+      id: 'root',
+      direction: 'horizontal',
+      children: [
+        { kind: 'panel', panelId: 'L', size: 80 },
+        { kind: 'panel', panelId: 'R', size: 20 },
+      ],
+    };
+    const panels = {
+      L: { ...panel('L', full), maxSize: 60 },
+      R: panel('R', full),
+    };
+
+    expect(
+      tileryNormalizeLayoutForContainerResize(layout, panels, 0, {
+        width: 1000,
+      }),
+    ).toMatchObject({
+      kind: 'split',
+      children: [
+        { kind: 'panel', panelId: 'L', size: 60 },
+        { kind: 'panel', panelId: 'R', size: 40 },
+      ],
+    });
+  });
+
+  it('uses a deterministic fallback when maximum constraints cannot fill the split', () => {
+    const layout: TileryLayoutTree = {
+      kind: 'split',
+      id: 'root',
+      direction: 'horizontal',
+      children: [
+        { kind: 'panel', panelId: 'L', size: 50 },
+        { kind: 'panel', panelId: 'R', size: 50 },
+      ],
+    };
+    const panels = {
+      L: { ...panel('L', full), maxSize: 0 },
+      R: { ...panel('R', full), maxSize: 0 },
+    };
+
+    expect(
+      tileryNormalizeLayoutForContainerResize(layout, panels, 0, {
+        width: 1000,
+      }),
+    ).toMatchObject({
+      kind: 'split',
+      children: [
+        { kind: 'panel', panelId: 'L', size: 50 },
+        { kind: 'panel', panelId: 'R', size: 50 },
+      ],
+    });
+  });
+
+  it('falls back to percentage constraints when the measured axis is unavailable', () => {
+    const state = stateFromPanels([
+      {
+        ...panel('L', { top: 0, right: 70, bottom: 0, left: 0 }),
+        minSize: '400px',
+      },
+      panel('R', { top: 0, right: 0, bottom: 0, left: 30 }),
+    ]);
+
+    expect(
+      tileryNormalizeLayoutForContainerResize(
+        state.layout,
+        state.panels,
+        10,
+        {},
+      ),
+    ).toBe(state.layout);
   });
 });
 

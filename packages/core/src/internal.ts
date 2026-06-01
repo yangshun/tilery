@@ -104,6 +104,7 @@ export {
   tileryDeriveLayoutDividers,
   tileryDeriveLayoutInsets,
   tileryNormalizeLayoutState,
+  tileryNormalizeLayoutForContainerResize,
   tileryPanelOrderFromLayout,
   tileryPanelOrderFromState,
   tilerySyncLayoutPanels,
