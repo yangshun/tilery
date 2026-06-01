@@ -4,6 +4,10 @@ import type {
   TileryPanelId,
   TileryTabId,
 } from '../types';
+import {
+  tileryCanMoveTabBetweenPanels,
+  tileryPanelBehaviorFromState,
+} from '../state/layout-behavior';
 import { tileryTabBarDropAt, type TileryPanelZone } from './drop-zones';
 
 export type TileryDragState = {
@@ -31,8 +35,14 @@ export function tileryCommitDrag(
 
   const draggedTab = tilery.getTab(tabId);
   if (!draggedTab) return;
+  if (draggedTab.draggable === false) return;
   const sourcePanel = draggedTab.panel;
+  const state = tilery.getState();
+  if (!tileryPanelBehaviorFromState(state, sourcePanel.id).draggable) return;
   const allTabIds = panelDrag ? sourcePanel.tabs.map((t) => t.id) : [];
+  if (panelDrag && sourcePanel.tabs.some((tab) => tab.draggable === false)) {
+    return;
+  }
   const leadIndex = allTabIds.indexOf(tabId);
   const tabsBefore = allTabIds.slice(0, leadIndex);
   const tabsAfter = allTabIds.slice(leadIndex + 1);
@@ -41,7 +51,10 @@ export function tileryCommitDrag(
     const { hit, panelId } = drag.hoverTabBar;
     if (hit.kind === 'append') {
       const target = tilery.getPanel(panelId);
-      if (target) {
+      if (
+        target &&
+        tileryCanMoveTabBetweenPanels(state, sourcePanel.id, panelId)
+      ) {
         tilery.moveTab(tabId, { panel: panelId, index: target.tabs.length });
         moveSiblingsPreservingOrder(tilery, tabsBefore, tabsAfter, tabId);
         if (panelDrag) tilery.setActiveTab(tabId);
@@ -49,6 +62,13 @@ export function tileryCommitDrag(
       return;
     }
     if (hit.tabId === tabId) return;
+    const refTab = tilery.getTab(hit.tabId);
+    if (
+      !refTab ||
+      !tileryCanMoveTabBetweenPanels(state, sourcePanel.id, refTab.panel.id)
+    ) {
+      return;
+    }
     if (hit.kind === 'before') {
       tilery.moveTab(tabId, { beforeTab: hit.tabId });
       moveSiblingsPreservingOrder(tilery, tabsBefore, tabsAfter, tabId);
@@ -63,7 +83,10 @@ export function tileryCommitDrag(
   if (drag.hoverPanelId && drag.hoverZone) {
     if (drag.hoverZone === 'center') {
       const target = tilery.getPanel(drag.hoverPanelId);
-      if (target) {
+      if (
+        target &&
+        tileryCanMoveTabBetweenPanels(state, sourcePanel.id, drag.hoverPanelId)
+      ) {
         tilery.moveTab(tabId, {
           panel: drag.hoverPanelId,
           index: target.tabs.length,
@@ -75,6 +98,11 @@ export function tileryCommitDrag(
     }
     const dir: TileryDirection = drag.hoverZone;
     const target = tilery.getPanel(drag.hoverPanelId);
+    if (
+      !tileryCanMoveTabBetweenPanels(state, sourcePanel.id, drag.hoverPanelId)
+    ) {
+      return;
+    }
     if (target && !panelDrag && shouldSwapForSplit(sourcePanel, target, dir)) {
       tilery.swapPanels(sourcePanel.id, target.id);
       return;

@@ -1,12 +1,16 @@
 import type {
-  TileryInitialLayout,
+  TileryLayoutBehavior,
   TileryLayoutSnapshot,
   TileryLayoutState,
   TileryLayoutTree,
 } from '../types';
+import {
+  tileryBehaviorFromNode,
+  tileryMergeLayoutBehavior,
+} from './layout-behavior';
 
 type NonEmptyLayout<TData> = Exclude<
-  TileryInitialLayout<TData>,
+  TileryLayoutSnapshot<TData>,
   { type: 'empty' }
 >;
 
@@ -29,12 +33,22 @@ function layoutToSnapshot<TData>(
       .filter((child): child is NonEmptyLayout<TData> => Boolean(child));
     /* v8 ignore next 2 -- normalized layouts do not keep empty splits. */
     if (children.length === 0) return null;
-    if (children.length === 1) return { ...children[0]!, size: layout.size };
+    if (children.length === 1) {
+      return {
+        ...children[0]!,
+        size: layout.size,
+        ...tileryMergeLayoutBehavior(
+          tileryBehaviorFromNode(layout),
+          childBehavior(children[0]!),
+        ),
+      };
+    }
     return {
       type: 'split',
       id: layout.id,
       direction: layout.direction,
       size: layout.size,
+      ...tileryBehaviorFromNode(layout),
       children,
     };
   }
@@ -46,6 +60,7 @@ function layoutToSnapshot<TData>(
     type: 'panel',
     id: panel.id,
     size: layout.size,
+    ...tileryBehaviorFromNode(layout),
     activeTabId: panel.activeTabId ?? undefined,
     fullScreen: panel.fullScreen,
     minSize: panel.minSize,
@@ -56,7 +71,16 @@ function layoutToSnapshot<TData>(
         id: tab.id,
         data: tab.data as TData,
         closeable: tab.closeable,
+        draggable: tab.draggable,
       };
     }),
+  };
+}
+
+function childBehavior(layout: NonEmptyLayout<unknown>): TileryLayoutBehavior {
+  return {
+    resizable: layout.resizable,
+    draggable: layout.draggable,
+    droppable: layout.droppable,
   };
 }

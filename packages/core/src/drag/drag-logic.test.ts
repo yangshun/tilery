@@ -5,7 +5,14 @@ import {
   tileryCommitDrag,
   type TileryDragState,
 } from './drag-logic';
-import type { TileryHandle, TileryTabId } from '../types';
+import type { TileryHandle, TileryLayoutState, TileryTabId } from '../types';
+
+const defaultDragState = (): TileryLayoutState => ({
+  panels: {},
+  panelOrder: [],
+  tabs: {},
+  layout: null,
+});
 
 describe('tileryCommitDrag — every branch', () => {
   function mockHandle() {
@@ -36,6 +43,7 @@ describe('tileryCommitDrag — every branch', () => {
       swapPanels(a: string, b: string) {
         swapCalls.push({ a, b });
       },
+      getState: defaultDragState,
       setActiveTab() {},
     } as unknown as TileryHandle;
     return { handle, calls, swapCalls };
@@ -129,6 +137,36 @@ describe('tileryCommitDrag — every branch', () => {
     );
     expect(calls).toEqual([]);
   });
+  it('tab-bar before/after no-ops when the target behavior rejects drops', () => {
+    const { handle, calls } = mockHandle();
+    (
+      handle as unknown as {
+        getState: () => TileryLayoutState;
+      }
+    ).getState = () => ({
+      panels: {},
+      panelOrder: [],
+      tabs: {},
+      layout: {
+        kind: 'panel',
+        panelId: 'SOURCE',
+        resizable: true,
+        draggable: true,
+        droppable: false,
+      },
+    });
+    tileryCommitDrag(
+      handle,
+      {
+        ...baseDrag,
+        hoverTabBar: { panelId: 'P', hit: { kind: 'before', tabId: 'OTHER' } },
+        hoverPanelId: null,
+        hoverZone: null,
+      },
+      'TX',
+    );
+    expect(calls).toEqual([]);
+  });
   it('center zone maps to append in the hovered panel', () => {
     const { handle, calls } = mockHandle();
     tileryCommitDrag(
@@ -169,6 +207,48 @@ describe('tileryCommitDrag — every branch', () => {
       target: { splitPanel: 'P', direction: 'right', size: 50 },
     });
   });
+  it('directional zone no-ops when the target behavior rejects drops', () => {
+    const { handle, calls } = mockHandle();
+    (
+      handle as unknown as {
+        getState: () => TileryLayoutState;
+      }
+    ).getState = () => ({
+      panels: {},
+      panelOrder: [],
+      tabs: {},
+      layout: {
+        kind: 'split',
+        id: 'root',
+        direction: 'horizontal',
+        resizable: true,
+        draggable: true,
+        droppable: true,
+        children: [
+          {
+            kind: 'panel',
+            panelId: 'SOURCE',
+            resizable: true,
+            draggable: true,
+            droppable: true,
+          },
+          {
+            kind: 'panel',
+            panelId: 'P',
+            resizable: true,
+            draggable: true,
+            droppable: false,
+          },
+        ],
+      },
+    });
+    tileryCommitDrag(
+      handle,
+      { ...baseDrag, hoverTabBar: null, hoverPanelId: 'P', hoverZone: 'right' },
+      'TX',
+    );
+    expect(calls).toEqual([]);
+  });
   it('no hoverPanel and no tabBar is a no-op', () => {
     const { handle, calls } = mockHandle();
     tileryCommitDrag(
@@ -177,6 +257,57 @@ describe('tileryCommitDrag — every branch', () => {
       'TX',
     );
     expect(calls).toEqual([]);
+  });
+  it('no-ops when the source panel is not draggable', () => {
+    const { handle, calls, swapCalls } = mockHandle();
+    (
+      handle as unknown as {
+        getState: () => TileryLayoutState;
+      }
+    ).getState = () => ({
+      panels: {},
+      panelOrder: [],
+      tabs: {},
+      layout: {
+        kind: 'panel',
+        panelId: 'SOURCE',
+        resizable: true,
+        draggable: false,
+        droppable: true,
+      },
+    });
+    tileryCommitDrag(
+      handle,
+      { ...baseDrag, hoverTabBar: null, hoverPanelId: 'P', hoverZone: 'right' },
+      'TX',
+    );
+    expect(calls).toEqual([]);
+    expect(swapCalls).toEqual([]);
+  });
+  it('no-ops when the dragged tab is not draggable', () => {
+    const { handle, calls, swapCalls } = mockHandle();
+    (
+      handle as unknown as {
+        getTab: (id: TileryTabId) => unknown;
+      }
+    ).getTab = (id) => ({
+      id,
+      draggable: false,
+      panel: {
+        id: 'SOURCE',
+        tabs: [{ id }],
+        inset: { top: 0, right: 0, bottom: 0, left: 0 },
+      },
+    });
+
+    tileryCommitDrag(
+      handle,
+      { ...baseDrag, hoverTabBar: null, hoverPanelId: 'P', hoverZone: 'right' },
+      'TX',
+    );
+
+    expect(calls).toEqual([]);
+    expect(swapCalls).toEqual([]);
   });
 
   function swapHandle(
@@ -204,6 +335,7 @@ describe('tileryCommitDrag — every branch', () => {
       swapPanels(a: string, b: string) {
         swapCalls.push({ a, b });
       },
+      getState: defaultDragState,
       setActiveTab() {},
     } as unknown as TileryHandle;
     return { handle, calls, swapCalls };
@@ -303,6 +435,7 @@ describe('tileryCommitDrag — every branch', () => {
       swapPanels(a: string, b: string) {
         swapCalls.push({ a, b });
       },
+      getState: defaultDragState,
       setActiveTab() {},
     } as unknown as TileryHandle;
     tileryCommitDrag(
@@ -349,6 +482,7 @@ describe('tileryCommitDrag — every branch', () => {
         calls.push({ tabId, target });
       },
       swapPanels() {},
+      getState: defaultDragState,
       setActiveTab() {},
     } as unknown as TileryHandle;
     tileryCommitDrag(
@@ -548,6 +682,7 @@ describe('tileryCommitDrag — panelDrag=true (moves all tabs)', () => {
       swapPanels(a: string, b: string) {
         swapCalls.push({ a, b });
       },
+      getState: defaultDragState,
       setActiveTab(tabId: TileryTabId) {
         activeCalls.push(tabId);
       },
@@ -573,6 +708,42 @@ describe('tileryCommitDrag — panelDrag=true (moves all tabs)', () => {
       { tabId: 'T2', target: { afterTab: 'T1' } },
       { tabId: 'T3', target: { afterTab: 'T2' } },
     ]);
+  });
+
+  it('no-ops when any source panel tab is not draggable', () => {
+    const { handle, calls, activeCalls } = panelDragHandle();
+    (
+      handle as unknown as {
+        getTab: (id: TileryTabId) => unknown;
+      }
+    ).getTab = (id) => ({
+      id,
+      draggable: id !== 'T2',
+      panel: {
+        id: 'SRC',
+        tabs: [
+          { id: 'T1', draggable: true },
+          { id: 'T2', draggable: false },
+          { id: 'T3', draggable: true },
+        ],
+        inset: { top: 0, right: 50, bottom: 0, left: 0 },
+      },
+    });
+
+    tileryCommitDrag(
+      handle,
+      {
+        ...baseDrag,
+        hoverTabBar: { panelId: 'TGT', hit: { kind: 'append' } },
+        hoverPanelId: null,
+        hoverZone: null,
+      },
+      'T1',
+      true,
+    );
+
+    expect(calls).toEqual([]);
+    expect(activeCalls).toEqual([]);
   });
 
   it('preserves original tab order when active tab is not the first tab', () => {
@@ -714,6 +885,7 @@ describe('tileryCommitDrag — panelDrag=true (moves all tabs)', () => {
       swapPanels(a: string, b: string) {
         swapCalls.push({ a, b });
       },
+      getState: defaultDragState,
       setActiveTab() {},
     } as unknown as TileryHandle;
     tileryCommitDrag(

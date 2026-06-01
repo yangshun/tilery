@@ -40,6 +40,7 @@ export function Tab({
       className="tilery__tab"
       data-active={isActive}
       data-closeable={tab.closeable}
+      data-draggable={tab.draggable}
       data-tab-id={tab.id}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}

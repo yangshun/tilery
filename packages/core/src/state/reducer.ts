@@ -29,6 +29,29 @@ import {
   tilerySwapPanelsInLayout,
   tilerySyncLayoutPanels,
 } from './layout-tree';
+import {
+  tileryBehaviorFromNode,
+  tileryCanMoveTabBetweenPanels,
+  tileryCanSwapPanels,
+  tileryMergeLayoutBehavior,
+  tileryNormalizeLayoutBehavior,
+  tileryPanelBehaviorFromState,
+} from './layout-behavior';
+import { tileryNormalizeTabBehavior } from './tab-behavior';
+
+type TileryReducerTabInit = {
+  id: TileryTabId;
+  data: unknown;
+  closeable: boolean;
+  draggable: boolean;
+};
+
+type TileryReducerTabAction = {
+  id: TileryTabId;
+  data: unknown;
+  closeable?: boolean;
+  draggable?: boolean;
+};
 
 export type TileryReducerAction =
   | {
@@ -39,7 +62,10 @@ export type TileryReducerAction =
       newPanelId: TileryPanelId;
       minSize?: number;
       maxSize?: number;
-      tabs: { id: TileryTabId; data: unknown; closeable?: boolean }[];
+      resizable?: boolean;
+      draggable?: boolean;
+      droppable?: boolean;
+      tabs: TileryReducerTabAction[];
       activate: boolean;
     }
   | { type: 'REMOVE_PANEL'; panelId: TileryPanelId }
@@ -51,13 +77,13 @@ export type TileryReducerAction =
   | {
       type: 'APPEND_TAB';
       panelId: TileryPanelId;
-      tab: { id: TileryTabId; data: unknown; closeable?: boolean };
+      tab: TileryReducerTabAction;
       activate: boolean;
     }
   | {
       type: 'INSERT_TAB';
       panelId: TileryPanelId;
-      tab: { id: TileryTabId; data: unknown; closeable?: boolean };
+      tab: TileryReducerTabAction;
       index: number;
       activate: boolean;
     }
@@ -76,6 +102,9 @@ export type TileryReducerAction =
             newPanelId: TileryPanelId;
             minSize?: number;
             maxSize?: number;
+            resizable?: boolean;
+            draggable?: boolean;
+            droppable?: boolean;
           };
     }
   | { type: 'SET_ACTIVE_TAB'; tabId: TileryTabId }
@@ -119,11 +148,12 @@ function buildInitialLayoutTree(
     const tabs: TileryTabId[] = [];
     for (const tabInit of init.tabs) {
       const tabId = tabInit.id ?? tileryNextId('t');
+      const behavior = tileryNormalizeTabBehavior(tabInit);
       ctx.tabs[tabId] = {
         id: tabId,
         panelId,
         data: tabInit.data,
-        closeable: tabInit.closeable ?? true,
+        ...behavior,
       };
       tabs.push(tabId);
     }
@@ -133,6 +163,7 @@ function buildInitialLayoutTree(
         : (tabs[0] ?? null);
     const fullScreen = Boolean(init.fullScreen && !ctx.hasFullScreenPanel);
     if (fullScreen) ctx.hasFullScreenPanel = true;
+    const behavior = tileryNormalizeLayoutBehavior(init);
     ctx.panels[panelId] = {
       id: panelId,
       kind: 'tiled',
@@ -143,19 +174,35 @@ function buildInitialLayoutTree(
       minSize: init.minSize,
       maxSize: init.maxSize,
     };
-    return { kind: 'panel', panelId, size: init.size };
+    return {
+      kind: 'panel',
+      panelId,
+      size: init.size,
+      ...behavior,
+    };
   }
 
+  const behavior = tileryNormalizeLayoutBehavior(init);
   const children = init.children
     .map((child) => buildInitialLayoutTree(child, ctx))
     .filter((child): child is TileryLayoutTree => Boolean(child));
   if (children.length === 0) return null;
-  if (children.length === 1) return { ...children[0]!, size: init.size };
+  if (children.length === 1) {
+    return {
+      ...children[0]!,
+      size: init.size,
+      ...tileryMergeLayoutBehavior(
+        behavior,
+        tileryBehaviorFromNode(children[0]!),
+      ),
+    };
+  }
   return {
     kind: 'split',
     id: init.id ?? initialSplitId(init.direction, children),
     direction: init.direction,
     size: init.size,
+    ...behavior,
     children,
   };
 }
@@ -202,6 +249,9 @@ export function tileryReducer(
       const source = current.panels[action.panelId];
       if (!source) return current;
       if (source.fullScreen) return current;
+      if (!tileryPanelBehaviorFromState(current, action.panelId).droppable) {
+        return current;
+      }
       if (
         !tilerySplitFitsPanelConstraints(
           source,
@@ -225,6 +275,7 @@ export function tileryReducer(
           panelId: action.newPanelId,
           data: t.data,
           closeable: t.closeable ?? true,
+          draggable: t.draggable ?? true,
         };
         tabIds.push(t.id);
       }
@@ -267,6 +318,7 @@ export function tileryReducer(
           action.newPanelId,
           action.direction,
           action.sizePercent,
+          action,
         );
         if (layout)
           return tilerySyncLayoutPanels({ ...nextState, layout }, layout);
@@ -277,6 +329,7 @@ export function tileryReducer(
     case 'REMOVE_PANEL': {
       const target = current.panels[action.panelId];
       if (!target) return current;
+      if (panelHasNonCloseableTab(current, target)) return current;
       return removePanelAndFill(current, target);
     }
     case 'SET_PANEL_FULLSCREEN': {
@@ -328,6 +381,7 @@ export function tileryReducer(
             panelId: action.panelId,
             data: action.tab.data,
             closeable: action.tab.closeable ?? true,
+            draggable: action.tab.draggable ?? true,
           },
         },
       };
@@ -357,6 +411,7 @@ export function tileryReducer(
             panelId: action.panelId,
             data: action.tab.data,
             closeable: action.tab.closeable ?? true,
+            draggable: action.tab.draggable ?? true,
           },
         },
       };
@@ -364,6 +419,7 @@ export function tileryReducer(
     case 'REMOVE_TAB': {
       const tab = current.tabs[action.tabId];
       if (!tab) return current;
+      if (!tab.closeable) return current;
       const panel = current.panels[tab.panelId];
       if (!panel) return current;
       const nextTabs = panel.tabs.filter((id) => id !== action.tabId);
@@ -392,6 +448,7 @@ export function tileryReducer(
     case 'MOVE_TAB': {
       const tab = current.tabs[action.tabId];
       if (!tab) return current;
+      if (!tab.draggable) return current;
       const sourcePanel = current.panels[tab.panelId];
       if (!sourcePanel) return current;
 
@@ -406,6 +463,11 @@ export function tileryReducer(
         const targetPanelId = refTab.panelId;
         const targetPanel = current.panels[targetPanelId];
         if (!targetPanel) return current;
+        if (
+          !tileryCanMoveTabBetweenPanels(current, sourcePanel.id, targetPanelId)
+        ) {
+          return current;
+        }
         let nextTabsInTarget = targetPanel.tabs;
         if (sourcePanel.id === targetPanelId) {
           nextTabsInTarget = nextTabsInTarget.filter(
@@ -431,6 +493,15 @@ export function tileryReducer(
         const targetSource = current.panels[action.to.splitPanelId];
         if (!targetSource) return current;
         if (targetSource.fullScreen) return current;
+        if (
+          !tileryCanMoveTabBetweenPanels(
+            current,
+            sourcePanel.id,
+            targetSource.id,
+          )
+        ) {
+          return current;
+        }
         if (
           targetSource.id === sourcePanel.id &&
           sourcePanel.tabs.length === 1
@@ -492,6 +563,7 @@ export function tileryReducer(
             action.to.newPanelId,
             action.to.direction,
             action.to.sizePercent,
+            action.to,
           );
           if (layout)
             next = tilerySyncLayoutPanels({ ...next, layout }, layout);
@@ -536,6 +608,11 @@ export function tileryReducer(
       const targetPanelId = action.to.panelId;
       const targetPanel = current.panels[targetPanelId];
       if (!targetPanel) return current;
+      if (
+        !tileryCanMoveTabBetweenPanels(current, sourcePanel.id, targetPanelId)
+      ) {
+        return current;
+      }
       let nextTabsInTarget = targetPanel.tabs;
       if (sourcePanel.id === targetPanelId) {
         nextTabsInTarget = nextTabsInTarget.filter((id) => id !== action.tabId);
@@ -615,6 +692,7 @@ export function tileryReducer(
       const b = current.panels[action.panelB];
       if (!a || !b) return current;
       if (a.id === b.id) return current;
+      if (!tileryCanSwapPanels(current, a.id, b.id)) return current;
       if (current.layout) {
         const layout = tilerySwapPanelsInLayout(
           current.layout,
@@ -746,28 +824,30 @@ function removePanelAndFill(
   };
 }
 
+function panelHasNonCloseableTab(
+  state: TileryLayoutState,
+  panel: TileryPanelState,
+): boolean {
+  return panel.tabs.some((tabId) => state.tabs[tabId]?.closeable === false);
+}
+
 export function tileryPanelInitToReducerInit(init: TileryPanelInit): {
   id: TileryPanelId;
-  tabs: { id: TileryTabId; data: unknown; closeable?: boolean }[];
+  tabs: TileryReducerTabInit[];
 } {
   return {
     id: init.id ?? tileryNextId('p'),
-    tabs: init.tabs.map((t) => ({
-      id: t.id ?? tileryNextId('t'),
-      data: t.data,
-      closeable: t.closeable ?? true,
-    })),
+    tabs: init.tabs.map(tileryTabInitToReducerInit),
   };
 }
 
-export function tileryTabInitToReducerInit(init: TileryTabInit): {
-  id: TileryTabId;
-  data: unknown;
-  closeable: boolean;
-} {
+export function tileryTabInitToReducerInit(
+  init: TileryTabInit,
+): TileryReducerTabInit {
+  const behavior = tileryNormalizeTabBehavior(init);
   return {
     id: init.id ?? tileryNextId('t'),
     data: init.data,
-    closeable: init.closeable ?? true,
+    ...behavior,
   };
 }

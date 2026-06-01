@@ -25,20 +25,64 @@ export type TileryTabState<TData = unknown> = {
   id: TileryTabId;
   panelId: TileryPanelId;
   data: TData;
-  closeable?: boolean;
+  closeable: boolean;
+  draggable: boolean;
 };
+
+export type TileryTabBehavior = {
+  closeable: boolean;
+  draggable: boolean;
+};
+
+export type TileryTabBehaviorConfig =
+  | {
+      locked: true;
+      closeable?: never;
+      draggable?: never;
+    }
+  | {
+      locked?: false;
+      closeable?: boolean;
+      draggable?: boolean;
+    };
+
+export type TileryLayoutBehavior = {
+  resizable: boolean;
+  draggable: boolean;
+  droppable: boolean;
+};
+
+export type TileryLayoutBehaviorConfig =
+  | {
+      locked: true;
+      resizable?: never;
+      draggable?: never;
+      droppable?: never;
+    }
+  | {
+      locked?: false;
+      resizable?: boolean;
+      draggable?: boolean;
+      droppable?: boolean;
+    };
 
 export type TileryLayoutTree =
   | {
       kind: 'panel';
       panelId: TileryPanelId;
       size?: number;
+      resizable?: boolean;
+      draggable?: boolean;
+      droppable?: boolean;
     }
   | {
       kind: 'split';
       id: string;
       direction: 'horizontal' | 'vertical';
       size?: number;
+      resizable?: boolean;
+      draggable?: boolean;
+      droppable?: boolean;
       children: TileryLayoutTree[];
     };
 
@@ -52,8 +96,7 @@ export type TileryLayoutState = {
 export type TileryTabInit<TData = unknown> = {
   id?: TileryTabId;
   data: TData;
-  closeable?: boolean;
-};
+} & TileryTabBehaviorConfig;
 
 export type TileryEmptyInit = {
   type: 'empty';
@@ -68,7 +111,7 @@ export type TileryPanelInit<TData = unknown> = {
   fullScreen?: boolean;
   minSize?: number;
   maxSize?: number;
-};
+} & TileryLayoutBehaviorConfig;
 
 export type TilerySplitInit<TData = unknown> = {
   type: 'split';
@@ -76,26 +119,55 @@ export type TilerySplitInit<TData = unknown> = {
   direction: 'horizontal' | 'vertical';
   size?: number;
   children: TileryInitialLayout<TData>[];
-};
+} & TileryLayoutBehaviorConfig;
 
 export type TileryInitialLayout<TData = unknown> =
   | TileryEmptyInit
   | TileryPanelInit<TData>
   | TilerySplitInit<TData>;
 
-export type TileryLayoutSnapshot<TData = unknown> = TileryInitialLayout<TData>;
+export type TileryPanelSnapshot<TData = unknown> = {
+  type: 'panel';
+  id?: TileryPanelId;
+  size?: number;
+  tabs: TileryTabSnapshot<TData>[];
+  activeTabId?: TileryTabId;
+  fullScreen?: boolean;
+  minSize?: number;
+  maxSize?: number;
+} & TileryLayoutBehavior;
+
+export type TileryTabSnapshot<TData = unknown> = {
+  id?: TileryTabId;
+  data: TData;
+} & TileryTabBehavior;
+
+export type TilerySplitSnapshot<TData = unknown> = {
+  type: 'split';
+  id?: string;
+  direction: 'horizontal' | 'vertical';
+  size?: number;
+  children: TileryLayoutSnapshot<TData>[];
+} & TileryLayoutBehavior;
+
+export type TileryLayoutSnapshot<TData = unknown> =
+  | TileryEmptyInit
+  | TileryPanelSnapshot<TData>
+  | TilerySplitSnapshot<TData>;
+
+export type TilerySplitMoveTarget = {
+  splitPanel: TileryPanelId;
+  direction: TileryDirection;
+  size?: number;
+  minSize?: number;
+  maxSize?: number;
+} & TileryLayoutBehaviorConfig;
 
 export type TileryMoveTarget =
   | { panel: TileryPanelId; index?: number }
   | { beforeTab: TileryTabId }
   | { afterTab: TileryTabId }
-  | {
-      splitPanel: TileryPanelId;
-      direction: TileryDirection;
-      size?: number;
-      minSize?: number;
-      maxSize?: number;
-    };
+  | TilerySplitMoveTarget;
 
 export type TileryDividerOrientation = 'vertical' | 'horizontal';
 
@@ -108,6 +180,7 @@ export type TileryDivider = {
   beforePanels: TileryPanelId[];
   afterPanels: TileryPanelId[];
   splitId?: string;
+  disabled?: boolean;
 };
 
 export type TileryJunction = {
@@ -117,6 +190,7 @@ export type TileryJunction = {
   y: number;
   verticalDividerId: string;
   horizontalDividerId: string;
+  disabled?: boolean;
 };
 
 export type TileryHandle = {
@@ -133,7 +207,7 @@ export type TileryHandle = {
       maxSize?: number;
       tabs?: TileryTabInit[];
       activate?: boolean;
-    },
+    } & TileryLayoutBehaviorConfig,
   ): TileryPanelHandle;
   removePanel(panelId: TileryPanelId): void;
   maximizePanel(panelId: TileryPanelId): void;
@@ -154,7 +228,7 @@ export type TileryHandle = {
   setActiveTab(tabId: TileryTabId): void;
   swapPanels(panelA: TileryPanelId, panelB: TileryPanelId): void;
   getLayout<TData = unknown>(): TileryLayoutSnapshot<TData>;
-  setLayout<TData = unknown>(layout: TileryLayoutSnapshot<TData>): void;
+  setLayout<TData = unknown>(layout: TileryInitialLayout<TData>): void;
   getState(): TileryLayoutState;
 };
 
@@ -180,7 +254,7 @@ export type TileryPanelHandle = {
       maxSize?: number;
       tabs?: TileryTabInit[];
       activate?: boolean;
-    },
+    } & TileryLayoutBehaviorConfig,
   ): TileryPanelHandle;
   remove(): void;
   maximize(): void;
@@ -194,6 +268,7 @@ export type TileryTabHandle<TData = unknown> = {
   readonly index: number;
   readonly data: TData;
   readonly closeable: boolean;
+  readonly draggable: boolean;
   setData(data: TData): void;
   moveTo(target: TileryMoveTarget): void;
   activate(): void;

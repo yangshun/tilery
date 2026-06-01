@@ -112,6 +112,7 @@ export type TileryTabLifecycleChange<TData = unknown> = {
   panelId: TileryPanelId;
   data: TData;
   closeable: boolean;
+  draggable: boolean;
 };
 
 export type TileryPanelLifecycleChange = {
@@ -134,6 +135,7 @@ export type TileryTabMoveChange<TData = unknown> = {
   index: number;
   data: TData;
   closeable: boolean;
+  draggable: boolean;
 };
 
 export type TileryActiveTabChangeEvent = {
@@ -227,6 +229,7 @@ export type TileryProps<TData = unknown> = {
   onTabsClose?: (event: TileryTabsCloseEvent<TData>) => void;
   onPanelsClose?: (event: TileryPanelsCloseEvent<TData>) => void;
   minSize?: number;
+  resizable?: boolean;
   resizeHandleHitSize?: number;
   showActionsButton?: TileryPanelVisibility;
   showNewTabButton?: TileryPanelVisibility;
@@ -257,6 +260,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
     onTabsClose,
     onPanelsClose,
     minSize = 10,
+    resizable = true,
     resizeHandleHitSize,
     showActionsButton = false,
     showNewTabButton = false,
@@ -670,6 +674,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
             key={d.id}
             divider={d}
             accessibility={dividerAccessibility[d.id]!}
+            disabled={!resizable || d.disabled}
             hitSize={resizeHandleHitSize}
             onDrag={onDividerDrag}
             onDragEnd={commitResize}
@@ -681,6 +686,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
           <TileryJunction
             key={junction.id}
             junction={junction}
+            disabled={!resizable || junction.disabled}
             hitSize={resizeHandleHitSize}
             onDrag={onJunctionDrag}
             onDragEnd={commitResize}
@@ -882,8 +888,8 @@ function makeTabMoveChanges<TData>(
       previousIndex,
       index,
       data: tab.data as TData,
-      /* v8 ignore next -- reducer-created tabs materialize closeable. */
-      closeable: tab.closeable ?? true,
+      closeable: tab.closeable,
+      draggable: tab.draggable,
     },
   ];
 }
@@ -955,8 +961,8 @@ function makeTabLifecycleChange<TData>(
     id: tab.id,
     panelId: tab.panelId,
     data: tab.data as TData,
-    /* v8 ignore next -- reducer-created tabs materialize closeable. */
-    closeable: tab.closeable ?? true,
+    closeable: tab.closeable,
+    draggable: tab.draggable,
   };
 }
 

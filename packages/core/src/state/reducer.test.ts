@@ -117,6 +117,20 @@ describe('tileryCreateInitialState', () => {
     });
     expect(state.panels.P!.activeTabId).toBe('B');
   });
+  it('normalizes tab locked=true to explicit close and drag locks', () => {
+    const state = tileryCreateInitialState({
+      type: 'panel',
+      id: 'P',
+      tabs: [{ id: 'A', data: {}, locked: true }],
+    });
+
+    expect(state.tabs.A).toMatchObject({
+      id: 'A',
+      panelId: 'P',
+      closeable: false,
+      draggable: false,
+    });
+  });
   it('sets activeTabId to null when the panel has no tabs', () => {
     const state = tileryCreateInitialState({
       type: 'panel',
@@ -134,6 +148,7 @@ describe('tileryCreateInitialState', () => {
           type: 'panel',
           id: 'P1',
           size: 50,
+          resizable: false,
           tabs: [{ id: 'T1', data: {} }],
           fullScreen: true,
           minSize: 20,
@@ -155,6 +170,117 @@ describe('tileryCreateInitialState', () => {
     });
     expect(state.panels.P2).toMatchObject({
       fullScreen: false,
+    });
+    expect(state.layout).toMatchObject({
+      kind: 'split',
+      children: [
+        { kind: 'panel', panelId: 'P1', resizable: false },
+        { kind: 'panel', panelId: 'P2' },
+      ],
+    });
+  });
+
+  it('preserves item resize locks when a single-child initial split collapses', () => {
+    const state = tileryCreateInitialState({
+      type: 'split',
+      direction: 'horizontal',
+      children: [
+        {
+          type: 'panel',
+          id: 'Only',
+          resizable: false,
+          tabs: [{ id: 'T', data: {} }],
+        },
+      ],
+    });
+
+    expect(state.layout).toMatchObject({
+      kind: 'panel',
+      panelId: 'Only',
+      resizable: false,
+    });
+  });
+
+  it('preserves item movement locks when a single-child initial split collapses', () => {
+    const state = tileryCreateInitialState({
+      type: 'split',
+      direction: 'horizontal',
+      children: [
+        {
+          type: 'panel',
+          id: 'Only',
+          locked: true,
+          tabs: [{ id: 'T', data: {} }],
+        },
+      ],
+    });
+
+    expect(state.layout).toMatchObject({
+      kind: 'panel',
+      panelId: 'Only',
+      resizable: false,
+      draggable: false,
+      droppable: false,
+    });
+  });
+
+  it('normalizes locked layout items to explicit behavior booleans', () => {
+    const state = tileryCreateInitialState({
+      type: 'split',
+      direction: 'horizontal',
+      children: [
+        {
+          type: 'panel',
+          id: 'Locked',
+          locked: true,
+          tabs: [{ id: 'A', data: {} }],
+        },
+        {
+          type: 'panel',
+          id: 'Open',
+          tabs: [{ id: 'B', data: {} }],
+        },
+      ],
+    });
+
+    expect(state.layout).toMatchObject({
+      kind: 'split',
+      resizable: true,
+      draggable: true,
+      droppable: true,
+      children: [
+        {
+          kind: 'panel',
+          panelId: 'Locked',
+          resizable: false,
+          draggable: false,
+          droppable: false,
+        },
+        {
+          kind: 'panel',
+          panelId: 'Open',
+          resizable: true,
+          draggable: true,
+          droppable: true,
+        },
+      ],
+    });
+  });
+
+  it('keeps resize locking independent from drag and drop behavior', () => {
+    const state = tileryCreateInitialState({
+      type: 'panel',
+      id: 'P',
+      resizable: false,
+      tabs: [{ id: 'T', data: {} }],
+    });
+
+    expect(state.layout).toMatchObject({
+      kind: 'panel',
+      panelId: 'P',
+      resizable: false,
+      draggable: true,
+      droppable: true,
     });
   });
 
@@ -242,6 +368,9 @@ describe('tileryCreateInitialState', () => {
       kind: 'panel',
       panelId: 'Only',
       size: 75,
+      resizable: true,
+      draggable: true,
+      droppable: true,
     });
     expect(single.panelOrder).toEqual(['Only']);
     expect(single.panels.Only!.inset).toEqual({
@@ -355,6 +484,37 @@ describe('tileryReducer dispatch matrix', () => {
       activate: true,
     });
     expect(next.panelOrder).toEqual(['L', 'NEW', 'R']);
+  });
+
+  it('SPLIT_PANEL is a no-op when the target panel is not droppable', () => {
+    const state = tileryCreateInitialState({
+      type: 'split',
+      direction: 'horizontal',
+      children: [
+        {
+          type: 'panel',
+          id: 'L',
+          droppable: false,
+          tabs: [{ id: 'L1', data: {} }],
+        },
+        {
+          type: 'panel',
+          id: 'R',
+          tabs: [{ id: 'R1', data: {} }],
+        },
+      ],
+    });
+    const next = tileryReducer(state, {
+      type: 'SPLIT_PANEL',
+      panelId: 'L',
+      direction: 'right',
+      sizePercent: 50,
+      newPanelId: 'NEW',
+      tabs: [],
+      activate: true,
+    });
+
+    expect(next).toBe(state);
   });
 
   it('REMOVE_PANEL is a no-op if the panel is missing', () => {
@@ -555,6 +715,21 @@ describe('tileryReducer dispatch matrix', () => {
     const next = tileryReducer(state, { type: 'REMOVE_TAB', tabId: 'phantom' });
     expect(next).toBe(state);
   });
+  it('REMOVE_TAB is a no-op when the tab is not closeable', () => {
+    const state = createStateFromPanels({
+      panels: [
+        {
+          id: 'P',
+          inset: { top: 0, right: 0, bottom: 0, left: 0 },
+          tabs: [{ id: 'T1', data: {}, closeable: false }],
+        },
+      ],
+    });
+
+    const next = tileryReducer(state, { type: 'REMOVE_TAB', tabId: 'T1' });
+
+    expect(next).toBe(state);
+  });
   it('REMOVE_TAB is a no-op if the back-reference panel is missing', () => {
     let state = twoSideBySide();
     state = {
@@ -608,7 +783,33 @@ describe('tileryReducer dispatch matrix', () => {
       left: 0,
     });
     expect(next.panelOrder).toEqual(['L']);
-    expect(next.layout).toEqual({ kind: 'panel', panelId: 'L' });
+    expect(next.layout).toEqual({
+      kind: 'panel',
+      panelId: 'L',
+      resizable: true,
+      draggable: true,
+      droppable: true,
+    });
+  });
+  it('REMOVE_PANEL is a no-op when the panel contains a non-closeable tab', () => {
+    const state = createStateFromPanels({
+      panels: [
+        {
+          id: 'L',
+          inset: { top: 0, right: 50, bottom: 0, left: 0 },
+          tabs: [{ id: 'L1', data: {}, closeable: false }],
+        },
+        {
+          id: 'R',
+          inset: { top: 0, right: 0, bottom: 0, left: 50 },
+          tabs: [{ id: 'R1', data: {} }],
+        },
+      ],
+    });
+
+    const next = tileryReducer(state, { type: 'REMOVE_PANEL', panelId: 'L' });
+
+    expect(next).toBe(state);
   });
 
   it('MOVE_TAB is a no-op if the tab does not exist', () => {
@@ -618,6 +819,30 @@ describe('tileryReducer dispatch matrix', () => {
       tabId: 'phantom',
       to: { panelId: 'R', index: 0 },
     });
+    expect(next).toBe(state);
+  });
+  it('MOVE_TAB is a no-op when the tab is not draggable', () => {
+    const state = createStateFromPanels({
+      panels: [
+        {
+          id: 'L',
+          inset: { top: 0, right: 50, bottom: 0, left: 0 },
+          tabs: [{ id: 'L1', data: {}, draggable: false }],
+        },
+        {
+          id: 'R',
+          inset: { top: 0, right: 0, bottom: 0, left: 50 },
+          tabs: [{ id: 'R1', data: {} }],
+        },
+      ],
+    });
+
+    const next = tileryReducer(state, {
+      type: 'MOVE_TAB',
+      tabId: 'L1',
+      to: { panelId: 'R', index: 0 },
+    });
+
     expect(next).toBe(state);
   });
   it('MOVE_TAB is a no-op if the source panel is broken', () => {
@@ -682,6 +907,24 @@ describe('tileryReducer dispatch matrix', () => {
     });
     expect(next.panels.R!.tabs).toEqual(['R1', 'L1']);
   });
+  it('MOVE_TAB beforeTab is a no-op when same-panel drops are disabled', () => {
+    const state = tileryCreateInitialState({
+      type: 'panel',
+      id: 'L',
+      droppable: false,
+      tabs: [
+        { id: 'L1', data: {} },
+        { id: 'L2', data: {} },
+      ],
+    });
+    const next = tileryReducer(state, {
+      type: 'MOVE_TAB',
+      tabId: 'L2',
+      to: { beforeTabId: 'L1' },
+    });
+
+    expect(next).toBe(state);
+  });
   it('MOVE_TAB target by panel index defaults to append when index too large', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, {
@@ -716,6 +959,58 @@ describe('tileryReducer dispatch matrix', () => {
       tabId: 'L1',
       to: { panelId: 'phantom', index: 0 },
     });
+    expect(next).toBe(state);
+  });
+  it('MOVE_TAB is a no-op when the source panel is not draggable', () => {
+    const state = tileryCreateInitialState({
+      type: 'split',
+      direction: 'horizontal',
+      children: [
+        {
+          type: 'panel',
+          id: 'L',
+          draggable: false,
+          tabs: [{ id: 'L1', data: {} }],
+        },
+        {
+          type: 'panel',
+          id: 'R',
+          tabs: [{ id: 'R1', data: {} }],
+        },
+      ],
+    });
+    const next = tileryReducer(state, {
+      type: 'MOVE_TAB',
+      tabId: 'L1',
+      to: { panelId: 'R', index: 0 },
+    });
+
+    expect(next).toBe(state);
+  });
+  it('MOVE_TAB is a no-op when the target panel is not droppable', () => {
+    const state = tileryCreateInitialState({
+      type: 'split',
+      direction: 'horizontal',
+      children: [
+        {
+          type: 'panel',
+          id: 'L',
+          tabs: [{ id: 'L1', data: {} }],
+        },
+        {
+          type: 'panel',
+          id: 'R',
+          droppable: false,
+          tabs: [{ id: 'R1', data: {} }],
+        },
+      ],
+    });
+    const next = tileryReducer(state, {
+      type: 'MOVE_TAB',
+      tabId: 'L1',
+      to: { panelId: 'R', index: 0 },
+    });
+
     expect(next).toBe(state);
   });
   it('MOVE_TAB splitPanel: wasActive=false branch (moving a non-active tab keeps source active)', () => {
@@ -929,6 +1224,38 @@ describe('tileryReducer dispatch matrix', () => {
         newPanelId: 'X',
       },
     });
+    expect(next).toBe(state);
+  });
+
+  it('MOVE_TAB splitPanel is a no-op when the split target is not droppable', () => {
+    const state = tileryCreateInitialState({
+      type: 'split',
+      direction: 'horizontal',
+      children: [
+        {
+          type: 'panel',
+          id: 'L',
+          tabs: [{ id: 'L1', data: {} }],
+        },
+        {
+          type: 'panel',
+          id: 'R',
+          droppable: false,
+          tabs: [{ id: 'R1', data: {} }],
+        },
+      ],
+    });
+    const next = tileryReducer(state, {
+      type: 'MOVE_TAB',
+      tabId: 'L1',
+      to: {
+        splitPanelId: 'R',
+        direction: 'right',
+        sizePercent: 50,
+        newPanelId: 'NEW',
+      },
+    });
+
     expect(next).toBe(state);
   });
 
@@ -1200,6 +1527,34 @@ describe('tileryReducer dispatch matrix', () => {
     });
     expect(next).toBe(state);
   });
+  it('RESIZE_DIVIDER is a no-op for a disabled divider', () => {
+    const state = tileryCreateInitialState({
+      type: 'split',
+      direction: 'horizontal',
+      children: [
+        {
+          type: 'panel',
+          id: 'L',
+          resizable: false,
+          tabs: [{ id: 'L1', data: {} }],
+        },
+        {
+          type: 'panel',
+          id: 'R',
+          tabs: [{ id: 'R1', data: {} }],
+        },
+      ],
+    });
+    const div = tileryDeriveDividers(state)[0]!;
+    expect(div.disabled).toBe(true);
+
+    const next = tileryReducer(state, {
+      type: 'RESIZE_DIVIDER',
+      dividerId: div.id,
+      newPosition: 70,
+    });
+    expect(next).toBe(state);
+  });
 
   it('RESIZE_JUNCTION updates both divider axes for a T-junction', () => {
     const state = tJunctionLayout();
@@ -1225,6 +1580,49 @@ describe('tileryReducer dispatch matrix', () => {
     const next = tileryReducer(state, {
       type: 'RESIZE_JUNCTION',
       junctionId: 'phantom',
+      x: 30,
+      y: 70,
+    });
+    expect(next).toBe(state);
+  });
+
+  it('RESIZE_JUNCTION is a no-op for a disabled junction', () => {
+    const state = tileryCreateInitialState({
+      type: 'split',
+      direction: 'horizontal',
+      children: [
+        {
+          type: 'panel',
+          id: 'sidebar',
+          size: 40,
+          resizable: false,
+          tabs: [{ id: 'side', data: {} }],
+        },
+        {
+          type: 'split',
+          direction: 'vertical',
+          size: 60,
+          children: [
+            {
+              type: 'panel',
+              id: 'editor',
+              tabs: [{ id: 'file', data: {} }],
+            },
+            {
+              type: 'panel',
+              id: 'terminal',
+              tabs: [{ id: 'shell', data: {} }],
+            },
+          ],
+        },
+      ],
+    });
+    const junction = tileryDeriveJunctions(state)[0]!;
+    expect(junction.disabled).toBe(true);
+
+    const next = tileryReducer(state, {
+      type: 'RESIZE_JUNCTION',
+      junctionId: junction.id,
       x: 30,
       y: 70,
     });
@@ -1283,6 +1681,30 @@ describe('tileryReducer dispatch matrix', () => {
     ).toBe(state);
   });
 
+  it('SWAP_PANELS is a no-op when either panel is locked against movement', () => {
+    const state = tileryCreateInitialState({
+      type: 'split',
+      direction: 'horizontal',
+      children: [
+        {
+          type: 'panel',
+          id: 'L',
+          locked: true,
+          tabs: [{ id: 'L1', data: {} }],
+        },
+        {
+          type: 'panel',
+          id: 'R',
+          tabs: [{ id: 'R1', data: {} }],
+        },
+      ],
+    });
+
+    expect(
+      tileryReducer(state, { type: 'SWAP_PANELS', panelA: 'L', panelB: 'R' }),
+    ).toBe(state);
+  });
+
   it('unknown action returns the same state (default case)', () => {
     const state = twoSideBySide();
     // intentionally wrong shape to exercise the default branch
@@ -1313,9 +1735,27 @@ describe('tileryReducer dispatch matrix', () => {
       },
       panelOrder: ['A', 'B'],
       tabs: {
-        T1: { id: 'T1', panelId: 'A', data: {} },
-        T_DUMMY: { id: 'T_DUMMY', panelId: 'A', data: {} },
-        TB: { id: 'TB', panelId: 'B', data: {} },
+        T1: {
+          id: 'T1',
+          panelId: 'A',
+          data: {},
+          closeable: true,
+          draggable: true,
+        },
+        T_DUMMY: {
+          id: 'T_DUMMY',
+          panelId: 'A',
+          data: {},
+          closeable: true,
+          draggable: true,
+        },
+        TB: {
+          id: 'TB',
+          panelId: 'B',
+          data: {},
+          closeable: true,
+          draggable: true,
+        },
       },
     };
     const next = tileryReducer(state, {
@@ -1345,8 +1785,20 @@ describe('tileryReducer dispatch matrix', () => {
       },
       panelOrder: ['P'],
       tabs: {
-        T1: { id: 'T1', panelId: 'P', data: {} },
-        T_OTHER: { id: 'T_OTHER', panelId: 'P', data: {} },
+        T1: {
+          id: 'T1',
+          panelId: 'P',
+          data: {},
+          closeable: true,
+          draggable: true,
+        },
+        T_OTHER: {
+          id: 'T_OTHER',
+          panelId: 'P',
+          data: {},
+          closeable: true,
+          draggable: true,
+        },
       },
     };
     const next = tileryReducer(state, { type: 'REMOVE_TAB', tabId: 'T1' });
@@ -1377,9 +1829,27 @@ describe('tileryReducer dispatch matrix', () => {
       },
       panelOrder: ['A', 'B'],
       tabs: {
-        T1: { id: 'T1', panelId: 'A', data: {} },
-        T_DUMMY: { id: 'T_DUMMY', panelId: 'A', data: {} },
-        TB: { id: 'TB', panelId: 'B', data: {} },
+        T1: {
+          id: 'T1',
+          panelId: 'A',
+          data: {},
+          closeable: true,
+          draggable: true,
+        },
+        T_DUMMY: {
+          id: 'T_DUMMY',
+          panelId: 'A',
+          data: {},
+          closeable: true,
+          draggable: true,
+        },
+        TB: {
+          id: 'TB',
+          panelId: 'B',
+          data: {},
+          closeable: true,
+          draggable: true,
+        },
       },
     };
     const next = tileryReducer(state, {
@@ -1413,9 +1883,27 @@ describe('tileryReducer dispatch matrix', () => {
       },
       panelOrder: ['A', 'B'],
       tabs: {
-        T1: { id: 'T1', panelId: 'A', data: {} },
-        T_DUMMY: { id: 'T_DUMMY', panelId: 'A', data: {} },
-        TB: { id: 'TB', panelId: 'B', data: {} },
+        T1: {
+          id: 'T1',
+          panelId: 'A',
+          data: {},
+          closeable: true,
+          draggable: true,
+        },
+        T_DUMMY: {
+          id: 'T_DUMMY',
+          panelId: 'A',
+          data: {},
+          closeable: true,
+          draggable: true,
+        },
+        TB: {
+          id: 'TB',
+          panelId: 'B',
+          data: {},
+          closeable: true,
+          draggable: true,
+        },
       },
     };
     const next = tileryReducer(state, {
@@ -1442,6 +1930,7 @@ describe('helpers', () => {
     });
     expect(r.id).toMatch(/^p_/);
     expect(r.tabs[0]!.id).toMatch(/^t_/);
+    expect(r.tabs[0]).toMatchObject({ closeable: true, draggable: true });
   });
   it('tileryPanelInitToReducerInit preserves provided ids', () => {
     const r = tileryPanelInitToReducerInit({
@@ -1451,16 +1940,28 @@ describe('helpers', () => {
     });
     expect(r.id).toBe('mine');
     expect(r.tabs[0]!.id).toBe('tt');
+    expect(r.tabs[0]).toMatchObject({ closeable: true, draggable: true });
   });
   it('tileryTabInitToReducerInit auto-assigns missing id', () => {
     const r = tileryTabInitToReducerInit({ data: { x: 1 } });
     expect(r.id).toMatch(/^t_/);
     expect(r.data).toEqual({ x: 1 });
+    expect(r.closeable).toBe(true);
+    expect(r.draggable).toBe(true);
   });
   it('tileryTabInitToReducerInit preserves provided id', () => {
     expect(tileryTabInitToReducerInit({ id: 'mine', data: {} }).id).toBe(
       'mine',
     );
+  });
+  it('tileryTabInitToReducerInit normalizes locked tabs', () => {
+    expect(
+      tileryTabInitToReducerInit({ id: 'mine', data: {}, locked: true }),
+    ).toMatchObject({
+      id: 'mine',
+      closeable: false,
+      draggable: false,
+    });
   });
 });
 

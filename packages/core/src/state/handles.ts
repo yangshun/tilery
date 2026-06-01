@@ -17,6 +17,7 @@ import {
 } from './reducer';
 import { tileryPanelOrderFromState } from './layout-tree';
 import { tileryCreateLayoutSnapshot } from './snapshot';
+import { tileryNormalizeLayoutBehavior } from './layout-behavior';
 
 export type TileryDispatch = (action: TileryReducerAction) => void;
 export type TileryGetState = () => TileryLayoutState;
@@ -52,6 +53,7 @@ export function makeTileryHandle(
     splitPanel(panelId, direction, opts) {
       const newPanelId = tileryNextId('p');
       const tabs = (opts?.tabs ?? []).map(tileryTabInitToReducerInit);
+      const behavior = tileryNormalizeLayoutBehavior(opts);
       dispatch({
         type: 'SPLIT_PANEL',
         panelId,
@@ -60,6 +62,7 @@ export function makeTileryHandle(
         newPanelId,
         minSize: opts?.minSize,
         maxSize: opts?.maxSize,
+        ...behavior,
         tabs,
         activate: opts?.activate ?? true,
       });
@@ -124,6 +127,7 @@ function normalizeMoveTarget(target: TileryMoveTarget) {
   if ('beforeTab' in target) return { beforeTabId: target.beforeTab };
   if ('afterTab' in target) return { afterTabId: target.afterTab };
   if ('splitPanel' in target) {
+    const behavior = tileryNormalizeLayoutBehavior(target);
     return {
       splitPanelId: target.splitPanel,
       direction: target.direction,
@@ -131,6 +135,7 @@ function normalizeMoveTarget(target: TileryMoveTarget) {
       newPanelId: tileryNextId('p'),
       minSize: target.minSize,
       maxSize: target.maxSize,
+      ...behavior,
     };
   }
   return {
@@ -228,6 +233,9 @@ export function tileryMakeTabHandle<TData = unknown>(
     },
     get closeable() {
       return getState().tabs[id]?.closeable ?? true;
+    },
+    get draggable() {
+      return getState().tabs[id]?.draggable ?? true;
     },
     setData(data) {
       dispatch({ type: 'SET_PANEL_DATA', tabId: id, data });

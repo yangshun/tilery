@@ -7,6 +7,7 @@ import { useTileryPointerDrag } from '../use-pointer-drag';
 export type DividerProps = {
   divider: DividerType;
   accessibility: DividerAccessibility;
+  disabled?: boolean;
   hitSize?: number;
   onDrag: (
     dividerId: string,
@@ -39,6 +40,7 @@ const noop = () => {};
 export function TileryDivider({
   divider,
   accessibility,
+  disabled = false,
   hitSize = DEFAULT_HIT_SIZE_PX,
   onDrag,
   onDragEnd = noop,
@@ -47,6 +49,8 @@ export function TileryDivider({
   const resolvedHitSize = normalizeHitSize(hitSize);
   const onMove = useCallback(
     (e: React.PointerEvent) => {
+      /* v8 ignore next -- disabled handles detach pointer move before this callback is reachable. */
+      if (disabled) return;
       const container = containerRef.current;
       if (!container) return;
       const rect = container.getBoundingClientRect();
@@ -56,7 +60,7 @@ export function TileryDivider({
           : ((e.clientY - rect.top) / rect.height) * 100;
       onDrag(divider.id, pct, 'pointer');
     },
-    [containerRef, divider.id, divider.orientation, onDrag],
+    [containerRef, disabled, divider.id, divider.orientation, onDrag],
   );
 
   const handlers = useTileryPointerDrag({ onMove });
@@ -70,6 +74,7 @@ export function TileryDivider({
   );
   const isAtMin = divider.position <= minPosition + EPSILON;
   const isAtMax = divider.position >= maxPosition - EPSILON;
+  const isActive = handlers.isDragging && !disabled;
 
   const onPointerUp = useCallback(
     (e: React.PointerEvent) => {
@@ -81,6 +86,7 @@ export function TileryDivider({
 
   const onKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (disabled) return;
       const min = Math.min(
         accessibility.minPosition,
         accessibility.maxPosition,
@@ -117,6 +123,7 @@ export function TileryDivider({
       divider.id,
       divider.orientation,
       divider.position,
+      disabled,
       onDrag,
       onDragEnd,
     ],
@@ -129,30 +136,32 @@ export function TileryDivider({
           top: `${divider.start}%`,
           height: `${divider.end - divider.start}%`,
           width: `${resolvedHitSize}px`,
-          cursor: 'col-resize',
+          cursor: disabled ? 'default' : 'col-resize',
         }
       : {
           top: `calc(${divider.position}% - ${resolvedHitSize / 2}px)`,
           left: `${divider.start}%`,
           width: `${divider.end - divider.start}%`,
           height: `${resolvedHitSize}px`,
-          cursor: 'row-resize',
+          cursor: disabled ? 'default' : 'row-resize',
         };
   return (
     <div
       className="tilery__divider"
       data-orientation={divider.orientation}
-      data-resize-active={handlers.isDragging ? '' : undefined}
+      data-resize-active={isActive ? '' : undefined}
       data-resize-at-min={isAtMin ? '' : undefined}
       data-resize-at-max={isAtMax ? '' : undefined}
+      data-resize-disabled={disabled ? '' : undefined}
       style={style}
-      tabIndex={0}
-      onPointerDown={handlers.onPointerDown}
-      onPointerMove={handlers.onPointerMove}
+      tabIndex={disabled ? -1 : 0}
+      onPointerDown={disabled ? undefined : handlers.onPointerDown}
+      onPointerMove={disabled ? undefined : handlers.onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
       onKeyDown={onKeyDown}
       role="separator"
+      aria-disabled={disabled ? true : undefined}
       aria-label={accessibility.label}
       aria-controls={accessibility.controls}
       aria-orientation={divider.orientation}

@@ -169,12 +169,14 @@ export function tileryApplyJunctionResize(
   position: { x: number; y: number },
   minSize: number = TILERY_DEFAULT_MIN_SIZE,
 ): TileryLayoutState {
+  if (junction.disabled) return state;
   const dividers = tileryDeriveDividers(state);
   const vertical = dividers.find((d) => d.id === junction.verticalDividerId);
   const horizontal = dividers.find(
     (d) => d.id === junction.horizontalDividerId,
   );
   if (!vertical || !horizontal) return state;
+  if (vertical.disabled || horizontal.disabled) return state;
 
   const x = tileryClampDividerPosition(state, vertical, position.x, minSize);
   const y = tileryClampDividerPosition(state, horizontal, position.y, minSize);
@@ -240,6 +242,10 @@ function deriveTJunctions(dividers: TileryDivider[]): TileryJunction[] {
         y: candidate.y,
         verticalDividerId: candidate.vertical.id,
         horizontalDividerId: candidate.horizontal.id,
+        disabled:
+          candidate.vertical.disabled ||
+          candidate.horizontal.disabled ||
+          undefined,
       };
     });
 }
@@ -348,6 +354,7 @@ export function tileryClampDividerPosition(
   targetPosition: number,
   minSize: number = TILERY_DEFAULT_MIN_SIZE,
 ): number {
+  if (divider.disabled) return divider.position;
   if (divider.splitId && state.layout) {
     const clamped = tileryClampLayoutDividerPosition(
       state.layout,
@@ -439,6 +446,7 @@ export function tileryApplyDividerResize(
   divider: TileryDivider,
   newPosition: number,
 ): TileryLayoutState {
+  if (divider.disabled) return state;
   if (divider.splitId && state.layout) {
     const layout = tileryResizeLayoutDivider(
       state.layout,

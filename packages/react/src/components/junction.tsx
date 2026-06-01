@@ -6,6 +6,7 @@ import { useTileryPointerDrag } from '../use-pointer-drag';
 
 export type JunctionProps = {
   junction: JunctionType;
+  disabled?: boolean;
   hitSize?: number;
   onDrag: (
     junctionId: string,
@@ -22,6 +23,7 @@ const noop = () => {};
 
 export function TileryJunction({
   junction,
+  disabled = false,
   hitSize = DEFAULT_HIT_SIZE_PX,
   onDrag,
   onDragEnd = noop,
@@ -30,6 +32,8 @@ export function TileryJunction({
   const resolvedHitSize = normalizeHitSize(hitSize);
   const onMove = useCallback(
     (e: React.PointerEvent) => {
+      /* v8 ignore next -- disabled handles detach pointer move before this callback is reachable. */
+      if (disabled) return;
       const container = containerRef.current;
       if (!container) return;
       const rect = container.getBoundingClientRect();
@@ -40,10 +44,11 @@ export function TileryJunction({
         'pointer',
       );
     },
-    [containerRef, junction.id, onDrag],
+    [containerRef, disabled, junction.id, onDrag],
   );
 
   const handlers = useTileryPointerDrag({ onMove });
+  const isActive = handlers.isDragging && !disabled;
 
   const onPointerUp = useCallback(
     (e: React.PointerEvent) => {
@@ -57,16 +62,17 @@ export function TileryJunction({
     <div
       className="tilery__junction"
       data-junction-kind={junction.kind}
-      data-resize-active={handlers.isDragging ? '' : undefined}
+      data-resize-active={isActive ? '' : undefined}
+      data-resize-disabled={disabled ? '' : undefined}
       style={{
         left: `calc(${junction.x}% - ${resolvedHitSize / 2}px)`,
         top: `calc(${junction.y}% - ${resolvedHitSize / 2}px)`,
         width: `${resolvedHitSize}px`,
         height: `${resolvedHitSize}px`,
-        cursor: 'move',
+        cursor: disabled ? 'default' : 'move',
       }}
-      onPointerDown={handlers.onPointerDown}
-      onPointerMove={handlers.onPointerMove}
+      onPointerDown={disabled ? undefined : handlers.onPointerDown}
+      onPointerMove={disabled ? undefined : handlers.onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
       aria-hidden="true"

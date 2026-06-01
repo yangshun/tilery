@@ -100,15 +100,32 @@ describe('TileryHandle lookups', () => {
           minSize: 20,
           maxSize: 80,
           tabs: [
-            { id: 'T1', data: { title: 'one' }, closeable: false },
-            { id: 'T2', data: { title: 'two' }, closeable: true },
+            {
+              id: 'T1',
+              data: { title: 'one' },
+              closeable: false,
+              draggable: true,
+            },
+            {
+              id: 'T2',
+              data: { title: 'two' },
+              closeable: true,
+              draggable: true,
+            },
           ],
         },
         {
           type: 'panel',
           id: 'P2',
           size: 50,
-          tabs: [{ id: 'T3', data: { title: 'three' }, closeable: true }],
+          tabs: [
+            {
+              id: 'T3',
+              data: { title: 'three' },
+              closeable: true,
+              draggable: true,
+            },
+          ],
         },
       ],
     });
@@ -121,6 +138,46 @@ describe('TileryHandle lookups', () => {
     );
 
     expect(handle.getLayout()).toEqual({ type: 'empty' });
+  });
+  it('round-trips explicit tab behavior through setLayout', () => {
+    const { handle, getState } = makeStore(
+      createStateFromPanels({
+        panels: [
+          {
+            id: 'P',
+            inset: { top: 0, right: 0, bottom: 0, left: 0 },
+            tabs: [
+              {
+                id: 'T',
+                data: { title: 'locked' },
+                closeable: false,
+                draggable: false,
+              },
+            ],
+          },
+        ],
+      }),
+    );
+    const snapshot = handle.getLayout<{ title: string }>();
+
+    expect(snapshot).toMatchObject({
+      type: 'panel',
+      tabs: [
+        {
+          id: 'T',
+          data: { title: 'locked' },
+          closeable: false,
+          draggable: false,
+        },
+      ],
+    });
+
+    handle.setLayout(snapshot);
+
+    expect(getState().tabs.T).toMatchObject({
+      closeable: false,
+      draggable: false,
+    });
   });
   it('serializes a transient single-child split as its remaining child', () => {
     const { handle } = makeStore({
@@ -140,6 +197,7 @@ describe('TileryHandle lookups', () => {
           panelId: 'P',
           data: { title: 'one' },
           closeable: true,
+          draggable: true,
         },
       },
       layout: {
@@ -147,7 +205,7 @@ describe('TileryHandle lookups', () => {
         id: 'transient',
         direction: 'horizontal',
         size: 75,
-        children: [{ kind: 'panel', panelId: 'P', size: 25 }],
+        children: [{ kind: 'panel', panelId: 'P', size: 25, resizable: false }],
       },
     });
 
@@ -156,9 +214,56 @@ describe('TileryHandle lookups', () => {
       type: 'panel',
       id: 'P',
       size: 75,
-      tabs: [{ id: 'T', data: { title: 'one' }, closeable: true }],
+      resizable: false,
+      tabs: [
+        {
+          id: 'T',
+          data: { title: 'one' },
+          closeable: true,
+          draggable: true,
+        },
+      ],
     });
     expect(snapshot).toHaveProperty('activeTabId', undefined);
+  });
+
+  it('serializes parent resize metadata from a transient single-child split', () => {
+    const { handle } = makeStore({
+      panels: {
+        P: {
+          id: 'P',
+          kind: 'tiled',
+          inset: { top: 0, right: 0, bottom: 0, left: 0 },
+          tabs: ['T'],
+          activeTabId: 'T',
+        },
+      },
+      panelOrder: ['P'],
+      tabs: {
+        T: {
+          id: 'T',
+          panelId: 'P',
+          data: { title: 'one' },
+          closeable: true,
+          draggable: true,
+        },
+      },
+      layout: {
+        kind: 'split',
+        id: 'transient',
+        direction: 'horizontal',
+        size: 75,
+        resizable: true,
+        children: [{ kind: 'panel', panelId: 'P', size: 25 }],
+      },
+    });
+
+    expect(handle.getLayout()).toMatchObject({
+      type: 'panel',
+      id: 'P',
+      size: 75,
+      resizable: true,
+    });
   });
 });
 
@@ -181,6 +286,7 @@ describe('TileryHandle mutations', () => {
       size: 30,
       minSize: 20,
       maxSize: 80,
+      resizable: false,
       activate: false,
       tabs: [{ id: 'NEW', data: { title: 'new' } }],
     });
@@ -189,10 +295,31 @@ describe('TileryHandle mutations', () => {
     expect(action.sizePercent).toBe(30);
     expect(action.minSize).toBe(20);
     expect(action.maxSize).toBe(80);
+    expect(action.resizable).toBe(false);
     expect(action.activate).toBe(false);
     expect(action.tabs).toEqual([
-      { id: 'NEW', data: { title: 'new' }, closeable: true },
+      { id: 'NEW', data: { title: 'new' }, closeable: true, draggable: true },
     ]);
+  });
+  it('splitPanel normalizes locked tabs to explicit behavior booleans', () => {
+    const { handle, dispatched } = makeStore();
+    handle.splitPanel('P1', 'bottom', {
+      tabs: [{ id: 'LOCKED', data: {}, locked: true }],
+    });
+    const action = dispatched[0]!;
+    if (action.type !== 'SPLIT_PANEL') throw new Error('expected SPLIT_PANEL');
+    expect(action.tabs).toEqual([
+      { id: 'LOCKED', data: {}, closeable: false, draggable: false },
+    ]);
+  });
+  it('splitPanel normalizes locked options to explicit behavior booleans', () => {
+    const { handle, dispatched } = makeStore();
+    handle.splitPanel('P1', 'right', { locked: true });
+    const action = dispatched[0]!;
+    if (action.type !== 'SPLIT_PANEL') throw new Error('expected SPLIT_PANEL');
+    expect(action.resizable).toBe(false);
+    expect(action.draggable).toBe(false);
+    expect(action.droppable).toBe(false);
   });
   it('removePanel dispatches REMOVE_PANEL', () => {
     const { handle, dispatched } = makeStore();
@@ -215,8 +342,22 @@ describe('TileryHandle mutations', () => {
     expect(dispatched[0]).toEqual({
       type: 'APPEND_TAB',
       panelId: 'P1',
-      tab: { id: 'TX', data: { title: 'x' }, closeable: true },
+      tab: { id: 'TX', data: { title: 'x' }, closeable: true, draggable: true },
       activate: true,
+    });
+  });
+  it('appendTab normalizes explicit tab behavior', () => {
+    const { handle, dispatched } = makeStore();
+    const tab = handle.appendTab('P1', {
+      id: 'LOCKED',
+      data: {},
+      locked: true,
+    });
+    expect(tab.closeable).toBe(false);
+    expect(tab.draggable).toBe(false);
+    expect(dispatched[0]).toMatchObject({
+      type: 'APPEND_TAB',
+      tab: { id: 'LOCKED', data: {}, closeable: false, draggable: false },
     });
   });
   it('appendTab honors activate=false and auto-id when none provided', () => {
@@ -233,7 +374,7 @@ describe('TileryHandle mutations', () => {
     expect(dispatched[0]).toEqual({
       type: 'INSERT_TAB',
       panelId: 'P1',
-      tab: { id: 'TI', data: {}, closeable: true },
+      tab: { id: 'TI', data: {}, closeable: true, draggable: true },
       index: 1,
       activate: false,
     });
@@ -269,11 +410,13 @@ describe('TileryHandle mutations', () => {
     handle.setLayout({
       type: 'split',
       direction: 'vertical',
+      resizable: false,
       children: [
         {
           type: 'panel',
           id: 'Top',
           size: 25,
+          resizable: false,
           tabs: [{ id: 'A', data: { title: 'top' } }],
         },
         {
@@ -296,8 +439,9 @@ describe('TileryHandle mutations', () => {
     expect(handle.getLayout()).toMatchObject({
       type: 'split',
       direction: 'vertical',
+      resizable: false,
       children: [
-        { type: 'panel', id: 'Top', size: 25 },
+        { type: 'panel', id: 'Top', size: 25, resizable: false },
         { type: 'panel', id: 'Bottom', size: 75 },
       ],
     });
@@ -313,6 +457,33 @@ describe('TileryHandle mutations', () => {
       layout: null,
     });
     expect(handle.getLayout()).toEqual({ type: 'empty' });
+  });
+  it('setLayout replaces current locked tabs explicitly', () => {
+    const { handle, getState } = makeStore(
+      createStateFromPanels({
+        panels: [
+          {
+            id: 'P',
+            inset: { top: 0, right: 0, bottom: 0, left: 0 },
+            tabs: [
+              { id: 'LOCKED', data: {}, closeable: false, draggable: false },
+            ],
+          },
+        ],
+      }),
+    );
+
+    handle.setLayout({
+      type: 'panel',
+      id: 'P',
+      tabs: [{ id: 'OPEN', data: {} }],
+    });
+
+    expect(getState().tabs.LOCKED).toBeUndefined();
+    expect(getState().tabs.OPEN).toMatchObject({
+      closeable: true,
+      draggable: true,
+    });
   });
 });
 
@@ -356,6 +527,7 @@ describe('TileryHandle.moveTab — every TileryMoveTarget shape', () => {
       size: 25,
       minSize: 15,
       maxSize: 65,
+      resizable: false,
     });
     const action = dispatched[0]!;
     if (action.type !== 'MOVE_TAB') throw new Error('expected MOVE_TAB');
@@ -366,7 +538,23 @@ describe('TileryHandle.moveTab — every TileryMoveTarget shape', () => {
     expect(action.to.sizePercent).toBe(25);
     expect(action.to.minSize).toBe(15);
     expect(action.to.maxSize).toBe(65);
+    expect(action.to.resizable).toBe(false);
     expect(action.to.newPanelId).toMatch(/^p_/);
+  });
+  it('splitPanel move target normalizes locked to explicit behavior booleans', () => {
+    const { handle, dispatched } = makeStore();
+    handle.moveTab('T1', {
+      splitPanel: 'P2',
+      direction: 'top',
+      locked: true,
+    });
+    const action = dispatched[0]!;
+    if (action.type !== 'MOVE_TAB') throw new Error('expected MOVE_TAB');
+    if (!('splitPanelId' in action.to))
+      throw new Error('expected splitPanelId target');
+    expect(action.to.resizable).toBe(false);
+    expect(action.to.draggable).toBe(false);
+    expect(action.to.droppable).toBe(false);
   });
   it('splitPanel target defaults size to 50', () => {
     const { handle, dispatched } = makeStore();
@@ -513,11 +701,22 @@ describe('TileryTabHandle', () => {
     const tab = handle.getTab('T1')!;
     expect(tab.closeable).toBe(true);
   });
+  it('draggable defaults to true and reflects state', () => {
+    const { handle } = makeStore();
+    const tab = handle.getTab('T1')!;
+    expect(tab.draggable).toBe(true);
+  });
   it('closeable returns true when tab is missing from state', () => {
     const { handle } = makeStore();
     const tab = handle.getTab('T1')!;
     handle.removeTab('T1');
     expect(tab.closeable).toBe(true);
+  });
+  it('draggable returns true when tab is missing from state', () => {
+    const { handle } = makeStore();
+    const tab = handle.getTab('T1')!;
+    handle.removeTab('T1');
+    expect(tab.draggable).toBe(true);
   });
   it('panel getter throws when the tab no longer exists', () => {
     const { handle } = makeStore();
@@ -574,6 +773,27 @@ describe('TileryTabHandle', () => {
     tab.moveTo({ panel: 'P2' });
     expect(dispatched[0]!.type).toBe('MOVE_TAB');
   });
+  it('moveTo no-ops for a non-draggable tab after dispatch', () => {
+    const { handle, getState } = makeStore(
+      createStateFromPanels({
+        panels: [
+          {
+            id: 'P1',
+            inset: { top: 0, right: 50, bottom: 0, left: 0 },
+            tabs: [{ id: 'T1', data: {}, draggable: false }],
+          },
+          {
+            id: 'P2',
+            inset: { top: 0, right: 0, bottom: 0, left: 50 },
+            tabs: [{ id: 'T2', data: {} }],
+          },
+        ],
+      }),
+    );
+    handle.getTab('T1')!.moveTo({ panel: 'P2' });
+    expect(getState().panels.P1!.tabs).toEqual(['T1']);
+    expect(getState().panels.P2!.tabs).toEqual(['T2']);
+  });
   it('activate delegates to tilery.setActiveTab', () => {
     const { handle, dispatched } = makeStore();
     const tab = handle.getTab('T2')!;
@@ -585,5 +805,21 @@ describe('TileryTabHandle', () => {
     const tab = handle.getTab('T1')!;
     tab.remove();
     expect(dispatched[0]).toEqual({ type: 'REMOVE_TAB', tabId: 'T1' });
+  });
+  it('remove no-ops for a non-closeable tab after dispatch', () => {
+    const { handle, getState } = makeStore(
+      createStateFromPanels({
+        panels: [
+          {
+            id: 'P1',
+            inset: { top: 0, right: 0, bottom: 0, left: 0 },
+            tabs: [{ id: 'T1', data: {}, closeable: false }],
+          },
+        ],
+      }),
+    );
+    handle.getTab('T1')!.remove();
+    expect(getState().tabs.T1).toBeDefined();
+    expect(getState().panels.P1!.tabs).toEqual(['T1']);
   });
 });

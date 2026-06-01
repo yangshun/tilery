@@ -141,6 +141,7 @@ The main component. Renders a tiling panel layout.
 | `onTabsClose`             | `(event: TileryTabsCloseEvent<TData>) => void`                           | No       | Called when tabs are removed                    |
 | `onPanelsClose`           | `(event: TileryPanelsCloseEvent<TData>) => void`                         | No       | Called when panels are removed                  |
 | `minSize`                 | `number`                                                                 | No       | Default minimum panel size percentage           |
+| `resizable`               | `boolean`                                                                | No       | Enables or disables all resize handles          |
 | `resizeHandleHitSize`     | `number`                                                                 | No       | Pointer hit target size for resize handles      |
 | `showActionsButton`       | `boolean \| (panel: TileryPanelHandle) => boolean`                       | No       | Shows the built-in panel action menu            |
 | `showNewTabButton`        | `boolean \| (panel: TileryPanelHandle) => boolean`                       | No       | Shows the optional new-tab button               |
@@ -158,7 +159,7 @@ type TileryInitialLayout<TData> =
   | {
       type: 'empty';
     }
-  | {
+  | ({
       type: 'panel';
       id?: string;
       size?: number;
@@ -167,22 +168,73 @@ type TileryInitialLayout<TData> =
       tabs: TileryTabInit<TData>[];
       activeTabId?: string;
       fullScreen?: boolean;
-    }
-  | {
+    } & TileryLayoutBehaviorConfig)
+  | ({
       type: 'split';
       id?: string;
       direction: 'horizontal' | 'vertical';
       size?: number;
       children: TileryInitialLayout<TData>[];
+    } & TileryLayoutBehaviorConfig);
+
+type TileryLayoutBehaviorConfig =
+  | {
+      locked: true;
+      resizable?: never;
+      draggable?: never;
+      droppable?: never;
+    }
+  | {
+      locked?: false;
+      resizable?: boolean;
+      draggable?: boolean;
+      droppable?: boolean;
     };
+
+type TileryTabBehaviorConfig =
+  | { locked: true; closeable?: never; draggable?: never }
+  | { locked?: false; closeable?: boolean; draggable?: boolean };
 
 type TileryTabInit<TData> = {
   id?: string;
   data: TData;
-  closeable?: boolean;
+} & TileryTabBehaviorConfig;
+
+type TileryTabBehavior = {
+  closeable: boolean;
+  draggable: boolean;
 };
 
-type TileryLayoutSnapshot<TData> = TileryInitialLayout<TData>;
+type TileryTabSnapshot<TData> = {
+  id?: string;
+  data: TData;
+} & TileryTabBehavior;
+
+type TileryLayoutBehavior = {
+  resizable: boolean;
+  draggable: boolean;
+  droppable: boolean;
+};
+
+type TileryLayoutSnapshot<TData> =
+  | { type: 'empty' }
+  | ({
+      type: 'panel';
+      id?: string;
+      size?: number;
+      minSize?: number;
+      maxSize?: number;
+      tabs: TileryTabSnapshot<TData>[];
+      activeTabId?: string;
+      fullScreen?: boolean;
+    } & TileryLayoutBehavior)
+  | ({
+      type: 'split';
+      id?: string;
+      direction: 'horizontal' | 'vertical';
+      size?: number;
+      children: TileryLayoutSnapshot<TData>[];
+    } & TileryLayoutBehavior);
 ```
 
 Layouts are initialized as an n-ary split tree. A horizontal split places its
@@ -193,6 +245,15 @@ node's `size` is ignored.
 
 Panels can also define `minSize` and `maxSize` constraints as percentages.
 These constraints override the root `minSize` fallback when resizing dividers.
+Set `resizable={false}` on `Tilery` to disable all resize handles globally.
+On layout items, `resizable` controls adjacent divider resizing, `draggable`
+controls moving tabs out of the item, and `droppable` controls dropping tabs
+into or splitting over the item. Use `locked: true` as public API shorthand for
+`resizable: false`, `draggable: false`, and `droppable: false`.
+
+On tabs, `closeable` controls close actions and `draggable` controls tab move
+actions. Use tab `locked: true` as shorthand for `closeable: false` and
+`draggable: false`.
 
 Resize dividers are keyboard-accessible separators. Focus a divider, then use
 the arrow keys for axis-aligned resizing, Shift+Arrow for larger steps, and
@@ -206,13 +267,17 @@ Resize handles expose stable styling attributes:
 - `data-resize-active` while a divider or junction is being dragged
 - `data-resize-at-min` when a divider is at its minimum position
 - `data-resize-at-max` when a divider is at its maximum position
+- `data-resize-disabled` when a divider or junction cannot be resized
 
 ### Layout snapshots
 
 `TileryLayoutSnapshot<TData>` is the serializable form returned by
 `tilery.getLayout()`. Store it as JSON and pass it back to `initialLayout` or
 `tilery.setLayout(snapshot)` to restore the same panel tree, tab order, active
-tabs, fullscreen panel, and panel size constraints.
+tabs, fullscreen panel, panel size constraints, explicit layout behavior
+booleans, and explicit tab behavior booleans. Snapshots do not emit `locked`;
+they store layout `resizable`, `draggable`, and `droppable`, plus tab
+`closeable` and `draggable`, directly.
 For SSR, parse a saved cookie on the server and pass that snapshot as
 `initialLayout`; for client-only persistence, read and write the snapshot from
 `localStorage`.
@@ -298,6 +363,7 @@ type TileryTabLifecycleChange<TData> = {
   panelId: string;
   data: TData;
   closeable: boolean;
+  draggable: boolean;
 };
 
 type TileryPanelLifecycleChange = {
@@ -320,6 +386,7 @@ type TileryTabMoveChange<TData> = {
   index: number;
   data: TData;
   closeable: boolean;
+  draggable: boolean;
 };
 
 type TileryActiveTabChangeEvent = {
@@ -439,6 +506,8 @@ Returned by `getTab()`. Provides tab-scoped operations.
 | `panel`          | The parent `TileryPanelHandle`       |
 | `index`          | Position within the panel's tab list |
 | `data`           | The `TData` payload                  |
+| `closeable`      | Whether close actions are allowed    |
+| `draggable`      | Whether move actions are allowed     |
 | `setData(data)`  | Update the tab's data                |
 | `moveTo(target)` | Move to a target location            |
 | `activate()`     | Make this the active tab             |
@@ -453,13 +522,13 @@ type TileryMoveTarget =
   | { panel: TileryPanelId; index?: number } // Move to panel at index
   | { beforeTab: TileryTabId } // Insert before a tab
   | { afterTab: TileryTabId } // Insert after a tab
-  | {
+  | ({
       splitPanel: TileryPanelId;
       direction: TileryDirection;
       size?: number;
       minSize?: number;
       maxSize?: number;
-    }; // Split into new panel
+    } & TileryLayoutBehaviorConfig); // Split into new panel
 ```
 
 ### `TileryDirection`

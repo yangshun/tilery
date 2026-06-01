@@ -6,8 +6,13 @@ export type {
   TileryInset,
   TileryInitialLayout,
   TileryJunction,
+  TileryLayoutBehavior,
+  TileryLayoutBehaviorConfig,
   TileryLayoutSnapshot,
+  TileryPanelSnapshot,
+  TilerySplitMoveTarget,
   TilerySplitInit,
+  TilerySplitSnapshot,
   TileryLayoutState,
   TileryLayoutTree,
   TileryHandle,
@@ -16,9 +21,12 @@ export type {
   TileryPanelId,
   TileryPanelInit,
   TileryPanelState,
+  TileryTabBehavior,
+  TileryTabBehaviorConfig,
   TileryTabHandle,
   TileryTabId,
   TileryTabInit,
+  TileryTabSnapshot,
   TileryTabState,
 } from './types';
 
@@ -40,6 +48,21 @@ export {
 } from './state/handles';
 
 export { tileryCreateLayoutSnapshot } from './state/snapshot';
+
+export {
+  TILERY_DEFAULT_LAYOUT_BEHAVIOR,
+  tileryBehaviorFromNode,
+  tileryCanMoveTabBetweenPanels,
+  tileryCanSwapPanels,
+  tileryMergeLayoutBehavior,
+  tileryNormalizeLayoutBehavior,
+  tileryPanelBehaviorFromState,
+} from './state/layout-behavior';
+
+export {
+  TILERY_DEFAULT_TAB_BEHAVIOR,
+  tileryNormalizeTabBehavior,
+} from './state/tab-behavior';
 
 export {
   TILERY_DEFAULT_MIN_SIZE,

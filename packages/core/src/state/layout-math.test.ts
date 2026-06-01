@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vite-plus/test';
 import {
   tileryApplyDividerResize,
+  tileryApplyJunctionResize,
   tileryClampDividerPosition,
   tileryDeriveDividers,
+  tileryDeriveJunctions,
   tileryFindRemovalFillers,
   tileryPanelBottom,
   tileryPanelHeight,
@@ -980,6 +982,114 @@ describe('tileryClampDividerPosition — multi-panel side (workspace shape)', ()
 
     expect(tileryClampDividerPosition(state, div, 5, 10)).toBe(18);
     expect(tileryClampDividerPosition(state, div, 40, 10)).toBe(34);
+  });
+
+  it('disables a divider when either adjacent direct child is not resizable', () => {
+    const state = tileryCreateInitialState({
+      type: 'split',
+      direction: 'horizontal',
+      children: [
+        {
+          type: 'panel',
+          id: 'L',
+          resizable: false,
+          tabs: [{ id: 'left', data: {} }],
+        },
+        {
+          type: 'panel',
+          id: 'R',
+          tabs: [{ id: 'right', data: {} }],
+        },
+      ],
+    });
+    const div = tileryDeriveDividers(state)[0]!;
+
+    expect(div.disabled).toBe(true);
+    expect(tileryClampDividerPosition(state, div, 70, 10)).toBe(div.position);
+    expect(tileryApplyDividerResize(state, div, 70)).toBe(state);
+  });
+
+  it('does not disable an ancestor divider for a locked descendant item', () => {
+    const state = tileryCreateInitialState({
+      type: 'split',
+      direction: 'horizontal',
+      children: [
+        {
+          type: 'panel',
+          id: 'sidebar',
+          tabs: [{ id: 'side', data: {} }],
+        },
+        {
+          type: 'split',
+          direction: 'vertical',
+          children: [
+            {
+              type: 'panel',
+              id: 'editor',
+              resizable: false,
+              tabs: [{ id: 'file', data: {} }],
+            },
+            {
+              type: 'panel',
+              id: 'terminal',
+              tabs: [{ id: 'shell', data: {} }],
+            },
+          ],
+        },
+      ],
+    });
+    const rootDivider = tileryDeriveDividers(state).find(
+      (d) => d.orientation === 'vertical',
+    )!;
+    const nestedDivider = tileryDeriveDividers(state).find(
+      (d) => d.orientation === 'horizontal',
+    )!;
+
+    expect(rootDivider.disabled).toBeUndefined();
+    expect(nestedDivider.disabled).toBe(true);
+  });
+
+  it('does not resize a junction when a resolved divider is disabled', () => {
+    const state = tileryCreateInitialState({
+      type: 'split',
+      direction: 'horizontal',
+      children: [
+        {
+          type: 'panel',
+          id: 'sidebar',
+          size: 30,
+          resizable: false,
+          tabs: [{ id: 'side', data: {} }],
+        },
+        {
+          type: 'split',
+          direction: 'vertical',
+          size: 70,
+          children: [
+            {
+              type: 'panel',
+              id: 'editor',
+              tabs: [{ id: 'file', data: {} }],
+            },
+            {
+              type: 'panel',
+              id: 'terminal',
+              tabs: [{ id: 'shell', data: {} }],
+            },
+          ],
+        },
+      ],
+    });
+    const junction = tileryDeriveJunctions(state)[0]!;
+    expect(junction.disabled).toBe(true);
+
+    expect(
+      tileryApplyJunctionResize(
+        state,
+        { ...junction, disabled: undefined },
+        { x: 60, y: 60 },
+      ),
+    ).toBe(state);
   });
 
   it('keeps position when per-panel min and max constraints cannot fit', () => {

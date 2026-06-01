@@ -3,6 +3,7 @@ export { Example as IdeExample } from './ide/example';
 export { Example as DashboardExample } from './dashboard/example';
 export { Example as PanelActionsExample } from './collapse/example';
 export { Example as ConstraintsExample } from './constraints/example';
+export { Example as ResizeLockingExample } from './resize-locking/example';
 export { Example as ControlledExample } from './controlled/example';
 export { Example as PersistenceExample } from './persistence/example';
 export { Example as CallbacksExample } from './callbacks/example';
@@ -13,6 +14,7 @@ export { metadata as ideMeta } from './ide/metadata';
 export { metadata as dashboardMeta } from './dashboard/metadata';
 export { metadata as panelActionsMeta } from './collapse/metadata';
 export { metadata as constraintsMeta } from './constraints/metadata';
+export { metadata as resizeLockingMeta } from './resize-locking/metadata';
 export { metadata as controlledMeta } from './controlled/metadata';
 export { metadata as persistenceMeta } from './persistence/metadata';
 export { metadata as callbacksMeta } from './callbacks/metadata';
@@ -44,6 +46,11 @@ export const examples = [
     slug: 'constraints',
     title: 'Size Constraints',
     description: 'Panels with per-panel minSize and maxSize resize limits.',
+  },
+  {
+    slug: 'resize-locking',
+    title: 'Resize Locking',
+    description: 'Disable resizing globally or lock layout item behavior.',
   },
   {
     slug: 'controlled',

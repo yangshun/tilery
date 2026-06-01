@@ -78,6 +78,9 @@ describe('tileryBuildLayoutTreeFromPanels', () => {
     expect(tileryBuildLayoutTreeFromPanels([panel('A', full)])).toEqual({
       kind: 'panel',
       panelId: 'A',
+      resizable: true,
+      draggable: true,
+      droppable: true,
     });
   });
 
@@ -513,10 +516,34 @@ describe('tree panel mutations', () => {
     expect(tileryRemovePanelFromLayout(layout, 'L')).toEqual({
       kind: 'panel',
       panelId: 'R',
+      resizable: true,
+      draggable: true,
+      droppable: true,
     });
     expect(tileryRemovePanelFromLayout(layout, 'R')).toEqual({
       kind: 'panel',
       panelId: 'L',
+      resizable: true,
+      draggable: true,
+      droppable: true,
+    });
+  });
+
+  it('preserves item resize locks when removal collapses a split', () => {
+    const layout: TileryLayoutTree = {
+      kind: 'split',
+      id: 'root',
+      direction: 'horizontal',
+      children: [
+        { kind: 'panel', panelId: 'A', size: 50 },
+        { kind: 'panel', panelId: 'B', size: 50, resizable: false },
+      ],
+    };
+
+    expect(tileryRemovePanelFromLayout(layout, 'A')).toMatchObject({
+      kind: 'panel',
+      panelId: 'B',
+      resizable: false,
     });
   });
 

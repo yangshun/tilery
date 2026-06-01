@@ -136,6 +136,28 @@ function constrainedLayout(): TileryInitialLayout<Data> {
   };
 }
 
+function lockedNavigatorLayout(): TileryInitialLayout<Data> {
+  return {
+    type: 'split',
+    direction: 'horizontal',
+    children: [
+      {
+        type: 'panel',
+        id: 'navigator',
+        size: 30,
+        resizable: false,
+        tabs: [{ id: 'navigator-tab', data: { title: 'Navigator' } }],
+      },
+      {
+        type: 'panel',
+        id: 'editor',
+        size: 70,
+        tabs: [{ id: 'editor-tab', data: { title: 'Editor' } }],
+      },
+    ],
+  };
+}
+
 // Stubs the container so percentage math is deterministic.
 function stubContainerRect(el: HTMLElement) {
   el.getBoundingClientRect = () =>
@@ -1485,6 +1507,41 @@ describe('Tilery — min panel size honored by handle', () => {
       reactProps(divider).onPointerUp(pointerEvent());
     });
     expect(100 - t.handle().getPanel('navigator')!.inset.right).toBe(18);
+    t.cleanup();
+  });
+
+  it('disables all resize handles when resizable is false', () => {
+    const t = mount(simpleLayout(), undefined, { resizable: false });
+    const divider = t.host.querySelector<HTMLElement>('.tilery__divider')!;
+
+    expect(divider.hasAttribute('data-resize-disabled')).toBe(true);
+    expect(divider.getAttribute('aria-disabled')).toBe('true');
+    expect(divider.tabIndex).toBe(-1);
+    act(() => {
+      reactProps(divider).onPointerDown?.(pointerEvent());
+      reactProps(divider).onPointerMove?.(
+        pointerEvent({ clientX: 700, clientY: 400 }),
+      );
+      reactProps(divider).onPointerUp?.(pointerEvent());
+    });
+    expect(100 - t.handle().getPanel('left')!.inset.right).toBe(60);
+    t.cleanup();
+  });
+
+  it('disables a divider next to a non-resizable layout item', () => {
+    const t = mount(lockedNavigatorLayout());
+    const divider = t.host.querySelector<HTMLElement>('.tilery__divider')!;
+
+    expect(divider.hasAttribute('data-resize-disabled')).toBe(true);
+    expect(divider.getAttribute('aria-disabled')).toBe('true');
+    act(() => {
+      reactProps(divider).onPointerDown?.(pointerEvent());
+      reactProps(divider).onPointerMove?.(
+        pointerEvent({ clientX: 700, clientY: 400 }),
+      );
+      reactProps(divider).onPointerUp?.(pointerEvent());
+    });
+    expect(100 - t.handle().getPanel('navigator')!.inset.right).toBe(30);
     t.cleanup();
   });
 });

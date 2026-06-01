@@ -32,7 +32,7 @@ const defaultLayout: TileryInitialLayout<TabData> = {
 
 const STORAGE_KEY = 'tilery-example-persistence';
 
-function getInitialLayout(): TileryLayoutSnapshot<TabData> {
+function getInitialLayout(): TileryInitialLayout<TabData> {
   if (typeof window === 'undefined') return defaultLayout;
   const saved = localStorage.getItem(STORAGE_KEY);
   if (!saved) return defaultLayout;
@@ -53,6 +53,9 @@ function isLayoutSnapshot(
     return (
       isOptionalString(value.id) &&
       isOptionalNumber(value.size) &&
+      typeof value.resizable === 'boolean' &&
+      typeof value.draggable === 'boolean' &&
+      typeof value.droppable === 'boolean' &&
       isOptionalString(value.activeTabId) &&
       isOptionalBoolean(value.fullScreen) &&
       isOptionalNumber(value.minSize) &&
@@ -66,6 +69,9 @@ function isLayoutSnapshot(
       isOptionalString(value.id) &&
       (value.direction === 'horizontal' || value.direction === 'vertical') &&
       isOptionalNumber(value.size) &&
+      typeof value.resizable === 'boolean' &&
+      typeof value.draggable === 'boolean' &&
+      typeof value.droppable === 'boolean' &&
       Array.isArray(value.children) &&
       value.children.every(isLayoutSnapshot)
     );
@@ -77,7 +83,8 @@ function isTabSnapshot(value: unknown) {
   return (
     isRecord(value) &&
     isOptionalString(value.id) &&
-    isOptionalBoolean(value.closeable) &&
+    typeof value.closeable === 'boolean' &&
+    typeof value.draggable === 'boolean' &&
     isTabData(value.data)
   );
 }

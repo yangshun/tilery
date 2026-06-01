@@ -14,7 +14,12 @@ import { tileryNextId } from './reducer';
 type FlatPanelInit = {
   id?: string;
   inset: TileryInset;
-  tabs: { id?: string; data: unknown; closeable?: boolean }[];
+  tabs: {
+    id?: string;
+    data: unknown;
+    closeable?: boolean;
+    draggable?: boolean;
+  }[];
   activeTabId?: string;
   fullScreen?: boolean;
   minSize?: number;
@@ -41,6 +46,7 @@ export function createStateFromPanels(initial: {
         panelId,
         data: tabInit.data,
         closeable: tabInit.closeable ?? true,
+        draggable: tabInit.draggable ?? true,
       };
       tabs.push(tabId);
     }

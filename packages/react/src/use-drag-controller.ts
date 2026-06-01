@@ -9,6 +9,7 @@ import {
   tileryClassifyByZoneAndSide,
   tileryCommitDrag,
   tileryGetFullScreenPanelId,
+  tileryPanelBehaviorFromState,
   type TileryPanelZone,
   type TileryDragState,
 } from 'tilery/internal';
@@ -47,6 +48,7 @@ export function useTileryDragController(tilery: () => TileryHandle | null) {
     pointerId: number;
     startX: number;
     startY: number;
+    canDrag: boolean;
   } | null>(null);
   const panelDragRef = useRef(false);
 
@@ -111,6 +113,39 @@ export function useTileryDragController(tilery: () => TileryHandle | null) {
     [tilery],
   );
 
+  const canDropOnPanel = useCallback(
+    (panelId: TileryPanelId, draggedTabId: TileryTabId): boolean => {
+      const m = tilery();
+      /* v8 ignore next */
+      if (!m) return true;
+      const target = m.getPanel(panelId);
+      const draggedTab = m.getTab(draggedTabId);
+      if (!target || !draggedTab) return false;
+      if (!draggedTab.draggable) return false;
+      const state = m.getState();
+      const sourceBehavior = tileryPanelBehaviorFromState(
+        state,
+        draggedTab.panel.id,
+      );
+      if (!sourceBehavior.draggable) return false;
+      const targetBehavior = tileryPanelBehaviorFromState(state, target.id);
+      return draggedTab.panel.id === target.id
+        ? sourceBehavior.droppable
+        : targetBehavior.droppable;
+    },
+    [tilery],
+  );
+
+  const canStartTabDrag = useCallback(
+    (tabId: TileryTabId): boolean => {
+      const m = tilery();
+      if (!m) return true;
+      const tab = m.getTab(tabId);
+      return Boolean(tab?.draggable);
+    },
+    [tilery],
+  );
+
   const computeHover = useCallback(
     (
       x: number,
@@ -131,6 +166,7 @@ export function useTileryDragController(tilery: () => TileryHandle | null) {
         const r = tabBarEl.getBoundingClientRect();
         if (x < r.left || x > r.right || y < r.top || y > r.bottom) continue;
         if (isOwnSoloPanel(panelId, draggedTabId)) continue;
+        if (!canDropOnPanel(panelId, draggedTabId)) continue;
         const tabRects: { tabId: string; left: number; right: number }[] = [];
         if (panel) {
           for (const t of panel.tabs) {
@@ -156,6 +192,7 @@ export function useTileryDragController(tilery: () => TileryHandle | null) {
           );
           if (!z) continue;
           if (isOwnSoloPanel(panelId, draggedTabId)) continue;
+          if (!canDropOnPanel(panelId, draggedTabId)) continue;
           if (classifySplitInteraction(panelId, draggedTabId, z) === 'suppress')
             continue;
           hoverPanelId = panelId;
@@ -165,7 +202,7 @@ export function useTileryDragController(tilery: () => TileryHandle | null) {
       }
       return { hoverPanelId, hoverZone, hoverTabBar };
     },
-    [tilery, isOwnSoloPanel, classifySplitInteraction],
+    [tilery, isOwnSoloPanel, classifySplitInteraction, canDropOnPanel],
   );
 
   const onTabPointerDown = useCallback(
@@ -183,9 +220,10 @@ export function useTileryDragController(tilery: () => TileryHandle | null) {
         pointerId: e.pointerId,
         startX: e.clientX,
         startY: e.clientY,
+        canDrag: canStartTabDrag(tabId),
       };
     },
-    [],
+    [canStartTabDrag],
   );
 
   const onTabBarPointerDown = useCallback(
@@ -200,6 +238,10 @@ export function useTileryDragController(tilery: () => TileryHandle | null) {
       const panel = m.getPanel(panelId);
       /* v8 ignore next */
       if (!panel || !panel.activeTab) return;
+      if (!tileryPanelBehaviorFromState(m.getState(), panel.id).draggable) {
+        return;
+      }
+      if (!panel.tabs.every((tab) => tab.draggable)) return;
       const barEl = e.currentTarget as HTMLElement;
       try {
         barEl.setPointerCapture(e.pointerId);
@@ -212,6 +254,7 @@ export function useTileryDragController(tilery: () => TileryHandle | null) {
         pointerId: e.pointerId,
         startX: e.clientX,
         startY: e.clientY,
+        canDrag: true,
       };
     },
     [tilery],
@@ -231,6 +274,10 @@ export function useTileryDragController(tilery: () => TileryHandle | null) {
       const dx = e.clientX - pending.startX;
       const dy = e.clientY - pending.startY;
       if (Math.hypot(dx, dy) < DRAG_THRESHOLD_PX) return;
+      if (!pending.canDrag) {
+        pendingRef.current = null;
+        return;
+      }
       const hover = computeHover(e.clientX, e.clientY, pending.tabId);
       setDragState({
         tabId: pending.tabId,

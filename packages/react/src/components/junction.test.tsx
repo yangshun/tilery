@@ -17,10 +17,12 @@ const JUNCTION: JunctionType = {
 };
 
 function mountWithRef({
+  disabled,
   hitSize,
   populateRef,
   onDrag,
 }: {
+  disabled?: boolean;
   hitSize?: number;
   populateRef: boolean;
   onDrag: (
@@ -60,6 +62,7 @@ function mountWithRef({
       },
       React.createElement(TileryJunction, {
         junction: JUNCTION,
+        disabled,
         hitSize,
         onDrag,
         containerRef: ref,
@@ -129,6 +132,23 @@ describe('TileryJunction', () => {
       t.handlers.onPointerUp(pointerEvent());
     });
     expect(t.el.hasAttribute('data-resize-active')).toBe(false);
+    t.cleanup();
+  });
+
+  it('marks disabled state and ignores pointer resize', () => {
+    const recorded: Array<{ x: number; y: number }> = [];
+    const t = mountWithRef({
+      disabled: true,
+      populateRef: true,
+      onDrag: (_, x, y) => {
+        recorded.push({ x, y });
+      },
+    });
+    expect(t.el.hasAttribute('data-resize-disabled')).toBe(true);
+    expect(t.el.style.cursor).toBe('default');
+    t.handlers.onPointerDown?.(pointerEvent());
+    t.handlers.onPointerMove?.(pointerEvent({ clientX: 300, clientY: 600 }));
+    expect(recorded).toEqual([]);
     t.cleanup();
   });
 

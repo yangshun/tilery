@@ -48,12 +48,14 @@ const DEFAULT_ACCESSIBILITY = {
 function mountWithRef({
   divider,
   accessibility = DEFAULT_ACCESSIBILITY,
+  disabled,
   hitSize,
   populateRef,
   onDrag,
 }: {
   divider: DividerType;
   accessibility?: typeof DEFAULT_ACCESSIBILITY;
+  disabled?: boolean;
   hitSize?: number;
   populateRef: boolean;
   onDrag: (
@@ -93,6 +95,7 @@ function mountWithRef({
       React.createElement(TileryDivider, {
         divider,
         accessibility,
+        disabled,
         hitSize,
         onDrag,
         containerRef: ref,
@@ -177,6 +180,28 @@ describe('TileryDivider — horizontal axis math', () => {
     t.handlers.onPointerMove(pointerEvent({ clientX: 0, clientY: 200 }));
     // 200 / 800 = 25%.
     expect(recorded).toEqual([{ id: 'h|A|B', pct: 25 }]);
+    t.cleanup();
+  });
+
+  it('marks disabled state and ignores pointer and keyboard resize', () => {
+    const recorded: number[] = [];
+    const t = mountWithRef({
+      divider: HORIZONTAL_DIVIDER,
+      disabled: true,
+      populateRef: true,
+      onDrag: (_, pct) => {
+        recorded.push(pct);
+      },
+    });
+
+    expect(t.el.hasAttribute('data-resize-disabled')).toBe(true);
+    expect(t.el.getAttribute('aria-disabled')).toBe('true');
+    expect(t.el.tabIndex).toBe(-1);
+    expect(t.el.style.cursor).toBe('default');
+    t.handlers.onPointerDown?.(pointerEvent());
+    t.handlers.onPointerMove?.(pointerEvent({ clientX: 0, clientY: 200 }));
+    t.handlers.onKeyDown(keyboardEvent('ArrowDown').event);
+    expect(recorded).toEqual([]);
     t.cleanup();
   });
 
