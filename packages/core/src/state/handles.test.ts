@@ -2,9 +2,12 @@ import { describe, expect, it } from 'vite-plus/test';
 import { makeTileryHandle } from './handles';
 import { tileryReducer, type TileryReducerAction } from './reducer';
 import { createStateFromPanels } from './test-helpers';
-import type { TileryLayoutState } from '../types';
+import type { TileryLayoutState, TilerySizeResolutionContext } from '../types';
 
-function makeStore(initial?: TileryLayoutState) {
+function makeStore(
+  initial?: TileryLayoutState,
+  getSizeContext?: () => TilerySizeResolutionContext | undefined,
+) {
   let state =
     initial ??
     createStateFromPanels({
@@ -31,7 +34,7 @@ function makeStore(initial?: TileryLayoutState) {
     state = tileryReducer(state, action);
   };
   const getState = () => state;
-  const handle = makeTileryHandle(getState, dispatch);
+  const handle = makeTileryHandle(getState, dispatch, getSizeContext);
   return { handle, getState, dispatched };
 }
 
@@ -75,8 +78,8 @@ describe('TileryHandle lookups', () => {
             ],
             activeTabId: 'T2',
             fullScreen: true,
-            minSize: 20,
-            maxSize: 80,
+            minSize: '160px',
+            maxSize: '80%',
           },
           {
             id: 'P2',
@@ -97,8 +100,8 @@ describe('TileryHandle lookups', () => {
           size: 50,
           activeTabId: 'T2',
           fullScreen: true,
-          minSize: 20,
-          maxSize: 80,
+          minSize: '160px',
+          maxSize: '80%',
           tabs: [
             {
               id: 'T1',
@@ -300,6 +303,21 @@ describe('TileryHandle mutations', () => {
     expect(action.tabs).toEqual([
       { id: 'NEW', data: { title: 'new' }, closeable: true, draggable: true },
     ]);
+  });
+  it('splitPanel forwards measured size context for unit constraints', () => {
+    const { handle, dispatched } = makeStore(undefined, () => ({
+      width: 1000,
+      height: 800,
+    }));
+    handle.splitPanel('P1', 'bottom', {
+      minSize: '240px',
+      maxSize: '50%',
+    });
+    const action = dispatched[0]!;
+    if (action.type !== 'SPLIT_PANEL') throw new Error('expected SPLIT_PANEL');
+    expect(action.minSize).toBe('240px');
+    expect(action.maxSize).toBe('50%');
+    expect(action.sizeContext).toEqual({ width: 1000, height: 800 });
   });
   it('splitPanel normalizes locked tabs to explicit behavior booleans', () => {
     const { handle, dispatched } = makeStore();

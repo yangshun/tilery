@@ -1,7 +1,10 @@
 'use client';
 
 import { useCallback } from 'react';
-import type { TileryDivider as DividerType } from 'tilery/internal';
+import type {
+  TileryDivider as DividerType,
+  TilerySizeResolutionContext,
+} from 'tilery/internal';
 import { useTileryPointerDrag } from '../use-pointer-drag';
 
 export type DividerProps = {
@@ -13,6 +16,7 @@ export type DividerProps = {
     dividerId: string,
     newPositionPercent: number,
     input: 'keyboard' | 'pointer',
+    sizeContext?: TilerySizeResolutionContext,
   ) => boolean | void;
   onDragEnd?: () => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
@@ -58,7 +62,10 @@ export function TileryDivider({
         divider.orientation === 'vertical'
           ? ((e.clientX - rect.left) / rect.width) * 100
           : ((e.clientY - rect.top) / rect.height) * 100;
-      onDrag(divider.id, pct, 'pointer');
+      onDrag(divider.id, pct, 'pointer', {
+        width: rect.width,
+        height: rect.height,
+      });
     },
     [containerRef, disabled, divider.id, divider.orientation, onDrag],
   );

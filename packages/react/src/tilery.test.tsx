@@ -158,6 +158,30 @@ function lockedNavigatorLayout(): TileryInitialLayout<Data> {
   };
 }
 
+function pixelConstrainedLayout(): TileryInitialLayout<Data> {
+  return {
+    type: 'split',
+    direction: 'horizontal',
+    children: [
+      {
+        type: 'panel',
+        id: 'left',
+        size: 30,
+        minSize: '200px',
+        maxSize: '400px',
+        tabs: [{ id: 'left-tab', data: { title: 'Left' } }],
+      },
+      {
+        type: 'panel',
+        id: 'right',
+        size: 70,
+        minSize: '100px',
+        tabs: [{ id: 'right-tab', data: { title: 'Right' } }],
+      },
+    ],
+  };
+}
+
 // Stubs the container so percentage math is deterministic.
 function stubContainerRect(el: HTMLElement) {
   el.getBoundingClientRect = () =>
@@ -1592,6 +1616,34 @@ describe('Tilery — min panel size honored by handle', () => {
       reactProps(divider).onPointerUp(pointerEvent());
     });
     expect(100 - t.handle().getPanel('navigator')!.inset.right).toBe(18);
+    t.cleanup();
+  });
+
+  it('resolves pixel minSize and maxSize against the measured container', () => {
+    const t = mount(pixelConstrainedLayout());
+    const divider = t.host.querySelector<HTMLElement>('.tilery__divider')!;
+    expect(t.inner.getBoundingClientRect().width).toBe(1000);
+    expect(t.handle().getState().panels.left!.minSize).toBe('200px');
+
+    act(() => {
+      reactProps(divider).onPointerDown(pointerEvent());
+      reactProps(divider).onPointerMove(
+        pointerEvent({ clientX: 50, clientY: 400 }),
+      );
+      reactProps(divider).onPointerUp(pointerEvent());
+    });
+    expect(100 - t.handle().getPanel('left')!.inset.right).toBe(20);
+    expect(divider.hasAttribute('data-resize-at-min')).toBe(true);
+
+    act(() => {
+      reactProps(divider).onPointerDown(pointerEvent());
+      reactProps(divider).onPointerMove(
+        pointerEvent({ clientX: 900, clientY: 400 }),
+      );
+      reactProps(divider).onPointerUp(pointerEvent());
+    });
+    expect(100 - t.handle().getPanel('left')!.inset.right).toBe(40);
+    expect(divider.hasAttribute('data-resize-at-max')).toBe(true);
     t.cleanup();
   });
 

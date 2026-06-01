@@ -166,6 +166,7 @@ function App() {
           'Resizing a divider updates one split at a time, then derives fresh flat panel insets for rendering.',
           'Dividers are focusable separators with ARIA value metadata. Keyboard users can resize them with arrow keys, Shift+Arrow, Home, and End.',
           'Set resizable=false on Tilery to disable all resize handles globally. On layout items, resizable controls adjacent divider resizing, draggable controls moving tabs out of the item, and droppable controls dropping tabs into or splitting over the item.',
+          'Panel minSize and maxSize constraints accept numbers, percentage strings, or pixel strings. Pixel constraints are resolved against the measured resize axis.',
           'Set resizeHandleHitSize to adjust the pointer target for divider and T-junction resize handles.',
           'Resize handles expose data-orientation on dividers, data-resize-active while dragging, data-resize-disabled when locked, and data-resize-at-min / data-resize-at-max when a divider reaches its bounds.',
           'Use CSS :hover and :focus-visible for transient pointer and keyboard focus styling. Tilery does not mirror hover or focus into data attributes.',
@@ -362,9 +363,9 @@ function App() {
             ],
             [
               'minSize',
-              'number',
+              'TilerySize',
               'No',
-              'Default minimum panel size percentage',
+              'Default minimum panel size constraint',
             ],
             [
               'resizable',
@@ -423,14 +424,16 @@ function App() {
           'Initial layouts and persisted snapshots share the same serializable tree shape. A snapshot preserves the panel tree, tab order, active tabs, fullscreen panel, size constraints, and explicit behavior booleans.',
           'Initial layouts accept locked: true as shorthand for disabling resize, drag, and drop on a layout item. Tabs accept locked: true as shorthand for disabling close and drag. Snapshots store explicit booleans directly.',
         ],
-        code: `type TileryInitialLayout<TData> =
+        code: `type TilerySize = number | \`\${number}%\` | \`\${number}px\`;
+
+type TileryInitialLayout<TData> =
   | { type: 'empty' }
   | ({
       type: 'panel';
       id?: string;
       size?: number;
-      minSize?: number;
-      maxSize?: number;
+      minSize?: TilerySize;
+      maxSize?: TilerySize;
       tabs: TileryTabInit<TData>[];
       activeTabId?: string;
       fullScreen?: boolean;
@@ -486,8 +489,8 @@ type TileryLayoutSnapshot<TData> =
       type: 'panel';
       id?: string;
       size?: number;
-      minSize?: number;
-      maxSize?: number;
+      minSize?: TilerySize;
+      maxSize?: TilerySize;
       tabs: TileryTabSnapshot<TData>[];
       activeTabId?: string;
       fullScreen?: boolean;
@@ -735,8 +738,8 @@ type TileryPanelsCloseEvent<TData> = {
       splitPanel: TileryPanelId;
       direction: TileryDirection;
       size?: number;
-      minSize?: number;
-      maxSize?: number;
+      minSize?: TilerySize;
+      maxSize?: TilerySize;
     } & TileryLayoutBehaviorConfig);`,
       },
       {
@@ -745,13 +748,15 @@ type TileryPanelsCloseEvent<TData> = {
       },
       {
         heading: 'TileryInitialLayout<TData>',
-        code: `type TileryInitialLayout<TData> =
+        code: `type TilerySize = number | \`\${number}%\` | \`\${number}px\`;
+
+type TileryInitialLayout<TData> =
   | ({
       type: 'panel';
       id?: string;
       size?: number;
-      minSize?: number;
-      maxSize?: number;
+      minSize?: TilerySize;
+      maxSize?: TilerySize;
       tabs: TileryTabInit<TData>[];
       activeTabId?: string;
       fullScreen?: boolean;

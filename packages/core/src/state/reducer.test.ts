@@ -1567,6 +1567,47 @@ describe('tileryReducer dispatch matrix', () => {
     });
     expect(next.panels.L!.inset.right).toBe(75);
   });
+  it('RESIZE_DIVIDER resolves caller-provided pixel minSize', () => {
+    const state = twoSideBySide();
+    const div = tileryDeriveDividers(state)[0]!;
+    const next = tileryReducer(state, {
+      type: 'RESIZE_DIVIDER',
+      dividerId: div.id,
+      newPosition: 2,
+      minSize: '250px',
+      sizeContext: { width: 1000 },
+    });
+    expect(next.panels.L!.inset.right).toBe(75);
+  });
+  it('RESIZE_DIVIDER resolves per-panel pixel minSize', () => {
+    const state = tileryCreateInitialState({
+      type: 'split',
+      direction: 'horizontal',
+      children: [
+        {
+          type: 'panel',
+          id: 'L',
+          size: 30,
+          minSize: '200px',
+          tabs: [{ id: 'left', data: {} }],
+        },
+        {
+          type: 'panel',
+          id: 'R',
+          size: 70,
+          tabs: [{ id: 'right', data: {} }],
+        },
+      ],
+    });
+    const div = tileryDeriveDividers(state)[0]!;
+    const next = tileryReducer(state, {
+      type: 'RESIZE_DIVIDER',
+      dividerId: div.id,
+      newPosition: 5,
+      sizeContext: { width: 1000 },
+    });
+    expect(100 - next.panels.L!.inset.right).toBe(20);
+  });
   it('RESIZE_DIVIDER is a no-op for an unknown divider id', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, {

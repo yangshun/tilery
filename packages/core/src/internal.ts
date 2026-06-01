@@ -21,6 +21,8 @@ export type {
   TileryPanelId,
   TileryPanelInit,
   TileryPanelState,
+  TilerySize,
+  TilerySizeResolutionContext,
   TileryTabBehavior,
   TileryTabBehaviorConfig,
   TileryTabBehaviorUpdate,
@@ -45,6 +47,7 @@ export {
   tileryMakePanelHandle,
   tileryMakeTabHandle,
   type TileryDispatch,
+  type TileryGetSizeContext,
   type TileryGetState,
 } from './state/handles';
 

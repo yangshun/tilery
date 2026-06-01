@@ -18,6 +18,8 @@ export type {
   TileryPanelId,
   TileryPanelInit,
   TileryPanelState,
+  TilerySize,
+  TilerySizeResolutionContext,
   TileryTabBehavior,
   TileryTabBehaviorConfig,
   TileryTabBehaviorUpdate,

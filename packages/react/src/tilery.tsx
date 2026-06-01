@@ -5,6 +5,7 @@ import {
   useCallback,
   useEffect,
   useImperativeHandle,
+  useLayoutEffect,
   useMemo,
   useReducer,
   useRef,
@@ -35,6 +36,8 @@ import {
   type TileryHandle,
   type TileryPanelHandle,
   type TileryPanelId,
+  type TilerySize,
+  type TilerySizeResolutionContext,
   type TileryTabHandle,
   type TileryTabId,
   type TileryTabInit,
@@ -228,7 +231,7 @@ export type TileryProps<TData = unknown> = {
   onTabsOpen?: (event: TileryTabsOpenEvent<TData>) => void;
   onTabsClose?: (event: TileryTabsCloseEvent<TData>) => void;
   onPanelsClose?: (event: TileryPanelsCloseEvent<TData>) => void;
-  minSize?: number;
+  minSize?: TilerySize;
   resizable?: boolean;
   resizeHandleHitSize?: number;
   showActionsButton?: TileryPanelVisibility;
@@ -312,13 +315,45 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
   };
 
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const [sizeContext, setSizeContext] = useState<TilerySizeResolutionContext>(
+    {},
+  );
+  const getSizeContext = useCallback(
+    () => measureContainer(containerRef.current),
+    [],
+  );
+
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    /* v8 ignore next */
+    if (!container) return;
+    const updateSizeContext = () => {
+      const next = measureContainer(container);
+      /* v8 ignore next -- duplicate size reports are only a render optimization. */
+      setSizeContext((prev) => (sizeContextEqual(prev, next) ? prev : next));
+    };
+    updateSizeContext();
+    /* v8 ignore start -- ResizeObserver delivery is browser-provided. */
+    const ResizeObserverCtor =
+      container.ownerDocument.defaultView?.ResizeObserver;
+    if (!ResizeObserverCtor) return;
+    const observer = new ResizeObserverCtor(updateSizeContext);
+    observer.observe(container);
+    return () => observer.disconnect();
+    /* v8 ignore stop */
+  }, []);
 
   const dispatchResize = useCallback(
     (action: TileryResizeAction, input: TileryResizeInput): boolean => {
+      const nextSizeContext = action.sizeContext ?? getSizeContext();
+      setSizeContext((prev) =>
+        sizeContextEqual(prev, nextSizeContext) ? prev : nextSizeContext,
+      );
       const resizeAction = {
         ...action,
         /* v8 ignore next */
         minSize: action.minSize ?? minSize,
+        sizeContext: nextSizeContext,
       } as TileryResizeAction;
       const previousState = resizeStateRef.current;
       const nextState = tileryReducer(previousState, resizeAction);
@@ -337,7 +372,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
       onResize?.(event);
       return true;
     },
-    [minSize, onResize],
+    [getSizeContext, minSize, onResize],
   );
 
   const commitResize = useCallback(() => {
@@ -376,7 +411,11 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
 
   const tileryRef = useRef<TileryHandle | null>(null);
   if (!tileryRef.current) {
-    tileryRef.current = makeTileryHandle(getState, dispatchWithLifecycle);
+    tileryRef.current = makeTileryHandle(
+      getState,
+      dispatchWithLifecycle,
+      getSizeContext,
+    );
   }
   useImperativeHandle(ref, () => tileryRef.current!, []);
 
@@ -495,8 +534,8 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
   const dividers = useMemo(() => tileryDeriveDividers(state), [state]);
   const junctions = useMemo(() => tileryDeriveJunctions(state), [state]);
   const dividerAccessibility = useMemo(
-    () => makeDividerAccessibilityMap(state, dividers, minSize),
-    [dividers, minSize, state],
+    () => makeDividerAccessibilityMap(state, dividers, minSize, sizeContext),
+    [dividers, minSize, sizeContext, state],
   );
   const fullScreenPanelId = useMemo(
     () => tileryGetFullScreenPanelId(state),
@@ -531,21 +570,33 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
     tileryRef.current?.removeTab(tabId);
   }, []);
   const onDividerDrag = useCallback(
-    (dividerId: string, newPosition: number, input: 'keyboard' | 'pointer') => {
+    (
+      dividerId: string,
+      newPosition: number,
+      input: 'keyboard' | 'pointer',
+      nextSizeContext?: TilerySizeResolutionContext,
+    ) => {
       return dispatchResize(
         {
           type: 'RESIZE_DIVIDER',
           dividerId,
           newPosition,
           minSize,
+          sizeContext: nextSizeContext,
         },
         input,
       );
     },
-    [dispatchResize, minSize],
+    [dispatchResize, getSizeContext, minSize],
   );
   const onJunctionDrag = useCallback(
-    (junctionId: string, x: number, y: number, input: 'pointer') => {
+    (
+      junctionId: string,
+      x: number,
+      y: number,
+      input: 'pointer',
+      nextSizeContext?: TilerySizeResolutionContext,
+    ) => {
       return dispatchResize(
         {
           type: 'RESIZE_JUNCTION',
@@ -553,11 +604,13 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
           x,
           y,
           minSize,
+          /* v8 ignore next -- pointer junction drags pass measured dimensions from the handle. */
+          sizeContext: nextSizeContext ?? getSizeContext(),
         },
         input,
       );
     },
-    [dispatchResize, minSize],
+    [dispatchResize, getSizeContext, minSize],
   );
 
   const renderHeaderAdapter = useCallback(
@@ -1108,11 +1161,17 @@ function roundResizeSize(size: number): number {
 function makeDividerAccessibilityMap(
   state: TileryLayoutState,
   dividers: TileryDividerState[],
-  minSize: number,
+  minSize: TilerySize,
+  sizeContext: TilerySizeResolutionContext,
 ): Record<string, DividerAccessibility> {
   const result: Record<string, DividerAccessibility> = {};
   for (const divider of dividers) {
-    result[divider.id] = makeDividerAccessibility(state, divider, minSize);
+    result[divider.id] = makeDividerAccessibility(
+      state,
+      divider,
+      minSize,
+      sizeContext,
+    );
   }
   return result;
 }
@@ -1120,7 +1179,8 @@ function makeDividerAccessibilityMap(
 function makeDividerAccessibility(
   state: TileryLayoutState,
   divider: TileryDividerState,
-  minSize: number,
+  minSize: TilerySize,
+  sizeContext: TilerySizeResolutionContext,
 ): DividerAccessibility {
   const panels = [...divider.beforePanels, ...divider.afterPanels].map(
     (id) => state.panels[id]!,
@@ -1133,8 +1193,20 @@ function makeDividerAccessibility(
     divider.orientation === 'vertical'
       ? Math.max(...panels.map((panel) => 100 - panel.inset.right))
       : Math.max(...panels.map((panel) => 100 - panel.inset.bottom));
-  const minPosition = tileryClampDividerPosition(state, divider, 0, minSize);
-  const maxPosition = tileryClampDividerPosition(state, divider, 100, minSize);
+  const minPosition = tileryClampDividerPosition(
+    state,
+    divider,
+    0,
+    minSize,
+    sizeContext,
+  );
+  const maxPosition = tileryClampDividerPosition(
+    state,
+    divider,
+    100,
+    minSize,
+    sizeContext,
+  );
   const valueMin = dividerValue(minPosition, axisStart, axisEnd);
   const valueMax = dividerValue(maxPosition, axisStart, axisEnd);
   const valueNow = dividerValue(divider.position, axisStart, axisEnd);
@@ -1161,4 +1233,23 @@ function dividerValue(
   return Number(
     (((position - axisStart) / (axisEnd - axisStart)) * 100).toFixed(2),
   );
+}
+
+function measureContainer(
+  container: HTMLDivElement | null,
+): TilerySizeResolutionContext {
+  /* v8 ignore next -- callers use this before mount defensively. */
+  if (!container) return {};
+  const rect = container.getBoundingClientRect();
+  return {
+    width: rect.width > 0 ? rect.width : undefined,
+    height: rect.height > 0 ? rect.height : undefined,
+  };
+}
+
+function sizeContextEqual(
+  left: TilerySizeResolutionContext,
+  right: TilerySizeResolutionContext,
+) {
+  return left.width === right.width && left.height === right.height;
 }

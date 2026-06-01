@@ -1,6 +1,13 @@
 export type TileryPanelId = string;
 export type TileryTabId = string;
 
+export type TilerySize = number | `${number}%` | `${number}px`;
+
+export type TilerySizeResolutionContext = {
+  width?: number;
+  height?: number;
+};
+
 export type TileryDirection = 'left' | 'right' | 'top' | 'bottom';
 
 export type TileryInset = {
@@ -17,8 +24,8 @@ export type TileryPanelState = {
   tabs: TileryTabId[];
   activeTabId: TileryTabId | null;
   fullScreen?: boolean;
-  minSize?: number;
-  maxSize?: number;
+  minSize?: TilerySize;
+  maxSize?: TilerySize;
 };
 
 export type TileryTabState<TData = unknown> = {
@@ -121,8 +128,8 @@ export type TileryPanelInit<TData = unknown> = {
   tabs: TileryTabInit<TData>[];
   activeTabId?: TileryTabId;
   fullScreen?: boolean;
-  minSize?: number;
-  maxSize?: number;
+  minSize?: TilerySize;
+  maxSize?: TilerySize;
 } & TileryLayoutBehaviorConfig;
 
 export type TilerySplitInit<TData = unknown> = {
@@ -145,8 +152,8 @@ export type TileryPanelSnapshot<TData = unknown> = {
   tabs: TileryTabSnapshot<TData>[];
   activeTabId?: TileryTabId;
   fullScreen?: boolean;
-  minSize?: number;
-  maxSize?: number;
+  minSize?: TilerySize;
+  maxSize?: TilerySize;
 } & TileryLayoutBehavior;
 
 export type TileryTabSnapshot<TData = unknown> = {
@@ -171,8 +178,8 @@ export type TilerySplitMoveTarget = {
   splitPanel: TileryPanelId;
   direction: TileryDirection;
   size?: number;
-  minSize?: number;
-  maxSize?: number;
+  minSize?: TilerySize;
+  maxSize?: TilerySize;
 } & TileryLayoutBehaviorConfig;
 
 export type TileryMoveTarget =
@@ -215,8 +222,8 @@ export type TileryHandle = {
     direction: TileryDirection,
     opts?: {
       size?: number;
-      minSize?: number;
-      maxSize?: number;
+      minSize?: TilerySize;
+      maxSize?: TilerySize;
       tabs?: TileryTabInit[];
       activate?: boolean;
     } & TileryLayoutBehaviorConfig,
@@ -251,8 +258,8 @@ export type TileryPanelHandle = {
   readonly tabs: readonly TileryTabHandle[];
   readonly activeTab: TileryTabHandle | null;
   readonly fullScreen: boolean;
-  readonly minSize: number | undefined;
-  readonly maxSize: number | undefined;
+  readonly minSize: TilerySize | undefined;
+  readonly maxSize: TilerySize | undefined;
   appendTab(tab: TileryTabInit, opts?: { activate?: boolean }): TileryTabHandle;
   insertTab(
     tab: TileryTabInit,
@@ -263,8 +270,8 @@ export type TileryPanelHandle = {
     direction: TileryDirection,
     opts?: {
       size?: number;
-      minSize?: number;
-      maxSize?: number;
+      minSize?: TilerySize;
+      maxSize?: TilerySize;
       tabs?: TileryTabInit[];
       activate?: boolean;
     } & TileryLayoutBehaviorConfig,

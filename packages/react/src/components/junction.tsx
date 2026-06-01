@@ -1,7 +1,10 @@
 'use client';
 
 import { useCallback } from 'react';
-import type { TileryJunction as JunctionType } from 'tilery/internal';
+import type {
+  TileryJunction as JunctionType,
+  TilerySizeResolutionContext,
+} from 'tilery/internal';
 import { useTileryPointerDrag } from '../use-pointer-drag';
 
 export type JunctionProps = {
@@ -13,6 +16,7 @@ export type JunctionProps = {
     xPercent: number,
     yPercent: number,
     input: 'pointer',
+    sizeContext?: TilerySizeResolutionContext,
   ) => boolean | void;
   onDragEnd?: () => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
@@ -42,6 +46,7 @@ export function TileryJunction({
         ((e.clientX - rect.left) / rect.width) * 100,
         ((e.clientY - rect.top) / rect.height) * 100,
         'pointer',
+        { width: rect.width, height: rect.height },
       );
     },
     [containerRef, disabled, junction.id, onDrag],

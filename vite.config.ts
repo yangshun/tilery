@@ -1,8 +1,21 @@
 import react from '@vitejs/plugin-react';
+import { resolve } from 'node:path';
 import { defineConfig } from 'vite-plus';
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: [
+      {
+        find: /^tilery\/internal$/,
+        replacement: resolve(__dirname, 'packages/core/src/internal.ts'),
+      },
+      {
+        find: /^tilery$/,
+        replacement: resolve(__dirname, 'packages/core/src/index.ts'),
+      },
+    ],
+  },
   test: {
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],

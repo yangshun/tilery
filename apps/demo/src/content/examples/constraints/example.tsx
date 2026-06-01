@@ -18,8 +18,8 @@ const layout: TileryInitialLayout<TabData> = {
       type: 'panel',
       id: 'navigator',
       size: 24,
-      minSize: 18,
-      maxSize: 34,
+      minSize: '180px',
+      maxSize: '34%',
       tabs: [
         {
           id: 'navigator-tab',
@@ -27,7 +27,7 @@ const layout: TileryInitialLayout<TabData> = {
             title: 'Navigator',
             summary: 'This sidebar can resize, but it stays narrow.',
             accent: '#3aaf6f',
-            constraints: 'minSize: 18, maxSize: 34',
+            constraints: 'minSize: 180px, maxSize: 34%',
           },
           closeable: false,
         },
@@ -47,7 +47,7 @@ const layout: TileryInitialLayout<TabData> = {
               type: 'panel',
               id: 'editor',
               size: 68,
-              minSize: 36,
+              minSize: '320px',
               tabs: [
                 {
                   id: 'editor-tab',
@@ -56,7 +56,7 @@ const layout: TileryInitialLayout<TabData> = {
                     summary:
                       'The main work area keeps enough room for readable content.',
                     accent: '#3884ff',
-                    constraints: 'minSize: 36',
+                    constraints: 'minSize: 320px',
                   },
                 },
               ],
@@ -65,8 +65,8 @@ const layout: TileryInitialLayout<TabData> = {
               type: 'panel',
               id: 'inspector',
               size: 32,
-              minSize: 18,
-              maxSize: 36,
+              minSize: '180px',
+              maxSize: '36%',
               tabs: [
                 {
                   id: 'inspector-tab',
@@ -74,7 +74,7 @@ const layout: TileryInitialLayout<TabData> = {
                     title: 'Inspector',
                     summary: 'The right panel is bounded on both sides.',
                     accent: '#d28e2a',
-                    constraints: 'minSize: 18, maxSize: 36',
+                    constraints: 'minSize: 180px, maxSize: 36%',
                   },
                 },
               ],
@@ -85,8 +85,8 @@ const layout: TileryInitialLayout<TabData> = {
           type: 'panel',
           id: 'console',
           size: 32,
-          minSize: 18,
-          maxSize: 42,
+          minSize: '140px',
+          maxSize: '42%',
           tabs: [
             {
               id: 'console-tab',
@@ -95,7 +95,7 @@ const layout: TileryInitialLayout<TabData> = {
                 summary:
                   'The bottom panel has vertical constraints independent of the side panels.',
                 accent: '#9b5ad6',
-                constraints: 'minSize: 18, maxSize: 42',
+                constraints: 'minSize: 140px, maxSize: 42%',
               },
               closeable: false,
             },

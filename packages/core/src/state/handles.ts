@@ -5,6 +5,7 @@ import type {
   TileryMoveTarget,
   TileryPanelHandle,
   TileryPanelId,
+  TilerySizeResolutionContext,
   TileryTabBehaviorUpdate,
   TileryTabHandle,
   TileryTabId,
@@ -22,10 +23,14 @@ import { tileryNormalizeLayoutBehavior } from './layout-behavior';
 
 export type TileryDispatch = (action: TileryReducerAction) => void;
 export type TileryGetState = () => TileryLayoutState;
+export type TileryGetSizeContext = () =>
+  | TilerySizeResolutionContext
+  | undefined;
 
 export function makeTileryHandle(
   getState: TileryGetState,
   dispatch: TileryDispatch,
+  getSizeContext?: TileryGetSizeContext,
 ): TileryHandle {
   const handle: TileryHandle = {
     getState,
@@ -63,6 +68,7 @@ export function makeTileryHandle(
         newPanelId,
         minSize: opts?.minSize,
         maxSize: opts?.maxSize,
+        sizeContext: getSizeContext?.(),
         ...behavior,
         tabs,
         activate: opts?.activate ?? true,
@@ -103,7 +109,11 @@ export function makeTileryHandle(
       dispatch({ type: 'REMOVE_TAB', tabId });
     },
     moveTab(tabId, target) {
-      dispatch({ type: 'MOVE_TAB', tabId, to: normalizeMoveTarget(target) });
+      dispatch({
+        type: 'MOVE_TAB',
+        tabId,
+        to: normalizeMoveTarget(target, getSizeContext?.()),
+      });
     },
     setTabBehavior(tabId, behavior) {
       dispatch({ type: 'SET_TAB_BEHAVIOR', tabId, behavior });
@@ -127,7 +137,10 @@ export function makeTileryHandle(
   return handle;
 }
 
-function normalizeMoveTarget(target: TileryMoveTarget) {
+function normalizeMoveTarget(
+  target: TileryMoveTarget,
+  sizeContext?: TilerySizeResolutionContext,
+) {
   if ('beforeTab' in target) return { beforeTabId: target.beforeTab };
   if ('afterTab' in target) return { afterTabId: target.afterTab };
   if ('splitPanel' in target) {
@@ -139,6 +152,7 @@ function normalizeMoveTarget(target: TileryMoveTarget) {
       newPanelId: tileryNextId('p'),
       minSize: target.minSize,
       maxSize: target.maxSize,
+      sizeContext,
       ...behavior,
     };
   }

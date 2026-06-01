@@ -3,6 +3,7 @@ import type {
   TileryInset,
   TileryLayoutState,
   TileryPanelState,
+  TilerySize,
   TileryTabId,
 } from 'tilery/internal';
 import {
@@ -22,8 +23,8 @@ type FlatPanelInit = {
   }[];
   activeTabId?: string;
   fullScreen?: boolean;
-  minSize?: number;
-  maxSize?: number;
+  minSize?: TilerySize;
+  maxSize?: TilerySize;
 };
 
 export function createStateFromPanels(initial: {

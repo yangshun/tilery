@@ -7,6 +7,8 @@ import type {
   TileryLayoutTree,
   TileryPanelId,
   TileryPanelState,
+  TilerySize,
+  TilerySizeResolutionContext,
 } from '../types';
 import {
   TILERY_DEFAULT_LAYOUT_BEHAVIOR,
@@ -14,6 +16,7 @@ import {
   tileryMergeLayoutBehavior,
   tileryNormalizeLayoutBehavior,
 } from './layout-behavior';
+import { tileryAxisPixels, tileryResolveSizePercent } from './size';
 
 const EPSILON = 0.0001;
 const ROOT_RECT: Rect = { left: 0, right: 100, top: 0, bottom: 100 };
@@ -227,8 +230,9 @@ export function tileryClampLayoutDividerPosition(
   layout: TileryLayoutTree | null | undefined,
   splitId: string,
   targetPosition: number,
-  minSize: number,
+  minSize: TilerySize,
   panels: Record<TileryPanelId, TileryPanelState> = {},
+  sizeContext?: TilerySizeResolutionContext,
 ): number | null {
   const match = findBoundaryWithRect(layout, splitId, ROOT_RECT);
   if (!match) return null;
@@ -245,13 +249,14 @@ export function tileryClampLayoutDividerPosition(
     start + (span * (pairStart + childSizes[boundaryIndex]!)) / 100;
   const before = node.children[boundaryIndex]!;
   const after = node.children[boundaryIndex + 1]!;
+  const axisPixels = tileryAxisPixels(sizeContext, node.direction, span);
   const minBoundary = Math.max(
-    pairStart + layoutChildMinSize(before, panels, minSize),
-    pairEnd - layoutChildMaxSize(after, panels),
+    pairStart + layoutChildMinSize(before, panels, minSize, axisPixels),
+    pairEnd - layoutChildMaxSize(after, panels, axisPixels),
   );
   const maxBoundary = Math.min(
-    pairStart + layoutChildMaxSize(before, panels),
-    pairEnd - layoutChildMinSize(after, panels, minSize),
+    pairStart + layoutChildMaxSize(before, panels, axisPixels),
+    pairEnd - layoutChildMinSize(after, panels, minSize, axisPixels),
   );
   const min = start + (span * minBoundary) / 100;
   const max = start + (span * maxBoundary) / 100;
@@ -723,24 +728,27 @@ function isDefaultBehavior(node: TileryLayoutTree): boolean {
 function layoutChildMinSize(
   child: TileryLayoutTree,
   panels: Record<TileryPanelId, TileryPanelState>,
-  fallback: number,
+  fallback: TilerySize,
+  axisPixels: number | undefined,
 ): number {
-  if (child.kind !== 'panel') return Math.max(0, fallback);
-  return finiteSize(panels[child.panelId]?.minSize) ?? Math.max(0, fallback);
+  const fallbackSize = tileryResolveSizePercent(fallback, axisPixels) ?? 0;
+  if (child.kind !== 'panel') return fallbackSize;
+  return (
+    tileryResolveSizePercent(panels[child.panelId]?.minSize, axisPixels) ??
+    fallbackSize
+  );
 }
 
 function layoutChildMaxSize(
   child: TileryLayoutTree,
   panels: Record<TileryPanelId, TileryPanelState>,
+  axisPixels: number | undefined,
 ): number {
   if (child.kind !== 'panel') return Infinity;
-  return finiteSize(panels[child.panelId]?.maxSize) ?? Infinity;
-}
-
-function finiteSize(value: number | undefined): number | null {
-  return typeof value === 'number' && Number.isFinite(value)
-    ? Math.max(0, value)
-    : null;
+  return (
+    tileryResolveSizePercent(panels[child.panelId]?.maxSize, axisPixels) ??
+    Infinity
+  );
 }
 
 function rectCrossesCut(

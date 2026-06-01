@@ -6,6 +6,8 @@ import type {
   TileryPanelId,
   TileryPanelInit,
   TileryPanelState,
+  TilerySize,
+  TilerySizeResolutionContext,
   TileryTabBehaviorUpdate,
   TileryTabId,
   TileryTabInit,
@@ -64,8 +66,9 @@ export type TileryReducerAction =
       direction: TileryDirection;
       sizePercent: number;
       newPanelId: TileryPanelId;
-      minSize?: number;
-      maxSize?: number;
+      minSize?: TilerySize;
+      maxSize?: TilerySize;
+      sizeContext?: TilerySizeResolutionContext;
       resizable?: boolean;
       draggable?: boolean;
       droppable?: boolean;
@@ -104,8 +107,9 @@ export type TileryReducerAction =
             direction: TileryDirection;
             sizePercent: number;
             newPanelId: TileryPanelId;
-            minSize?: number;
-            maxSize?: number;
+            minSize?: TilerySize;
+            maxSize?: TilerySize;
+            sizeContext?: TilerySizeResolutionContext;
             resizable?: boolean;
             draggable?: boolean;
             droppable?: boolean;
@@ -122,14 +126,16 @@ export type TileryReducerAction =
       type: 'RESIZE_DIVIDER';
       dividerId: string;
       newPosition: number;
-      minSize?: number;
+      minSize?: TilerySize;
+      sizeContext?: TilerySizeResolutionContext;
     }
   | {
       type: 'RESIZE_JUNCTION';
       junctionId: string;
       x: number;
       y: number;
-      minSize?: number;
+      minSize?: TilerySize;
+      sizeContext?: TilerySizeResolutionContext;
     }
   | { type: 'SWAP_PANELS'; panelA: TileryPanelId; panelB: TileryPanelId }
   | { type: 'REPLACE_STATE'; state: TileryLayoutState };
@@ -267,6 +273,8 @@ export function tileryReducer(
           action.direction,
           action.sizePercent,
           { minSize: action.minSize, maxSize: action.maxSize },
+          undefined,
+          action.sizeContext,
         )
       ) {
         return current;
@@ -523,6 +531,8 @@ export function tileryReducer(
             action.to.direction,
             action.to.sizePercent,
             { minSize: action.to.minSize, maxSize: action.to.maxSize },
+            undefined,
+            action.to.sizeContext,
           )
         ) {
           return current;
@@ -699,6 +709,7 @@ export function tileryReducer(
         target,
         action.newPosition,
         min,
+        action.sizeContext,
       );
       return tileryApplyDividerResize(current, target, clamped);
     }
@@ -712,6 +723,7 @@ export function tileryReducer(
         junction,
         { x: action.x, y: action.y },
         action.minSize ?? TILERY_DEFAULT_MIN_SIZE,
+        action.sizeContext,
       );
     }
     case 'SWAP_PANELS': {

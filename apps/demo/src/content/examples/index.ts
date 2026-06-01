@@ -61,9 +61,9 @@ export const examples = [
   {
     slug: 'constraints',
     title: 'Size Constraints',
-    description: 'Panels with per-panel minSize and maxSize resize limits.',
+    description: 'Panels with percentage and pixel minSize/maxSize limits.',
     notes: [
-      'Each panel can define its own minSize and maxSize in the layout tree.',
+      'Each panel can define its own minSize and maxSize in the layout tree, using percentages or pixel values.',
       'Resize handles clamp against the nearest constrained panels in the active split.',
       'Handles expose data-resize-* attributes for active, disabled, and min/max clamp states; hover and focus styling use CSS pseudo-classes.',
     ],

@@ -938,6 +938,105 @@ describe('tileryClampDividerPosition — multi-panel side (workspace shape)', ()
     expect(tileryClampDividerPosition(state, div, 95, 10)).toBe(65);
   });
 
+  it('resolves pixel minSize and maxSize constraints against the measured axis', () => {
+    const state = tileryCreateInitialState({
+      type: 'split',
+      direction: 'horizontal',
+      children: [
+        {
+          type: 'panel',
+          id: 'L',
+          size: 30,
+          minSize: '200px',
+          maxSize: '400px',
+          tabs: [{ id: 'left', data: {} }],
+        },
+        {
+          type: 'panel',
+          id: 'R',
+          size: 70,
+          minSize: '100px',
+          tabs: [{ id: 'right', data: {} }],
+        },
+      ],
+    });
+    const div = tileryDeriveDividers(state)[0]!;
+
+    expect(tileryClampDividerPosition(state, div, 5, 10, { width: 1000 })).toBe(
+      20,
+    );
+    expect(
+      tileryClampDividerPosition(state, div, 95, 10, { width: 1000 }),
+    ).toBe(40);
+  });
+
+  it('resolves nested pixel constraints against the direct split span', () => {
+    const state = tileryCreateInitialState({
+      type: 'split',
+      direction: 'horizontal',
+      children: [
+        {
+          type: 'panel',
+          id: 'A',
+          size: 20,
+          tabs: [{ id: 'a', data: {} }],
+        },
+        {
+          type: 'split',
+          direction: 'horizontal',
+          size: 80,
+          children: [
+            {
+              type: 'panel',
+              id: 'B',
+              size: 50,
+              minSize: '240px',
+              tabs: [{ id: 'b', data: {} }],
+            },
+            {
+              type: 'panel',
+              id: 'C',
+              size: 50,
+              tabs: [{ id: 'c', data: {} }],
+            },
+          ],
+        },
+      ],
+    });
+    const div = tileryDeriveDividers(state).find((divider) =>
+      divider.beforePanels.includes('B'),
+    )!;
+
+    expect(
+      tileryClampDividerPosition(state, div, 25, 10, { width: 1000 }),
+    ).toBe(44);
+  });
+
+  it('falls back when pixel constraints cannot be resolved', () => {
+    const state = createStateFromPanels({
+      panels: [
+        {
+          id: 'L',
+          inset: { top: 0, right: 50, bottom: 0, left: 0 },
+          tabs: [{ id: 'left', data: {} }],
+        },
+        {
+          id: 'R',
+          inset: { top: 0, right: 0, bottom: 0, left: 50 },
+          tabs: [{ id: 'right', data: {} }],
+        },
+      ],
+    });
+    const div = tileryDeriveDividers(state)[0]!;
+
+    expect(tileryClampDividerPosition(state, div, 2, '200px')).toBe(2);
+    expect(tileryClampDividerPosition(state, div, 2, Number.NaN)).toBe(2);
+
+    const flatState = { ...state, layout: null };
+    const flatDiv = tileryDeriveDividers(flatState)[0]!;
+    expect(tileryClampDividerPosition(flatState, flatDiv, 2, '200px')).toBe(2);
+  });
+
   it('does not apply descendant constraints to an ancestor split divider', () => {
     const state = tileryCreateInitialState({
       type: 'split',
@@ -1232,6 +1331,61 @@ describe('tilerySplitFitsMin', () => {
     expect(
       tilerySplitFitsPanelConstraints(panel, 'right', 10, { maxSize: 5 }, 10),
     ).toBe(false);
+  });
+
+  it('checks pixel split constraints against measured container pixels', () => {
+    const panel: TileryPanelState = {
+      id: 'P',
+      kind: 'tiled',
+      inset: fullInset,
+      tabs: [],
+      activeTabId: null,
+      minSize: '300px',
+      maxSize: '800px',
+    };
+
+    expect(
+      tilerySplitFitsMin(fullInset, 'right', 50, '300px', {
+        width: 1000,
+        height: 800,
+      }),
+    ).toBe(true);
+    expect(
+      tilerySplitFitsMin(fullInset, 'right', 50, '600px', {
+        width: 1000,
+        height: 800,
+      }),
+    ).toBe(false);
+    expect(
+      tilerySplitFitsPanelConstraints(
+        panel,
+        'right',
+        40,
+        { minSize: '250px', maxSize: '450px' },
+        10,
+        { width: 1000 },
+      ),
+    ).toBe(true);
+    expect(
+      tilerySplitFitsPanelConstraints(
+        panel,
+        'right',
+        20,
+        { minSize: '250px' },
+        10,
+        { width: 1000 },
+      ),
+    ).toBe(false);
+    expect(tilerySplitFitsMin(fullInset, 'right', 1, '200px')).toBe(true);
+    expect(
+      tilerySplitFitsPanelConstraints(
+        panel,
+        'right',
+        1,
+        {},
+        'invalid' as never,
+      ),
+    ).toBe(true);
   });
 });
 

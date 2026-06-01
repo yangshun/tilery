@@ -58,8 +58,8 @@ function isLayoutSnapshot(
       typeof value.droppable === 'boolean' &&
       isOptionalString(value.activeTabId) &&
       isOptionalBoolean(value.fullScreen) &&
-      isOptionalNumber(value.minSize) &&
-      isOptionalNumber(value.maxSize) &&
+      isOptionalSize(value.minSize) &&
+      isOptionalSize(value.maxSize) &&
       Array.isArray(value.tabs) &&
       value.tabs.every(isTabSnapshot)
     );
@@ -103,6 +103,14 @@ function isOptionalString(value: unknown) {
 
 function isOptionalNumber(value: unknown) {
   return value === undefined || typeof value === 'number';
+}
+
+function isOptionalSize(value: unknown) {
+  return (
+    value === undefined ||
+    typeof value === 'number' ||
+    (typeof value === 'string' && /^-?(?:\d+|\d*\.\d+)\s*(%|px)$/.test(value))
+  );
 }
 
 function isOptionalBoolean(value: unknown) {
