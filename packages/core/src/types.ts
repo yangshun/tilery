@@ -132,8 +132,8 @@ export type TileryPanelInit<TData = unknown> = {
   maxSize?: TilerySize;
 } & TileryLayoutBehaviorConfig;
 
-export type TilerySplitInit<TData = unknown> = {
-  type: 'split';
+export type TileryGroupInit<TData = unknown> = {
+  type: 'group';
   id?: string;
   direction: 'horizontal' | 'vertical';
   size?: number;
@@ -143,7 +143,7 @@ export type TilerySplitInit<TData = unknown> = {
 export type TileryInitialLayout<TData = unknown> =
   | TileryEmptyInit
   | TileryPanelInit<TData>
-  | TilerySplitInit<TData>;
+  | TileryGroupInit<TData>;
 
 export type TileryPanelSnapshot<TData = unknown> = {
   type: 'panel';
@@ -161,8 +161,8 @@ export type TileryTabSnapshot<TData = unknown> = {
   data: TData;
 } & TileryTabBehavior;
 
-export type TilerySplitSnapshot<TData = unknown> = {
-  type: 'split';
+export type TileryGroupSnapshot<TData = unknown> = {
+  type: 'group';
   id?: string;
   direction: 'horizontal' | 'vertical';
   size?: number;
@@ -172,7 +172,7 @@ export type TilerySplitSnapshot<TData = unknown> = {
 export type TileryLayoutSnapshot<TData = unknown> =
   | TileryEmptyInit
   | TileryPanelSnapshot<TData>
-  | TilerySplitSnapshot<TData>;
+  | TileryGroupSnapshot<TData>;
 
 export type TilerySplitMoveTarget = {
   splitPanel: TileryPanelId;

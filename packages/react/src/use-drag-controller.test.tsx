@@ -683,7 +683,7 @@ describe('useTileryDragController — hover detection', () => {
 
   it('does not show hover over panels that are not droppable', () => {
     let state: TileryLayoutState = tileryCreateInitialState({
-      type: 'split',
+      type: 'group',
       direction: 'horizontal',
       children: [
         {
@@ -756,7 +756,7 @@ describe('useTileryDragController — hover detection', () => {
 
   it('does not show tab-bar hover over panels that are not droppable', () => {
     let state: TileryLayoutState = tileryCreateInitialState({
-      type: 'split',
+      type: 'group',
       direction: 'horizontal',
       children: [
         {
@@ -840,7 +840,7 @@ describe('useTileryDragController — hover detection', () => {
 
   it('does not show hover over panels with an inherited drop lock', () => {
     let state: TileryLayoutState = tileryCreateInitialState({
-      type: 'split',
+      type: 'group',
       direction: 'horizontal',
       children: [
         {
@@ -849,7 +849,7 @@ describe('useTileryDragController — hover detection', () => {
           tabs: [{ id: 'T1', data: {} }],
         },
         {
-          type: 'split',
+          type: 'group',
           direction: 'vertical',
           droppable: false,
           children: [
@@ -1000,7 +1000,7 @@ describe('useTileryDragController — hover detection', () => {
 
   it('does not show hover when the source panel is not draggable', () => {
     let state: TileryLayoutState = tileryCreateInitialState({
-      type: 'split',
+      type: 'group',
       direction: 'horizontal',
       children: [
         {
@@ -1073,7 +1073,7 @@ describe('useTileryDragController — hover detection', () => {
 
   it('does not start a drag for a non-draggable tab', () => {
     let state: TileryLayoutState = tileryCreateInitialState({
-      type: 'split',
+      type: 'group',
       direction: 'horizontal',
       children: [
         {
@@ -1126,7 +1126,7 @@ describe('useTileryDragController — hover detection', () => {
 
   it('suppresses hover if the dragged tab becomes non-draggable mid-drag', () => {
     let state: TileryLayoutState = tileryCreateInitialState({
-      type: 'split',
+      type: 'group',
       direction: 'horizontal',
       children: [
         {

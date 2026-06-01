@@ -204,29 +204,36 @@ function buildInitialLayoutTree(
     };
   }
 
-  const behavior = tileryNormalizeLayoutBehavior(init);
-  const children = init.children
-    .map((child) => buildInitialLayoutTree(child, ctx))
-    .filter((child): child is TileryLayoutTree => Boolean(child));
-  if (children.length === 0) return null;
-  if (children.length === 1) {
+  if (init.type === 'group') {
+    const behavior = tileryNormalizeLayoutBehavior(init);
+    const children = init.children
+      .map((child) => buildInitialLayoutTree(child, ctx))
+      .filter((child): child is TileryLayoutTree => Boolean(child));
+    if (children.length === 0) return null;
+    if (children.length === 1) {
+      return {
+        ...children[0]!,
+        size: init.size,
+        ...tileryMergeLayoutBehavior(
+          behavior,
+          tileryBehaviorFromNode(children[0]!),
+        ),
+      };
+    }
     return {
-      ...children[0]!,
+      kind: 'split',
+      id: init.id ?? initialSplitId(init.direction, children),
+      direction: init.direction,
       size: init.size,
-      ...tileryMergeLayoutBehavior(
-        behavior,
-        tileryBehaviorFromNode(children[0]!),
-      ),
+      ...behavior,
+      children,
     };
   }
-  return {
-    kind: 'split',
-    id: init.id ?? initialSplitId(init.direction, children),
-    direction: init.direction,
-    size: init.size,
-    ...behavior,
-    children,
-  };
+
+  const unsupported = init as { type?: unknown };
+  throw new Error(
+    `Unsupported Tilery layout type: ${String(unsupported.type)}`,
+  );
 }
 
 function initialSplitId(

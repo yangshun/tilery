@@ -34,9 +34,9 @@ afterEach(() => {
 function lShapeLayout(
   opts: { editorFullScreen?: boolean } = {},
 ): TileryInitialLayout<Data> {
-  // Sidebar + (editor / terminal) = two nested one-dimensional splits.
+  // Sidebar + (editor / terminal) = two nested one-dimensional groups.
   return {
-    type: 'split',
+    type: 'group',
     direction: 'horizontal',
     children: [
       {
@@ -46,7 +46,7 @@ function lShapeLayout(
         tabs: [{ id: 'side', data: { title: 'Side' } }],
       },
       {
-        type: 'split',
+        type: 'group',
         direction: 'vertical',
         size: 60,
         children: [
@@ -74,7 +74,7 @@ function lShapeLayout(
 
 function simpleLayout(): TileryInitialLayout<Data> {
   return {
-    type: 'split',
+    type: 'group',
     direction: 'horizontal',
     children: [
       {
@@ -103,7 +103,7 @@ function singlePanelLayout(): TileryInitialLayout<Data> {
 
 function constrainedLayout(): TileryInitialLayout<Data> {
   return {
-    type: 'split',
+    type: 'group',
     direction: 'horizontal',
     children: [
       {
@@ -115,7 +115,7 @@ function constrainedLayout(): TileryInitialLayout<Data> {
         tabs: [{ id: 'navigator-tab', data: { title: 'Navigator' } }],
       },
       {
-        type: 'split',
+        type: 'group',
         direction: 'vertical',
         size: 76,
         children: [
@@ -142,7 +142,7 @@ function constrainedLayout(): TileryInitialLayout<Data> {
 
 function lockedNavigatorLayout(): TileryInitialLayout<Data> {
   return {
-    type: 'split',
+    type: 'group',
     direction: 'horizontal',
     children: [
       {
@@ -164,7 +164,7 @@ function lockedNavigatorLayout(): TileryInitialLayout<Data> {
 
 function pixelConstrainedLayout(): TileryInitialLayout<Data> {
   return {
-    type: 'split',
+    type: 'group',
     direction: 'horizontal',
     children: [
       {
@@ -188,7 +188,7 @@ function pixelConstrainedLayout(): TileryInitialLayout<Data> {
 
 function impossiblePixelConstrainedLayout(): TileryInitialLayout<Data> {
   return {
-    type: 'split',
+    type: 'group',
     direction: 'horizontal',
     children: [
       {
@@ -211,7 +211,7 @@ function impossiblePixelConstrainedLayout(): TileryInitialLayout<Data> {
 
 function containerResizeConstrainedLayout(): TileryInitialLayout<Data> {
   return {
-    type: 'split',
+    type: 'group',
     direction: 'horizontal',
     children: [
       {
@@ -365,7 +365,7 @@ describe('Tilery — rendering', () => {
 
   it('marks locked panel and tab-bar affordance state in the DOM', () => {
     const t = mount({
-      type: 'split',
+      type: 'group',
       direction: 'horizontal',
       children: [
         {
@@ -417,7 +417,7 @@ describe('Tilery — rendering', () => {
     t.cleanup();
   });
 
-  it('positions panels from the initial split tree', () => {
+  it('positions panels from the initial group tree', () => {
     const t = mount(lShapeLayout());
     const panels = Array.from(
       t.host.querySelectorAll<HTMLElement>('.tilery__panel'),
@@ -556,7 +556,7 @@ describe('Tilery — rendering', () => {
     t.cleanup();
   });
 
-  it('renders panels in initial split tree order', () => {
+  it('renders panels in initial group tree order', () => {
     const t = mount(simpleLayout());
     expect(
       Array.from(t.host.querySelectorAll('.tilery__panel')).map((el) =>
@@ -1829,7 +1829,7 @@ describe('Tilery — min panel size honored by handle', () => {
 
   it('disables a T-junction when any connected divider is locked', () => {
     const t = mount({
-      type: 'split',
+      type: 'group',
       direction: 'horizontal',
       children: [
         {
@@ -1840,7 +1840,7 @@ describe('Tilery — min panel size honored by handle', () => {
           tabs: [{ id: 'side', data: { title: 'Side' } }],
         },
         {
-          type: 'split',
+          type: 'group',
           direction: 'vertical',
           size: 60,
           children: [

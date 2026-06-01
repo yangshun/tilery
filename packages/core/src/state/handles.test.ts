@@ -91,7 +91,7 @@ describe('TileryHandle lookups', () => {
     );
 
     expect(handle.getLayout()).toMatchObject({
-      type: 'split',
+      type: 'group',
       direction: 'horizontal',
       children: [
         {
@@ -439,7 +439,7 @@ describe('TileryHandle mutations', () => {
   it('setLayout replaces the current state from a layout snapshot', () => {
     const { handle, dispatched, getState } = makeStore();
     handle.setLayout({
-      type: 'split',
+      type: 'group',
       direction: 'vertical',
       resizable: false,
       children: [
@@ -468,7 +468,7 @@ describe('TileryHandle mutations', () => {
       left: 0,
     });
     expect(handle.getLayout()).toMatchObject({
-      type: 'split',
+      type: 'group',
       direction: 'vertical',
       resizable: false,
       children: [

@@ -27,7 +27,7 @@ type LogEntry = {
 };
 
 const structuralLayout: TileryInitialLayout<TabData> = {
-  type: 'split',
+  type: 'group',
   direction: 'horizontal',
   children: [
     {
@@ -69,7 +69,7 @@ const structuralLayout: TileryInitialLayout<TabData> = {
 };
 
 const resizeLayout: TileryInitialLayout<TabData> = {
-  type: 'split',
+  type: 'group',
   direction: 'horizontal',
   children: [
     {

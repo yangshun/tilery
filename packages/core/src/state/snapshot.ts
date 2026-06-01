@@ -44,7 +44,7 @@ function layoutToSnapshot<TData>(
       };
     }
     return {
-      type: 'split',
+      type: 'group',
       id: layout.id,
       direction: layout.direction,
       size: layout.size,

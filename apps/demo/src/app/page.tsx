@@ -77,7 +77,7 @@ export default function Home() {
         <div className="home-product__intro">
           <p>
             The live preview is the product surface: drag tabs, resize panels,
-            and split layouts directly in the workspace.
+            and compose layouts directly in the workspace.
           </p>
         </div>
         <HomeDemo />

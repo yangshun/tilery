@@ -33,7 +33,7 @@ import type { TileryInitialLayout, TileryTabHandle } from '@tilery/react';
 type MyTabData = { title: string };
 
 const layout: TileryInitialLayout<MyTabData> = {
-  type: 'split',
+  type: 'group',
   direction: 'horizontal',
   children: [
     {
@@ -170,7 +170,7 @@ type TileryInitialLayout<TData> =
       fullScreen?: boolean;
     } & TileryLayoutBehaviorConfig)
   | ({
-      type: 'split';
+      type: 'group';
       id?: string;
       direction: 'horizontal' | 'vertical';
       size?: number;
@@ -233,7 +233,7 @@ type TileryLayoutSnapshot<TData> =
       fullScreen?: boolean;
     } & TileryLayoutBehavior)
   | ({
-      type: 'split';
+      type: 'group';
       id?: string;
       direction: 'horizontal' | 'vertical';
       size?: number;
@@ -241,10 +241,10 @@ type TileryLayoutSnapshot<TData> =
     } & TileryLayoutBehavior);
 ```
 
-Layouts are initialized as an n-ary split tree. A horizontal split places its
-children left to right; a vertical split places its children top to bottom.
+Layouts are initialized as an n-ary group tree. A horizontal group places its
+children left to right; a vertical group places its children top to bottom.
 `size` belongs to each child item and controls that child's allocation
-inside its parent split. Omitted child sizes share the remaining space. A root
+inside its parent group. Omitted child sizes share the remaining space. A root
 node's `size` is ignored.
 
 Panels can also define `minSize` and `maxSize` constraints as percentages.

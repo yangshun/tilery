@@ -18,7 +18,7 @@ import {
 type TabData = { title: string; body: string };
 
 const defaultLayout: TileryInitialLayout<TabData> = {
-  type: 'split',
+  type: 'group',
   direction: 'horizontal',
   children: [
     {
@@ -53,7 +53,7 @@ const defaultLayout: TileryInitialLayout<TabData> = {
 };
 
 const snapshotLayout: TileryInitialLayout<TabData> = {
-  type: 'split',
+  type: 'group',
   direction: 'horizontal',
   children: [
     {
@@ -235,7 +235,7 @@ function isLayoutSnapshot(
       value.tabs.every(isTabSnapshot)
     );
   }
-  if (value.type === 'split') {
+  if (value.type === 'group') {
     return (
       isOptionalString(value.id) &&
       (value.direction === 'horizontal' || value.direction === 'vertical') &&

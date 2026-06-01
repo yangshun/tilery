@@ -952,7 +952,7 @@ describe('tileryClampDividerPosition — multi-panel side (workspace shape)', ()
 
   it('resolves pixel minSize and maxSize constraints against the measured axis', () => {
     const state = tileryCreateInitialState({
-      type: 'split',
+      type: 'group',
       direction: 'horizontal',
       children: [
         {
@@ -984,7 +984,7 @@ describe('tileryClampDividerPosition — multi-panel side (workspace shape)', ()
 
   it('resolves nested pixel constraints against the direct split span', () => {
     const state = tileryCreateInitialState({
-      type: 'split',
+      type: 'group',
       direction: 'horizontal',
       children: [
         {
@@ -994,7 +994,7 @@ describe('tileryClampDividerPosition — multi-panel side (workspace shape)', ()
           tabs: [{ id: 'a', data: {} }],
         },
         {
-          type: 'split',
+          type: 'group',
           direction: 'horizontal',
           size: 80,
           children: [
@@ -1051,7 +1051,7 @@ describe('tileryClampDividerPosition — multi-panel side (workspace shape)', ()
 
   it('does not apply descendant constraints to an ancestor split divider', () => {
     const state = tileryCreateInitialState({
-      type: 'split',
+      type: 'group',
       direction: 'horizontal',
       children: [
         {
@@ -1063,7 +1063,7 @@ describe('tileryClampDividerPosition — multi-panel side (workspace shape)', ()
           tabs: [{ id: 'navigator-tab', data: {} }],
         },
         {
-          type: 'split',
+          type: 'group',
           direction: 'vertical',
           size: 76,
           children: [
@@ -1097,7 +1097,7 @@ describe('tileryClampDividerPosition — multi-panel side (workspace shape)', ()
 
   it('disables a divider when either adjacent direct child is not resizable', () => {
     const state = tileryCreateInitialState({
-      type: 'split',
+      type: 'group',
       direction: 'horizontal',
       children: [
         {
@@ -1122,7 +1122,7 @@ describe('tileryClampDividerPosition — multi-panel side (workspace shape)', ()
 
   it('does not disable an ancestor divider for a locked descendant item', () => {
     const state = tileryCreateInitialState({
-      type: 'split',
+      type: 'group',
       direction: 'horizontal',
       children: [
         {
@@ -1131,7 +1131,7 @@ describe('tileryClampDividerPosition — multi-panel side (workspace shape)', ()
           tabs: [{ id: 'side', data: {} }],
         },
         {
-          type: 'split',
+          type: 'group',
           direction: 'vertical',
           children: [
             {
@@ -1162,7 +1162,7 @@ describe('tileryClampDividerPosition — multi-panel side (workspace shape)', ()
 
   it('does not resize a junction when a resolved divider is disabled', () => {
     const state = tileryCreateInitialState({
-      type: 'split',
+      type: 'group',
       direction: 'horizontal',
       children: [
         {
@@ -1173,7 +1173,7 @@ describe('tileryClampDividerPosition — multi-panel side (workspace shape)', ()
           tabs: [{ id: 'side', data: {} }],
         },
         {
-          type: 'split',
+          type: 'group',
           direction: 'vertical',
           size: 70,
           children: [

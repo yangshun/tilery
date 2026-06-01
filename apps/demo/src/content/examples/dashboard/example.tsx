@@ -7,11 +7,11 @@ import { TabContent } from '../example-ui';
 type TabData = { title: string; color: string };
 
 const layout: TileryInitialLayout<TabData> = {
-  type: 'split',
+  type: 'group',
   direction: 'vertical',
   children: [
     {
-      type: 'split',
+      type: 'group',
       direction: 'horizontal',
       size: 50,
       children: [
@@ -42,7 +42,7 @@ const layout: TileryInitialLayout<TabData> = {
       ],
     },
     {
-      type: 'split',
+      type: 'group',
       direction: 'horizontal',
       size: 50,
       children: [

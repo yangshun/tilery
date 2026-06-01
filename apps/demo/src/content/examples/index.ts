@@ -52,7 +52,7 @@ export const examples = [
     title: 'Basic Layout',
     description: 'Two side-by-side panels with one tab each.',
     notes: [
-      'The initial layout is a horizontal split with two panels and one tab per panel.',
+      'The initial layout is a horizontal group with two panels and one tab per panel.',
       'Drag the divider to see how sibling panel sizes are redistributed.',
     ],
   },
@@ -61,7 +61,7 @@ export const examples = [
     title: 'IDE Layout',
     description: 'VS Code-like layout with sidebar, editor, and terminal.',
     notes: [
-      'Nested horizontal and vertical splits model a familiar editor shell.',
+      'Nested horizontal and vertical groups model a familiar editor shell.',
       'Non-closeable tabs keep structural panels like Explorer and Terminal present.',
     ],
   },

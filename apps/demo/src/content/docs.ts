@@ -48,7 +48,7 @@ import type { TileryInitialLayout, TileryTabHandle } from '@tilery/react';
 type MyTab = { title: string };
 
 const layout: TileryInitialLayout<MyTab> = {
-  type: 'split',
+  type: 'group',
   direction: 'horizontal',
   children: [
     {
@@ -93,18 +93,18 @@ function App() {
     group: 'Guide',
     sections: [
       {
-        heading: 'Split Tree Layouts',
+        heading: 'Group Tree Layouts',
         body: [
-          'Initial layouts are authored as n-ary split trees. A horizontal split places children left to right; a vertical split places children top to bottom.',
-          "size belongs to each child item and controls that child's allocation inside its parent split. Omitted child sizes share the remaining space.",
+          'Initial layouts are authored as n-ary group trees. A horizontal group places children left to right; a vertical group places children top to bottom.',
+          "size belongs to each child item and controls that child's allocation inside its parent group. Omitted child sizes share the remaining space.",
         ],
         code: `{
-  type: 'split',
+  type: 'group',
   direction: 'horizontal',
   children: [
     { type: 'panel', id: 'sidebar', size: 40, tabs: [...] },
     {
-      type: 'split',
+      type: 'group',
       direction: 'vertical',
       size: 60,
       children: [
@@ -126,7 +126,7 @@ function App() {
       {
         heading: 'State Model',
         body: [
-          'The public layout state keeps panels and tabs in flat lookup objects for direct access, but layout geometry is stored as a nested split tree.',
+          'The public layout state keeps panels and tabs in flat lookup objects for direct access, but layout geometry is stored as a nested group tree.',
           'Tilery derives panel insets plus panelOrder from the tree for deterministic rendering.',
           'Use layout snapshots for persistence instead of storing raw layout state.',
         ],
@@ -441,7 +441,7 @@ type TileryInitialLayout<TData> =
       fullScreen?: boolean;
     } & TileryLayoutBehaviorConfig)
   | ({
-      type: 'split';
+      type: 'group';
       id?: string;
       direction: 'horizontal' | 'vertical';
       size?: number;
@@ -498,7 +498,7 @@ type TileryLayoutSnapshot<TData> =
       fullScreen?: boolean;
     } & TileryLayoutBehavior)
   | ({
-      type: 'split';
+      type: 'group';
       id?: string;
       direction: 'horizontal' | 'vertical';
       size?: number;
@@ -764,7 +764,7 @@ type TileryInitialLayout<TData> =
       fullScreen?: boolean;
     } & TileryLayoutBehaviorConfig)
   | ({
-      type: 'split';
+      type: 'group';
       id?: string;
       direction: 'horizontal' | 'vertical';
       size?: number;

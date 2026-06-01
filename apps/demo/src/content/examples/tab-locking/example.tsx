@@ -15,7 +15,7 @@ type TabData = {
 };
 
 const initialLocksLayout: TileryInitialLayout<TabData> = {
-  type: 'split',
+  type: 'group',
   direction: 'horizontal',
   children: [
     {
@@ -67,7 +67,7 @@ const initialLocksLayout: TileryInitialLayout<TabData> = {
 };
 
 const runtimeLayout: TileryInitialLayout<TabData> = {
-  type: 'split',
+  type: 'group',
   direction: 'horizontal',
   children: [
     {

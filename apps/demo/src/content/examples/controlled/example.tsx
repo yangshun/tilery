@@ -31,7 +31,7 @@ const panelApiLayout: TileryInitialLayout<TabData> = {
 };
 
 const tabApiLayout: TileryInitialLayout<TabData> = {
-  type: 'split',
+  type: 'group',
   direction: 'horizontal',
   children: [
     {

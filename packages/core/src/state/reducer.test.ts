@@ -141,7 +141,7 @@ describe('tileryCreateInitialState', () => {
   });
   it('hydrates panel mode metadata and keeps only the first fullscreen panel active', () => {
     const state = tileryCreateInitialState({
-      type: 'split',
+      type: 'group',
       direction: 'horizontal',
       children: [
         {
@@ -180,9 +180,9 @@ describe('tileryCreateInitialState', () => {
     });
   });
 
-  it('preserves item resize locks when a single-child initial split collapses', () => {
+  it('preserves item resize locks when a single-child initial group collapses', () => {
     const state = tileryCreateInitialState({
-      type: 'split',
+      type: 'group',
       direction: 'horizontal',
       children: [
         {
@@ -201,9 +201,9 @@ describe('tileryCreateInitialState', () => {
     });
   });
 
-  it('preserves item movement locks when a single-child initial split collapses', () => {
+  it('preserves item movement locks when a single-child initial group collapses', () => {
     const state = tileryCreateInitialState({
-      type: 'split',
+      type: 'group',
       direction: 'horizontal',
       children: [
         {
@@ -226,7 +226,7 @@ describe('tileryCreateInitialState', () => {
 
   it('normalizes locked layout items to explicit behavior booleans', () => {
     const state = tileryCreateInitialState({
-      type: 'split',
+      type: 'group',
       direction: 'horizontal',
       children: [
         {
@@ -284,9 +284,9 @@ describe('tileryCreateInitialState', () => {
     });
   });
 
-  it('derives insets and panel order from the initial split tree', () => {
+  it('derives insets and panel order from the initial group tree', () => {
     const state = tileryCreateInitialState({
-      type: 'split',
+      type: 'group',
       direction: 'horizontal',
       children: [
         {
@@ -296,7 +296,7 @@ describe('tileryCreateInitialState', () => {
           tabs: [{ id: 'explorer', data: {} }],
         },
         {
-          type: 'split',
+          type: 'group',
           direction: 'vertical',
           size: 60,
           children: [
@@ -338,9 +338,9 @@ describe('tileryCreateInitialState', () => {
     });
   });
 
-  it('normalizes empty and single-child initial splits', () => {
+  it('normalizes empty and single-child initial groups', () => {
     const empty = tileryCreateInitialState({
-      type: 'split',
+      type: 'group',
       direction: 'horizontal',
       children: [],
     });
@@ -352,7 +352,7 @@ describe('tileryCreateInitialState', () => {
     });
 
     const single = tileryCreateInitialState({
-      type: 'split',
+      type: 'group',
       direction: 'vertical',
       size: 75,
       children: [
@@ -379,6 +379,16 @@ describe('tileryCreateInitialState', () => {
       bottom: 0,
       left: 0,
     });
+  });
+
+  it('rejects legacy split initial layout nodes', () => {
+    expect(() =>
+      tileryCreateInitialState({
+        type: 'split',
+        direction: 'horizontal',
+        children: [],
+      } as never),
+    ).toThrow('Unsupported Tilery layout type: split');
   });
 });
 
@@ -488,7 +498,7 @@ describe('tileryReducer dispatch matrix', () => {
 
   it('SPLIT_PANEL is a no-op when the target panel is not droppable', () => {
     const state = tileryCreateInitialState({
-      type: 'split',
+      type: 'group',
       direction: 'horizontal',
       children: [
         {
@@ -963,7 +973,7 @@ describe('tileryReducer dispatch matrix', () => {
   });
   it('MOVE_TAB is a no-op when the source panel is not draggable', () => {
     const state = tileryCreateInitialState({
-      type: 'split',
+      type: 'group',
       direction: 'horizontal',
       children: [
         {
@@ -989,7 +999,7 @@ describe('tileryReducer dispatch matrix', () => {
   });
   it('MOVE_TAB is a no-op when the target panel is not droppable', () => {
     const state = tileryCreateInitialState({
-      type: 'split',
+      type: 'group',
       direction: 'horizontal',
       children: [
         {
@@ -1229,7 +1239,7 @@ describe('tileryReducer dispatch matrix', () => {
 
   it('MOVE_TAB splitPanel is a no-op when the split target is not droppable', () => {
     const state = tileryCreateInitialState({
-      type: 'split',
+      type: 'group',
       direction: 'horizontal',
       children: [
         {
@@ -1581,7 +1591,7 @@ describe('tileryReducer dispatch matrix', () => {
   });
   it('RESIZE_DIVIDER resolves per-panel pixel minSize', () => {
     const state = tileryCreateInitialState({
-      type: 'split',
+      type: 'group',
       direction: 'horizontal',
       children: [
         {
@@ -1619,7 +1629,7 @@ describe('tileryReducer dispatch matrix', () => {
   });
   it('RESIZE_DIVIDER is a no-op for a disabled divider', () => {
     const state = tileryCreateInitialState({
-      type: 'split',
+      type: 'group',
       direction: 'horizontal',
       children: [
         {
@@ -1648,7 +1658,7 @@ describe('tileryReducer dispatch matrix', () => {
 
   it('NORMALIZE_CONTAINER_SIZE adjusts layout for measured pixel constraints', () => {
     const state = tileryCreateInitialState({
-      type: 'split',
+      type: 'group',
       direction: 'horizontal',
       children: [
         {
@@ -1678,7 +1688,7 @@ describe('tileryReducer dispatch matrix', () => {
 
   it('NORMALIZE_CONTAINER_SIZE no-ops when constraints already fit', () => {
     const state = tileryCreateInitialState({
-      type: 'split',
+      type: 'group',
       direction: 'horizontal',
       children: [
         {
@@ -1777,7 +1787,7 @@ describe('tileryReducer dispatch matrix', () => {
 
   it('RESIZE_JUNCTION is a no-op for a disabled junction', () => {
     const state = tileryCreateInitialState({
-      type: 'split',
+      type: 'group',
       direction: 'horizontal',
       children: [
         {
@@ -1788,7 +1798,7 @@ describe('tileryReducer dispatch matrix', () => {
           tabs: [{ id: 'side', data: {} }],
         },
         {
-          type: 'split',
+          type: 'group',
           direction: 'vertical',
           size: 60,
           children: [
@@ -1872,7 +1882,7 @@ describe('tileryReducer dispatch matrix', () => {
 
   it('SWAP_PANELS is a no-op when either panel is locked against movement', () => {
     const state = tileryCreateInitialState({
-      type: 'split',
+      type: 'group',
       direction: 'horizontal',
       children: [
         {

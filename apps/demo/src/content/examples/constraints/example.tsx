@@ -18,7 +18,7 @@ type TabData = {
 };
 
 const constraintsLayout: TileryInitialLayout<TabData> = {
-  type: 'split',
+  type: 'group',
   direction: 'horizontal',
   children: [
     {
@@ -41,12 +41,12 @@ const constraintsLayout: TileryInitialLayout<TabData> = {
       ],
     },
     {
-      type: 'split',
+      type: 'group',
       direction: 'vertical',
       size: 76,
       children: [
         {
-          type: 'split',
+          type: 'group',
           direction: 'horizontal',
           size: 68,
           children: [
@@ -114,7 +114,7 @@ const constraintsLayout: TileryInitialLayout<TabData> = {
 };
 
 const containerResizeLayout: TileryInitialLayout<TabData> = {
-  type: 'split',
+  type: 'group',
   direction: 'horizontal',
   children: [
     {

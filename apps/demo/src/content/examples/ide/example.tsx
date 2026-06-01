@@ -10,7 +10,7 @@ type TabData = {
 };
 
 const layout: TileryInitialLayout<TabData> = {
-  type: 'split',
+  type: 'group',
   direction: 'horizontal',
   children: [
     {
@@ -26,7 +26,7 @@ const layout: TileryInitialLayout<TabData> = {
       ],
     },
     {
-      type: 'split',
+      type: 'group',
       direction: 'vertical',
       size: 60,
       children: [
