@@ -2,6 +2,15 @@ export { Example as BasicExample } from './basic/example';
 export { Example as IdeExample } from './ide/example';
 export { Example as DashboardExample } from './dashboard/example';
 export {
+  AbyssSpacedThemeExample,
+  AbyssThemeExample,
+  DraculaThemeExample,
+  Example as ThemesExample,
+  LightThemeExample,
+  ReplitThemeExample,
+  VisualStudioThemeExample,
+} from './themes/example';
+export {
   Example as PanelActionsExample,
   NewTabExample,
   PanelMenuExample,
@@ -37,6 +46,7 @@ export { Example as NestedExample } from './nested/example';
 export { metadata as basicMeta } from './basic/metadata';
 export { metadata as ideMeta } from './ide/metadata';
 export { metadata as dashboardMeta } from './dashboard/metadata';
+export { metadata as themesMeta } from './themes/metadata';
 export { metadata as panelActionsMeta } from './collapse/metadata';
 export { metadata as constraintsMeta } from './constraints/metadata';
 export { metadata as panelLockingMeta } from './panel-locking/metadata';
@@ -72,6 +82,24 @@ export const examples = [
     notes: [
       'A vertical root split contains two horizontal rows, producing a 2x2 grid.',
       'Several panels pin their primary tab while the activity panel remains tabbed.',
+    ],
+  },
+  {
+    slug: 'themes',
+    title: 'Themes',
+    description: 'A gallery of Tilery workspaces styled with CSS variables.',
+    demos: [
+      { id: 'abyss', sourceRegion: 'abyss' },
+      { id: 'visual-studio', sourceRegion: 'visual-studio' },
+      { id: 'dracula', sourceRegion: 'dracula' },
+      { id: 'light', sourceRegion: 'light' },
+      { id: 'replit', sourceRegion: 'replit' },
+      { id: 'abyss-spaced', sourceRegion: 'abyss-spaced' },
+    ],
+    notes: [
+      'Each theme is a wrapper around Tilery that defines --tilery-* CSS variables.',
+      'The examples mirror the style of Dockview theme demos: dark, light, editor-inspired, and spaced variants.',
+      'Spacing themes only change panel and outer gaps, so the same layout can support compact or separated workspaces.',
     ],
   },
   {

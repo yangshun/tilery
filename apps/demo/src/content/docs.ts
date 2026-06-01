@@ -204,13 +204,42 @@ function App() {
             ['--tilery-panel-gap', '4px', 'Gap between panels'],
             ['--tilery-outer-gap', '(panel-gap)', 'Gap around the outer edge'],
             ['--tilery-tabbar-bg', '#16181c', 'Tab bar background'],
+            ['--tilery-tabbar-height', '32px', 'Tab bar height'],
+            ['--tilery-tab-font-size', '12px', 'Tab label font size'],
             ['--tilery-tab-fg', '#9aa1ab', 'Inactive tab text color'],
+            ['--tilery-tab-active-bg', '(panel-bg)', 'Active tab background'],
             ['--tilery-tab-active-fg', '#f3f4f7', 'Active tab text color'],
+            [
+              '--tilery-tab-hover-bg',
+              'transparent',
+              'Inactive tab hover background',
+            ],
             ['--tilery-menu-bg', '#1f2228', 'Panel action menu background'],
             [
-              '--tilery-accent',
-              '#3884ff',
-              'Accent (active indicator, drop zones)',
+              '--tilery-menu-shadow',
+              '0 8px 24px rgba(...)',
+              'Panel action menu shadow',
+            ],
+            [
+              '--tilery-action-hover-bg',
+              'rgba(255,255,255,0.08)',
+              'Action, close button, and menu item hover background',
+            ],
+            ['--tilery-accent', '#3884ff', 'Accent (active indicator, focus)'],
+            [
+              '--tilery-drop-bg',
+              'rgba(56,132,255,0.18)',
+              'Drop overlay background',
+            ],
+            [
+              '--tilery-drop-border',
+              'rgba(56,132,255,0.6)',
+              'Drop overlay border and insertion marker',
+            ],
+            [
+              '--tilery-resize-handle-active-bg',
+              'transparent',
+              'Active resize handle background',
             ],
           ],
         },
@@ -225,8 +254,13 @@ function App() {
   --tilery-panel-border: #e0e0e0;
   --tilery-tabbar-bg: #f0f1f3;
   --tilery-tab-fg: #6b7280;
+  --tilery-tab-active-bg: #ffffff;
   --tilery-tab-active-fg: #1a1a1a;
+  --tilery-tab-hover-bg: #e5e7eb;
+  --tilery-action-hover-bg: #e5e7eb;
   --tilery-accent: #2563eb;
+  --tilery-drop-bg: rgba(37, 99, 235, 0.14);
+  --tilery-drop-border: rgba(37, 99, 235, 0.55);
 }`,
         language: 'css',
       },

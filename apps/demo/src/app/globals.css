@@ -217,7 +217,7 @@ td code {
   display: block;
   padding: 6px 8px;
   font-size: 13px;
-  color: var(--site-muted);
+  color: var(--site-fg);
   text-decoration: none;
   border-radius: 6px;
 }

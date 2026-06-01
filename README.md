@@ -77,20 +77,29 @@ import '@tilery/react/style.css';
 
 All visual properties are customizable via CSS variables:
 
-| Variable                 | Default     | Description                                 |
-| ------------------------ | ----------- | ------------------------------------------- |
-| `--tilery-bg`            | `#0e0f12`   | Root background                             |
-| `--tilery-fg`            | `#d9dde3`   | Root text color                             |
-| `--tilery-font`          | `inherit`   | Font family                                 |
-| `--tilery-panel-bg`      | `#1a1c20`   | Panel background                            |
-| `--tilery-panel-border`  | `#2a2d33`   | Panel/tab-bar borders                       |
-| `--tilery-panel-gap`     | `4px`       | Gap between panels                          |
-| `--tilery-outer-gap`     | (panel-gap) | Gap around the outer edge                   |
-| `--tilery-tabbar-bg`     | `#16181c`   | Tab bar background                          |
-| `--tilery-tab-fg`        | `#9aa1ab`   | Inactive tab text                           |
-| `--tilery-tab-active-fg` | `#f3f4f7`   | Active tab text                             |
-| `--tilery-menu-bg`       | `#1f2228`   | Panel action menu background                |
-| `--tilery-accent`        | `#3884ff`   | Accent color (active indicator, drop zones) |
+| Variable                           | Default                  | Description                               |
+| ---------------------------------- | ------------------------ | ----------------------------------------- |
+| `--tilery-bg`                      | `#0e0f12`                | Root background                           |
+| `--tilery-fg`                      | `#d9dde3`                | Root text color                           |
+| `--tilery-font`                    | `inherit`                | Font family                               |
+| `--tilery-panel-bg`                | `#1a1c20`                | Panel background                          |
+| `--tilery-panel-border`            | `#2a2d33`                | Panel/tab-bar borders                     |
+| `--tilery-panel-gap`               | `4px`                    | Gap between panels                        |
+| `--tilery-outer-gap`               | (panel-gap)              | Gap around the outer edge                 |
+| `--tilery-tabbar-bg`               | `#16181c`                | Tab bar background                        |
+| `--tilery-tabbar-height`           | `32px`                   | Tab bar height                            |
+| `--tilery-tab-font-size`           | `12px`                   | Tab label font size                       |
+| `--tilery-tab-fg`                  | `#9aa1ab`                | Inactive tab text                         |
+| `--tilery-tab-active-bg`           | (panel-bg)               | Active tab background                     |
+| `--tilery-tab-active-fg`           | `#f3f4f7`                | Active tab text                           |
+| `--tilery-tab-hover-bg`            | transparent              | Inactive tab hover background             |
+| `--tilery-menu-bg`                 | `#1f2228`                | Panel action menu background              |
+| `--tilery-menu-shadow`             | `0 8px 24px rgba(...)`   | Panel action menu shadow                  |
+| `--tilery-action-hover-bg`         | `rgba(255,255,255,0.08)` | Action, close button, and menu item hover |
+| `--tilery-accent`                  | `#3884ff`                | Accent color (active indicator, focus)    |
+| `--tilery-drop-bg`                 | `rgba(56,132,255,0.18)`  | Drop overlay background                   |
+| `--tilery-drop-border`             | `rgba(56,132,255,0.6)`   | Drop overlay border and insertion marker  |
+| `--tilery-resize-handle-active-bg` | transparent              | Active resize handle background           |
 
 ## API
 
