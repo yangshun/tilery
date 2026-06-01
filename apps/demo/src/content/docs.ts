@@ -168,6 +168,7 @@ function App() {
           'Set resizable=false on Tilery to disable all resize handles globally. On layout items, resizable controls adjacent divider resizing, draggable controls moving tabs out of the item, and droppable controls dropping tabs into or splitting over the item.',
           'Set resizeHandleHitSize to adjust the pointer target for divider and T-junction resize handles.',
           'Resize handles expose data-orientation on dividers, data-resize-active while dragging, data-resize-disabled when locked, and data-resize-at-min / data-resize-at-max when a divider reaches its bounds.',
+          'Use CSS :hover and :focus-visible for transient pointer and keyboard focus styling. Tilery does not mirror hover or focus into data attributes.',
         ],
       },
       {
@@ -232,6 +233,39 @@ function App() {
         code: `.tilery {
   --tilery-panel-gap: 1px;   /* thin dividers */
   --tilery-outer-gap: 0px;   /* flush edges */
+}`,
+        language: 'css',
+      },
+      {
+        heading: 'Resize Handle States',
+        body: [
+          'Dividers and T-junction resize handles expose data attributes for semantic resize state. Use these for active, disabled, and clamped-edge styling.',
+          'Hover and keyboard focus are normal interaction states, so style them with :hover and :focus-visible instead of data attributes.',
+        ],
+        code: `.tilery__divider[data-resize-active],
+.tilery__junction[data-resize-active] {
+  background: color-mix(in srgb, var(--tilery-accent), transparent 70%);
+}
+
+.tilery__divider[data-resize-disabled],
+.tilery__junction[data-resize-disabled] {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.tilery__divider[data-resize-at-min],
+.tilery__divider[data-resize-at-max] {
+  background: color-mix(in srgb, var(--tilery-accent), transparent 84%);
+}
+
+.tilery__divider:hover,
+.tilery__junction:hover {
+  background: color-mix(in srgb, var(--tilery-accent), transparent 86%);
+}
+
+.tilery__divider:focus-visible {
+  outline: 2px solid var(--tilery-accent);
+  outline-offset: -2px;
 }`,
         language: 'css',
       },

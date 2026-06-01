@@ -65,6 +65,7 @@ export const examples = [
     notes: [
       'Each panel can define its own minSize and maxSize in the layout tree.',
       'Resize handles clamp against the nearest constrained panels in the active split.',
+      'Handles expose data-resize-* attributes for active, disabled, and min/max clamp states; hover and focus styling use CSS pseudo-classes.',
     ],
   },
   {
