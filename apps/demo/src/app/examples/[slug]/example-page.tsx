@@ -30,10 +30,14 @@ const registry: Record<string, React.ComponentType> = {
 export function ExamplePage({
   slug,
   title,
+  description,
+  notes,
   sourceHtml,
 }: {
   slug: string;
   title: string;
+  description: string;
+  notes: string[];
   sourceHtml: string;
 }) {
   const [mounted, setMounted] = useState(false);
@@ -45,6 +49,15 @@ export function ExamplePage({
   return (
     <div className="example-preview">
       <h1>{title}</h1>
+      <p className="example-preview__description">{description}</p>
+      <div className="example-preview__notes">
+        <h2>What This Shows</h2>
+        <ul>
+          {notes.map((note) => (
+            <li key={note}>{note}</li>
+          ))}
+        </ul>
+      </div>
       <div className="example-preview__demo">
         {mounted ? <Component /> : null}
       </div>

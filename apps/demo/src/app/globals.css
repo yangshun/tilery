@@ -245,12 +245,44 @@ td code {
 }
 
 /* Example Preview */
+.example-preview__description {
+  max-width: 720px;
+  margin-bottom: 14px;
+  color: #b8bec8;
+  font-size: 15px;
+}
+
+.example-preview__notes {
+  max-width: 760px;
+  margin: 18px 0 20px;
+}
+
+.example-preview__notes h2 {
+  margin: 0 0 10px;
+  padding: 0;
+  border: 0;
+  font-size: 14px;
+  letter-spacing: 0;
+}
+
+.example-preview__notes ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 18px;
+  color: var(--site-muted);
+}
+
+.example-preview__notes li {
+  padding-left: 2px;
+}
+
 .example-preview__demo {
   height: 500px;
   border: 1px solid var(--site-border);
   border-radius: 6px;
   overflow: hidden;
-  margin: 16px 0;
+  margin: 20px 0 16px;
 }
 
 .example-preview__source {

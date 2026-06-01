@@ -29,6 +29,12 @@ export default async function Page({
   });
 
   return (
-    <ExamplePage slug={slug} title={meta.title} sourceHtml={highlightedHtml} />
+    <ExamplePage
+      slug={slug}
+      title={meta.title}
+      description={meta.description}
+      notes={meta.notes}
+      sourceHtml={highlightedHtml}
+    />
   );
 }
