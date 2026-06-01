@@ -23,6 +23,7 @@ export type {
   TileryPanelState,
   TileryTabBehavior,
   TileryTabBehaviorConfig,
+  TileryTabBehaviorUpdate,
   TileryTabHandle,
   TileryTabId,
   TileryTabInit,
@@ -61,6 +62,7 @@ export {
 
 export {
   TILERY_DEFAULT_TAB_BEHAVIOR,
+  tileryApplyTabBehaviorUpdate,
   tileryNormalizeTabBehavior,
 } from './state/tab-behavior';
 

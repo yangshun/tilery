@@ -1,6 +1,10 @@
 'use client';
 
-import type { TileryPanelHandle, TileryTabHandle } from 'tilery/internal';
+import {
+  tileryPanelBehaviorFromState,
+  type TileryPanelHandle,
+  type TileryTabHandle,
+} from 'tilery/internal';
 import { tileryPanelDomId } from '../dom-ids';
 import { TabBar, type TabBarProps } from './tab-bar';
 
@@ -24,6 +28,7 @@ export function PanelChrome({
 }: PanelChromeProps) {
   const { top, right, bottom, left } = panel.inset;
   const isFullScreen = panel.fullScreen;
+  const behavior = tileryPanelBehaviorFromState(tilery.getState(), panel.id);
   return (
     <div
       id={tileryPanelDomId(panel.id)}
@@ -31,6 +36,9 @@ export function PanelChrome({
       className="tilery__panel"
       data-panel-id={panel.id}
       data-full-screen={isFullScreen}
+      data-resizable={behavior.resizable}
+      data-draggable={behavior.draggable}
+      data-droppable={behavior.droppable}
       style={{
         top: isFullScreen ? '0%' : `${top}%`,
         right: isFullScreen ? '0%' : `${right}%`,

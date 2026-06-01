@@ -205,6 +205,10 @@ type TileryTabBehavior = {
   draggable: boolean;
 };
 
+type TileryTabBehaviorUpdate =
+  | { locked: true; closeable?: never; draggable?: never }
+  | { locked?: false; closeable?: boolean; draggable?: boolean };
+
 type TileryTabSnapshot<TData> = {
   id?: string;
   data: TData;
@@ -469,6 +473,7 @@ The imperative API exposed via `ref`. Use it for programmatic layout manipulatio
 | `insertTab(panelId, tab, index, opts?)` | Inserts a tab at a specific index                   |
 | `removeTab(tabId)`                      | Removes a tab (removes panel if last)               |
 | `moveTab(tabId, target)`                | Moves a tab to a target location                    |
+| `setTabBehavior(tabId, behavior)`       | Updates tab close and drag behavior                 |
 | `setActiveTab(tabId)`                   | Activates a tab                                     |
 | `swapPanels(panelA, panelB)`            | Swaps two panels' positions                         |
 | `getLayout()`                           | Returns a serializable `TileryLayoutSnapshot`       |
@@ -500,18 +505,19 @@ Returned by `getPanel()`. Provides panel-scoped operations.
 
 Returned by `getTab()`. Provides tab-scoped operations.
 
-| Property/Method  | Description                          |
-| ---------------- | ------------------------------------ |
-| `id`             | Tab identifier                       |
-| `panel`          | The parent `TileryPanelHandle`       |
-| `index`          | Position within the panel's tab list |
-| `data`           | The `TData` payload                  |
-| `closeable`      | Whether close actions are allowed    |
-| `draggable`      | Whether move actions are allowed     |
-| `setData(data)`  | Update the tab's data                |
-| `moveTo(target)` | Move to a target location            |
-| `activate()`     | Make this the active tab             |
-| `remove()`       | Remove this tab                      |
+| Property/Method         | Description                          |
+| ----------------------- | ------------------------------------ |
+| `id`                    | Tab identifier                       |
+| `panel`                 | The parent `TileryPanelHandle`       |
+| `index`                 | Position within the panel's tab list |
+| `data`                  | The `TData` payload                  |
+| `closeable`             | Whether close actions are allowed    |
+| `draggable`             | Whether move actions are allowed     |
+| `setData(data)`         | Update the tab's data                |
+| `setBehavior(behavior)` | Update tab close and drag behavior   |
+| `moveTo(target)`        | Move to a target location            |
+| `activate()`            | Make this the active tab             |
+| `remove()`              | Remove this tab                      |
 
 ### `TileryMoveTarget`
 

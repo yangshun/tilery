@@ -46,6 +46,18 @@ export type TileryTabBehaviorConfig =
       draggable?: boolean;
     };
 
+export type TileryTabBehaviorUpdate =
+  | {
+      locked: true;
+      closeable?: never;
+      draggable?: never;
+    }
+  | {
+      locked?: false;
+      closeable?: boolean;
+      draggable?: boolean;
+    };
+
 export type TileryLayoutBehavior = {
   resizable: boolean;
   draggable: boolean;
@@ -225,6 +237,7 @@ export type TileryHandle = {
   ): TileryTabHandle;
   removeTab(tabId: TileryTabId): void;
   moveTab(tabId: TileryTabId, target: TileryMoveTarget): void;
+  setTabBehavior(tabId: TileryTabId, behavior: TileryTabBehaviorUpdate): void;
   setActiveTab(tabId: TileryTabId): void;
   swapPanels(panelA: TileryPanelId, panelB: TileryPanelId): void;
   getLayout<TData = unknown>(): TileryLayoutSnapshot<TData>;
@@ -270,6 +283,7 @@ export type TileryTabHandle<TData = unknown> = {
   readonly closeable: boolean;
   readonly draggable: boolean;
   setData(data: TData): void;
+  setBehavior(behavior: TileryTabBehaviorUpdate): void;
   moveTo(target: TileryMoveTarget): void;
   activate(): void;
   remove(): void;

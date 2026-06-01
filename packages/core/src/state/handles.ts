@@ -5,6 +5,7 @@ import type {
   TileryMoveTarget,
   TileryPanelHandle,
   TileryPanelId,
+  TileryTabBehaviorUpdate,
   TileryTabHandle,
   TileryTabId,
   TileryTabInit,
@@ -103,6 +104,9 @@ export function makeTileryHandle(
     },
     moveTab(tabId, target) {
       dispatch({ type: 'MOVE_TAB', tabId, to: normalizeMoveTarget(target) });
+    },
+    setTabBehavior(tabId, behavior) {
+      dispatch({ type: 'SET_TAB_BEHAVIOR', tabId, behavior });
     },
     swapPanels(panelA, panelB) {
       dispatch({ type: 'SWAP_PANELS', panelA, panelB });
@@ -239,6 +243,9 @@ export function tileryMakeTabHandle<TData = unknown>(
     },
     setData(data) {
       dispatch({ type: 'SET_PANEL_DATA', tabId: id, data });
+    },
+    setBehavior(behavior: TileryTabBehaviorUpdate) {
+      tilery.setTabBehavior(id, behavior);
     },
     moveTo(target) {
       tilery.moveTab(id, target);

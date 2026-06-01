@@ -391,6 +391,19 @@ describe('TileryHandle mutations', () => {
     handle.removeTab('T1');
     expect(dispatched[0]).toEqual({ type: 'REMOVE_TAB', tabId: 'T1' });
   });
+  it('setTabBehavior dispatches SET_TAB_BEHAVIOR', () => {
+    const { handle, dispatched, getState } = makeStore();
+    handle.setTabBehavior('T1', { draggable: false });
+    expect(dispatched[0]).toEqual({
+      type: 'SET_TAB_BEHAVIOR',
+      tabId: 'T1',
+      behavior: { draggable: false },
+    });
+    expect(getState().tabs.T1).toMatchObject({
+      closeable: true,
+      draggable: false,
+    });
+  });
   it('setActiveTab dispatches SET_ACTIVE_TAB', () => {
     const { handle, dispatched } = makeStore();
     handle.setActiveTab('T2');
@@ -766,6 +779,23 @@ describe('TileryTabHandle', () => {
       tabId: 'T1',
       data: { title: 'renamed' },
     });
+  });
+  it('setBehavior delegates to tilery.setTabBehavior', () => {
+    const { handle, dispatched, getState } = makeStore();
+    const tab = handle.getTab('T1')!;
+    tab.setBehavior({ locked: true });
+
+    expect(dispatched[0]).toEqual({
+      type: 'SET_TAB_BEHAVIOR',
+      tabId: 'T1',
+      behavior: { locked: true },
+    });
+    expect(getState().tabs.T1).toMatchObject({
+      closeable: false,
+      draggable: false,
+    });
+    expect(tab.closeable).toBe(false);
+    expect(tab.draggable).toBe(false);
   });
   it('moveTo delegates to tilery.moveTab', () => {
     const { handle, dispatched } = makeStore();

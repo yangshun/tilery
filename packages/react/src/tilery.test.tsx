@@ -267,6 +267,60 @@ describe('Tilery — rendering', () => {
     t.cleanup();
   });
 
+  it('marks locked panel and tab-bar affordance state in the DOM', () => {
+    const t = mount({
+      type: 'split',
+      direction: 'horizontal',
+      children: [
+        {
+          type: 'panel',
+          id: 'locked-panel',
+          locked: true,
+          tabs: [{ id: 'locked-tab', data: { title: 'Locked' } }],
+        },
+        {
+          type: 'panel',
+          id: 'mixed-panel',
+          tabs: [
+            { id: 'dragging-tab', data: { title: 'Drag' } },
+            {
+              id: 'static-tab',
+              data: { title: 'Static' },
+              draggable: false,
+            },
+          ],
+        },
+      ],
+    });
+
+    const lockedPanel = t.host.querySelector<HTMLElement>(
+      '[data-panel-id="locked-panel"].tilery__panel',
+    )!;
+    const lockedTabBar = t.host.querySelector<HTMLElement>(
+      '[data-panel-id="locked-panel"].tilery__tab-bar',
+    )!;
+    const mixedPanel = t.host.querySelector<HTMLElement>(
+      '[data-panel-id="mixed-panel"].tilery__panel',
+    )!;
+    const mixedTabBar = t.host.querySelector<HTMLElement>(
+      '[data-panel-id="mixed-panel"].tilery__tab-bar',
+    )!;
+    const staticTab = t.host.querySelector<HTMLElement>(
+      '[data-tab-id="static-tab"]',
+    )!;
+
+    expect(lockedPanel.dataset.resizable).toBe('false');
+    expect(lockedPanel.dataset.draggable).toBe('false');
+    expect(lockedPanel.dataset.droppable).toBe('false');
+    expect(lockedTabBar.dataset.draggable).toBe('false');
+    expect(lockedTabBar.dataset.droppable).toBe('false');
+    expect(mixedPanel.dataset.draggable).toBe('true');
+    expect(mixedPanel.dataset.droppable).toBe('true');
+    expect(mixedTabBar.dataset.draggable).toBe('false');
+    expect(staticTab.dataset.draggable).toBe('false');
+    t.cleanup();
+  });
+
   it('positions panels from the initial split tree', () => {
     const t = mount(lShapeLayout());
     const panels = Array.from(
@@ -320,6 +374,37 @@ describe('Tilery — rendering', () => {
       id: 'restored',
       tabs: [{ id: 'restored-tab', closeable: false }],
     });
+    t.cleanup();
+  });
+
+  it('rerenders tab content when tab behavior changes through handles', () => {
+    const t = mount(singlePanelLayout(), undefined, {
+      renderTabContent: (tab) => (
+        <div data-content-of={tab.id}>
+          {tab.closeable ? 'close:on' : 'close:off'}{' '}
+          {tab.draggable ? 'drag:on' : 'drag:off'}
+        </div>
+      ),
+    });
+
+    expect(t.host.querySelector('[data-content-of="only"]')?.textContent).toBe(
+      'close:on drag:on',
+    );
+
+    act(() => {
+      t.handle().setTabBehavior('only', { closeable: false });
+    });
+    expect(t.host.querySelector('[data-content-of="only"]')?.textContent).toBe(
+      'close:off drag:on',
+    );
+
+    act(() => {
+      t.handle().getTab('only')!.setBehavior({ locked: true });
+    });
+    expect(t.host.querySelector('[data-content-of="only"]')?.textContent).toBe(
+      'close:off drag:off',
+    );
+
     t.cleanup();
   });
 
@@ -1542,6 +1627,53 @@ describe('Tilery — min panel size honored by handle', () => {
       reactProps(divider).onPointerUp?.(pointerEvent());
     });
     expect(100 - t.handle().getPanel('navigator')!.inset.right).toBe(30);
+    t.cleanup();
+  });
+
+  it('disables a T-junction when any connected divider is locked', () => {
+    const t = mount({
+      type: 'split',
+      direction: 'horizontal',
+      children: [
+        {
+          type: 'panel',
+          id: 'sidebar',
+          size: 40,
+          resizable: false,
+          tabs: [{ id: 'side', data: { title: 'Side' } }],
+        },
+        {
+          type: 'split',
+          direction: 'vertical',
+          size: 60,
+          children: [
+            {
+              type: 'panel',
+              id: 'editor',
+              tabs: [{ id: 'file', data: { title: 'File' } }],
+            },
+            {
+              type: 'panel',
+              id: 'term',
+              tabs: [{ id: 'shell', data: { title: 'Shell' } }],
+            },
+          ],
+        },
+      ],
+    });
+    const junction = t.host.querySelector<HTMLElement>('.tilery__junction')!;
+
+    expect(junction.hasAttribute('data-resize-disabled')).toBe(true);
+    act(() => {
+      reactProps(junction).onPointerDown?.(pointerEvent());
+      reactProps(junction).onPointerMove?.(
+        pointerEvent({ clientX: 300, clientY: 560 }),
+      );
+      reactProps(junction).onPointerUp?.(pointerEvent());
+    });
+    expect(t.handle().getPanel('sidebar')!.inset.right).toBe(60);
+    expect(t.handle().getPanel('editor')!.inset.bottom).toBe(50);
+    expect(t.handle().getPanel('term')!.inset.top).toBe(50);
     t.cleanup();
   });
 });

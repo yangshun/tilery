@@ -1486,6 +1486,55 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.tabs.L1!.data).toEqual({ renamed: true });
   });
 
+  it('SET_TAB_BEHAVIOR is a no-op when tab missing', () => {
+    const state = twoSideBySide();
+    const next = tileryReducer(state, {
+      type: 'SET_TAB_BEHAVIOR',
+      tabId: 'phantom',
+      behavior: { closeable: false },
+    });
+    expect(next).toBe(state);
+  });
+
+  it('SET_TAB_BEHAVIOR updates one behavior field without changing the other', () => {
+    const state = twoSideBySide();
+    const next = tileryReducer(state, {
+      type: 'SET_TAB_BEHAVIOR',
+      tabId: 'L1',
+      behavior: { closeable: false },
+    });
+
+    expect(next.tabs.L1).toMatchObject({
+      closeable: false,
+      draggable: true,
+    });
+  });
+
+  it('SET_TAB_BEHAVIOR normalizes locked shorthand', () => {
+    const state = twoSideBySide();
+    const next = tileryReducer(state, {
+      type: 'SET_TAB_BEHAVIOR',
+      tabId: 'L1',
+      behavior: { locked: true },
+    });
+
+    expect(next.tabs.L1).toMatchObject({
+      closeable: false,
+      draggable: false,
+    });
+  });
+
+  it('SET_TAB_BEHAVIOR is a no-op when behavior does not change', () => {
+    const state = twoSideBySide();
+    const next = tileryReducer(state, {
+      type: 'SET_TAB_BEHAVIOR',
+      tabId: 'L1',
+      behavior: { closeable: true },
+    });
+
+    expect(next).toBe(state);
+  });
+
   it('RESIZE_DIVIDER updates panel insets', () => {
     const state = twoSideBySide();
     const div = tileryDeriveDividers(state)[0]!;

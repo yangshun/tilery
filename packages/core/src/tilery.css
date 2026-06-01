@@ -36,8 +36,12 @@
   height: 32px;
   background: var(--tilery-tabbar-bg, #16181c);
   border-bottom: 1px solid var(--tilery-panel-border, #2a2d33);
-  cursor: grab;
+  cursor: pointer;
   touch-action: none;
+}
+
+.tilery__tab-bar[data-draggable='false'] {
+  cursor: default;
 }
 
 .tilery__tab-list {
@@ -60,9 +64,13 @@
   background: transparent;
   color: var(--tilery-tab-fg, #9aa1ab);
   border-right: 1px solid var(--tilery-panel-border, #2a2d33);
-  cursor: grab;
+  cursor: pointer;
   white-space: nowrap;
   touch-action: none;
+}
+
+.tilery__tab[data-draggable='false'] {
+  cursor: default;
 }
 
 .tilery__tab[data-closeable='false'] {
@@ -77,10 +85,6 @@
 
 .tilery__tab:hover {
   color: var(--tilery-tab-active-fg, #f3f4f7);
-}
-
-.tilery__tab:active {
-  cursor: grabbing;
 }
 
 .tilery__tab-header {

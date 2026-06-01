@@ -6,6 +6,7 @@ import type {
   TileryPanelHandle,
   TileryTabHandle,
 } from 'tilery/internal';
+import { tileryPanelBehaviorFromState } from 'tilery/internal';
 import { PanelActions, type PanelActionsProps } from './panel-actions';
 import { Tab } from './tab';
 
@@ -111,6 +112,11 @@ export function TabBar({
   renderActionsButtonIcon,
 }: TabBarProps) {
   const panelId = panel.id;
+  const behavior = tileryPanelBehaviorFromState(tilery.getState(), panelId);
+  const canDragPanel =
+    behavior.draggable &&
+    panel.tabs.length > 0 &&
+    panel.tabs.every((tab) => tab.draggable);
   /* v8 ignore next */
   const handleBarDown = useCallback(
     (e: React.PointerEvent) => onTabBarPointerDown(e, panelId),
@@ -120,6 +126,8 @@ export function TabBar({
     <div
       className="tilery__tab-bar"
       data-panel-id={panel.id}
+      data-draggable={canDragPanel}
+      data-droppable={behavior.droppable}
       onPointerDown={handleBarDown}
       onPointerMove={onTabPointerMove}
       onPointerUp={onTabBarPointerUp}

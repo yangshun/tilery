@@ -46,6 +46,7 @@ export type {
   TileryPanelState,
   TileryTabBehavior,
   TileryTabBehaviorConfig,
+  TileryTabBehaviorUpdate,
   TileryTabHandle,
   TileryTabId,
   TileryTabInit,

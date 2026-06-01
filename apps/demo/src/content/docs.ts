@@ -423,6 +423,10 @@ type TileryTabBehaviorConfig =
   | { locked: true; closeable?: never; draggable?: never }
   | { locked?: false; closeable?: boolean; draggable?: boolean };
 
+type TileryTabBehaviorUpdate =
+  | { locked: true; closeable?: never; draggable?: never }
+  | { locked?: false; closeable?: boolean; draggable?: boolean };
+
 type TileryTabInit<TData> = {
   id?: string;
   data: TData;
@@ -432,6 +436,10 @@ type TileryTabBehavior = {
   closeable: boolean;
   draggable: boolean;
 };
+
+type TileryTabBehaviorUpdate =
+  | { locked: true; closeable?: never; draggable?: never }
+  | { locked?: false; closeable?: boolean; draggable?: boolean };
 
 type TileryTabSnapshot<TData> = {
   id?: string;
@@ -627,6 +635,10 @@ type TileryPanelsCloseEvent<TData> = {
             ],
             ['removeTab(tabId)', 'Removes a tab and removes panel if last'],
             ['moveTab(tabId, target)', 'Moves a tab to a target location'],
+            [
+              'setTabBehavior(tabId, behavior)',
+              'Updates tab close and drag behavior',
+            ],
             ['setActiveTab(tabId)', 'Activates a tab'],
             ['swapPanels(panelA, panelB)', 'Swaps two panels positions'],
             ['getLayout()', 'Returns a serializable TileryLayoutSnapshot'],
@@ -671,6 +683,7 @@ type TileryPanelsCloseEvent<TData> = {
             ['closeable', 'Whether close actions are allowed'],
             ['draggable', 'Whether move actions are allowed'],
             ['setData(data)', 'Update the tab data'],
+            ['setBehavior(behavior)', 'Update tab close and drag behavior'],
             ['moveTo(target)', 'Move to a target location'],
             ['activate()', 'Make this the active tab'],
             ['remove()', 'Remove this tab'],

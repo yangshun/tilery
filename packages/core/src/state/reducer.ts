@@ -6,6 +6,7 @@ import type {
   TileryPanelId,
   TileryPanelInit,
   TileryPanelState,
+  TileryTabBehaviorUpdate,
   TileryTabId,
   TileryTabInit,
   TileryTabState,
@@ -37,7 +38,10 @@ import {
   tileryNormalizeLayoutBehavior,
   tileryPanelBehaviorFromState,
 } from './layout-behavior';
-import { tileryNormalizeTabBehavior } from './tab-behavior';
+import {
+  tileryApplyTabBehaviorUpdate,
+  tileryNormalizeTabBehavior,
+} from './tab-behavior';
 
 type TileryReducerTabInit = {
   id: TileryTabId;
@@ -109,6 +113,11 @@ export type TileryReducerAction =
     }
   | { type: 'SET_ACTIVE_TAB'; tabId: TileryTabId }
   | { type: 'SET_PANEL_DATA'; tabId: TileryTabId; data: unknown }
+  | {
+      type: 'SET_TAB_BEHAVIOR';
+      tabId: TileryTabId;
+      behavior: TileryTabBehaviorUpdate;
+    }
   | {
       type: 'RESIZE_DIVIDER';
       dividerId: string;
@@ -659,6 +668,24 @@ export function tileryReducer(
         tabs: {
           ...current.tabs,
           [action.tabId]: { ...tab, data: action.data },
+        },
+      };
+    }
+    case 'SET_TAB_BEHAVIOR': {
+      const tab = current.tabs[action.tabId];
+      if (!tab) return current;
+      const behavior = tileryApplyTabBehaviorUpdate(tab, action.behavior);
+      if (
+        behavior.closeable === tab.closeable &&
+        behavior.draggable === tab.draggable
+      ) {
+        return current;
+      }
+      return {
+        ...current,
+        tabs: {
+          ...current.tabs,
+          [action.tabId]: { ...tab, ...behavior },
         },
       };
     }

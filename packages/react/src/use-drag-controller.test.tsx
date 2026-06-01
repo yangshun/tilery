@@ -754,6 +754,250 @@ describe('useTileryDragController — hover detection', () => {
     panelEl.remove();
   });
 
+  it('does not show tab-bar hover over panels that are not droppable', () => {
+    let state: TileryLayoutState = tileryCreateInitialState({
+      type: 'split',
+      direction: 'horizontal',
+      children: [
+        {
+          type: 'panel',
+          id: 'P1',
+          tabs: [{ id: 'T1', data: {} }],
+        },
+        {
+          type: 'panel',
+          id: 'P2',
+          droppable: false,
+          tabs: [{ id: 'T2', data: {} }],
+        },
+      ],
+    });
+    const dispatch = (a: TileryReducerAction) => {
+      state = tileryReducer(state, a);
+    };
+    const handle = makeTileryHandle(() => state, dispatch);
+    const hook = renderHook(() => useTileryDragController(() => handle));
+    const tabEl = document.createElement('div');
+    const tabBarEl = document.createElement('div');
+    const targetTabEl = document.createElement('div');
+    document.body.append(tabEl, tabBarEl, targetTabEl);
+    setBoundingClientRect(tabEl, {
+      left: 0,
+      top: 0,
+      right: 50,
+      bottom: 30,
+      width: 50,
+      height: 30,
+    });
+    setBoundingClientRect(tabBarEl, {
+      left: 100,
+      top: 0,
+      right: 300,
+      bottom: 30,
+      width: 200,
+      height: 30,
+    });
+    setBoundingClientRect(targetTabEl, {
+      left: 100,
+      top: 0,
+      right: 160,
+      bottom: 30,
+      width: 60,
+      height: 30,
+    });
+    act(() => {
+      hook.current().registerTabBar('P2', tabBarEl);
+      hook.current().registerTab('T2', targetTabEl);
+      const down = pointerEvent('pointerdown', {
+        clientX: 25,
+        clientY: 15,
+        pointerId: 36,
+      });
+      Object.defineProperty(down, 'currentTarget', {
+        value: tabEl,
+        configurable: true,
+      });
+      hook.current().onTabPointerDown(asReact(down), 'T1');
+    });
+    act(() => {
+      hook.current().onTabPointerMove(
+        asReact(
+          pointerEvent('pointermove', {
+            clientX: 140,
+            clientY: 15,
+            pointerId: 36,
+          }),
+        ),
+      );
+    });
+    expect(hook.current().dragState?.hoverTabBar).toBeNull();
+    expect(hook.current().dragState?.hoverPanelId).toBeNull();
+    hook.unmount();
+    tabEl.remove();
+    tabBarEl.remove();
+    targetTabEl.remove();
+  });
+
+  it('does not show hover over panels with an inherited drop lock', () => {
+    let state: TileryLayoutState = tileryCreateInitialState({
+      type: 'split',
+      direction: 'horizontal',
+      children: [
+        {
+          type: 'panel',
+          id: 'P1',
+          tabs: [{ id: 'T1', data: {} }],
+        },
+        {
+          type: 'split',
+          direction: 'vertical',
+          droppable: false,
+          children: [
+            {
+              type: 'panel',
+              id: 'P2',
+              tabs: [{ id: 'T2', data: {} }],
+            },
+            {
+              type: 'panel',
+              id: 'P3',
+              tabs: [{ id: 'T3', data: {} }],
+            },
+          ],
+        },
+      ],
+    });
+    const dispatch = (a: TileryReducerAction) => {
+      state = tileryReducer(state, a);
+    };
+    const handle = makeTileryHandle(() => state, dispatch);
+    const hook = renderHook(() => useTileryDragController(() => handle));
+    const tabEl = document.createElement('div');
+    const panelEl = document.createElement('div');
+    document.body.append(tabEl, panelEl);
+    setBoundingClientRect(tabEl, {
+      left: 0,
+      top: 0,
+      right: 50,
+      bottom: 30,
+      width: 50,
+      height: 30,
+    });
+    setBoundingClientRect(panelEl, {
+      left: 100,
+      top: 100,
+      right: 300,
+      bottom: 300,
+      width: 200,
+      height: 200,
+    });
+    act(() => {
+      hook.current().registerPanel('P2', panelEl);
+      const down = pointerEvent('pointerdown', {
+        clientX: 25,
+        clientY: 15,
+        pointerId: 37,
+      });
+      Object.defineProperty(down, 'currentTarget', {
+        value: tabEl,
+        configurable: true,
+      });
+      hook.current().onTabPointerDown(asReact(down), 'T1');
+    });
+    act(() => {
+      hook.current().onTabPointerMove(
+        asReact(
+          pointerEvent('pointermove', {
+            clientX: 200,
+            clientY: 200,
+            pointerId: 37,
+          }),
+        ),
+      );
+    });
+    expect(hook.current().dragState?.hoverPanelId).toBeNull();
+    expect(hook.current().dragState?.hoverZone).toBeNull();
+    hook.unmount();
+    tabEl.remove();
+    panelEl.remove();
+  });
+
+  it('does not show same-panel tab-bar hover when the source panel is not droppable', () => {
+    let state: TileryLayoutState = tileryCreateInitialState({
+      type: 'panel',
+      id: 'P1',
+      droppable: false,
+      tabs: [
+        { id: 'T1', data: {} },
+        { id: 'T2', data: {} },
+      ],
+    });
+    const dispatch = (a: TileryReducerAction) => {
+      state = tileryReducer(state, a);
+    };
+    const handle = makeTileryHandle(() => state, dispatch);
+    const hook = renderHook(() => useTileryDragController(() => handle));
+    const sourceTabEl = document.createElement('div');
+    const tabBarEl = document.createElement('div');
+    const targetTabEl = document.createElement('div');
+    document.body.append(sourceTabEl, tabBarEl, targetTabEl);
+    setBoundingClientRect(sourceTabEl, {
+      left: 0,
+      top: 0,
+      right: 50,
+      bottom: 30,
+      width: 50,
+      height: 30,
+    });
+    setBoundingClientRect(tabBarEl, {
+      left: 0,
+      top: 0,
+      right: 200,
+      bottom: 30,
+      width: 200,
+      height: 30,
+    });
+    setBoundingClientRect(targetTabEl, {
+      left: 50,
+      top: 0,
+      right: 100,
+      bottom: 30,
+      width: 50,
+      height: 30,
+    });
+    act(() => {
+      hook.current().registerTabBar('P1', tabBarEl);
+      hook.current().registerTab('T2', targetTabEl);
+      const down = pointerEvent('pointerdown', {
+        clientX: 25,
+        clientY: 15,
+        pointerId: 38,
+      });
+      Object.defineProperty(down, 'currentTarget', {
+        value: sourceTabEl,
+        configurable: true,
+      });
+      hook.current().onTabPointerDown(asReact(down), 'T1');
+    });
+    act(() => {
+      hook.current().onTabPointerMove(
+        asReact(
+          pointerEvent('pointermove', {
+            clientX: 75,
+            clientY: 15,
+            pointerId: 38,
+          }),
+        ),
+      );
+    });
+    expect(hook.current().dragState?.hoverTabBar).toBeNull();
+    expect(hook.current().dragState?.hoverPanelId).toBeNull();
+    hook.unmount();
+    sourceTabEl.remove();
+    tabBarEl.remove();
+    targetTabEl.remove();
+  });
+
   it('does not show hover when the source panel is not draggable', () => {
     let state: TileryLayoutState = tileryCreateInitialState({
       type: 'split',
