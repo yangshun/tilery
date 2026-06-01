@@ -156,19 +156,32 @@ export function PanelActions({
               onKeyDown={(e) => {
                 if (e.key === 'Escape') closeMenu();
               }}>
+              {!panel.floating && (
+                <div className="tilery__panel-menu-section">
+                  {splitDirections.map(({ direction, label }) => (
+                    <button
+                      key={direction}
+                      type="button"
+                      className="tilery__panel-menu-item"
+                      role="menuitem"
+                      onClick={() => runAction(() => panel.split(direction))}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              )}
               <div className="tilery__panel-menu-section">
-                {splitDirections.map(({ direction, label }) => (
-                  <button
-                    key={direction}
-                    type="button"
-                    className="tilery__panel-menu-item"
-                    role="menuitem"
-                    onClick={() => runAction(() => panel.split(direction))}>
-                    {label}
-                  </button>
-                ))}
-              </div>
-              <div className="tilery__panel-menu-section">
+                <button
+                  type="button"
+                  className="tilery__panel-menu-item"
+                  role="menuitem"
+                  onClick={() =>
+                    runAction(() =>
+                      panel.floating ? panel.dock() : panel.float(),
+                    )
+                  }>
+                  {panel.floating ? 'Dock panel' : 'Float panel'}
+                </button>
                 <button
                   type="button"
                   className="tilery__panel-menu-item"

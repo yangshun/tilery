@@ -50,6 +50,8 @@ export function tileryPanelBehaviorFromState(
   state: TileryLayoutState,
   panelId: TileryPanelId,
 ): TileryLayoutBehavior {
+  const panel = state.panels[panelId];
+  if (panel?.kind === 'floating') return panel.behavior;
   if (!state.layout) return TILERY_DEFAULT_LAYOUT_BEHAVIOR;
   return (
     findPanelBehavior(state.layout, panelId, TILERY_DEFAULT_LAYOUT_BEHAVIOR) ??

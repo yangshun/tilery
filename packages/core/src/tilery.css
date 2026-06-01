@@ -29,6 +29,88 @@
   z-index: 10;
 }
 
+.tilery__panel[data-floating='true'] {
+  border-color: var(--tilery-floating-panel-border, transparent);
+  box-shadow: var(
+    --tilery-floating-panel-shadow,
+    0 14px 42px rgba(0, 0, 0, 0.42)
+  );
+}
+
+.tilery__panel[data-floating='true'][data-full-screen='true'] {
+  z-index: 100;
+}
+
+.tilery__floating-resize-handle {
+  position: absolute;
+  z-index: 1;
+  touch-action: none;
+}
+
+.tilery__floating-resize-handle[data-floating-resize-edge='top'],
+.tilery__floating-resize-handle[data-floating-resize-edge='bottom'] {
+  left: 8px;
+  right: 8px;
+  height: 8px;
+  cursor: ns-resize;
+}
+
+.tilery__floating-resize-handle[data-floating-resize-edge='top'] {
+  top: -4px;
+}
+
+.tilery__floating-resize-handle[data-floating-resize-edge='bottom'] {
+  bottom: -4px;
+}
+
+.tilery__floating-resize-handle[data-floating-resize-edge='left'],
+.tilery__floating-resize-handle[data-floating-resize-edge='right'] {
+  top: 8px;
+  bottom: 8px;
+  width: 8px;
+  cursor: ew-resize;
+}
+
+.tilery__floating-resize-handle[data-floating-resize-edge='left'] {
+  left: -4px;
+}
+
+.tilery__floating-resize-handle[data-floating-resize-edge='right'] {
+  right: -4px;
+}
+
+.tilery__floating-resize-handle[data-floating-resize-edge='top-left'],
+.tilery__floating-resize-handle[data-floating-resize-edge='top-right'],
+.tilery__floating-resize-handle[data-floating-resize-edge='bottom-left'],
+.tilery__floating-resize-handle[data-floating-resize-edge='bottom-right'] {
+  width: 12px;
+  height: 12px;
+}
+
+.tilery__floating-resize-handle[data-floating-resize-edge='top-left'] {
+  top: -5px;
+  left: -5px;
+  cursor: nwse-resize;
+}
+
+.tilery__floating-resize-handle[data-floating-resize-edge='top-right'] {
+  top: -5px;
+  right: -5px;
+  cursor: nesw-resize;
+}
+
+.tilery__floating-resize-handle[data-floating-resize-edge='bottom-left'] {
+  bottom: -5px;
+  left: -5px;
+  cursor: nesw-resize;
+}
+
+.tilery__floating-resize-handle[data-floating-resize-edge='bottom-right'] {
+  right: -5px;
+  bottom: -5px;
+  cursor: nwse-resize;
+}
+
 .tilery__tab-bar {
   flex: 0 0 auto;
   display: flex;

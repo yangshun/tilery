@@ -33,6 +33,11 @@ export {
   TabApiExample,
 } from './controlled/example';
 export {
+  Example as FloatingExample,
+  InitialFloatingExample,
+  RuntimeFloatingExample,
+} from './floating/example';
+export {
   Example as PersistenceExample,
   LocalStorageExample,
   SnapshotControlsExample,
@@ -53,6 +58,7 @@ export { metadata as constraintsMeta } from './constraints/metadata';
 export { metadata as panelLockingMeta } from './panel-locking/metadata';
 export { metadata as tabLockingMeta } from './tab-locking/metadata';
 export { metadata as controlledMeta } from './controlled/metadata';
+export { metadata as floatingMeta } from './floating/metadata';
 export { metadata as persistenceMeta } from './persistence/metadata';
 export { metadata as callbacksMeta } from './callbacks/metadata';
 export { metadata as nestedMeta } from './nested/metadata';
@@ -168,6 +174,21 @@ export const examples = [
     notes: [
       'Panel handles append tabs, create splits, and remove active tabs.',
       'Tab handles update tab data, activate a known tab, and move a tab to another panel.',
+    ],
+  },
+  {
+    slug: 'floating',
+    title: 'Floating Panels',
+    description: 'Detach panels into movable overlays and dock them back.',
+    demos: [
+      { id: 'initial-floating', sourceRegion: 'initial-floating' },
+      { id: 'runtime-floating', sourceRegion: 'runtime-floating' },
+    ],
+    notes: [
+      'Layouts with detached panels use type: "root" with a normal docked layout under main and floatingPanel entries under floating.',
+      'Floating panels are rendered above the tiled tree, can be focused for z-order, moved by empty tab-bar space, and resized from their edges or corners.',
+      'floatPanel() detaches an existing panel without closing its tabs; dockPanel() inserts it back into the tiled layout.',
+      'getLayout() and setLayout() round-trip floating bounds, tab state, and z-order.',
     ],
   },
   {

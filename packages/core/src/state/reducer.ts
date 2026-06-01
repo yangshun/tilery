@@ -1,5 +1,10 @@
 import type {
+  TileryDockedLayoutInit,
+  TileryDockPanelTarget,
   TileryDirection,
+  TileryFloatingPanelBounds,
+  TileryFloatingPanelBoundsInit,
+  TileryFloatingPanelInit,
   TileryInitialLayout,
   TileryLayoutTree,
   TileryLayoutState,
@@ -27,6 +32,7 @@ import {
 import {
   tileryNormalizeLayoutState,
   tileryNormalizeLayoutForContainerResize,
+  tileryFloatingPanelOrderFromState,
   tileryPanelOrderFromState,
   tileryRemovePanelFromLayout,
   tilerySplitPanelInLayout,
@@ -82,6 +88,23 @@ export type TileryReducerAction =
       type: 'SET_PANEL_FULLSCREEN';
       panelId: TileryPanelId;
       fullScreen: boolean;
+    }
+  | {
+      type: 'FLOAT_PANEL';
+      panelId: TileryPanelId;
+      bounds?: TileryFloatingPanelBoundsInit;
+    }
+  | {
+      type: 'DOCK_PANEL';
+      panelId: TileryPanelId;
+      target?: TileryDockPanelTarget;
+      sizeContext?: TilerySizeResolutionContext;
+    }
+  | { type: 'FOCUS_PANEL'; panelId: TileryPanelId }
+  | {
+      type: 'SET_FLOATING_PANEL_BOUNDS';
+      panelId: TileryPanelId;
+      bounds: TileryFloatingPanelBounds;
     }
   | {
       type: 'APPEND_TAB';
@@ -156,11 +179,12 @@ export function tileryNextId(prefix: string): string {
 type InitialStateBuildContext = {
   panels: Record<TileryPanelId, TileryPanelState>;
   tabs: Record<TileryTabId, TileryTabState>;
+  floatingPanelOrder: TileryPanelId[];
   hasFullScreenPanel: boolean;
 };
 
 function buildInitialLayoutTree(
-  init: TileryInitialLayout,
+  init: TileryDockedLayoutInit,
   ctx: InitialStateBuildContext,
 ): TileryLayoutTree | null {
   if (init.type === 'empty') return null;
@@ -236,6 +260,54 @@ function buildInitialLayoutTree(
   );
 }
 
+function buildInitialFloatingPanel(
+  init: TileryFloatingPanelInit,
+  ctx: InitialStateBuildContext,
+  index: number,
+) {
+  const panelId = init.id ?? tileryNextId('p');
+  const tabs: TileryTabId[] = [];
+  for (const tabInit of init.tabs) {
+    const tabId = tabInit.id ?? tileryNextId('t');
+    const behavior = tileryNormalizeTabBehavior(tabInit);
+    ctx.tabs[tabId] = {
+      id: tabId,
+      panelId,
+      data: tabInit.data,
+      ...behavior,
+    };
+    tabs.push(tabId);
+  }
+  const activeTabId =
+    init.activeTabId && tabs.includes(init.activeTabId)
+      ? init.activeTabId
+      : (tabs[0] ?? null);
+  const fullScreen = Boolean(init.fullScreen && !ctx.hasFullScreenPanel);
+  if (fullScreen) ctx.hasFullScreenPanel = true;
+  const bounds = normalizeFloatingBounds(init.bounds, {
+    x: 18 + index * 4,
+    y: 12 + index * 4,
+    width: 46,
+    height: 48,
+  });
+  ctx.panels[panelId] = {
+    id: panelId,
+    kind: 'floating',
+    inset: floatingBoundsToInset(bounds),
+    tabs,
+    activeTabId,
+    fullScreen,
+    minSize: init.minSize,
+    maxSize: init.maxSize,
+    behavior: tileryNormalizeLayoutBehavior(init),
+    floating: {
+      bounds,
+      zIndex: init.zIndex ?? floatingZIndex(index),
+    },
+  };
+  ctx.floatingPanelOrder.push(panelId);
+}
+
 function initialSplitId(
   direction: Extract<TileryLayoutTree, { kind: 'split' }>['direction'],
   children: TileryLayoutTree[],
@@ -254,12 +326,20 @@ export function tileryCreateInitialState(
   const ctx: InitialStateBuildContext = {
     panels: {},
     tabs: {},
+    floatingPanelOrder: [],
     hasFullScreenPanel: false,
   };
-  const layout = buildInitialLayoutTree(initial, ctx);
+  const main = initial.type === 'root' ? initial.main : initial;
+  const layout = buildInitialLayoutTree(main, ctx);
+  if (initial.type === 'root') {
+    initial.floating?.forEach((panel, index) =>
+      buildInitialFloatingPanel(panel, ctx, index),
+    );
+  }
   const state: TileryLayoutState = {
     panels: ctx.panels,
     panelOrder: [],
+    floatingPanelOrder: ctx.floatingPanelOrder,
     tabs: ctx.tabs,
     layout,
   };
@@ -282,6 +362,7 @@ export function tileryReducer(
     case 'SPLIT_PANEL': {
       const source = current.panels[action.panelId];
       if (!source) return current;
+      if (source.kind !== 'tiled') return current;
       if (source.fullScreen) return current;
       if (!tileryPanelBehaviorFromState(current, action.panelId).droppable) {
         return current;
@@ -394,6 +475,40 @@ export function tileryReducer(
       }
       if (!changed) return current;
       return { ...current, panels: nextPanels };
+    }
+    case 'FLOAT_PANEL': {
+      return floatPanel(current, action.panelId, action.bounds);
+    }
+    case 'DOCK_PANEL': {
+      return dockPanel(
+        current,
+        action.panelId,
+        action.target,
+        action.sizeContext,
+      );
+    }
+    case 'FOCUS_PANEL': {
+      return focusFloatingPanel(current, action.panelId);
+    }
+    case 'SET_FLOATING_PANEL_BOUNDS': {
+      const panel = current.panels[action.panelId];
+      if (!panel || panel.kind !== 'floating') return current;
+      const bounds = normalizeFloatingBounds(
+        action.bounds,
+        panel.floating.bounds,
+      );
+      if (floatingBoundsEqual(panel.floating.bounds, bounds)) return current;
+      return {
+        ...current,
+        panels: {
+          ...current.panels,
+          [action.panelId]: {
+            ...panel,
+            inset: floatingBoundsToInset(bounds),
+            floating: { ...panel.floating, bounds },
+          },
+        },
+      };
     }
     case 'APPEND_TAB': {
       const panel = current.panels[action.panelId];
@@ -528,6 +643,7 @@ export function tileryReducer(
       if ('splitPanelId' in action.to) {
         const targetSource = current.panels[action.to.splitPanelId];
         if (!targetSource) return current;
+        if (targetSource.kind !== 'tiled') return current;
         if (targetSource.fullScreen) return current;
         if (
           !tileryCanMoveTabBetweenPanels(
@@ -764,6 +880,7 @@ export function tileryReducer(
       const a = current.panels[action.panelA];
       const b = current.panels[action.panelB];
       if (!a || !b) return current;
+      if (a.kind !== 'tiled' || b.kind !== 'tiled') return current;
       if (a.id === b.id) return current;
       if (!tileryCanSwapPanels(current, a.id, b.id)) return current;
       if (current.layout) {
@@ -840,10 +957,287 @@ function finishTabMove(
   return next;
 }
 
+function floatPanel(
+  state: TileryLayoutState,
+  panelId: TileryPanelId,
+  boundsInit?: TileryFloatingPanelBoundsInit,
+): TileryLayoutState {
+  const panel = state.panels[panelId];
+  if (!panel) return state;
+  if (panel.kind === 'floating') {
+    const bounds = boundsInit
+      ? normalizeFloatingBounds(boundsInit, panel.floating.bounds)
+      : panel.floating.bounds;
+    const next =
+      bounds === panel.floating.bounds ||
+      floatingBoundsEqual(bounds, panel.floating.bounds)
+        ? state
+        : {
+            ...state,
+            panels: {
+              ...state.panels,
+              [panelId]: {
+                ...panel,
+                inset: floatingBoundsToInset(bounds),
+                floating: { ...panel.floating, bounds },
+              },
+            },
+          };
+    return focusFloatingPanel(next, panelId);
+  }
+
+  const bounds = normalizeFloatingBounds(
+    boundsInit,
+    defaultFloatingBounds(panel),
+  );
+  const floatingPanel: TileryPanelState = {
+    id: panel.id,
+    kind: 'floating',
+    inset: floatingBoundsToInset(bounds),
+    tabs: panel.tabs,
+    activeTabId: panel.activeTabId,
+    fullScreen: false,
+    minSize: panel.minSize,
+    maxSize: panel.maxSize,
+    behavior: tileryPanelBehaviorFromState(state, panelId),
+    floating: {
+      bounds,
+      zIndex: nextFloatingZIndex(state),
+    },
+  };
+  let nextPanels: Record<TileryPanelId, TileryPanelState> = {
+    ...state.panels,
+    [panelId]: floatingPanel,
+  };
+  const floatingPanelOrder = [
+    ...tileryFloatingPanelOrderFromState(state).filter((id) => id !== panelId),
+    panelId,
+  ];
+
+  if (state.layout) {
+    const layout = tileryRemovePanelFromLayout(state.layout, panelId) ?? null;
+    return focusFloatingPanel(
+      tilerySyncLayoutPanels(
+        {
+          ...state,
+          panels: nextPanels,
+          panelOrder: tileryPanelOrderFromState(state).filter(
+            (id) => id !== panelId,
+          ),
+          floatingPanelOrder,
+          layout,
+        },
+        layout,
+      ),
+      panelId,
+    );
+  }
+
+  const currentOrder = tileryPanelOrderFromState(state);
+  const otherPanels = currentOrder
+    .map((id) => state.panels[id])
+    .filter(
+      (item): item is TileryPanelState =>
+        Boolean(item) && item.kind === 'tiled' && item.id !== panelId,
+    );
+  for (const filler of tileryFindRemovalFillers(otherPanels, panel)) {
+    const current = nextPanels[filler.id];
+    /* v8 ignore next */
+    if (!current) continue;
+    nextPanels = {
+      ...nextPanels,
+      [filler.id]: { ...current, inset: filler.inset },
+    };
+  }
+
+  return focusFloatingPanel(
+    {
+      ...state,
+      panels: nextPanels,
+      panelOrder: currentOrder.filter((id) => id !== panelId),
+      floatingPanelOrder,
+      layout: null,
+    },
+    panelId,
+  );
+}
+
+function dockPanel(
+  state: TileryLayoutState,
+  panelId: TileryPanelId,
+  target: TileryDockPanelTarget | undefined,
+  sizeContext?: TilerySizeResolutionContext,
+): TileryLayoutState {
+  const panel = state.panels[panelId];
+  if (!panel || panel.kind !== 'floating') return state;
+  if (!panel.behavior.draggable) return state;
+
+  const floatingPanelOrder = tileryFloatingPanelOrderFromState(state).filter(
+    (id) => id !== panelId,
+  );
+  const behavior = targetHasLayoutBehavior(target)
+    ? tileryNormalizeLayoutBehavior(target)
+    : panel.behavior;
+  const minSize = target?.minSize ?? panel.minSize;
+  const maxSize = target?.maxSize ?? panel.maxSize;
+
+  const dockedPanel: TileryPanelState = {
+    id: panel.id,
+    kind: 'tiled',
+    inset: panel.inset,
+    tabs: panel.tabs,
+    activeTabId: panel.activeTabId,
+    fullScreen: false,
+    minSize,
+    maxSize,
+  };
+
+  const tiledOrder = tileryPanelOrderFromState(state);
+  if (tiledOrder.length === 0) {
+    const layout: TileryLayoutTree = {
+      kind: 'panel',
+      panelId,
+      ...behavior,
+    };
+    return tilerySyncLayoutPanels(
+      {
+        ...state,
+        panels: { ...state.panels, [panelId]: dockedPanel },
+        panelOrder: [panelId],
+        floatingPanelOrder,
+        layout,
+      },
+      layout,
+    );
+  }
+
+  const splitPanelId = target?.splitPanel ?? tiledOrder[0]!;
+  const targetSource = state.panels[splitPanelId];
+  if (!targetSource || targetSource.kind !== 'tiled') return state;
+  if (targetSource.fullScreen) return state;
+  if (!tileryPanelBehaviorFromState(state, splitPanelId).droppable) {
+    return state;
+  }
+  const direction = target?.direction ?? 'right';
+  const sizePercent = target?.size ?? defaultDockSize(panel.floating.bounds);
+  if (
+    !tilerySplitFitsPanelConstraints(
+      targetSource,
+      direction,
+      sizePercent,
+      { minSize, maxSize },
+      undefined,
+      sizeContext,
+    )
+  ) {
+    return state;
+  }
+
+  const { source: sourceInset, created: createdInset } = tilerySplitInset(
+    targetSource.inset,
+    direction,
+    sizePercent,
+  );
+  const nextPanels: Record<TileryPanelId, TileryPanelState> = {
+    ...state.panels,
+    [targetSource.id]: {
+      ...targetSource,
+      inset: sourceInset,
+      fullScreen: false,
+    },
+    [panelId]: {
+      ...dockedPanel,
+      inset: createdInset,
+    },
+  };
+  const targetIdx = tiledOrder.indexOf(splitPanelId);
+  const nextOrder = [
+    ...tiledOrder.slice(0, targetIdx + 1),
+    panelId,
+    ...tiledOrder.slice(targetIdx + 1),
+  ];
+  const layout = state.layout
+    ? tilerySplitPanelInLayout(
+        state.layout,
+        splitPanelId,
+        panelId,
+        direction,
+        sizePercent,
+        behavior,
+      )
+    : null;
+  if (layout) {
+    return tilerySyncLayoutPanels(
+      {
+        ...state,
+        panels: nextPanels,
+        panelOrder: nextOrder,
+        floatingPanelOrder,
+        layout,
+      },
+      layout,
+    );
+  }
+  return {
+    ...state,
+    panels: nextPanels,
+    panelOrder: nextOrder,
+    floatingPanelOrder,
+    layout: null,
+  };
+}
+
+function focusFloatingPanel(
+  state: TileryLayoutState,
+  panelId: TileryPanelId,
+): TileryLayoutState {
+  const panel = state.panels[panelId];
+  if (!panel || panel.kind !== 'floating') return state;
+  const order = [
+    ...tileryFloatingPanelOrderFromState(state).filter((id) => id !== panelId),
+    panelId,
+  ];
+  return syncFloatingZIndexes(state, order);
+}
+
+function syncFloatingZIndexes(
+  state: TileryLayoutState,
+  order: TileryPanelId[],
+): TileryLayoutState {
+  let panels = state.panels;
+  let changed = !arrayEqual(state.floatingPanelOrder ?? [], order);
+  order.forEach((panelId, index) => {
+    const panel = panels[panelId];
+    if (!panel || panel.kind !== 'floating') return;
+    const zIndex = floatingZIndex(index);
+    if (panel.floating.zIndex === zIndex) return;
+    if (panels === state.panels) panels = { ...state.panels };
+    panels[panelId] = {
+      ...panel,
+      floating: { ...panel.floating, zIndex },
+    };
+    changed = true;
+  });
+  return changed ? { ...state, panels, floatingPanelOrder: order } : state;
+}
+
 function removePanelAndFill(
   state: TileryLayoutState,
   removed: TileryPanelState,
 ): TileryLayoutState {
+  if (removed.kind === 'floating') {
+    const { [removed.id]: _drop, ...nextPanels } = state.panels;
+    const nextTabs = { ...state.tabs };
+    for (const tid of removed.tabs) delete nextTabs[tid];
+    return {
+      ...state,
+      panels: nextPanels,
+      floatingPanelOrder: tileryFloatingPanelOrderFromState(state).filter(
+        (id) => id !== removed.id,
+      ),
+      tabs: nextTabs,
+    };
+  }
   if (state.layout) {
     const { [removed.id]: _drop, ...nextPanels } = state.panels;
     const nextTabs = { ...state.tabs };
@@ -902,6 +1296,94 @@ function panelHasNonCloseableTab(
   panel: TileryPanelState,
 ): boolean {
   return panel.tabs.some((tabId) => state.tabs[tabId]?.closeable === false);
+}
+
+function defaultFloatingBounds(
+  panel: TileryPanelState,
+): TileryFloatingPanelBounds {
+  const width = 100 - panel.inset.left - panel.inset.right;
+  const height = 100 - panel.inset.top - panel.inset.bottom;
+  const fallback =
+    width > 85 && height > 85
+      ? { x: 18, y: 12, width: 46, height: 48 }
+      : {
+          x: panel.inset.left,
+          y: panel.inset.top,
+          width,
+          height,
+        };
+  return normalizeFloatingBounds(undefined, fallback);
+}
+
+function normalizeFloatingBounds(
+  value: TileryFloatingPanelBoundsInit | undefined,
+  fallback: TileryFloatingPanelBounds,
+): TileryFloatingPanelBounds {
+  const width = clampFinite(value?.width ?? fallback.width, 12, 100);
+  const height = clampFinite(value?.height ?? fallback.height, 12, 100);
+  const x = clampFinite(value?.x ?? fallback.x, 0, 100 - width);
+  const y = clampFinite(value?.y ?? fallback.y, 0, 100 - height);
+  return {
+    x: roundFloatingCoord(x),
+    y: roundFloatingCoord(y),
+    width: roundFloatingCoord(width),
+    height: roundFloatingCoord(height),
+  };
+}
+
+function floatingBoundsToInset(bounds: TileryFloatingPanelBounds) {
+  return {
+    top: bounds.y,
+    right: 100 - bounds.x - bounds.width,
+    bottom: 100 - bounds.y - bounds.height,
+    left: bounds.x,
+  };
+}
+
+function floatingBoundsEqual(
+  a: TileryFloatingPanelBounds,
+  b: TileryFloatingPanelBounds,
+): boolean {
+  return (
+    a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height
+  );
+}
+
+function defaultDockSize(bounds: TileryFloatingPanelBounds): number {
+  return Math.max(20, Math.min(50, bounds.width));
+}
+
+function nextFloatingZIndex(state: TileryLayoutState): number {
+  return floatingZIndex(tileryFloatingPanelOrderFromState(state).length);
+}
+
+function floatingZIndex(index: number): number {
+  return 20 + index;
+}
+
+function targetHasLayoutBehavior(
+  target: TileryDockPanelTarget | undefined,
+): boolean {
+  return Boolean(
+    target &&
+    ('locked' in target ||
+      'resizable' in target ||
+      'draggable' in target ||
+      'droppable' in target),
+  );
+}
+
+function clampFinite(value: number, min: number, max: number): number {
+  const finite = Number.isFinite(value) ? value : min;
+  return Math.max(min, Math.min(max, finite));
+}
+
+function roundFloatingCoord(value: number): number {
+  return Number(value.toFixed(4));
+}
+
+function arrayEqual<T>(a: T[], b: T[]): boolean {
+  return a.length === b.length && a.every((value, index) => value === b[index]);
 }
 
 export function tileryPanelInitToReducerInit(init: TileryPanelInit): {

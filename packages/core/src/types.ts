@@ -17,9 +17,22 @@ export type TileryInset = {
   left: number;
 };
 
-export type TileryPanelState = {
+export type TileryFloatingPanelBounds = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+export type TileryFloatingPanelBoundsInit = Partial<TileryFloatingPanelBounds>;
+
+export type TileryFloatingPanelPlacement = {
+  bounds: TileryFloatingPanelBounds;
+  zIndex: number;
+};
+
+type TileryPanelStateBase = {
   id: TileryPanelId;
-  kind: 'tiled';
   inset: TileryInset;
   tabs: TileryTabId[];
   activeTabId: TileryTabId | null;
@@ -27,6 +40,20 @@ export type TileryPanelState = {
   minSize?: TilerySize;
   maxSize?: TilerySize;
 };
+
+export type TileryTiledPanelState = TileryPanelStateBase & {
+  kind: 'tiled';
+  floating?: never;
+  behavior?: never;
+};
+
+export type TileryFloatingPanelState = TileryPanelStateBase & {
+  kind: 'floating';
+  floating: TileryFloatingPanelPlacement;
+  behavior: TileryLayoutBehavior;
+};
+
+export type TileryPanelState = TileryTiledPanelState | TileryFloatingPanelState;
 
 export type TileryTabState<TData = unknown> = {
   id: TileryTabId;
@@ -108,6 +135,7 @@ export type TileryLayoutTree =
 export type TileryLayoutState = {
   panels: Record<TileryPanelId, TileryPanelState>;
   panelOrder: TileryPanelId[];
+  floatingPanelOrder?: TileryPanelId[];
   tabs: Record<TileryTabId, TileryTabState>;
   layout?: TileryLayoutTree | null;
 };
@@ -137,13 +165,35 @@ export type TileryGroupInit<TData = unknown> = {
   id?: string;
   direction: 'horizontal' | 'vertical';
   size?: number;
-  children: TileryInitialLayout<TData>[];
+  children: TileryDockedLayoutInit<TData>[];
 } & TileryLayoutBehaviorConfig;
 
-export type TileryInitialLayout<TData = unknown> =
+export type TileryDockedLayoutInit<TData = unknown> =
   | TileryEmptyInit
   | TileryPanelInit<TData>
   | TileryGroupInit<TData>;
+
+export type TileryFloatingPanelInit<TData = unknown> = {
+  type: 'floatingPanel';
+  id?: TileryPanelId;
+  bounds?: TileryFloatingPanelBoundsInit;
+  zIndex?: number;
+  tabs: TileryTabInit<TData>[];
+  activeTabId?: TileryTabId;
+  fullScreen?: boolean;
+  minSize?: TilerySize;
+  maxSize?: TilerySize;
+} & TileryLayoutBehaviorConfig;
+
+export type TileryRootInit<TData = unknown> = {
+  type: 'root';
+  main: TileryDockedLayoutInit<TData>;
+  floating?: TileryFloatingPanelInit<TData>[];
+};
+
+export type TileryInitialLayout<TData = unknown> =
+  | TileryDockedLayoutInit<TData>
+  | TileryRootInit<TData>;
 
 export type TileryPanelSnapshot<TData = unknown> = {
   type: 'panel';
@@ -166,13 +216,35 @@ export type TileryGroupSnapshot<TData = unknown> = {
   id?: string;
   direction: 'horizontal' | 'vertical';
   size?: number;
-  children: TileryLayoutSnapshot<TData>[];
+  children: TileryDockedLayoutSnapshot<TData>[];
 } & TileryLayoutBehavior;
 
-export type TileryLayoutSnapshot<TData = unknown> =
+export type TileryDockedLayoutSnapshot<TData = unknown> =
   | TileryEmptyInit
   | TileryPanelSnapshot<TData>
   | TileryGroupSnapshot<TData>;
+
+export type TileryFloatingPanelSnapshot<TData = unknown> = {
+  type: 'floatingPanel';
+  id?: TileryPanelId;
+  bounds: TileryFloatingPanelBounds;
+  zIndex: number;
+  tabs: TileryTabSnapshot<TData>[];
+  activeTabId?: TileryTabId;
+  fullScreen?: boolean;
+  minSize?: TilerySize;
+  maxSize?: TilerySize;
+} & TileryLayoutBehavior;
+
+export type TileryRootSnapshot<TData = unknown> = {
+  type: 'root';
+  main: TileryDockedLayoutSnapshot<TData>;
+  floating: TileryFloatingPanelSnapshot<TData>[];
+};
+
+export type TileryLayoutSnapshot<TData = unknown> =
+  | TileryDockedLayoutSnapshot<TData>
+  | TileryRootSnapshot<TData>;
 
 export type TilerySplitMoveTarget = {
   splitPanel: TileryPanelId;
@@ -187,6 +259,14 @@ export type TileryMoveTarget =
   | { beforeTab: TileryTabId }
   | { afterTab: TileryTabId }
   | TilerySplitMoveTarget;
+
+export type TileryDockPanelTarget = {
+  splitPanel?: TileryPanelId;
+  direction?: TileryDirection;
+  size?: number;
+  minSize?: TilerySize;
+  maxSize?: TilerySize;
+} & TileryLayoutBehaviorConfig;
 
 export type TileryDividerOrientation = 'vertical' | 'horizontal';
 
@@ -231,6 +311,16 @@ export type TileryHandle = {
   removePanel(panelId: TileryPanelId): void;
   maximizePanel(panelId: TileryPanelId): void;
   restorePanel(panelId: TileryPanelId): void;
+  floatPanel(
+    panelId: TileryPanelId,
+    bounds?: TileryFloatingPanelBoundsInit,
+  ): void;
+  dockPanel(panelId: TileryPanelId, target?: TileryDockPanelTarget): void;
+  focusPanel(panelId: TileryPanelId): void;
+  setFloatingPanelBounds(
+    panelId: TileryPanelId,
+    bounds: TileryFloatingPanelBounds,
+  ): void;
   appendTab(
     panelId: TileryPanelId,
     tab: TileryTabInit,
@@ -254,7 +344,11 @@ export type TileryHandle = {
 
 export type TileryPanelHandle = {
   readonly id: TileryPanelId;
+  readonly kind: TileryPanelState['kind'];
   readonly inset: Readonly<TileryInset>;
+  readonly floating: boolean;
+  readonly floatingBounds: Readonly<TileryFloatingPanelBounds> | undefined;
+  readonly floatingZIndex: number | undefined;
   readonly tabs: readonly TileryTabHandle[];
   readonly activeTab: TileryTabHandle | null;
   readonly fullScreen: boolean;
@@ -279,6 +373,10 @@ export type TileryPanelHandle = {
   remove(): void;
   maximize(): void;
   restore(): void;
+  float(bounds?: TileryFloatingPanelBoundsInit): void;
+  dock(target?: TileryDockPanelTarget): void;
+  focus(): void;
+  setFloatingBounds(bounds: TileryFloatingPanelBounds): void;
   setActiveTab(id: TileryTabId): void;
 };
 

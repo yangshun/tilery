@@ -1,6 +1,7 @@
 import type {
   TileryDirection,
   TileryDivider,
+  TileryFloatingPanelState,
   TileryInset,
   TileryLayoutBehaviorConfig,
   TileryLayoutState,
@@ -72,8 +73,9 @@ export function tileryRectToInset(rect: Rect): TileryInset {
 export function tileryBuildLayoutTreeFromPanels(
   panels: TileryPanelState[],
 ): TileryLayoutTree | null {
-  if (panels.length === 0) return null;
-  const items = panels.map((panel) => ({
+  const tiledPanels = panels.filter((panel) => panel.kind === 'tiled');
+  if (tiledPanels.length === 0) return null;
+  const items = tiledPanels.map((panel) => ({
     id: panel.id,
     rect: tileryInsetToRect(panel.inset),
   }));
@@ -94,7 +96,33 @@ export function tileryPanelOrderFromState(
   const order = state.layout
     ? tileryPanelOrderFromLayout(state.layout)
     : state.panelOrder;
-  return order.filter((id) => Boolean(state.panels[id]));
+  return order.filter((id) => state.panels[id]?.kind === 'tiled');
+}
+
+export function tileryFloatingPanelOrderFromState(
+  state: TileryLayoutState,
+): TileryPanelId[] {
+  const ordered = (state.floatingPanelOrder ?? []).filter(
+    (id) => state.panels[id]?.kind === 'floating',
+  );
+  const seen = new Set(ordered);
+  const missing = Object.values(state.panels)
+    .filter(
+      (panel): panel is TileryFloatingPanelState =>
+        panel.kind === 'floating' && !seen.has(panel.id),
+    )
+    .sort((a, b) => a.floating.zIndex - b.floating.zIndex)
+    .map((panel) => panel.id);
+  return [...ordered, ...missing];
+}
+
+export function tileryAllPanelOrderFromState(
+  state: TileryLayoutState,
+): TileryPanelId[] {
+  return [
+    ...tileryPanelOrderFromState(state),
+    ...tileryFloatingPanelOrderFromState(state),
+  ];
 }
 
 export function tileryDeriveLayoutInsets(
@@ -112,7 +140,8 @@ export function tilerySyncLayoutPanels(
   state: TileryLayoutState,
   layout: TileryLayoutTree | null | undefined = state.layout,
 ): TileryLayoutState {
-  if (!layout) return { ...state, layout: layout ?? null };
+  if (!layout)
+    return syncFloatingPanelOrder({ ...state, layout: layout ?? null });
   const normalizedLayout = normalizeLayoutNode(layout);
   const insets = tileryDeriveLayoutInsets(normalizedLayout);
   let nextPanels = state.panels;
@@ -126,9 +155,11 @@ export function tilerySyncLayoutPanels(
   const panelOrder = tileryPanelOrderFromLayout(normalizedLayout).filter((id) =>
     Boolean(nextPanels[id]),
   );
+  const floatingPanelOrder = tileryFloatingPanelOrderFromState(state);
   if (
     nextPanels === state.panels &&
     arraysEqual(state.panelOrder, panelOrder) &&
+    arraysEqual(state.floatingPanelOrder ?? [], floatingPanelOrder) &&
     state.layout === normalizedLayout
   ) {
     return state;
@@ -137,6 +168,7 @@ export function tilerySyncLayoutPanels(
     ...state,
     panels: nextPanels,
     panelOrder,
+    floatingPanelOrder,
     layout: normalizedLayout,
   };
 }
@@ -146,7 +178,9 @@ export function tileryNormalizeLayoutState(
 ): TileryLayoutState {
   if (state.layout) return tilerySyncLayoutPanels(state, state.layout);
 
-  const panelOrder = state.panelOrder.filter((id) => Boolean(state.panels[id]));
+  const panelOrder = state.panelOrder.filter(
+    (id) => state.panels[id]?.kind === 'tiled',
+  );
   const layout = tileryBuildLayoutTreeFromPanels(
     panelOrder.map((id) => state.panels[id]!),
   );
@@ -155,11 +189,16 @@ export function tileryNormalizeLayoutState(
     return tilerySyncLayoutPanels({ ...state, panelOrder, layout }, layout);
   }
 
-  if (state.layout === null && arraysEqual(state.panelOrder, panelOrder)) {
+  const floatingPanelOrder = tileryFloatingPanelOrderFromState(state);
+  if (
+    state.layout === null &&
+    arraysEqual(state.panelOrder, panelOrder) &&
+    arraysEqual(state.floatingPanelOrder ?? [], floatingPanelOrder)
+  ) {
     return state;
   }
 
-  return { ...state, panelOrder, layout: null };
+  return { ...state, panelOrder, floatingPanelOrder, layout: null };
 }
 
 export function tilerySplitPanelInLayout(
@@ -990,6 +1029,14 @@ function insetsEqual(a: TileryInset, b: TileryInset): boolean {
     eq(a.top, b.top) &&
     eq(a.bottom, b.bottom)
   );
+}
+
+function syncFloatingPanelOrder(state: TileryLayoutState): TileryLayoutState {
+  const floatingPanelOrder = tileryFloatingPanelOrderFromState(state);
+  if (arraysEqual(state.floatingPanelOrder ?? [], floatingPanelOrder)) {
+    return state;
+  }
+  return { ...state, floatingPanelOrder };
 }
 
 function arraysEqual<T>(a: T[], b: T[]): boolean {

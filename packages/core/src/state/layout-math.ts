@@ -11,9 +11,9 @@ import type {
   TilerySizeResolutionContext,
 } from '../types';
 import {
+  tileryAllPanelOrderFromState,
   tileryGetLayoutDividerConstraintRange,
   tileryDeriveLayoutDividers,
-  tileryPanelOrderFromState,
   tileryResizeLayoutDivider,
   tilerySyncLayoutPanels,
 } from './layout-tree';
@@ -53,7 +53,7 @@ export function tileryGetFullScreenPanelId(
   state: TileryLayoutState,
 ): TileryPanelId | null {
   return (
-    tileryPanelOrderFromState(state).find((id) =>
+    tileryAllPanelOrderFromState(state).find((id) =>
       Boolean(state.panels[id]?.fullScreen),
     ) ?? null
   );
@@ -102,7 +102,7 @@ export function tileryDeriveDividers(
 
   const panels = state.panelOrder
     .map((id) => state.panels[id])
-    .filter((p): p is TileryPanelState => Boolean(p));
+    .filter((p): p is TileryPanelState => Boolean(p) && p.kind === 'tiled');
   const dividers: TileryDivider[] = [];
 
   const xMap = new Map<string, number>();

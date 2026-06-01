@@ -28,6 +28,10 @@ export type TabBarProps = {
   ) => void;
   onTabPointerCancel: (e: React.PointerEvent) => void;
   onTabBarPointerDown: (e: React.PointerEvent, panelId: string) => void;
+  onFloatingTabBarPointerDown?: (
+    e: React.PointerEvent,
+    panelId: string,
+  ) => void;
   onTabBarPointerUp: (e: React.PointerEvent) => void;
   onTabClick: (tabId: string) => void;
   onTabClose: (tabId: string) => void;
@@ -102,6 +106,7 @@ export function TabBar({
   onTabPointerUp,
   onTabPointerCancel,
   onTabBarPointerDown,
+  onFloatingTabBarPointerDown,
   onTabBarPointerUp,
   onTabClick,
   onTabClose,
@@ -119,8 +124,19 @@ export function TabBar({
     panel.tabs.every((tab) => tab.draggable);
   /* v8 ignore next */
   const handleBarDown = useCallback(
-    (e: React.PointerEvent) => onTabBarPointerDown(e, panelId),
-    [onTabBarPointerDown, panelId],
+    (e: React.PointerEvent) => {
+      const target = e.target as HTMLElement;
+      if (
+        panel.floating &&
+        !target.closest('[data-tab-id]') &&
+        !target.closest('[data-tilery-panel-actions]')
+      ) {
+        onFloatingTabBarPointerDown?.(e, panelId);
+        return;
+      }
+      onTabBarPointerDown(e, panelId);
+    },
+    [onFloatingTabBarPointerDown, onTabBarPointerDown, panel.floating, panelId],
   );
   return (
     <div

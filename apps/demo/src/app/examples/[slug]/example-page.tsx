@@ -26,6 +26,9 @@ import {
   ControlledExample,
   PanelApiExample,
   TabApiExample,
+  FloatingExample,
+  InitialFloatingExample,
+  RuntimeFloatingExample,
   PersistenceExample,
   LocalStorageExample,
   SnapshotControlsExample,
@@ -69,6 +72,11 @@ const registry: Record<string, Record<string, React.ComponentType>> = {
     default: ControlledExample,
     'panel-handles': PanelApiExample,
     'tab-handles': TabApiExample,
+  },
+  floating: {
+    default: FloatingExample,
+    'initial-floating': InitialFloatingExample,
+    'runtime-floating': RuntimeFloatingExample,
   },
   persistence: {
     default: PersistenceExample,

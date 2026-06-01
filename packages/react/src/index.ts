@@ -26,7 +26,16 @@ export {
 
 export type {
   TileryDirection,
+  TileryDockedLayoutInit,
+  TileryDockedLayoutSnapshot,
+  TileryDockPanelTarget,
   TileryEmptyInit,
+  TileryFloatingPanelBounds,
+  TileryFloatingPanelBoundsInit,
+  TileryFloatingPanelInit,
+  TileryFloatingPanelPlacement,
+  TileryFloatingPanelSnapshot,
+  TileryFloatingPanelState,
   TileryInset,
   TileryInitialLayout,
   TileryLayoutBehavior,
@@ -44,6 +53,8 @@ export type {
   TileryPanelId,
   TileryPanelInit,
   TileryPanelState,
+  TileryRootInit,
+  TileryRootSnapshot,
   TilerySize,
   TilerySizeResolutionContext,
   TileryTabBehavior,
@@ -54,4 +65,5 @@ export type {
   TileryTabInit,
   TileryTabSnapshot,
   TileryTabState,
+  TileryTiledPanelState,
 } from 'tilery';

@@ -121,18 +121,20 @@ function App() {
           'A panel is a rectangular region containing a tab bar and a content area. Each panel holds one or more tabs. Only one tab is active within each panel.',
           'Tabs can be dragged between panels, reordered within a panel, or dropped on a panel edge to split it into two.',
           'A fullscreen panel renders over the full container and suppresses dividers and panel drop zones until restored.',
+          'A floating panel stays in the same browser window, renders above the tiled tree, can be resized from its edges or corners, and can be docked back into the main layout.',
         ],
       },
       {
         heading: 'State Model',
         body: [
           'The public layout state keeps panels and tabs in flat lookup objects for direct access, but layout geometry is stored as a nested group tree.',
-          'Tilery derives panel insets plus panelOrder from the tree for deterministic rendering.',
+          'Tilery derives tiled panel insets plus panelOrder from the tree for deterministic rendering. Floating panels are tracked separately in floatingPanelOrder.',
           'Use layout snapshots for persistence instead of storing raw layout state.',
         ],
         code: `type TileryLayoutState = {
   panels: Record<TileryPanelId, TileryPanelState>;
   panelOrder: TileryPanelId[];
+  floatingPanelOrder?: TileryPanelId[];
   tabs: Record<TileryTabId, TileryTabState>;
   layout?: TileryLayoutTree | null;
 };`,
@@ -463,6 +465,14 @@ function App() {
         code: `type TilerySize = number | \`\${number}%\` | \`\${number}px\`;
 
 type TileryInitialLayout<TData> =
+  | TileryDockedLayoutInit<TData>
+  | {
+      type: 'root';
+      main: TileryDockedLayoutInit<TData>;
+      floating?: TileryFloatingPanelInit<TData>[];
+    };
+
+type TileryDockedLayoutInit<TData> =
   | { type: 'empty' }
   | ({
       type: 'panel';
@@ -479,8 +489,27 @@ type TileryInitialLayout<TData> =
       id?: string;
       direction: 'horizontal' | 'vertical';
       size?: number;
-      children: TileryInitialLayout<TData>[];
+      children: TileryDockedLayoutInit<TData>[];
     } & TileryLayoutBehaviorConfig);
+
+type TileryFloatingPanelBounds = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+type TileryFloatingPanelInit<TData> = {
+  type: 'floatingPanel';
+  id?: string;
+  bounds?: Partial<TileryFloatingPanelBounds>;
+  zIndex?: number;
+  tabs: TileryTabInit<TData>[];
+  activeTabId?: string;
+  fullScreen?: boolean;
+  minSize?: TilerySize;
+  maxSize?: TilerySize;
+} & TileryLayoutBehaviorConfig;
 
 type TileryLayoutBehaviorConfig =
   | { locked: true; resizable?: never; draggable?: never; droppable?: never }
@@ -520,6 +549,14 @@ type TileryTabSnapshot<TData> = {
 } & TileryTabBehavior;
 
 type TileryLayoutSnapshot<TData> =
+  | TileryDockedLayoutSnapshot<TData>
+  | {
+      type: 'root';
+      main: TileryDockedLayoutSnapshot<TData>;
+      floating: TileryFloatingPanelSnapshot<TData>[];
+    };
+
+type TileryDockedLayoutSnapshot<TData> =
   | { type: 'empty' }
   | ({
       type: 'panel';
@@ -536,8 +573,20 @@ type TileryLayoutSnapshot<TData> =
       id?: string;
       direction: 'horizontal' | 'vertical';
       size?: number;
-      children: TileryLayoutSnapshot<TData>[];
-    } & TileryLayoutBehavior);`,
+      children: TileryDockedLayoutSnapshot<TData>[];
+    } & TileryLayoutBehavior);
+
+type TileryFloatingPanelSnapshot<TData> = {
+  type: 'floatingPanel';
+  id?: string;
+  bounds: TileryFloatingPanelBounds;
+  zIndex: number;
+  tabs: TileryTabSnapshot<TData>[];
+  activeTabId?: string;
+  fullScreen?: boolean;
+  minSize?: TilerySize;
+  maxSize?: TilerySize;
+} & TileryLayoutBehavior;`,
       },
       {
         heading: 'TileryResizeEvent',
@@ -701,6 +750,19 @@ type TileryPanelsCloseEvent<TData> = {
             ['removePanel(panelId)', 'Removes a panel and redistributes space'],
             ['maximizePanel(panelId)', 'Shows one panel fullscreen'],
             ['restorePanel(panelId)', 'Restores a fullscreen panel'],
+            [
+              'floatPanel(panelId, bounds?)',
+              'Detaches a panel into the floating layer',
+            ],
+            [
+              'dockPanel(panelId, target?)',
+              'Docks a floating panel into the tiled tree',
+            ],
+            ['focusPanel(panelId)', 'Raises a floating panel above its peers'],
+            [
+              'setFloatingPanelBounds(panelId, bounds)',
+              'Sets floating panel position and size',
+            ],
             ['appendTab(panelId, tab, opts?)', 'Appends a tab to a panel'],
             [
               'insertTab(panelId, tab, index, opts?)',
@@ -727,7 +789,14 @@ type TileryPanelsCloseEvent<TData> = {
           headers: ['Property / Method', 'Description'],
           rows: [
             ['id', 'Panel identifier'],
+            ['kind', 'Panel kind: tiled or floating'],
             ['inset', 'Current { top, right, bottom, left } percentages'],
+            ['floating', 'Whether this panel is detached'],
+            [
+              'floatingBounds',
+              'Floating { x, y, width, height } percentages, if detached',
+            ],
+            ['floatingZIndex', 'Current floating z-index, if detached'],
             ['tabs', 'Array of TileryTabHandle for this panel'],
             ['activeTab', 'The active TileryTabHandle or null'],
             ['fullScreen', 'Whether this panel is currently fullscreen'],
@@ -739,6 +808,10 @@ type TileryPanelsCloseEvent<TData> = {
             ['remove()', 'Remove this panel'],
             ['maximize()', 'Show this panel fullscreen'],
             ['restore()', 'Restore this panel from fullscreen'],
+            ['float(bounds?)', 'Detach this panel'],
+            ['dock(target?)', 'Dock this floating panel'],
+            ['focus()', 'Raise this floating panel'],
+            ['setFloatingBounds(bounds)', 'Set floating panel bounds'],
             ['setActiveTab(tabId)', 'Set the active tab'],
           ],
         },
@@ -779,6 +852,17 @@ type TileryPanelsCloseEvent<TData> = {
     } & TileryLayoutBehaviorConfig);`,
       },
       {
+        heading: 'TileryDockPanelTarget',
+        body: ['Used with dockPanel() and panelHandle.dock():'],
+        code: `type TileryDockPanelTarget = {
+  splitPanel?: TileryPanelId;
+  direction?: TileryDirection;
+  size?: number;
+  minSize?: TilerySize;
+  maxSize?: TilerySize;
+} & TileryLayoutBehaviorConfig;`,
+      },
+      {
         heading: 'TileryDirection',
         code: `type TileryDirection = 'left' | 'right' | 'top' | 'bottom';`,
       },
@@ -787,6 +871,15 @@ type TileryPanelsCloseEvent<TData> = {
         code: `type TilerySize = number | \`\${number}%\` | \`\${number}px\`;
 
 type TileryInitialLayout<TData> =
+  | TileryDockedLayoutInit<TData>
+  | {
+      type: 'root';
+      main: TileryDockedLayoutInit<TData>;
+      floating?: TileryFloatingPanelInit<TData>[];
+    };
+
+type TileryDockedLayoutInit<TData> =
+  | { type: 'empty' }
   | ({
       type: 'panel';
       id?: string;
@@ -802,8 +895,25 @@ type TileryInitialLayout<TData> =
       id?: string;
       direction: 'horizontal' | 'vertical';
       size?: number;
-      children: TileryInitialLayout<TData>[];
+      children: TileryDockedLayoutInit<TData>[];
     } & TileryLayoutBehaviorConfig);
+
+type TileryFloatingPanelInit<TData> = {
+  type: 'floatingPanel';
+  id?: string;
+  bounds?: Partial<{
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }>;
+  zIndex?: number;
+  tabs: TileryTabInit<TData>[];
+  activeTabId?: string;
+  fullScreen?: boolean;
+  minSize?: TilerySize;
+  maxSize?: TilerySize;
+} & TileryLayoutBehaviorConfig;
 
 type TileryLayoutBehaviorConfig =
   | { locked: true; resizable?: never; draggable?: never; droppable?: never }

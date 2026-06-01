@@ -53,6 +53,18 @@ describe('TileryHandle lookups', () => {
     const { handle } = makeStore();
     expect(handle.getPanels().map((p) => p.id)).toEqual(['P1', 'P2']);
   });
+  it('getPanels returns tiled panels followed by floating panels', () => {
+    const { handle } = makeStore();
+    handle.floatPanel('P1', { x: 10, y: 12, width: 40, height: 44 });
+    expect(handle.getPanels().map((p) => p.id)).toEqual(['P2', 'P1']);
+    expect(handle.getPanel('P1')?.floating).toBe(true);
+    expect(handle.getPanel('P1')?.floatingBounds).toEqual({
+      x: 10,
+      y: 12,
+      width: 40,
+      height: 44,
+    });
+  });
   it('getTabs returns handles for every tab', () => {
     const { handle } = makeStore();
     const ids = handle
@@ -181,6 +193,54 @@ describe('TileryHandle lookups', () => {
       closeable: false,
       draggable: false,
     });
+  });
+  it('round-trips floating panels through layout snapshots', () => {
+    const { handle, getState } = makeStore();
+
+    handle.floatPanel('P1', { x: 14, y: 16, width: 42, height: 46 });
+    handle.focusPanel('P1');
+    const snapshot = handle.getLayout<{ title: string }>();
+
+    expect(snapshot).toMatchObject({
+      type: 'root',
+      main: {
+        type: 'panel',
+        id: 'P2',
+      },
+      floating: [
+        {
+          type: 'floatingPanel',
+          id: 'P1',
+          bounds: { x: 14, y: 16, width: 42, height: 46 },
+          zIndex: 20,
+          tabs: [
+            {
+              id: 'T1',
+              data: { title: 'one' },
+              closeable: true,
+              draggable: true,
+            },
+            {
+              id: 'T2',
+              data: { title: 'two' },
+              closeable: true,
+              draggable: true,
+            },
+          ],
+        },
+      ],
+    });
+
+    handle.setLayout(snapshot);
+
+    expect(getState().panels.P1).toMatchObject({
+      kind: 'floating',
+      floating: {
+        bounds: { x: 14, y: 16, width: 42, height: 46 },
+        zIndex: 20,
+      },
+    });
+    expect(handle.getPanels().map((panel) => panel.id)).toEqual(['P2', 'P1']);
   });
   it('serializes a transient single-child split as its remaining child', () => {
     const { handle } = makeStore({
@@ -484,6 +544,7 @@ describe('TileryHandle mutations', () => {
     expect(getState()).toEqual({
       panels: {},
       panelOrder: [],
+      floatingPanelOrder: [],
       tabs: {},
       layout: null,
     });

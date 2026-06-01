@@ -103,7 +103,13 @@ export function tileryCommitDrag(
     ) {
       return;
     }
-    if (target && !panelDrag && shouldSwapForSplit(sourcePanel, target, dir)) {
+    if (
+      target &&
+      !panelDrag &&
+      !sourcePanel.floating &&
+      !target.floating &&
+      shouldSwapForSplit(sourcePanel, target, dir)
+    ) {
       tilery.swapPanels(sourcePanel.id, target.id);
       return;
     }

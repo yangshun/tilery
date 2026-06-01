@@ -1,5 +1,8 @@
 import type {
+  TileryDockPanelTarget,
   TileryDirection,
+  TileryFloatingPanelBounds,
+  TileryFloatingPanelBoundsInit,
   TileryLayoutState,
   TileryHandle,
   TileryMoveTarget,
@@ -17,7 +20,7 @@ import {
   tileryTabInitToReducerInit,
   type TileryReducerAction,
 } from './reducer';
-import { tileryPanelOrderFromState } from './layout-tree';
+import { tileryAllPanelOrderFromState } from './layout-tree';
 import { tileryCreateLayoutSnapshot } from './snapshot';
 import { tileryNormalizeLayoutBehavior } from './layout-behavior';
 
@@ -46,7 +49,7 @@ export function makeTileryHandle(
     },
     getPanels() {
       const state = getState();
-      return tileryPanelOrderFromState(state)
+      return tileryAllPanelOrderFromState(state)
         .map((id) => handle.getPanel(id))
         .filter((p): p is TileryPanelHandle => Boolean(p));
     },
@@ -83,6 +86,23 @@ export function makeTileryHandle(
     },
     restorePanel(panelId) {
       dispatch({ type: 'SET_PANEL_FULLSCREEN', panelId, fullScreen: false });
+    },
+    floatPanel(panelId, bounds) {
+      dispatch({ type: 'FLOAT_PANEL', panelId, bounds });
+    },
+    dockPanel(panelId, target) {
+      dispatch({
+        type: 'DOCK_PANEL',
+        panelId,
+        target,
+        sizeContext: getSizeContext?.(),
+      });
+    },
+    focusPanel(panelId) {
+      dispatch({ type: 'FOCUS_PANEL', panelId });
+    },
+    setFloatingPanelBounds(panelId, bounds) {
+      dispatch({ type: 'SET_FLOATING_PANEL_BOUNDS', panelId, bounds });
     },
     appendTab(panelId, tab, opts) {
       const t = tileryTabInitToReducerInit(tab);
@@ -172,10 +192,24 @@ export function tileryMakePanelHandle(
     get id() {
       return id;
     },
+    get kind() {
+      return getState().panels[id]?.kind ?? 'tiled';
+    },
     get inset() {
       return (
         getState().panels[id]?.inset ?? { top: 0, right: 0, bottom: 0, left: 0 }
       );
+    },
+    get floating() {
+      return getState().panels[id]?.kind === 'floating';
+    },
+    get floatingBounds() {
+      const panel = getState().panels[id];
+      return panel?.kind === 'floating' ? panel.floating.bounds : undefined;
+    },
+    get floatingZIndex() {
+      const panel = getState().panels[id];
+      return panel?.kind === 'floating' ? panel.floating.zIndex : undefined;
     },
     get tabs() {
       const p = getState().panels[id];
@@ -215,6 +249,18 @@ export function tileryMakePanelHandle(
     },
     restore() {
       tilery.restorePanel(id);
+    },
+    float(bounds?: TileryFloatingPanelBoundsInit) {
+      tilery.floatPanel(id, bounds);
+    },
+    dock(target?: TileryDockPanelTarget) {
+      tilery.dockPanel(id, target);
+    },
+    focus() {
+      tilery.focusPanel(id);
+    },
+    setFloatingBounds(bounds: TileryFloatingPanelBounds) {
+      tilery.setFloatingPanelBounds(id, bounds);
     },
     setActiveTab(tabId: TileryTabId) {
       tilery.setActiveTab(tabId);

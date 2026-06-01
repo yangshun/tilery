@@ -12,7 +12,10 @@ import {
   useState,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { PanelChrome } from './components/panel-chrome';
+import {
+  PanelChrome,
+  type TileryFloatingResizeEdge,
+} from './components/panel-chrome';
 import { TileryDivider, type DividerAccessibility } from './components/divider';
 import { TileryJunction } from './components/junction';
 import { DropOverlay } from './components/drop-overlay';
@@ -22,18 +25,20 @@ import {
   tileryCreateInitialState,
   tileryReducer,
   makeTileryHandle,
+  tileryAllPanelOrderFromState,
   tileryClampDividerPosition,
   tileryDeriveDividers,
   tileryDeriveJunctions,
   tileryGetFullScreenPanelId,
+  tileryPanelBehaviorFromState,
   tileryWarnForConstraintDiagnostics,
   type TileryReducerAction,
   type TileryDirection,
   type TileryInitialLayout,
   type TileryDivider as TileryDividerState,
   type TileryDividerOrientation,
+  type TileryFloatingPanelBounds,
   type TileryLayoutState,
-  type TileryLayoutTree,
   type TileryHandle,
   type TileryPanelHandle,
   type TileryPanelId,
@@ -214,6 +219,17 @@ type TileryResizeAction = Extract<
   TileryReducerAction,
   { type: 'RESIZE_DIVIDER' | 'RESIZE_JUNCTION' }
 >;
+
+type TileryFloatingPanelDragState = {
+  panelId: TileryPanelId;
+  pointerId: number;
+  edge?: TileryFloatingResizeEdge;
+  startX: number;
+  startY: number;
+  startBounds: TileryFloatingPanelBounds;
+  containerWidth: number;
+  containerHeight: number;
+};
 
 export type TileryProps<TData = unknown> = {
   initialLayout: TileryInitialLayout<TData>;
@@ -486,6 +502,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
   }, [state, onChange]);
 
   const drag = useTileryDragController(() => tileryRef.current);
+  const floatingDragRef = useRef<TileryFloatingPanelDragState | null>(null);
 
   const [limboEl] = useState(() => {
     /* v8 ignore next */
@@ -573,7 +590,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
   const activeByPanel = useMemo(() => {
     let fp = '';
     const next: Record<TileryPanelId, TileryTabId | null> = {};
-    for (const pid of tileryPanelOrderFromState(state)) {
+    for (const pid of tileryAllPanelOrderFromState(state)) {
       const p = state.panels[pid];
       /* v8 ignore next */
       if (!p) continue;
@@ -593,6 +610,140 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
   const onTabClose = useCallback((tabId: string) => {
     tileryRef.current?.removeTab(tabId);
   }, []);
+  const onPanelPointerDown = useCallback(
+    (_e: React.PointerEvent, panelId: string) => {
+      tileryRef.current?.focusPanel(panelId);
+    },
+    [],
+  );
+  const onFloatingTabBarPointerDown = useCallback(
+    (e: React.PointerEvent, panelId: string) => {
+      if (e.button !== 0) return;
+      const panel = tileryRef.current?.getPanel(panelId);
+      const bounds = panel?.floatingBounds;
+      const container = containerRef.current;
+      if (!panel?.floating || !bounds || !container) return;
+      panel.focus();
+      const behavior = tileryPanelBehaviorFromState(
+        tileryRef.current!.getState(),
+        panelId,
+      );
+      if (!behavior.draggable) return;
+      const rect = container.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0) return;
+      try {
+        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+      } catch {
+        // ignore
+      }
+      e.preventDefault();
+      floatingDragRef.current = {
+        panelId,
+        pointerId: e.pointerId,
+        startX: e.clientX,
+        startY: e.clientY,
+        startBounds: { ...bounds },
+        containerWidth: rect.width,
+        containerHeight: rect.height,
+      };
+    },
+    [],
+  );
+  const onFloatingResizePointerDown = useCallback(
+    (
+      e: React.PointerEvent,
+      panelId: string,
+      edge: TileryFloatingResizeEdge,
+    ) => {
+      if (e.button !== 0) return;
+      const panel = tileryRef.current?.getPanel(panelId);
+      const bounds = panel?.floatingBounds;
+      const container = containerRef.current;
+      if (!panel?.floating || !bounds || !container) return;
+      panel.focus();
+      const behavior = tileryPanelBehaviorFromState(
+        tileryRef.current!.getState(),
+        panelId,
+      );
+      if (!behavior.resizable) return;
+      const rect = container.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0) return;
+      try {
+        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+      } catch {
+        // ignore
+      }
+      e.preventDefault();
+      e.stopPropagation();
+      floatingDragRef.current = {
+        panelId,
+        pointerId: e.pointerId,
+        edge,
+        startX: e.clientX,
+        startY: e.clientY,
+        startBounds: { ...bounds },
+        containerWidth: rect.width,
+        containerHeight: rect.height,
+      };
+    },
+    [],
+  );
+  const onPointerMove = useCallback(
+    (e: React.PointerEvent) => {
+      const floatingDrag = floatingDragRef.current;
+      if (!floatingDrag || floatingDrag.pointerId !== e.pointerId) {
+        drag.onTabPointerMove(e);
+        return;
+      }
+      const dx =
+        ((e.clientX - floatingDrag.startX) / floatingDrag.containerWidth) * 100;
+      const dy =
+        ((e.clientY - floatingDrag.startY) / floatingDrag.containerHeight) *
+        100;
+      const nextBounds = floatingDrag.edge
+        ? resizeFloatingBounds(
+            floatingDrag.startBounds,
+            floatingDrag.edge,
+            dx,
+            dy,
+          )
+        : {
+            ...floatingDrag.startBounds,
+            x: floatingDrag.startBounds.x + dx,
+            y: floatingDrag.startBounds.y + dy,
+          };
+      tileryRef.current?.setFloatingPanelBounds(
+        floatingDrag.panelId,
+        nextBounds,
+      );
+    },
+    [drag],
+  );
+  const onTabBarPointerUp = useCallback(
+    (e: React.PointerEvent) => {
+      const floatingDrag = floatingDragRef.current;
+      if (floatingDrag?.pointerId === e.pointerId) {
+        floatingDragRef.current = null;
+        try {
+          (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+        } catch {
+          // ignore
+        }
+        return;
+      }
+      drag.onTabBarPointerUp(e);
+    },
+    [drag],
+  );
+  const onPointerCancel = useCallback(
+    (e: React.PointerEvent) => {
+      if (floatingDragRef.current?.pointerId === e.pointerId) {
+        floatingDragRef.current = null;
+      }
+      drag.onTabPointerCancel(e);
+    },
+    [drag],
+  );
   const onDividerDrag = useCallback(
     (
       dividerId: string,
@@ -711,7 +862,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
   return (
     <div className="tilery">
       <div ref={containerRef} className="tilery__inner">
-        {tileryPanelOrderFromState(state).map((panelId) => {
+        {tileryAllPanelOrderFromState(state).map((panelId) => {
           if (fullScreenPanelId && panelId !== fullScreenPanelId) return null;
           const panel = getCachedPanelHandle(panelId);
           /* v8 ignore next */
@@ -726,12 +877,15 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
               registerContentSlot={getRegisterContentSlot(panelId)}
               registerTabBar={getRegisterTabBar(panelId)}
               registerTab={stableRegisterTab}
+              onPanelPointerDown={onPanelPointerDown}
+              onFloatingResizePointerDown={onFloatingResizePointerDown}
               onTabPointerDown={drag.onTabPointerDown}
-              onTabPointerMove={drag.onTabPointerMove}
+              onTabPointerMove={onPointerMove}
               onTabPointerUp={drag.onTabPointerUp}
-              onTabPointerCancel={drag.onTabPointerCancel}
+              onTabPointerCancel={onPointerCancel}
               onTabBarPointerDown={drag.onTabBarPointerDown}
-              onTabBarPointerUp={drag.onTabBarPointerUp}
+              onFloatingTabBarPointerDown={onFloatingTabBarPointerDown}
+              onTabBarPointerUp={onTabBarPointerUp}
               onTabClick={onTabClick}
               onTabClose={onTabClose}
               showActionsButton={resolvePanelVisibility(
@@ -816,17 +970,28 @@ function resolvePanelVisibility(
   return typeof value === 'function' ? value(panel) : value;
 }
 
-function tileryPanelOrderFromState(state: TileryLayoutState): TileryPanelId[] {
-  const order = state.layout
-    ? tileryPanelOrderFromLayout(state.layout)
-    : /* v8 ignore next -- React initial layouts always create a tree. */
-      state.panelOrder;
-  return order.filter((id) => Boolean(state.panels[id]));
-}
-
-function tileryPanelOrderFromLayout(layout: TileryLayoutTree): TileryPanelId[] {
-  if (layout.kind === 'panel') return [layout.panelId];
-  return layout.children.flatMap((child) => tileryPanelOrderFromLayout(child));
+function resizeFloatingBounds(
+  bounds: TileryFloatingPanelBounds,
+  edge: TileryFloatingResizeEdge,
+  dx: number,
+  dy: number,
+): TileryFloatingPanelBounds {
+  const next = { ...bounds };
+  if (edge.includes('left')) {
+    next.x = bounds.x + dx;
+    next.width = bounds.width - dx;
+  }
+  if (edge.includes('right')) {
+    next.width = bounds.width + dx;
+  }
+  if (edge.includes('top')) {
+    next.y = bounds.y + dy;
+    next.height = bounds.height - dy;
+  }
+  if (edge.includes('bottom')) {
+    next.height = bounds.height + dy;
+  }
+  return next;
 }
 
 function makeLifecycleEvents<TData>(
@@ -838,7 +1003,7 @@ function makeLifecycleEvents<TData>(
   const lifecycleSource = source as TileryLifecycleSource;
   const activeTabChanges = makeActiveTabChanges(previousState, state);
   const movedTabs = makeTabMoveChanges<TData>(previousState, state, action);
-  const openedPanels = tileryPanelOrderFromState(state)
+  const openedPanels = tileryAllPanelOrderFromState(state)
     .filter((panelId) => !previousState.panels[panelId])
     .map((panelId) => makePanelLifecycleChange(state.panels[panelId]!));
   const openedPanelTabs = openedPanels.flatMap((panel) =>
@@ -853,7 +1018,7 @@ function makeLifecycleEvents<TData>(
   const closedTabs = Object.values(previousState.tabs)
     .filter((tab) => !state.tabs[tab.id])
     .map(makeTabLifecycleChange<TData>);
-  const closedPanels = tileryPanelOrderFromState(previousState)
+  const closedPanels = tileryAllPanelOrderFromState(previousState)
     .filter((panelId) => !state.panels[panelId])
     .map((panelId) => makePanelLifecycleChange(previousState.panels[panelId]!));
   const panelTabs = closedPanels.flatMap((panel) =>
@@ -929,7 +1094,7 @@ function makeActiveTabChanges(
   state: TileryLayoutState,
 ): TileryActiveTabChange[] {
   const changes: TileryActiveTabChange[] = [];
-  for (const panelId of tileryPanelOrderFromState(state)) {
+  for (const panelId of tileryAllPanelOrderFromState(state)) {
     const previousPanel = previousState.panels[panelId];
     const panel = state.panels[panelId];
     if (!previousPanel || !panel) continue;
@@ -1129,7 +1294,7 @@ function makeResizePanelChanges(
 ): TileryResizePanelChange[] {
   const rect = container?.getBoundingClientRect();
   const changes: TileryResizePanelChange[] = [];
-  for (const panelId of tileryPanelOrderFromState(state)) {
+  for (const panelId of tileryAllPanelOrderFromState(state)) {
     const previousPanel = previousState.panels[panelId];
     const panel = state.panels[panelId];
     /* v8 ignore next -- resize operations do not create panels. */

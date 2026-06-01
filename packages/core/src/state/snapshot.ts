@@ -1,4 +1,6 @@
 import type {
+  TileryDockedLayoutSnapshot,
+  TileryFloatingPanelSnapshot,
   TileryLayoutBehavior,
   TileryLayoutSnapshot,
   TileryLayoutState,
@@ -8,19 +10,33 @@ import {
   tileryBehaviorFromNode,
   tileryMergeLayoutBehavior,
 } from './layout-behavior';
+import { tileryFloatingPanelOrderFromState } from './layout-tree';
 
 type NonEmptyLayout<TData> = Exclude<
-  TileryLayoutSnapshot<TData>,
+  TileryDockedLayoutSnapshot<TData>,
   { type: 'empty' }
 >;
 
 export function tileryCreateLayoutSnapshot<TData = unknown>(
   state: TileryLayoutState,
 ): TileryLayoutSnapshot<TData> {
-  const snapshot = state.layout
+  const main = state.layout
     ? layoutToSnapshot<TData>(state.layout, state)
     : null;
-  return snapshot ?? { type: 'empty' };
+  const floating = tileryFloatingPanelOrderFromState(state)
+    .map((panelId) => floatingPanelToSnapshot<TData>(state, panelId))
+    .filter((panel): panel is TileryFloatingPanelSnapshot<TData> =>
+      Boolean(panel),
+    );
+  const mainSnapshot: TileryDockedLayoutSnapshot<TData> = main ?? {
+    type: 'empty',
+  };
+  if (floating.length === 0) return mainSnapshot;
+  return {
+    type: 'root',
+    main: mainSnapshot,
+    floating,
+  };
 }
 
 function layoutToSnapshot<TData>(
@@ -61,6 +77,34 @@ function layoutToSnapshot<TData>(
     id: panel.id,
     size: layout.size,
     ...tileryBehaviorFromNode(layout),
+    activeTabId: panel.activeTabId ?? undefined,
+    fullScreen: panel.fullScreen,
+    minSize: panel.minSize,
+    maxSize: panel.maxSize,
+    tabs: panel.tabs.map((tabId) => {
+      const tab = state.tabs[tabId]!;
+      return {
+        id: tab.id,
+        data: tab.data as TData,
+        closeable: tab.closeable,
+        draggable: tab.draggable,
+      };
+    }),
+  };
+}
+
+function floatingPanelToSnapshot<TData>(
+  state: TileryLayoutState,
+  panelId: string,
+): TileryFloatingPanelSnapshot<TData> | null {
+  const panel = state.panels[panelId];
+  if (!panel || panel.kind !== 'floating') return null;
+  return {
+    type: 'floatingPanel',
+    id: panel.id,
+    bounds: { ...panel.floating.bounds },
+    zIndex: panel.floating.zIndex,
+    ...panel.behavior,
     activeTabId: panel.activeTabId ?? undefined,
     fullScreen: panel.fullScreen,
     minSize: panel.minSize,
