@@ -7,6 +7,7 @@ export {
   DraculaThemeExample,
   Example as ThemesExample,
   LightThemeExample,
+  PillTabsThemeExample,
   ReplitThemeExample,
   VisualStudioThemeExample,
 } from './themes/example';
@@ -95,10 +96,12 @@ export const examples = [
       { id: 'light', sourceRegion: 'light' },
       { id: 'replit', sourceRegion: 'replit' },
       { id: 'abyss-spaced', sourceRegion: 'abyss-spaced' },
+      { id: 'pill-tabs', sourceRegion: 'pill-tabs' },
     ],
     notes: [
       'Each theme is a wrapper around Tilery that defines --tilery-* CSS variables.',
       'The examples mirror the style of Dockview theme demos: dark, light, editor-inspired, and spaced variants.',
+      'The Pill Tabs example shows where class overrides fit when a theme changes component shape rather than only colors and sizing tokens.',
       'Spacing themes only change panel and outer gaps, so the same layout can support compact or separated workspaces.',
     ],
   },

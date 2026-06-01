@@ -9,6 +9,7 @@ import {
   AbyssThemeExample,
   DraculaThemeExample,
   LightThemeExample,
+  PillTabsThemeExample,
   ReplitThemeExample,
   ThemesExample,
   VisualStudioThemeExample,
@@ -46,6 +47,7 @@ const registry: Record<string, Record<string, React.ComponentType>> = {
     light: LightThemeExample,
     replit: ReplitThemeExample,
     'abyss-spaced': AbyssSpacedThemeExample,
+    'pill-tabs': PillTabsThemeExample,
   },
   collapse: {
     default: PanelActionsExample,

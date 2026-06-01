@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { Tilery } from '@tilery/react';
 import type { TileryInitialLayout, TileryTabHandle } from '@tilery/react';
 import { ExampleSection, ExampleStack } from '../example-ui';
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 
 type ThemeStyle = CSSProperties & Record<`--${string}`, string>;
 
@@ -263,12 +263,96 @@ export function AbyssSpacedThemeExample() {
 }
 // end-source-region abyss-spaced
 
-function ThemeDemo({ id, theme }: { id: string; theme: ThemeSpec }) {
+// source-region pill-tabs
+const pillTabsTheme = {
+  name: 'Pill Tabs',
+  description:
+    'A class override theme that rounds tabs into pills while variables keep the palette centralized.',
+  style: {
+    colorScheme: 'dark',
+    '--tilery-bg': '#111318',
+    '--tilery-fg': '#f3f4f7',
+    '--tilery-panel-bg': '#1b1f2a',
+    '--tilery-panel-border': '#2f3545',
+    '--tilery-tabbar-bg': '#151923',
+    '--tilery-tabbar-height': '42px',
+    '--tilery-tab-font-size': '12px',
+    '--tilery-tab-fg': '#aeb6c5',
+    '--tilery-tab-active-bg': '#f3f4f7',
+    '--tilery-tab-active-fg': '#111318',
+    '--tilery-tab-hover-bg': '#252b38',
+    '--tilery-menu-bg': '#1f2530',
+    '--tilery-menu-shadow': '0 14px 30px rgba(0, 0, 0, 0.38)',
+    '--tilery-action-hover-bg': '#2b3342',
+    '--tilery-accent': '#7dd3fc',
+    '--tilery-drop-bg': 'rgba(125, 211, 252, 0.16)',
+    '--tilery-drop-border': 'rgba(125, 211, 252, 0.68)',
+    '--tilery-resize-handle-active-bg': 'rgba(125, 211, 252, 0.2)',
+    '--tilery-panel-gap': '5px',
+    '--tilery-outer-gap': '5px',
+    '--theme-content-bg': '#161b25',
+    '--theme-content-muted': '#bac4d2',
+    '--theme-content-border': '#343c4c',
+    '--theme-code-bg': '#111722',
+  },
+} satisfies ThemeSpec;
+
+const pillTabsCss = `
+.tilery-theme-pill-tabs .tilery__tab-list {
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+}
+
+.tilery-theme-pill-tabs .tilery__tab {
+  height: 26px;
+  padding: 0 10px;
+  border-right: 0;
+  border-radius: 999px;
+}
+
+.tilery-theme-pill-tabs .tilery__tab[data-active='true'] {
+  box-shadow: none;
+}
+
+.tilery-theme-pill-tabs .tilery__tab[data-closeable='false'] {
+  padding: 0 10px;
+}
+
+.tilery-theme-pill-tabs .tilery__tab-close {
+  border-radius: 999px;
+}
+`;
+
+export function PillTabsThemeExample() {
+  return (
+    <ThemeDemo
+      id="pill-tabs"
+      theme={pillTabsTheme}
+      className="tilery-theme-pill-tabs">
+      <style>{pillTabsCss}</style>
+    </ThemeDemo>
+  );
+}
+// end-source-region pill-tabs
+
+function ThemeDemo({
+  id,
+  theme,
+  className,
+  children,
+}: {
+  id: string;
+  theme: ThemeSpec;
+  className?: string;
+  children?: ReactNode;
+}) {
   const layout = useMemo(() => createThemeLayout(id), [id]);
 
   return (
     <ExampleSection title={theme.name} description={theme.description}>
-      <div style={{ ...themeShellStyle, ...theme.style }}>
+      <div className={className} style={{ ...themeShellStyle, ...theme.style }}>
+        {children}
         <Tilery<TabData>
           initialLayout={layout}
           showActionsButton
