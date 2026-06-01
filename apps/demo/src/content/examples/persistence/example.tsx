@@ -1,15 +1,21 @@
 'use client';
 
-import { useRef, useCallback } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { Tilery } from '@tilery/react';
 import type {
+  TileryHandle,
   TileryInitialLayout,
   TileryLayoutSnapshot,
   TileryTabHandle,
-  TileryHandle,
 } from '@tilery/react';
+import {
+  ExampleButton,
+  ExampleSection,
+  ExampleStack,
+  TabContent,
+} from '../example-ui';
 
-type TabData = { title: string };
+type TabData = { title: string; body: string };
 
 const defaultLayout: TileryInitialLayout<TabData> = {
   type: 'split',
@@ -17,20 +23,173 @@ const defaultLayout: TileryInitialLayout<TabData> = {
   children: [
     {
       type: 'panel',
-      id: 'left',
+      id: 'notes',
       size: 50,
-      tabs: [{ id: 'notes', data: { title: 'Notes' } }],
+      tabs: [
+        {
+          id: 'notes-tab',
+          data: {
+            title: 'Notes',
+            body: 'Resize panels, then refresh to restore this layout from localStorage.',
+          },
+        },
+      ],
+    },
+    {
+      type: 'panel',
+      id: 'preview',
+      size: 50,
+      tabs: [
+        {
+          id: 'preview-tab',
+          data: {
+            title: 'Preview',
+            body: 'Snapshots preserve panel sizes, tabs, behavior flags, and active tab state.',
+          },
+        },
+      ],
+    },
+  ],
+};
+
+const snapshotLayout: TileryInitialLayout<TabData> = {
+  type: 'split',
+  direction: 'horizontal',
+  children: [
+    {
+      type: 'panel',
+      id: 'left',
+      size: 34,
+      tabs: [
+        {
+          id: 'inbox',
+          data: {
+            title: 'Inbox',
+            body: 'Save a snapshot, mutate the layout, then restore the saved tree.',
+          },
+          closeable: false,
+        },
+      ],
     },
     {
       type: 'panel',
       id: 'right',
-      size: 50,
-      tabs: [{ id: 'preview', data: { title: 'Preview' } }],
+      size: 66,
+      tabs: [
+        {
+          id: 'details',
+          data: {
+            title: 'Details',
+            body: 'setLayout(snapshot) replaces the current layout explicitly.',
+          },
+        },
+      ],
     },
   ],
 };
 
 const STORAGE_KEY = 'tilery-example-persistence';
+
+export function Example() {
+  return (
+    <ExampleStack rows="minmax(0, 1fr) minmax(0, 1fr)">
+      <LocalStorageExample />
+      <SnapshotControlsExample />
+    </ExampleStack>
+  );
+}
+
+// source-region local-storage
+export function LocalStorageExample() {
+  const tileryRef = useRef<TileryHandle | null>(null);
+  const initialLayoutRef = useRef(getInitialLayout());
+
+  const handleChange = useCallback(() => {
+    const layout = tileryRef.current?.getLayout<TabData>();
+    if (!layout) return;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(layout));
+  }, []);
+
+  const reset = () => {
+    localStorage.removeItem(STORAGE_KEY);
+    tileryRef.current?.setLayout(defaultLayout);
+  };
+
+  return (
+    <ExampleSection
+      title="localStorage restore"
+      description="Persist every layout change as a snapshot and use it as the next initialLayout."
+      actions={
+        <ExampleButton type="button" onClick={reset}>
+          Reset
+        </ExampleButton>
+      }>
+      <Tilery<TabData>
+        ref={tileryRef as React.Ref<TileryHandle>}
+        initialLayout={initialLayoutRef.current}
+        onChange={handleChange}
+        renderTabHeader={renderHeader}
+        renderTabContent={renderContent}
+      />
+    </ExampleSection>
+  );
+}
+// end-source-region local-storage
+
+// source-region snapshot-controls
+export function SnapshotControlsExample() {
+  const tileryRef = useRef<TileryHandle | null>(null);
+  const [snapshot, setSnapshot] =
+    useState<TileryLayoutSnapshot<TabData> | null>(null);
+
+  const saveSnapshot = () => {
+    setSnapshot(tileryRef.current?.getLayout<TabData>() ?? null);
+  };
+
+  const restoreSnapshot = () => {
+    if (snapshot) tileryRef.current?.setLayout(snapshot);
+  };
+
+  const resetLayout = () => {
+    tileryRef.current?.setLayout(snapshotLayout);
+  };
+
+  return (
+    <ExampleSection
+      title="Snapshot controls"
+      description={
+        snapshot
+          ? 'A snapshot is saved in React state and can be restored.'
+          : 'Save the current layout before moving tabs or resizing panels.'
+      }
+      actions={
+        <>
+          <ExampleButton type="button" onClick={saveSnapshot}>
+            Save
+          </ExampleButton>
+          <ExampleButton
+            type="button"
+            onClick={restoreSnapshot}
+            disabled={!snapshot}
+            style={!snapshot ? disabledButtonStyle : undefined}>
+            Restore
+          </ExampleButton>
+          <ExampleButton type="button" onClick={resetLayout}>
+            Reset
+          </ExampleButton>
+        </>
+      }>
+      <Tilery<TabData>
+        ref={tileryRef as React.Ref<TileryHandle>}
+        initialLayout={snapshotLayout}
+        showActionsButton={true}
+        renderTabHeader={renderHeader}
+        renderTabContent={renderContent}
+      />
+    </ExampleSection>
+  );
+}
+// end-source-region snapshot-controls
 
 function getInitialLayout(): TileryInitialLayout<TabData> {
   if (typeof window === 'undefined') return defaultLayout;
@@ -44,6 +203,18 @@ function getInitialLayout(): TileryInitialLayout<TabData> {
   }
 }
 
+function renderHeader(tab: TileryTabHandle<TabData>) {
+  return <span>{tab.data.title}</span>;
+}
+
+function renderContent(tab: TileryTabHandle<TabData>) {
+  return (
+    <TabContent>
+      <p style={{ margin: 0 }}>{tab.data.body}</p>
+    </TabContent>
+  );
+}
+
 function isLayoutSnapshot(
   value: unknown,
 ): value is TileryLayoutSnapshot<TabData> {
@@ -52,7 +223,7 @@ function isLayoutSnapshot(
   if (value.type === 'panel') {
     return (
       isOptionalString(value.id) &&
-      isOptionalNumber(value.size) &&
+      isOptionalSize(value.size) &&
       typeof value.resizable === 'boolean' &&
       typeof value.draggable === 'boolean' &&
       typeof value.droppable === 'boolean' &&
@@ -68,7 +239,7 @@ function isLayoutSnapshot(
     return (
       isOptionalString(value.id) &&
       (value.direction === 'horizontal' || value.direction === 'vertical') &&
-      isOptionalNumber(value.size) &&
+      isOptionalSize(value.size) &&
       typeof value.resizable === 'boolean' &&
       typeof value.draggable === 'boolean' &&
       typeof value.droppable === 'boolean' &&
@@ -90,7 +261,11 @@ function isTabSnapshot(value: unknown) {
 }
 
 function isTabData(value: unknown): value is TabData {
-  return isRecord(value) && typeof value.title === 'string';
+  return (
+    isRecord(value) &&
+    typeof value.title === 'string' &&
+    typeof value.body === 'string'
+  );
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -99,10 +274,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function isOptionalString(value: unknown) {
   return value === undefined || typeof value === 'string';
-}
-
-function isOptionalNumber(value: unknown) {
-  return value === undefined || typeof value === 'number';
 }
 
 function isOptionalSize(value: unknown) {
@@ -117,65 +288,7 @@ function isOptionalBoolean(value: unknown) {
   return value === undefined || typeof value === 'boolean';
 }
 
-export function Example() {
-  const tileryRef = useRef<TileryHandle | null>(null);
-
-  const handleChange = useCallback(() => {
-    const layout = tileryRef.current?.getLayout<TabData>();
-    if (!layout) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(layout));
-  }, []);
-
-  const reset = () => {
-    localStorage.removeItem(STORAGE_KEY);
-    window.location.reload();
-  };
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <div
-        style={{
-          display: 'flex',
-          gap: 8,
-          padding: '8px 12px',
-          background: '#16181c',
-          borderBottom: '1px solid #2a2d33',
-          fontSize: 12,
-          alignItems: 'center',
-        }}>
-        <span style={{ color: '#9aa1ab' }}>
-          Resize panels, then refresh — layout is restored from localStorage.
-        </span>
-        <button type="button" onClick={reset} style={btnStyle}>
-          Reset
-        </button>
-      </div>
-      <div style={{ flex: 1, minHeight: 0 }}>
-        <Tilery<TabData>
-          ref={tileryRef as React.Ref<TileryHandle>}
-          initialLayout={getInitialLayout()}
-          onChange={handleChange}
-          renderTabHeader={(tab: TileryTabHandle<TabData>) => (
-            <span>{tab.data.title}</span>
-          )}
-          renderTabContent={(tab: TileryTabHandle<TabData>) => (
-            <div style={{ padding: 16, color: '#9aa1ab', fontSize: 13 }}>
-              {tab.data.title} content
-            </div>
-          )}
-        />
-      </div>
-    </div>
-  );
-}
-
-const btnStyle: React.CSSProperties = {
-  padding: '4px 10px',
-  background: '#1f2127',
-  color: '#d9dde3',
-  border: '1px solid #2a2d33',
-  borderRadius: 3,
-  cursor: 'pointer',
-  fontFamily: 'var(--site-mono)',
-  fontSize: 11,
+const disabledButtonStyle: React.CSSProperties = {
+  color: '#6f7785',
+  cursor: 'not-allowed',
 };

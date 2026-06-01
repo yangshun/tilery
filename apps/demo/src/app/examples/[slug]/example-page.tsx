@@ -6,25 +6,63 @@ import {
   IdeExample,
   DashboardExample,
   PanelActionsExample,
+  PanelMenuExample,
+  NewTabExample,
   ConstraintsExample,
+  PanelConstraintsExample,
+  ContainerResizeExample,
+  PanelLockingExample,
   TabLockingExample,
+  InitialTabLocksExample,
+  RuntimeTabBehaviorExample,
   ControlledExample,
+  PanelApiExample,
+  TabApiExample,
   PersistenceExample,
+  LocalStorageExample,
+  SnapshotControlsExample,
   CallbacksExample,
+  StructuralCallbacksExample,
+  ResizeCallbacksExample,
   NestedExample,
 } from '../../../content/examples';
 
-const registry: Record<string, React.ComponentType> = {
-  basic: BasicExample,
-  ide: IdeExample,
-  dashboard: DashboardExample,
-  collapse: PanelActionsExample,
-  constraints: ConstraintsExample,
-  'tab-locking': TabLockingExample,
-  controlled: ControlledExample,
-  persistence: PersistenceExample,
-  callbacks: CallbacksExample,
-  nested: NestedExample,
+const registry: Record<string, Record<string, React.ComponentType>> = {
+  basic: { default: BasicExample },
+  ide: { default: IdeExample },
+  dashboard: { default: DashboardExample },
+  collapse: {
+    default: PanelActionsExample,
+    'panel-menu': PanelMenuExample,
+    'new-tab': NewTabExample,
+  },
+  constraints: {
+    default: ConstraintsExample,
+    'panel-constraints': PanelConstraintsExample,
+    'container-resize': ContainerResizeExample,
+  },
+  'panel-locking': { default: PanelLockingExample },
+  'tab-locking': {
+    default: TabLockingExample,
+    'initial-locks': InitialTabLocksExample,
+    'runtime-behavior': RuntimeTabBehaviorExample,
+  },
+  controlled: {
+    default: ControlledExample,
+    'panel-handles': PanelApiExample,
+    'tab-handles': TabApiExample,
+  },
+  persistence: {
+    default: PersistenceExample,
+    'local-storage': LocalStorageExample,
+    'snapshot-controls': SnapshotControlsExample,
+  },
+  callbacks: {
+    default: CallbacksExample,
+    structural: StructuralCallbacksExample,
+    resize: ResizeCallbacksExample,
+  },
+  nested: { default: NestedExample },
 };
 
 export function ExamplePage({
@@ -32,19 +70,19 @@ export function ExamplePage({
   title,
   description,
   notes,
-  sourceHtml,
+  demos,
 }: {
   slug: string;
   title: string;
   description: string;
   notes: string[];
-  sourceHtml: string;
+  demos: Array<{ id: string; sourceHtml: string }>;
 }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const Component = registry[slug];
-  if (!Component) return <div>Example not found</div>;
+  const components = registry[slug];
+  if (!components) return <div>Example not found</div>;
 
   return (
     <div className="example-preview">
@@ -58,13 +96,30 @@ export function ExamplePage({
           ))}
         </ul>
       </div>
-      <div className="example-preview__demo">
-        {mounted ? <Component /> : null}
+      <div className="example-preview__demos">
+        {demos.map((demo) => {
+          const Component = components[demo.id] ?? components.default;
+          if (!Component) return null;
+          const isDefaultDemo = demos.length === 1 && demo.id === 'default';
+
+          return (
+            <section key={demo.id} className="example-preview__case">
+              <div
+                className={
+                  isDefaultDemo
+                    ? 'example-preview__demo-surface example-preview__demo-surface--boxed'
+                    : 'example-preview__demo-surface'
+                }>
+                {mounted ? <Component /> : null}
+              </div>
+              <div
+                className="example-preview__source"
+                dangerouslySetInnerHTML={{ __html: demo.sourceHtml }}
+              />
+            </section>
+          );
+        })}
       </div>
-      <div
-        className="example-preview__source"
-        dangerouslySetInnerHTML={{ __html: sourceHtml }}
-      />
     </div>
   );
 }

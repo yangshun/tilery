@@ -23,10 +23,22 @@ export default async function Page({
     `src/content/examples/${slug}/example.tsx`,
   );
   const source = readFileSync(filePath, 'utf-8');
-  const highlightedHtml = await codeToHtml(source.trim(), {
-    lang: 'tsx',
-    theme: 'github-dark-default',
-  });
+  const demos = await Promise.all(
+    (meta.demos ?? [{ id: 'default' }]).map(async (demo) => {
+      const sourceRegion = 'sourceRegion' in demo ? demo.sourceRegion : demo.id;
+
+      return {
+        id: demo.id,
+        sourceHtml: await codeToHtml(
+          extractSourceRegion(source, sourceRegion) ?? source.trim(),
+          {
+            lang: 'tsx',
+            theme: 'github-dark-default',
+          },
+        ),
+      };
+    }),
+  );
 
   return (
     <ExamplePage
@@ -34,7 +46,17 @@ export default async function Page({
       title={meta.title}
       description={meta.description}
       notes={meta.notes}
-      sourceHtml={highlightedHtml}
+      demos={demos}
     />
   );
+}
+
+function extractSourceRegion(source: string, region: string) {
+  const startMarker = `// source-region ${region}`;
+  const endMarker = `// end-source-region ${region}`;
+  const start = source.indexOf(startMarker);
+  const end = source.indexOf(endMarker);
+
+  if (start === -1 || end === -1 || end <= start) return null;
+  return source.slice(start + startMarker.length, end).trim();
 }

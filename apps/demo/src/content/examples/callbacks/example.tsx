@@ -6,9 +6,17 @@ import type {
   TileryActiveTabChangeEvent,
   TileryHandle,
   TileryInitialLayout,
+  TileryResizeEvent,
   TileryTabHandle,
   TileryTabsMoveEvent,
 } from '@tilery/react';
+import {
+  EmptyState,
+  ExampleButton,
+  ExampleSection,
+  ExampleStack,
+  TabContent,
+} from '../example-ui';
 
 type TabData = { title: string; body: string };
 
@@ -18,7 +26,7 @@ type LogEntry = {
   details: string;
 };
 
-const layout: TileryInitialLayout<TabData> = {
+const structuralLayout: TileryInitialLayout<TabData> = {
   type: 'split',
   direction: 'horizontal',
   children: [
@@ -60,7 +68,52 @@ const layout: TileryInitialLayout<TabData> = {
   ],
 };
 
+const resizeLayout: TileryInitialLayout<TabData> = {
+  type: 'split',
+  direction: 'horizontal',
+  children: [
+    {
+      type: 'panel',
+      id: 'navigator',
+      size: 32,
+      tabs: [
+        {
+          id: 'navigator-tab',
+          data: {
+            title: 'Navigator',
+            body: 'Drag the divider to emit resize events.',
+          },
+        },
+      ],
+    },
+    {
+      type: 'panel',
+      id: 'workspace',
+      size: 68,
+      tabs: [
+        {
+          id: 'workspace-tab',
+          data: {
+            title: 'Workspace',
+            body: 'Resize callbacks report affected panels and sizes.',
+          },
+        },
+      ],
+    },
+  ],
+};
+
 export function Example() {
+  return (
+    <ExampleStack rows="minmax(0, 1.15fr) minmax(0, 0.85fr)">
+      <StructuralCallbacksExample />
+      <ResizeCallbacksExample />
+    </ExampleStack>
+  );
+}
+
+// source-region structural
+export function StructuralCallbacksExample() {
   const tileryRef = useRef<TileryHandle | null>(null);
   const eventIdRef = useRef(0);
   const tabCounterRef = useRef(0);
@@ -69,8 +122,9 @@ export function Example() {
 
   const log = useCallback((type: string, details: string) => {
     eventIdRef.current += 1;
-    const entry = { id: eventIdRef.current, type, details };
-    setEvents((current) => [entry, ...current].slice(0, 16));
+    setEvents((current) =>
+      [{ id: eventIdRef.current, type, details }, ...current].slice(0, 8),
+    );
   }, []);
 
   const addTab = () => {
@@ -115,7 +169,7 @@ export function Example() {
           id: `split-${splitCounterRef.current}`,
           data: {
             title: `split-${splitCounterRef.current}.ts`,
-            body: 'Panel splits emit onPanelsOpen, onPanelSplit, and onTabsOpen.',
+            body: 'Panel splits emit open and split callbacks.',
           },
         },
       ],
@@ -123,37 +177,40 @@ export function Example() {
   };
 
   const closeActive = () => {
-    const panel = tileryRef.current?.getPanel('editor');
-    panel?.activeTab?.remove();
+    tileryRef.current?.getPanel('editor')?.activeTab?.remove();
   };
 
   return (
-    <div style={shellStyle}>
-      <div style={toolbarStyle}>
-        <button type="button" onClick={addTab} style={btnStyle}>
-          Add Tab
-        </button>
-        <button type="button" onClick={activateNext} style={btnStyle}>
-          Activate Next
-        </button>
-        <button type="button" onClick={moveActiveToTerminal} style={btnStyle}>
-          Move Active
-        </button>
-        <button type="button" onClick={splitEditor} style={btnStyle}>
-          Split Editor
-        </button>
-        <button type="button" onClick={closeActive} style={btnStyle}>
-          Close Active
-        </button>
-        <button type="button" onClick={() => setEvents([])} style={btnStyle}>
-          Clear Log
-        </button>
-      </div>
-      <div style={bodyStyle}>
+    <ExampleSection
+      title="Structural callbacks"
+      description="Append, activate, move, split, and close tabs while watching the emitted events."
+      actions={
+        <>
+          <ExampleButton type="button" onClick={addTab}>
+            Add Tab
+          </ExampleButton>
+          <ExampleButton type="button" onClick={activateNext}>
+            Activate Next
+          </ExampleButton>
+          <ExampleButton type="button" onClick={moveActiveToTerminal}>
+            Move Active
+          </ExampleButton>
+          <ExampleButton type="button" onClick={splitEditor}>
+            Split Editor
+          </ExampleButton>
+          <ExampleButton type="button" onClick={closeActive}>
+            Close Active
+          </ExampleButton>
+          <ExampleButton type="button" onClick={() => setEvents([])}>
+            Clear
+          </ExampleButton>
+        </>
+      }>
+      <div style={demoWithLogStyle}>
         <div style={tileryWrapStyle}>
           <Tilery<TabData>
             ref={tileryRef as React.Ref<TileryHandle>}
-            initialLayout={layout}
+            initialLayout={structuralLayout}
             onActiveTabChange={(event) =>
               log('onActiveTabChange', activeSummary(event))
             }
@@ -179,34 +236,91 @@ export function Example() {
                 panelSummary(event.panels.map((panel) => panel.id)),
               )
             }
-            renderTabHeader={(tab: TileryTabHandle<TabData>) => (
-              <span>{tab.data.title}</span>
-            )}
-            renderTabContent={(tab: TileryTabHandle<TabData>) => (
-              <div style={contentStyle}>
-                <h2 style={headingStyle}>{tab.data.title}</h2>
-                <p style={textStyle}>{tab.data.body}</p>
-              </div>
-            )}
+            renderTabHeader={renderHeader}
+            renderTabContent={renderContent}
           />
         </div>
-        <aside style={logStyle}>
-          <div style={logHeaderStyle}>Event Log</div>
-          <div style={logListStyle}>
-            {events.length === 0 ? (
-              <div style={emptyStyle}>No callback events yet.</div>
-            ) : (
-              events.map((event) => (
-                <div key={event.id} style={eventStyle}>
-                  <div style={eventTypeStyle}>{event.type}</div>
-                  <div style={eventDetailsStyle}>{event.details}</div>
-                </div>
-              ))
-            )}
-          </div>
-        </aside>
+        <EventLog title="Events" events={events} />
       </div>
-    </div>
+    </ExampleSection>
+  );
+}
+// end-source-region structural
+
+// source-region resize
+export function ResizeCallbacksExample() {
+  const eventIdRef = useRef(0);
+  const [events, setEvents] = useState<LogEntry[]>([]);
+
+  const logResize = useCallback((type: string, event: TileryResizeEvent) => {
+    eventIdRef.current += 1;
+    setEvents((current) =>
+      [
+        {
+          id: eventIdRef.current,
+          type,
+          details: resizeSummary(event),
+        },
+        ...current,
+      ].slice(0, 6),
+    );
+  }, []);
+
+  return (
+    <ExampleSection
+      title="Resize callbacks"
+      description="Drag the divider to compare continuous onResize events with the committed onResizeEnd event."
+      actions={
+        <ExampleButton type="button" onClick={() => setEvents([])}>
+          Clear
+        </ExampleButton>
+      }>
+      <div style={demoWithLogStyle}>
+        <div style={tileryWrapStyle}>
+          <Tilery<TabData>
+            initialLayout={resizeLayout}
+            onResize={(event) => logResize('onResize', event)}
+            onResizeEnd={(event) => logResize('onResizeEnd', event)}
+            renderTabHeader={renderHeader}
+            renderTabContent={renderContent}
+          />
+        </div>
+        <EventLog title="Resize Events" events={events} />
+      </div>
+    </ExampleSection>
+  );
+}
+// end-source-region resize
+
+function EventLog({ title, events }: { title: string; events: LogEntry[] }) {
+  return (
+    <aside style={logStyle}>
+      <div style={logHeaderStyle}>{title}</div>
+      <div style={logListStyle}>
+        {events.length === 0 ? (
+          <EmptyState>No callback events yet.</EmptyState>
+        ) : (
+          events.map((event) => (
+            <div key={event.id} style={eventStyle}>
+              <div style={eventTypeStyle}>{event.type}</div>
+              <div style={eventDetailsStyle}>{event.details}</div>
+            </div>
+          ))
+        )}
+      </div>
+    </aside>
+  );
+}
+
+function renderHeader(tab: TileryTabHandle<TabData>) {
+  return <span>{tab.data.title}</span>;
+}
+
+function renderContent(tab: TileryTabHandle<TabData>) {
+  return (
+    <TabContent>
+      <p style={{ margin: 0 }}>{tab.data.body}</p>
+    </TabContent>
   );
 }
 
@@ -230,6 +344,25 @@ function moveSummary(event: TileryTabsMoveEvent<TabData>) {
     .join(', ');
 }
 
+function resizeSummary(event: TileryResizeEvent) {
+  const source =
+    event.source.type === 'divider'
+      ? `${event.source.orientation} divider`
+      : 'junction';
+  const changes = event.changes
+    .map(
+      (change) =>
+        `${change.panelId} ${change.dimension} ${round(change.previousSize)} -> ${round(change.size)}`,
+    )
+    .join(', ');
+
+  return `${event.input} ${source}: ${changes}`;
+}
+
+function round(value: number) {
+  return Math.round(value * 10) / 10;
+}
+
 function tabSummary(tabIds: string[]) {
   return tabIds.length === 0 ? 'none' : tabIds.join(', ');
 }
@@ -238,26 +371,10 @@ function panelSummary(panelIds: string[]) {
   return panelIds.length === 0 ? 'none' : panelIds.join(', ');
 }
 
-const shellStyle: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
+const demoWithLogStyle: React.CSSProperties = {
   height: '100%',
-  background: '#0e0f12',
-};
-
-const toolbarStyle: React.CSSProperties = {
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: 8,
-  padding: '8px 12px',
-  background: '#16181c',
-  borderBottom: '1px solid #2a2d33',
-};
-
-const bodyStyle: React.CSSProperties = {
-  display: 'flex',
-  flex: 1,
   minHeight: 0,
+  display: 'flex',
 };
 
 const tileryWrapStyle: React.CSSProperties = {
@@ -266,7 +383,7 @@ const tileryWrapStyle: React.CSSProperties = {
 };
 
 const logStyle: React.CSSProperties = {
-  width: 300,
+  width: 260,
   display: 'flex',
   flexDirection: 'column',
   borderLeft: '1px solid #2a2d33',
@@ -274,10 +391,10 @@ const logStyle: React.CSSProperties = {
 };
 
 const logHeaderStyle: React.CSSProperties = {
-  padding: '10px 12px',
+  padding: '9px 10px',
   color: '#f3f4f7',
   fontSize: 12,
-  fontWeight: 600,
+  fontWeight: 650,
   borderBottom: '1px solid #2a2d33',
 };
 
@@ -289,7 +406,7 @@ const logListStyle: React.CSSProperties = {
 };
 
 const eventStyle: React.CSSProperties = {
-  padding: '8px 0',
+  padding: '7px 0',
   borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
 };
 
@@ -305,39 +422,4 @@ const eventDetailsStyle: React.CSSProperties = {
   fontSize: 12,
   lineHeight: 1.35,
   overflowWrap: 'anywhere',
-};
-
-const emptyStyle: React.CSSProperties = {
-  color: '#6f7785',
-  fontSize: 12,
-};
-
-const btnStyle: React.CSSProperties = {
-  padding: '4px 10px',
-  background: '#1f2127',
-  color: '#d9dde3',
-  border: '1px solid #2a2d33',
-  borderRadius: 3,
-  cursor: 'pointer',
-  fontFamily: 'var(--site-mono)',
-  fontSize: 11,
-};
-
-const contentStyle: React.CSSProperties = {
-  height: '100%',
-  padding: 16,
-  color: '#9aa1ab',
-  fontSize: 13,
-  lineHeight: 1.5,
-};
-
-const headingStyle: React.CSSProperties = {
-  margin: '0 0 8px',
-  color: '#f3f4f7',
-  fontSize: 14,
-};
-
-const textStyle: React.CSSProperties = {
-  maxWidth: 520,
-  margin: 0,
 };

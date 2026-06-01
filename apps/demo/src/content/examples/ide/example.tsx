@@ -2,6 +2,7 @@
 
 import { Tilery } from '@tilery/react';
 import type { TileryInitialLayout, TileryTabHandle } from '@tilery/react';
+import { TabContent } from '../example-ui';
 
 type TabData = {
   title: string;
@@ -63,10 +64,9 @@ export function Example() {
         <span>{tab.data.title}</span>
       )}
       renderTabContent={(tab: TileryTabHandle<TabData>) => (
-        <div
-          style={{ padding: 16, fontSize: 13, fontFamily: 'var(--site-mono)' }}>
+        <TabContent>
           {tab.data.kind === 'explorer' && (
-            <div style={{ color: '#9aa1ab' }}>
+            <div style={monoBlockStyle}>
               <div>src/</div>
               <div style={{ paddingLeft: 12 }}>index.ts</div>
               <div style={{ paddingLeft: 12 }}>app.tsx</div>
@@ -74,17 +74,29 @@ export function Example() {
             </div>
           )}
           {tab.data.kind === 'editor' && (
-            <pre style={{ margin: 0, color: '#d9dde3' }}>
+            <pre style={codeBlockStyle}>
               {`export function ${tab.data.title.replace(/\.\w+$/, '')}() {\n  return 'hello';\n}`}
             </pre>
           )}
           {tab.data.kind === 'terminal' && (
-            <pre style={{ margin: 0, color: '#9aa1ab' }}>
+            <pre style={monoBlockStyle}>
               {'$ npm run dev\n> ready on http://localhost:3000'}
             </pre>
           )}
-        </div>
+        </TabContent>
       )}
     />
   );
 }
+
+const monoBlockStyle: React.CSSProperties = {
+  margin: 0,
+  color: '#9aa1ab',
+  fontFamily: 'var(--site-mono)',
+  fontSize: 12,
+};
+
+const codeBlockStyle: React.CSSProperties = {
+  ...monoBlockStyle,
+  color: '#d9dde3',
+};

@@ -2,6 +2,7 @@
 
 import { Tilery } from '@tilery/react';
 import type { TileryInitialLayout, TileryTabHandle } from '@tilery/react';
+import { TabContent } from '../example-ui';
 
 type TabData = { title: string; color: string };
 
@@ -90,19 +91,19 @@ export function Example() {
         </>
       )}
       renderTabContent={(tab: TileryTabHandle<TabData>) => (
-        <div
-          style={{
-            padding: 20,
-            color: '#9aa1ab',
-            fontSize: 13,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            height: '100%',
-          }}>
-          {tab.data.title} widget
-        </div>
+        <TabContent>
+          <div style={widgetStyle}>{tab.data.title} widget</div>
+        </TabContent>
       )}
     />
   );
 }
+
+const widgetStyle: React.CSSProperties = {
+  height: 76,
+  display: 'grid',
+  placeItems: 'center',
+  border: '1px solid rgba(255, 255, 255, 0.08)',
+  borderRadius: 6,
+  color: '#9aa1ab',
+};

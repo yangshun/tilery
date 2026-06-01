@@ -2,6 +2,7 @@
 
 import { Tilery } from '@tilery/react';
 import type { TileryInitialLayout, TileryTabHandle } from '@tilery/react';
+import { TabContent } from '../example-ui';
 
 type TabData = { title: string; nested?: boolean };
 
@@ -55,9 +56,9 @@ function InnerTilery() {
           <span>{tab.data.title}</span>
         )}
         renderTabContent={(tab: TileryTabHandle<TabData>) => (
-          <div style={{ padding: 16, color: '#9aa1ab', fontSize: 13 }}>
-            {tab.data.title} (nested instance)
-          </div>
+          <TabContent>
+            <p style={{ margin: 0 }}>{tab.data.title} nested instance.</p>
+          </TabContent>
         )}
       />
     </div>
@@ -74,9 +75,9 @@ export function Example() {
       renderTabContent={(tab: TileryTabHandle<TabData>) => {
         if (tab.data.nested) return <InnerTilery />;
         return (
-          <div style={{ padding: 16, color: '#9aa1ab', fontSize: 13 }}>
-            {tab.data.title} content
-          </div>
+          <TabContent>
+            <p style={{ margin: 0 }}>{tab.data.title} content.</p>
+          </TabContent>
         );
       }}
     />

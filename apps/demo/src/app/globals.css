@@ -277,16 +277,39 @@ td code {
   padding-left: 2px;
 }
 
-.example-preview__demo {
+.example-preview__demos {
+  display: grid;
+  gap: 72px;
+  margin-top: 32px;
+}
+
+.example-preview__case {
+  min-width: 0;
+}
+
+.example-preview__demo-surface {
   height: 500px;
+  overflow: hidden;
+  margin-bottom: 24px;
+  font-size: 16px;
+}
+
+.example-preview__demo-surface .tilery {
+  font-size: 16px;
+}
+
+.example-preview__demo-surface--boxed {
   border: 1px solid var(--site-border);
   border-radius: 6px;
-  overflow: hidden;
-  margin: 20px 0 16px;
+  background: #111318;
+}
+
+.example-preview__source pre {
+  font-size: 14px;
 }
 
 .example-preview__source {
-  margin-top: 16px;
+  margin-top: 20px;
 }
 
 /* Home Page */

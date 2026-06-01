@@ -2,81 +2,97 @@
 
 import { Tilery } from '@tilery/react';
 import type { TileryInitialLayout, TileryTabHandle } from '@tilery/react';
+import {
+  ExampleButton,
+  ExampleSection,
+  ExampleStack,
+  TabContent,
+} from '../example-ui';
 
 type TabData = {
   title: string;
+  note?: string;
 };
 
-const layout: TileryInitialLayout<TabData> = {
+const initialLocksLayout: TileryInitialLayout<TabData> = {
   type: 'split',
   direction: 'horizontal',
   children: [
     {
       type: 'panel',
-      id: 'navigator',
-      size: 26,
+      id: 'pinned',
+      size: 34,
       tabs: [
         {
           id: 'navigator-tab',
           data: {
             title: 'Navigator',
+            note: 'locked: true',
           },
           locked: true,
         },
       ],
     },
     {
-      type: 'split',
-      direction: 'vertical',
-      size: 74,
-      children: [
+      type: 'panel',
+      id: 'work',
+      size: 66,
+      tabs: [
         {
-          type: 'split',
-          direction: 'horizontal',
-          size: 68,
-          children: [
-            {
-              type: 'panel',
-              id: 'editor',
-              size: 64,
-              tabs: [
-                {
-                  id: 'editor-tab',
-                  data: {
-                    title: 'Editor',
-                  },
-                },
-              ],
-            },
-            {
-              type: 'panel',
-              id: 'preview',
-              size: 36,
-              tabs: [
-                {
-                  id: 'preview-tab',
-                  data: {
-                    title: 'Preview',
-                  },
-                  draggable: false,
-                },
-              ],
-            },
-          ],
+          id: 'draft-tab',
+          data: {
+            title: 'Draft',
+            note: 'default behavior',
+          },
         },
         {
-          type: 'panel',
-          id: 'terminal',
-          size: 32,
-          tabs: [
-            {
-              id: 'terminal-tab',
-              data: {
-                title: 'Terminal',
-              },
-              closeable: false,
-            },
-          ],
+          id: 'preview-tab',
+          data: {
+            title: 'Preview',
+            note: 'draggable: false',
+          },
+          draggable: false,
+        },
+        {
+          id: 'terminal-tab',
+          data: {
+            title: 'Terminal',
+            note: 'closeable: false',
+          },
+          closeable: false,
+        },
+      ],
+    },
+  ],
+};
+
+const runtimeLayout: TileryInitialLayout<TabData> = {
+  type: 'split',
+  direction: 'horizontal',
+  children: [
+    {
+      type: 'panel',
+      id: 'editor',
+      size: 55,
+      tabs: [
+        {
+          id: 'editor-tab',
+          data: {
+            title: 'Editor',
+          },
+        },
+      ],
+    },
+    {
+      type: 'panel',
+      id: 'preview',
+      size: 45,
+      tabs: [
+        {
+          id: 'preview-tab',
+          data: {
+            title: 'Preview',
+          },
         },
       ],
     },
@@ -85,79 +101,133 @@ const layout: TileryInitialLayout<TabData> = {
 
 export function Example() {
   return (
-    <div style={frameStyle}>
+    <ExampleStack rows="minmax(0, 1fr) minmax(0, 1fr)">
+      <InitialTabLocksExample />
+      <RuntimeTabBehaviorExample />
+    </ExampleStack>
+  );
+}
+
+// source-region initial-locks
+export function InitialTabLocksExample() {
+  return (
+    <ExampleSection
+      title="Initial tab locks"
+      description="Use locked, closeable, and draggable on individual tabs.">
       <Tilery<TabData>
-        initialLayout={layout}
-        renderTabHeader={(tab: TileryTabHandle<TabData>) => tab.data.title}
-        renderTabContent={(tab: TileryTabHandle<TabData>) => (
-          <div style={panelStyle}>
+        initialLayout={initialLocksLayout}
+        renderTabHeader={renderHeader}
+        renderTabContent={renderStatusContent}
+      />
+    </ExampleSection>
+  );
+}
+// end-source-region initial-locks
+
+// source-region runtime-behavior
+export function RuntimeTabBehaviorExample() {
+  return (
+    <ExampleSection
+      title="Runtime tab behavior"
+      description="Use a tab handle to update close and drag behavior while the tab is mounted.">
+      <Tilery<TabData>
+        initialLayout={runtimeLayout}
+        renderTabHeader={renderHeader}
+        renderTabContent={(tab) => (
+          <TabContent>
             <TabBehaviorControls tab={tab} />
-          </div>
+          </TabContent>
         )}
       />
-    </div>
+    </ExampleSection>
+  );
+}
+// end-source-region runtime-behavior
+
+function renderHeader(tab: TileryTabHandle<TabData>) {
+  return <span>{tab.data.title}</span>;
+}
+
+function renderStatusContent(tab: TileryTabHandle<TabData>) {
+  return (
+    <TabContent meta={tab.data.note}>
+      <StatusGrid tab={tab} />
+    </TabContent>
   );
 }
 
 function TabBehaviorControls({ tab }: { tab: TileryTabHandle<TabData> }) {
   const locked = !tab.closeable && !tab.draggable;
+
   return (
-    <div style={tabControlsStyle}>
-      <button
+    <div style={controlsStyle}>
+      <ExampleButton
         type="button"
-        style={buttonStyle}
+        active={locked}
         onClick={() =>
           tab.setBehavior(
             locked ? { closeable: true, draggable: true } : { locked: true },
           )
         }>
         {locked ? 'Unlock tab' : 'Lock tab'}
-      </button>
-      <button
+      </ExampleButton>
+      <ExampleButton
         type="button"
-        style={buttonStyle}
+        active={!tab.closeable}
         onClick={() => tab.setBehavior({ closeable: !tab.closeable })}>
         {tab.closeable ? 'Disable close' : 'Enable close'}
-      </button>
-      <button
+      </ExampleButton>
+      <ExampleButton
         type="button"
-        style={buttonStyle}
+        active={!tab.draggable}
         onClick={() => tab.setBehavior({ draggable: !tab.draggable })}>
         {tab.draggable ? 'Disable drag' : 'Enable drag'}
-      </button>
+      </ExampleButton>
+      <StatusGrid tab={tab} />
     </div>
   );
 }
 
-const buttonStyle: React.CSSProperties = {
-  height: 26,
-  padding: '0 9px',
-  border: '1px solid #2a2d33',
-  borderRadius: 4,
-  background: '#1f2329',
-  color: '#d9dde3',
-  fontFamily: 'var(--site-sans)',
-  fontSize: 12,
-  cursor: 'pointer',
-};
+function StatusGrid({ tab }: { tab: TileryTabHandle<TabData> }) {
+  return (
+    <dl style={statusGridStyle}>
+      <div>
+        <dt style={statusLabelStyle}>closeable</dt>
+        <dd style={statusValueStyle}>{String(tab.closeable)}</dd>
+      </div>
+      <div>
+        <dt style={statusLabelStyle}>draggable</dt>
+        <dd style={statusValueStyle}>{String(tab.draggable)}</dd>
+      </div>
+    </dl>
+  );
+}
 
-const frameStyle: React.CSSProperties = {
-  height: '100%',
-  minHeight: 0,
-};
-
-const panelStyle: React.CSSProperties = {
-  height: '100%',
-  padding: 16,
-  color: '#d9dde3',
-  fontSize: 13,
-  display: 'flex',
-  alignItems: 'flex-start',
-};
-
-const tabControlsStyle: React.CSSProperties = {
+const controlsStyle: React.CSSProperties = {
   display: 'flex',
   flexWrap: 'wrap',
+  alignItems: 'flex-start',
   gap: 8,
-  marginTop: 2,
+};
+
+const statusGridStyle: React.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(2, minmax(80px, 1fr))',
+  gap: 8,
+  width: 'min(100%, 240px)',
+  margin: 0,
+};
+
+const statusLabelStyle: React.CSSProperties = {
+  margin: 0,
+  color: '#6f7785',
+  fontFamily: 'var(--site-mono)',
+  fontSize: 11,
+};
+
+const statusValueStyle: React.CSSProperties = {
+  margin: '2px 0 0',
+  color: '#d9dde3',
+  fontFamily: 'var(--site-mono)',
+  fontSize: 12,
 };

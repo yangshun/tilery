@@ -1,12 +1,37 @@
 export { Example as BasicExample } from './basic/example';
 export { Example as IdeExample } from './ide/example';
 export { Example as DashboardExample } from './dashboard/example';
-export { Example as PanelActionsExample } from './collapse/example';
-export { Example as ConstraintsExample } from './constraints/example';
-export { Example as TabLockingExample } from './tab-locking/example';
-export { Example as ControlledExample } from './controlled/example';
-export { Example as PersistenceExample } from './persistence/example';
-export { Example as CallbacksExample } from './callbacks/example';
+export {
+  Example as PanelActionsExample,
+  NewTabExample,
+  PanelMenuExample,
+} from './collapse/example';
+export {
+  ContainerResizeExample,
+  Example as ConstraintsExample,
+  PanelConstraintsExample,
+} from './constraints/example';
+export { Example as PanelLockingExample } from './panel-locking/example';
+export {
+  Example as TabLockingExample,
+  InitialTabLocksExample,
+  RuntimeTabBehaviorExample,
+} from './tab-locking/example';
+export {
+  Example as ControlledExample,
+  PanelApiExample,
+  TabApiExample,
+} from './controlled/example';
+export {
+  Example as PersistenceExample,
+  LocalStorageExample,
+  SnapshotControlsExample,
+} from './persistence/example';
+export {
+  Example as CallbacksExample,
+  ResizeCallbacksExample,
+  StructuralCallbacksExample,
+} from './callbacks/example';
 export { Example as NestedExample } from './nested/example';
 
 export { metadata as basicMeta } from './basic/metadata';
@@ -14,6 +39,7 @@ export { metadata as ideMeta } from './ide/metadata';
 export { metadata as dashboardMeta } from './dashboard/metadata';
 export { metadata as panelActionsMeta } from './collapse/metadata';
 export { metadata as constraintsMeta } from './constraints/metadata';
+export { metadata as panelLockingMeta } from './panel-locking/metadata';
 export { metadata as tabLockingMeta } from './tab-locking/metadata';
 export { metadata as controlledMeta } from './controlled/metadata';
 export { metadata as persistenceMeta } from './persistence/metadata';
@@ -53,15 +79,23 @@ export const examples = [
     title: 'Panel Actions',
     description:
       'Built-in panel actions, custom menu items, and new-tab hooks.',
+    demos: [
+      { id: 'panel-menu', sourceRegion: 'panel-menu' },
+      { id: 'new-tab', sourceRegion: 'new-tab' },
+    ],
     notes: [
-      'The panel action menu can mix Tilery actions with app-supplied commands.',
-      'The editor panel also exposes a new-tab button backed by the onNewTab callback.',
+      'The first demo mixes built-in panel actions with an app-supplied menu command.',
+      'The second demo exposes a new-tab button only on one panel and creates tabs through onNewTab.',
     ],
   },
   {
     slug: 'constraints',
     title: 'Size Constraints',
     description: 'Panels with percentage and pixel minSize/maxSize limits.',
+    demos: [
+      { id: 'panel-constraints', sourceRegion: 'panel-constraints' },
+      { id: 'container-resize', sourceRegion: 'container-resize' },
+    ],
     notes: [
       'Each panel can define its own minSize and maxSize in the layout tree, using percentages or pixel values.',
       'Resize handles clamp against the nearest constrained panels in the active split.',
@@ -71,39 +105,64 @@ export const examples = [
     ],
   },
   {
+    slug: 'panel-locking',
+    title: 'Panel Locking',
+    description: 'Lock panel resizing, dragging, and drop targets.',
+    notes: [
+      'locked: true is shorthand for disabling resize, drag, and drop behavior on a layout item.',
+      'resizable, draggable, and droppable can also be set independently when a panel should allow only some interactions.',
+    ],
+  },
+  {
     slug: 'tab-locking',
     title: 'Tab Locking',
     description: 'Lock tabs or toggle whether they can be closed and dragged.',
+    demos: [
+      { id: 'initial-locks', sourceRegion: 'initial-locks' },
+      { id: 'runtime-behavior', sourceRegion: 'runtime-behavior' },
+    ],
     notes: [
-      'locked: true is shorthand for a tab that cannot be closed or dragged.',
-      'The in-panel controls call tab.setBehavior() to update closeable and draggable at runtime.',
+      'The first demo shows locked, closeable, and draggable values declared in initialLayout.',
+      'The second demo uses tab.setBehavior() to update closeable and draggable at runtime.',
     ],
   },
   {
     slug: 'controlled',
     title: 'Programmatic Control',
-    description: 'Use the imperative API to add, remove, and move tabs.',
+    description: 'Use panel and tab handles for imperative workflows.',
+    demos: [
+      { id: 'panel-handles', sourceRegion: 'panel-handles' },
+      { id: 'tab-handles', sourceRegion: 'tab-handles' },
+    ],
     notes: [
-      'The Tilery ref exposes panel and tab handles for imperative workflows.',
-      'The toolbar appends tabs, creates a split, and removes the active tab through those handles.',
+      'Panel handles append tabs, create splits, and remove active tabs.',
+      'Tab handles update tab data, activate a known tab, and move a tab to another panel.',
     ],
   },
   {
     slug: 'persistence',
     title: 'Layout Persistence',
-    description: 'Save and restore layout state via localStorage.',
+    description: 'Save, restore, and replace layout snapshots.',
+    demos: [
+      { id: 'local-storage', sourceRegion: 'local-storage' },
+      { id: 'snapshot-controls', sourceRegion: 'snapshot-controls' },
+    ],
     notes: [
-      'getLayout() returns a serializable snapshot that can be stored outside Tilery.',
-      'Passing the saved snapshot back as initialLayout restores panel sizes and tab state.',
+      'The localStorage demo stores getLayout() output on every change and reuses it as initialLayout.',
+      'The snapshot-controls demo saves a layout in React state and restores it with setLayout().',
     ],
   },
   {
     slug: 'callbacks',
     title: 'Lifecycle Callbacks',
-    description: 'Track tab, panel, split, move, and active-tab events.',
+    description: 'Track structural and resize lifecycle events.',
+    demos: [
+      { id: 'structural', sourceRegion: 'structural' },
+      { id: 'resize', sourceRegion: 'resize' },
+    ],
     notes: [
-      'Callbacks receive structured events for tab moves, active-tab changes, splits, opens, and closes.',
-      'The event log shows which operations fire as toolbar actions mutate the layout.',
+      'Structural callbacks receive events for tab moves, active-tab changes, splits, opens, and closes.',
+      'Resize callbacks report continuous pointer/keyboard resize updates and the committed resize-end event.',
     ],
   },
   {

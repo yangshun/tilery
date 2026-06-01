@@ -3,100 +3,223 @@
 import { useRef } from 'react';
 import { Tilery } from '@tilery/react';
 import type {
+  TileryHandle,
   TileryInitialLayout,
   TileryTabHandle,
-  TileryHandle,
 } from '@tilery/react';
+import {
+  ExampleButton,
+  ExampleSection,
+  ExampleStack,
+  TabContent,
+} from '../example-ui';
 
-type TabData = { title: string };
+type TabData = { title: string; body: string };
 
-const layout: TileryInitialLayout<TabData> = {
+const panelApiLayout: TileryInitialLayout<TabData> = {
   type: 'panel',
   id: 'main',
-  size: 100,
-  tabs: [{ id: 'welcome', data: { title: 'Welcome' } }],
+  tabs: [
+    {
+      id: 'welcome',
+      data: {
+        title: 'Welcome',
+        body: 'Panel handles can append tabs, split panels, and remove panels.',
+      },
+    },
+  ],
 };
 
-let counter = 0;
+const tabApiLayout: TileryInitialLayout<TabData> = {
+  type: 'split',
+  direction: 'horizontal',
+  children: [
+    {
+      type: 'panel',
+      id: 'editor',
+      size: 58,
+      tabs: [
+        {
+          id: 'main-ts',
+          data: {
+            title: 'main.ts',
+            body: 'Tab handles can move, activate, remove, and update data.',
+          },
+        },
+        {
+          id: 'search',
+          data: {
+            title: 'Search',
+            body: 'This tab is activated if it already exists.',
+          },
+        },
+      ],
+    },
+    {
+      type: 'panel',
+      id: 'terminal',
+      size: 42,
+      tabs: [
+        {
+          id: 'shell',
+          data: {
+            title: 'Shell',
+            body: 'Programmatic moves can target another panel by id.',
+          },
+        },
+      ],
+    },
+  ],
+};
 
 export function Example() {
+  return (
+    <ExampleStack rows="minmax(0, 1fr) minmax(0, 1fr)">
+      <PanelApiExample />
+      <TabApiExample />
+    </ExampleStack>
+  );
+}
+
+// source-region panel-handles
+export function PanelApiExample() {
   const tileryRef = useRef<TileryHandle | null>(null);
+  const counterRef = useRef(0);
+
+  const getFirstPanel = () => tileryRef.current?.getPanels()[0] ?? null;
 
   const addTab = () => {
-    const m = tileryRef.current;
-    if (!m) return;
-    const panels = m.getPanels();
-    if (panels.length === 0) return;
-    counter++;
-    panels[0]!.appendTab({ data: { title: `Tab ${counter}` } });
+    const panel = getFirstPanel();
+    if (!panel) return;
+    counterRef.current += 1;
+    panel.appendTab({
+      id: `tab-${counterRef.current}`,
+      data: {
+        title: `Tab ${counterRef.current}`,
+        body: 'This tab was appended through a panel handle.',
+      },
+    });
   };
 
   const splitRight = () => {
-    const m = tileryRef.current;
-    if (!m) return;
-    const panels = m.getPanels();
-    if (panels.length === 0) return;
-    counter++;
-    panels[0]!.split('right', {
-      size: 50,
-      tabs: [{ data: { title: `Split ${counter}` } }],
+    const panel = getFirstPanel();
+    if (!panel) return;
+    counterRef.current += 1;
+    panel.split('right', {
+      size: 48,
+      tabs: [
+        {
+          id: `split-${counterRef.current}`,
+          data: {
+            title: `Split ${counterRef.current}`,
+            body: 'This panel was created through panel.split().',
+          },
+        },
+      ],
     });
   };
 
   const removeActive = () => {
-    const m = tileryRef.current;
-    if (!m) return;
-    const panels = m.getPanels();
-    if (panels.length === 0) return;
-    panels[0]!.activeTab?.remove();
+    getFirstPanel()?.activeTab?.remove();
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <div
-        style={{
-          display: 'flex',
-          gap: 8,
-          padding: '8px 12px',
-          background: '#16181c',
-          borderBottom: '1px solid #2a2d33',
-          fontSize: 12,
-        }}>
-        <button type="button" onClick={addTab} style={btnStyle}>
-          Add Tab
-        </button>
-        <button type="button" onClick={splitRight} style={btnStyle}>
-          Split Right
-        </button>
-        <button type="button" onClick={removeActive} style={btnStyle}>
-          Remove Active
-        </button>
-      </div>
-      <div style={{ flex: 1, minHeight: 0 }}>
-        <Tilery<TabData>
-          ref={tileryRef as React.Ref<TileryHandle>}
-          initialLayout={layout}
-          renderTabHeader={(tab: TileryTabHandle<TabData>) => (
-            <span>{tab.data.title}</span>
-          )}
-          renderTabContent={(tab: TileryTabHandle<TabData>) => (
-            <div style={{ padding: 16, color: '#9aa1ab', fontSize: 13 }}>
-              {tab.data.title}
-            </div>
-          )}
-        />
-      </div>
-    </div>
+    <ExampleSection
+      title="Panel handles"
+      description="Mutate the layout through handles returned by the Tilery ref."
+      actions={
+        <>
+          <ExampleButton type="button" onClick={addTab}>
+            Add Tab
+          </ExampleButton>
+          <ExampleButton type="button" onClick={splitRight}>
+            Split Right
+          </ExampleButton>
+          <ExampleButton type="button" onClick={removeActive}>
+            Remove Active
+          </ExampleButton>
+        </>
+      }>
+      <Tilery<TabData>
+        ref={tileryRef as React.Ref<TileryHandle>}
+        initialLayout={panelApiLayout}
+        renderTabHeader={renderHeader}
+        renderTabContent={renderContent}
+      />
+    </ExampleSection>
   );
 }
+// end-source-region panel-handles
 
-const btnStyle: React.CSSProperties = {
-  padding: '4px 10px',
-  background: '#1f2127',
-  color: '#d9dde3',
-  border: '1px solid #2a2d33',
-  borderRadius: 3,
-  cursor: 'pointer',
-  fontFamily: 'var(--site-mono)',
-  fontSize: 11,
-};
+// source-region tab-handles
+export function TabApiExample() {
+  const tileryRef = useRef<TileryHandle | null>(null);
+  const renameCounterRef = useRef(0);
+
+  const getActiveTab = (): TileryTabHandle<TabData> | null => {
+    const tab =
+      tileryRef.current?.getPanels().find((panel) => panel.activeTab)
+        ?.activeTab ?? null;
+    return tab as TileryTabHandle<TabData> | null;
+  };
+
+  const renameActive = () => {
+    const tab = getActiveTab();
+    if (!tab) return;
+    renameCounterRef.current += 1;
+    tab.setData({
+      ...tab.data,
+      title: `${tab.data.title} ${renameCounterRef.current}`,
+    });
+  };
+
+  const moveActiveToTerminal = () => {
+    const tab = getActiveTab();
+    const terminal = tileryRef.current?.getPanel('terminal');
+    if (!tab || !terminal || tab.panel.id === terminal.id) return;
+    tab.moveTo({ panel: terminal.id, index: terminal.tabs.length });
+  };
+
+  const activateSearch = () => {
+    tileryRef.current?.getTab('search')?.activate();
+  };
+
+  return (
+    <ExampleSection
+      title="Tab handles"
+      description="Work with a tab directly when the app already knows which tab it wants."
+      actions={
+        <>
+          <ExampleButton type="button" onClick={renameActive}>
+            Rename Active
+          </ExampleButton>
+          <ExampleButton type="button" onClick={moveActiveToTerminal}>
+            Move Active
+          </ExampleButton>
+          <ExampleButton type="button" onClick={activateSearch}>
+            Activate Search
+          </ExampleButton>
+        </>
+      }>
+      <Tilery<TabData>
+        ref={tileryRef as React.Ref<TileryHandle>}
+        initialLayout={tabApiLayout}
+        renderTabHeader={renderHeader}
+        renderTabContent={renderContent}
+      />
+    </ExampleSection>
+  );
+}
+// end-source-region tab-handles
+
+function renderHeader(tab: TileryTabHandle<TabData>) {
+  return <span>{tab.data.title}</span>;
+}
+
+function renderContent(tab: TileryTabHandle<TabData>) {
+  return (
+    <TabContent>
+      <p style={{ margin: 0 }}>{tab.data.body}</p>
+    </TabContent>
+  );
+}

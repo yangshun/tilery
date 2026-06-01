@@ -2,6 +2,7 @@
 
 import { Tilery } from '@tilery/react';
 import type { TileryInitialLayout, TileryTabHandle } from '@tilery/react';
+import { TabContent } from '../example-ui';
 
 type TabData = { title: string };
 
@@ -32,9 +33,11 @@ export function Example() {
         <span>{tab.data.title}</span>
       )}
       renderTabContent={(tab: TileryTabHandle<TabData>) => (
-        <div style={{ padding: 16, color: '#9aa1ab', fontSize: 13 }}>
-          Content for {tab.data.title}. Drag the divider to resize.
-        </div>
+        <TabContent>
+          <p style={{ margin: 0 }}>
+            Content for {tab.data.title}. Drag the divider to resize.
+          </p>
+        </TabContent>
       )}
     />
   );

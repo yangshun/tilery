@@ -3,6 +3,12 @@
 import { useState } from 'react';
 import { Tilery } from '@tilery/react';
 import type { TileryInitialLayout, TileryTabHandle } from '@tilery/react';
+import {
+  ExampleButton,
+  ExampleSection,
+  ExampleStack,
+  TabContent,
+} from '../example-ui';
 
 type TabData = {
   title: string;
@@ -156,103 +162,69 @@ const widths = [
   { label: 'Wide', value: 820 },
 ];
 
-const rootStyle: React.CSSProperties = {
-  height: '100%',
-  display: 'grid',
-  gridTemplateRows: 'minmax(0, 1fr) 214px',
-  gap: 12,
-  padding: 12,
-  background: '#14171d',
-};
+export function Example() {
+  return (
+    <ExampleStack rows="minmax(0, 1fr) 214px">
+      <PanelConstraintsExample />
+      <ContainerResizeExample />
+    </ExampleStack>
+  );
+}
 
-const exampleBlockStyle: React.CSSProperties = {
-  minHeight: 0,
-  display: 'grid',
-  gridTemplateRows: 'auto minmax(0, 1fr)',
-  gap: 8,
-};
+// source-region panel-constraints
+export function PanelConstraintsExample() {
+  return (
+    <ExampleSection
+      title="Panel constraints"
+      description="Drag the dividers to see per-panel minSize and maxSize limits clamp resizing.">
+      <Tilery<TabData>
+        initialLayout={constraintsLayout}
+        minSize={10}
+        renderTabHeader={renderHeader}
+        renderTabContent={renderContent}
+      />
+    </ExampleSection>
+  );
+}
+// end-source-region panel-constraints
 
-const blockHeaderStyle: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  gap: 12,
-  color: '#d9dde3',
-  fontSize: 12,
-  fontWeight: 600,
-};
+// source-region container-resize
+export function ContainerResizeExample() {
+  const [width, setWidth] = useState(widths[2]!.value);
 
-const frameStyle: React.CSSProperties = {
-  minHeight: 0,
-  overflow: 'hidden',
-  border: '1px solid rgba(255, 255, 255, 0.1)',
-  borderRadius: 6,
-};
-
-const resizerTrackStyle: React.CSSProperties = {
-  minWidth: 0,
-  minHeight: 0,
-  display: 'flex',
-  justifyContent: 'center',
-  overflow: 'hidden',
-  border: '1px solid rgba(255, 255, 255, 0.1)',
-  borderRadius: 6,
-  background: '#101318',
-};
-
-const resizerFrameStyle: React.CSSProperties = {
-  height: '100%',
-  maxWidth: '100%',
-  transition: 'width 180ms ease',
-};
-
-const controlGroupStyle: React.CSSProperties = {
-  display: 'inline-flex',
-  gap: 4,
-};
-
-const controlButtonStyle: React.CSSProperties = {
-  height: 26,
-  padding: '0 9px',
-  border: '1px solid rgba(255, 255, 255, 0.12)',
-  borderRadius: 4,
-  background: 'transparent',
-  color: '#9aa1ab',
-  font: 'inherit',
-  cursor: 'pointer',
-};
-
-const panelStyle: React.CSSProperties = {
-  height: '100%',
-  padding: 16,
-  color: '#d9dde3',
-  fontSize: 13,
-  display: 'grid',
-  alignContent: 'start',
-  gap: 10,
-};
-
-const badgeStyle: React.CSSProperties = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  width: 'fit-content',
-  padding: '3px 8px',
-  borderRadius: 4,
-  background: 'rgba(255, 255, 255, 0.08)',
-  color: '#9aa1ab',
-  fontFamily: 'var(--site-mono)',
-  fontSize: 11,
-};
+  return (
+    <ExampleSection
+      title="Container resize"
+      description="Shrink the wrapper to see split proportions normalize only when measured constraints require it."
+      frameStyle={resizerTrackStyle}
+      actions={widths.map((item) => (
+        <ExampleButton
+          key={item.value}
+          type="button"
+          active={width === item.value}
+          onClick={() => setWidth(item.value)}>
+          {item.label}
+        </ExampleButton>
+      ))}>
+      <div style={{ ...resizerFrameStyle, width }}>
+        <Tilery<TabData>
+          initialLayout={containerResizeLayout}
+          minSize={10}
+          renderTabHeader={renderHeader}
+          renderTabContent={renderContent}
+        />
+      </div>
+    </ExampleSection>
+  );
+}
+// end-source-region container-resize
 
 function renderHeader(tab: TileryTabHandle<TabData>) {
   return (
     <>
       <span
         style={{
-          display: 'inline-block',
-          width: 8,
-          height: 8,
-          borderRadius: '50%',
+          ...swatchStyle,
           background: tab.data.accent,
         }}
       />
@@ -263,67 +235,27 @@ function renderHeader(tab: TileryTabHandle<TabData>) {
 
 function renderContent(tab: TileryTabHandle<TabData>) {
   return (
-    <div style={panelStyle}>
-      <h2 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>
-        {tab.data.title}
-      </h2>
-      <p style={{ margin: 0, color: '#9aa1ab', lineHeight: 1.5 }}>
-        {tab.data.summary}
-      </p>
-      <span style={badgeStyle}>{tab.data.constraints}</span>
-    </div>
+    <TabContent meta={tab.data.constraints}>
+      <p style={{ margin: 0 }}>{tab.data.summary}</p>
+    </TabContent>
   );
 }
 
-export function Example() {
-  const [width, setWidth] = useState(widths[2]!.value);
+const resizerTrackStyle: React.CSSProperties = {
+  display: 'flex',
+  justifyContent: 'center',
+  background: '#101318',
+};
 
-  return (
-    <div style={rootStyle}>
-      <div style={exampleBlockStyle}>
-        <div style={blockHeaderStyle}>Panel constraints</div>
-        <div style={frameStyle}>
-          <Tilery<TabData>
-            initialLayout={constraintsLayout}
-            minSize={10}
-            renderTabHeader={renderHeader}
-            renderTabContent={renderContent}
-          />
-        </div>
-      </div>
-      <div style={exampleBlockStyle}>
-        <div style={blockHeaderStyle}>
-          <span>Container resize</span>
-          <div style={controlGroupStyle}>
-            {widths.map((item) => (
-              <button
-                key={item.value}
-                type="button"
-                onClick={() => setWidth(item.value)}
-                style={{
-                  ...controlButtonStyle,
-                  background:
-                    width === item.value
-                      ? 'rgba(255, 255, 255, 0.1)'
-                      : 'transparent',
-                  color: width === item.value ? '#f1f4f8' : '#9aa1ab',
-                }}>
-                {item.label}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div style={resizerTrackStyle}>
-          <div style={{ ...resizerFrameStyle, width }}>
-            <Tilery<TabData>
-              initialLayout={containerResizeLayout}
-              minSize={10}
-              renderTabHeader={renderHeader}
-              renderTabContent={renderContent}
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+const resizerFrameStyle: React.CSSProperties = {
+  height: '100%',
+  maxWidth: '100%',
+  transition: 'width 180ms ease',
+};
+
+const swatchStyle: React.CSSProperties = {
+  display: 'inline-block',
+  width: 8,
+  height: 8,
+  borderRadius: '50%',
+};
