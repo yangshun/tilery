@@ -222,6 +222,10 @@ td code {
   border-radius: 6px;
 }
 
+.sidebar__link + .sidebar__link {
+  margin-top: 2px;
+}
+
 .sidebar__link:hover {
   color: var(--site-fg);
   background: rgba(255, 255, 255, 0.06);
