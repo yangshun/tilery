@@ -90,7 +90,9 @@ describe('useTileryPointerDrag — gating', () => {
   it('ignores non-left buttons on pointerdown', () => {
     const t = setup();
     const e = t.fakeEvent({ button: 2 });
-    t.handlers().onPointerDown(e);
+    act(() => {
+      t.handlers().onPointerDown(e);
+    });
     // pointermove afterwards is a no-op because dragging never started.
     t.handlers().onPointerMove(t.fakeEvent({ clientX: 50, clientY: 50 }));
     expect(t.moves).toHaveLength(0);
@@ -129,10 +131,14 @@ describe('useTileryPointerDrag — happy path', () => {
 
   it('routes every move while the drag is active', () => {
     const t = setup();
-    t.handlers().onPointerDown(t.fakeEvent());
+    act(() => {
+      t.handlers().onPointerDown(t.fakeEvent());
+    });
     t.handlers().onPointerMove(t.fakeEvent({ clientX: 20, clientY: 20 }));
     t.handlers().onPointerMove(t.fakeEvent({ clientX: 30, clientY: 30 }));
-    t.handlers().onPointerUp(t.fakeEvent());
+    act(() => {
+      t.handlers().onPointerUp(t.fakeEvent());
+    });
     expect(t.moves).toHaveLength(2);
     t.cleanup();
   });
@@ -144,7 +150,9 @@ describe('useTileryPointerDrag — stopPropagationOnDown', () => {
     const e = t.fakeEvent() as React.PointerEvent & {
       _calls: { stopPropagation: number };
     };
-    t.handlers().onPointerDown(e);
+    act(() => {
+      t.handlers().onPointerDown(e);
+    });
     expect(e._calls.stopPropagation).toBe(0);
     t.cleanup();
   });
@@ -154,7 +162,9 @@ describe('useTileryPointerDrag — stopPropagationOnDown', () => {
     const e = t.fakeEvent() as React.PointerEvent & {
       _calls: { stopPropagation: number };
     };
-    t.handlers().onPointerDown(e);
+    act(() => {
+      t.handlers().onPointerDown(e);
+    });
     expect(e._calls.stopPropagation).toBe(1);
     t.cleanup();
   });
@@ -175,7 +185,9 @@ describe('useTileryPointerDrag — robustness', () => {
         releasePointerCapture() {},
       } as unknown as HTMLElement,
     } as unknown as React.PointerEvent;
-    t.handlers().onPointerDown(e);
+    act(() => {
+      t.handlers().onPointerDown(e);
+    });
     // The hook still considers itself dragging — subsequent moves are routed.
     t.handlers().onPointerMove(t.fakeEvent({ clientX: 5, clientY: 5 }));
     expect(t.moves).toHaveLength(1);
@@ -184,7 +196,9 @@ describe('useTileryPointerDrag — robustness', () => {
 
   it('survives releasePointerCapture throwing on pointerup', () => {
     const t = setup();
-    t.handlers().onPointerDown(t.fakeEvent());
+    act(() => {
+      t.handlers().onPointerDown(t.fakeEvent());
+    });
     const e = {
       pointerId: 1,
       currentTarget: {
@@ -193,7 +207,9 @@ describe('useTileryPointerDrag — robustness', () => {
         },
       } as unknown as HTMLElement,
     } as unknown as React.PointerEvent;
-    t.handlers().onPointerUp(e);
+    act(() => {
+      t.handlers().onPointerUp(e);
+    });
     // The drag still ends even though the capture release threw — a later
     // move is a no-op.
     t.handlers().onPointerMove(t.fakeEvent({ clientX: 5, clientY: 5 }));

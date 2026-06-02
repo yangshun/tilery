@@ -1,4 +1,15 @@
-globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+function enableReactActEnvironment(globalScope: unknown) {
+  if (!globalScope || typeof globalScope !== 'object') return;
+  (
+    globalScope as typeof globalThis & {
+      IS_REACT_ACT_ENVIRONMENT?: boolean;
+    }
+  ).IS_REACT_ACT_ENVIRONMENT = true;
+}
+
+enableReactActEnvironment(globalThis);
+enableReactActEnvironment(globalThis.window);
+enableReactActEnvironment(globalThis.self);
 
 if (typeof globalThis.PointerEvent === 'undefined') {
   class PointerEvent extends MouseEvent {

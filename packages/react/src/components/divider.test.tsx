@@ -176,8 +176,13 @@ describe('TileryDivider — horizontal axis math', () => {
         recorded.push({ id, pct });
       },
     });
-    t.handlers.onPointerDown(pointerEvent());
+    act(() => {
+      t.handlers.onPointerDown(pointerEvent());
+    });
     t.handlers.onPointerMove(pointerEvent({ clientX: 0, clientY: 200 }));
+    act(() => {
+      t.handlers.onPointerUp(pointerEvent());
+    });
     // 200 / 800 = 25%.
     expect(recorded).toEqual([{ id: 'h|A|B', pct: 25 }]);
     t.cleanup();
@@ -198,7 +203,9 @@ describe('TileryDivider — horizontal axis math', () => {
     expect(t.el.getAttribute('aria-disabled')).toBe('true');
     expect(t.el.tabIndex).toBe(-1);
     expect(t.el.style.cursor).toBe('default');
-    t.handlers.onPointerDown?.(pointerEvent());
+    act(() => {
+      t.handlers.onPointerDown?.(pointerEvent());
+    });
     t.handlers.onPointerMove?.(pointerEvent({ clientX: 0, clientY: 200 }));
     t.handlers.onKeyDown(keyboardEvent('ArrowDown').event);
     expect(recorded).toEqual([]);
@@ -296,8 +303,13 @@ describe('TileryDivider — defensive null container', () => {
         recorded.push(pct);
       },
     });
-    t.handlers.onPointerDown(pointerEvent());
+    act(() => {
+      t.handlers.onPointerDown(pointerEvent());
+    });
     t.handlers.onPointerMove(pointerEvent({ clientX: 500, clientY: 400 }));
+    act(() => {
+      t.handlers.onPointerUp(pointerEvent());
+    });
     expect(recorded).toEqual([]);
     t.cleanup();
   });

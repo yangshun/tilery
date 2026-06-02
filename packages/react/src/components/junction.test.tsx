@@ -146,7 +146,9 @@ describe('TileryJunction', () => {
     });
     expect(t.el.hasAttribute('data-resize-disabled')).toBe(true);
     expect(t.el.style.cursor).toBe('default');
-    t.handlers.onPointerDown?.(pointerEvent());
+    act(() => {
+      t.handlers.onPointerDown?.(pointerEvent());
+    });
     t.handlers.onPointerMove?.(pointerEvent({ clientX: 300, clientY: 600 }));
     expect(recorded).toEqual([]);
     t.cleanup();
@@ -183,8 +185,13 @@ describe('TileryJunction', () => {
         recorded.push({ x, y });
       },
     });
-    t.handlers.onPointerDown(pointerEvent());
+    act(() => {
+      t.handlers.onPointerDown(pointerEvent());
+    });
     t.handlers.onPointerMove(pointerEvent({ clientX: 300, clientY: 600 }));
+    act(() => {
+      t.handlers.onPointerUp(pointerEvent());
+    });
     expect(recorded).toEqual([]);
     t.cleanup();
   });
@@ -198,9 +205,13 @@ describe('TileryJunction', () => {
         return true;
       },
     });
-    t.handlers.onPointerDown(pointerEvent());
+    act(() => {
+      t.handlers.onPointerDown(pointerEvent());
+    });
     t.handlers.onPointerMove(pointerEvent({ clientX: 300, clientY: 600 }));
-    t.handlers.onPointerUp(pointerEvent());
+    act(() => {
+      t.handlers.onPointerUp(pointerEvent());
+    });
 
     expect(recorded).toEqual([{ x: 30, y: 75, input: 'pointer' }]);
     t.cleanup();
