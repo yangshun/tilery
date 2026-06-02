@@ -1,0 +1,73 @@
+---
+title: Component Props
+description: Wire a Tilery component with renderers, behavior controls, actions, and callbacks.
+---
+
+## How to read this page
+
+The Tilery component is the integration boundary for React apps. Start with rendering props, then add behavior, sizing, actions, and callbacks as your product needs them.
+
+```tsx
+<Tilery
+  initialLayout={layout}
+  renderTabHeader={(tab) => <span>{tab.data.title}</span>}
+  renderTabContent={(tab) => <Editor tab={tab} />}
+/>
+```
+
+## Required rendering props
+
+Use these when mounting a Tilery instance. `initialLayout` describes the workspace, while the render functions connect your app data to the tab UI and panel content.
+
+| Prop               | Type                                                               | Required | Description                          |
+| ------------------ | ------------------------------------------------------------------ | -------- | ------------------------------------ |
+| `initialLayout`    | `TileryInitialLayout<TData>`                                       | Yes      | Initial panel and tab configuration. |
+| `renderTabHeader`  | `(tab: TileryTab<TData>, ctx: { isActive: boolean }) => ReactNode` | Yes      | Renders tab button content.          |
+| `renderTabContent` | `(tab: TileryTab<TData>) => ReactNode`                             | Yes      | Renders tab panel content.           |
+
+## Layout behavior and sizing
+
+Use these when the whole instance needs global resize behavior or a default panel constraint. Per-panel constraints still belong in the layout tree.
+
+| Prop                  | Type         | Required | Description                                                          |
+| --------------------- | ------------ | -------- | -------------------------------------------------------------------- |
+| `minSize`             | `TilerySize` | No       | Default minimum panel size constraint.                               |
+| `resizable`           | `boolean`    | No       | Enables or disables all resize handles.                              |
+| `resizeHandleHitSize` | `number`     | No       | Pointer hit target size for dividers and T-junction resize controls. |
+
+## Panel actions and new tabs
+
+Use these when the tab bar needs product-specific controls. Built-in panel actions cover common workspace operations, while custom actions and `onNewTab` let the app decide what a new tab means.
+
+| Prop                      | Type                                           | Required | Description                                      |
+| ------------------------- | ---------------------------------------------- | -------- | ------------------------------------------------ |
+| `showActionsButton`       | `boolean \| (panel: TileryPanel) => boolean`   | No       | Shows the built-in panel action menu.            |
+| `showNewTabButton`        | `boolean \| (panel: TileryPanel) => boolean`   | No       | Shows the optional new-tab button.               |
+| `onNewTab`                | `(panel, ctx) => TileryTabInit<TData> \| void` | No       | Responds to the new-tab button.                  |
+| `renderPanelActions`      | `(panel, ctx) => ReactNode`                    | No       | Appends custom content to the panel action menu. |
+| `renderActionsButtonIcon` | `(panel) => ReactNode`                         | No       | Customizes the action menu button icon.          |
+
+## State and lifecycle callbacks
+
+Use `onChange` for persistence, resize callbacks for layout telemetry, and lifecycle callbacks when your app needs structured events for tab or panel changes.
+
+| Prop                | Type                                             | Required | Description                                      |
+| ------------------- | ------------------------------------------------ | -------- | ------------------------------------------------ |
+| `onChange`          | `(state: TileryLayoutState) => void`             | No       | Called after every state change.                 |
+| `onResize`          | `(event: TileryResizeEvent) => void`             | No       | Called for each divider or junction resize.      |
+| `onResizeEnd`       | `(event: TileryResizeEvent) => void`             | No       | Called when a resize interaction commits.        |
+| `onActiveTabChange` | `(event: TileryActiveTabChangeEvent) => void`    | No       | Called when a panel’s active tab changes.        |
+| `onTabsMove`        | `(event: TileryTabsMoveEvent<TData>) => void`    | No       | Called when tabs move between panels or indexes. |
+| `onPanelsOpen`      | `(event: TileryPanelsOpenEvent<TData>) => void`  | No       | Called when panels are created.                  |
+| `onPanelSplit`      | `(event: TileryPanelSplitEvent<TData>) => void`  | No       | Called when a panel is split.                    |
+| `onTabsOpen`        | `(event: TileryTabsOpenEvent<TData>) => void`    | No       | Called when tabs are added.                      |
+| `onTabsClose`       | `(event: TileryTabsCloseEvent<TData>) => void`   | No       | Called when tabs are removed.                    |
+| `onPanelsClose`     | `(event: TileryPanelsCloseEvent<TData>) => void` | No       | Called when panels are removed.                  |
+
+## Controller ref
+
+Use the ref when your app needs to open files, focus panels, restore snapshots, or perform other imperative workflows.
+
+| Prop  | Type                    | Required | Description                              |
+| ----- | ----------------------- | -------- | ---------------------------------------- |
+| `ref` | `Ref<TileryController>` | No       | Controller ref for programmatic control. |

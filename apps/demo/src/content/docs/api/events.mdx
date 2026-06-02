@@ -1,0 +1,167 @@
+---
+title: Events & Callbacks
+description: Resize event and lifecycle callback payloads emitted by the Tilery component.
+---
+
+## Which callback should I use?
+
+Use callbacks when your app needs to persist layout, update external state, or record analytics from workspace actions. Prefer the narrowest callback that matches the job so your integration does not need to diff raw state.
+
+| Goal                        | Callback                        | Use it when                                                                                      |
+| --------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Save every workspace change | `onChange`                      | You need to persist `getLayout()` output or inspect state after any reducer change.              |
+| Track live resizing         | `onResize`                      | You need continuous pointer or keyboard resize telemetry.                                        |
+| Track committed resizing    | `onResizeEnd`                   | You only need the final size after a resize gesture or keyboard step.                            |
+| Sync active resource state  | `onActiveTabChange`             | A panel switches from one active tab to another.                                                 |
+| Track tab movement          | `onTabsMove`                    | Tabs move between panels, indexes, floating panels, or split targets.                            |
+| Track panel creation        | `onPanelsOpen` / `onPanelSplit` | New panels appear through splits, floating extraction, popout extraction, or layout replacement. |
+| Track close behavior        | `onTabsClose` / `onPanelsClose` | Tabs or panels are removed and the app needs cleanup or analytics.                               |
+
+## TileryResizeEvent
+
+onResize fires for each pointer or keyboard resize that changes panel sizes. onResizeEnd fires on pointer release for drag resizes and immediately after each keyboard resize.
+
+```tsx
+type TileryResizeEvent = {
+  phase: 'resize' | 'end';
+  input: 'keyboard' | 'pointer';
+  source:
+    | {
+        type: 'divider';
+        dividerId: string;
+        orientation: 'vertical' | 'horizontal';
+        previousPosition: number;
+        position: number;
+      }
+    | {
+        type: 'junction';
+        junctionId: string;
+        previousX: number;
+        previousY: number;
+        x: number;
+        y: number;
+        verticalDividerId: string;
+        horizontalDividerId: string;
+      };
+  changes: Array<{
+    panelId: string;
+    dimension: 'width' | 'height';
+    previousSize: number;
+    size: number;
+    previousPixelSize?: number;
+    pixelSize?: number;
+  }>;
+  previousState: TileryLayoutState;
+  state: TileryLayoutState;
+};
+```
+
+## Lifecycle Events
+
+Lifecycle events fire for state changes that activate, move, add, or remove tabs and panels. Events include the action source, previous state, next state, and compact tab or panel snapshots from the relevant side of the transition.
+
+When a panel closes because its last tab moved out, onPanelsClose reports that moved tab even though onTabsClose does not fire.
+
+```tsx
+type TileryLifecycleSource =
+  | 'PANEL_SPLIT'
+  | 'PANEL_REMOVE'
+  | 'TAB_APPEND'
+  | 'TAB_INSERT'
+  | 'TAB_ID_CHANGE'
+  | 'TAB_REMOVE'
+  | 'TAB_MOVE'
+  | 'TAB_FLOAT'
+  | 'TAB_POPOUT'
+  | 'TAB_ACTIVE_SET'
+  | 'STATE_REPLACE';
+
+type TileryTabLifecycleChange<TData> = {
+  id: string;
+  panelId: string;
+  data: TData;
+  closeable: boolean;
+  draggable: boolean;
+};
+
+type TileryPanelLifecycleChange = {
+  id: string;
+  tabIds: string[];
+  activeTabId: string | null;
+};
+
+type TileryActiveTabChange = {
+  panelId: string;
+  previousTabId: string | null;
+  tabId: string | null;
+};
+
+type TileryTabMoveChange<TData> = {
+  id: string;
+  previousPanelId: string;
+  panelId: string;
+  previousIndex: number;
+  index: number;
+  data: TData;
+  closeable: boolean;
+  draggable: boolean;
+};
+
+type TileryActiveTabChangeEvent = {
+  source: TileryLifecycleSource;
+  changes: TileryActiveTabChange[];
+  previousState: TileryLayoutState;
+  state: TileryLayoutState;
+};
+
+type TileryTabsMoveEvent<TData> = {
+  source: TileryLifecycleSource;
+  tabs: TileryTabMoveChange<TData>[];
+  previousState: TileryLayoutState;
+  state: TileryLayoutState;
+};
+
+type TileryPanelsOpenEvent<TData> = {
+  source: TileryLifecycleSource;
+  panels: TileryPanelLifecycleChange[];
+  tabs: TileryTabLifecycleChange<TData>[];
+  previousState: TileryLayoutState;
+  state: TileryLayoutState;
+};
+
+type TileryPanelSplitEvent<TData> = {
+  source: 'PANEL_SPLIT' | 'TAB_MOVE';
+  splitPanelId: string;
+  createdPanelId: string;
+  direction: 'left' | 'right' | 'top' | 'bottom';
+  size: number;
+  splitPanel: TileryPanelLifecycleChange;
+  createdPanel: TileryPanelLifecycleChange;
+  tabs: TileryTabLifecycleChange<TData>[];
+  previousState: TileryLayoutState;
+  state: TileryLayoutState;
+};
+
+type TileryTabsOpenEvent<TData> = {
+  source: TileryLifecycleSource;
+  tabs: TileryTabLifecycleChange<TData>[];
+  previousState: TileryLayoutState;
+  state: TileryLayoutState;
+};
+
+type TileryTabsCloseEvent<TData> = {
+  source: TileryLifecycleSource;
+  tabs: TileryTabLifecycleChange<TData>[];
+  panels: TileryPanelLifecycleChange[];
+  previousState: TileryLayoutState;
+  state: TileryLayoutState;
+};
+
+type TileryPanelsCloseEvent<TData> = {
+  source: TileryLifecycleSource;
+  panels: TileryPanelLifecycleChange[];
+  tabs: TileryTabLifecycleChange<TData>[];
+  previousState: TileryLayoutState;
+  state: TileryLayoutState;
+};
+```

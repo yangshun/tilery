@@ -1,0 +1,168 @@
+---
+title: Layouts & Snapshots
+description: Initial layout, snapshot, size, behavior, floating panel, and tab configuration types.
+---
+
+## Initial layout, snapshot, and runtime state
+
+Tilery uses three related shapes. They are easy to mix up, so choose the one that matches the job.
+
+| Shape                         | Use it for                       | Notes                                                                             |
+| ----------------------------- | -------------------------------- | --------------------------------------------------------------------------------- |
+| `TileryInitialLayout<TData>`  | Booting the component            | Authored by your app. Accepts shorthand like `locked: true`.                      |
+| `TileryLayoutSnapshot<TData>` | Persistence                      | Returned by `getLayout()`. Stores explicit behavior booleans and floating bounds. |
+| `TileryLayoutState`           | Runtime callbacks and inspection | Internal working state exposed to callbacks. Do not persist it.                   |
+
+Initial layouts and snapshots share the same serializable tree idea: groups contain panels or groups, panels contain tabs, and a root layout can also contain floating panels. A snapshot preserves the panel tree, tab order, active tabs, fullscreen panel, size constraints, behavior booleans, floating bounds, popout window bounds, and z-order.
+
+Use `getLayout()` to create a snapshot and pass that snapshot back to `initialLayout` or `setLayout(layout)` to restore it.
+
+## Size and behavior rules
+
+`size` belongs to each child item and controls that item’s allocation inside its parent group. `minSize` and `maxSize` can be numbers, percentage strings, or pixel strings.
+
+Initial layouts accept `locked: true` as shorthand for disabling resize, drag, and drop on a layout item. Tabs accept `locked: true` as shorthand for disabling close and drag. Snapshots store the explicit booleans directly and do not emit `locked`.
+
+## Type reference
+
+```tsx
+type TilerySize = number | `${number}%` | `${number}px`;
+
+type TileryInitialLayout<TData> =
+  | TileryDockedLayoutInit<TData>
+  | {
+      type: 'root';
+      main: TileryDockedLayoutInit<TData>;
+      floating?: TileryFloatingPanelInit<TData>[];
+    };
+
+type TileryDockedLayoutInit<TData> =
+  | { type: 'empty' }
+  | ({
+      type: 'panel';
+      id?: string;
+      size?: number;
+      minSize?: TilerySize;
+      maxSize?: TilerySize;
+      tabs: TileryTabInit<TData>[];
+      activeTabId?: string;
+      fullScreen?: boolean;
+    } & TileryLayoutBehaviorConfig)
+  | ({
+      type: 'group';
+      id?: string;
+      direction: 'horizontal' | 'vertical';
+      size?: number;
+      children: TileryDockedLayoutInit<TData>[];
+    } & TileryLayoutBehaviorConfig);
+
+type TileryFloatingPanelBounds = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+type TileryPopoutWindowBounds = {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+};
+
+type TileryFloatingPanelInit<TData> = {
+  type: 'floatingPanel';
+  id?: string;
+  bounds?: Partial<TileryFloatingPanelBounds>;
+  zIndex?: number;
+  popout?: true | { windowBounds?: Partial<TileryPopoutWindowBounds> };
+  tabs: TileryTabInit<TData>[];
+  activeTabId?: string;
+  fullScreen?: boolean;
+  minSize?: TilerySize;
+  maxSize?: TilerySize;
+} & TileryLayoutBehaviorConfig;
+
+type TileryLayoutBehaviorConfig =
+  | { locked: true; resizable?: never; draggable?: never; droppable?: never }
+  | {
+      locked?: false;
+      resizable?: boolean;
+      draggable?: boolean;
+      droppable?: boolean;
+    };
+
+type TileryLayoutBehavior = {
+  resizable: boolean;
+  draggable: boolean;
+  droppable: boolean;
+};
+
+type TileryTabBehaviorConfig =
+  | { locked: true; closeable?: never; draggable?: never }
+  | { locked?: false; closeable?: boolean; draggable?: boolean };
+
+type TileryTabBehaviorUpdate =
+  | { locked: true; closeable?: never; draggable?: never }
+  | { locked?: false; closeable?: boolean; draggable?: boolean };
+
+type TileryTabInit<TData> = {
+  id?: string;
+  data: TData;
+} & TileryTabBehaviorConfig;
+
+type TileryTabBehavior = {
+  closeable: boolean;
+  draggable: boolean;
+};
+
+type TileryTabBehaviorUpdate =
+  | { locked: true; closeable?: never; draggable?: never }
+  | { locked?: false; closeable?: boolean; draggable?: boolean };
+
+type TileryTabSnapshot<TData> = {
+  id?: string;
+  data: TData;
+} & TileryTabBehavior;
+
+type TileryLayoutSnapshot<TData> =
+  | TileryDockedLayoutSnapshot<TData>
+  | {
+      type: 'root';
+      main: TileryDockedLayoutSnapshot<TData>;
+      floating: TileryFloatingPanelSnapshot<TData>[];
+    };
+
+type TileryDockedLayoutSnapshot<TData> =
+  | { type: 'empty' }
+  | ({
+      type: 'panel';
+      id?: string;
+      size?: number;
+      minSize?: TilerySize;
+      maxSize?: TilerySize;
+      tabs: TileryTabSnapshot<TData>[];
+      activeTabId?: string;
+      fullScreen?: boolean;
+    } & TileryLayoutBehavior)
+  | ({
+      type: 'group';
+      id?: string;
+      direction: 'horizontal' | 'vertical';
+      size?: number;
+      children: TileryDockedLayoutSnapshot<TData>[];
+    } & TileryLayoutBehavior);
+
+type TileryFloatingPanelSnapshot<TData> = {
+  type: 'floatingPanel';
+  id?: string;
+  bounds: TileryFloatingPanelBounds;
+  zIndex: number;
+  popout?: { windowBounds: TileryPopoutWindowBounds };
+  tabs: TileryTabSnapshot<TData>[];
+  activeTabId?: string;
+  fullScreen?: boolean;
+  minSize?: TilerySize;
+  maxSize?: TilerySize;
+} & TileryLayoutBehavior;
+```

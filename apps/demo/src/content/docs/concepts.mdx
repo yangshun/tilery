@@ -1,0 +1,94 @@
+---
+title: Concepts
+description: Understand the workspace model behind panels, tabs, groups, and snapshots.
+---
+
+## The workspace model
+
+Tilery is built around a small set of ideas: tabs live in panels, panels live in groups, and groups form the tiled workspace. Once that tree exists, Tilery can derive dividers, drag zones, tab rows, content hosts, and snapshots from the same source of truth.
+
+Use this mental model when you are designing an app shell. If a region should resize with its siblings, it belongs in the tiled group tree. If a region should float above the app or move to a separate same-origin window, it leaves the tiled tree but stays in the same Tilery state.
+
+## Panels and tabs
+
+A panel is a rectangular region with a tab bar and a content area. A tab is the application resource inside that region: a file, query, dashboard card, inspector, terminal, or any other unit your app can render.
+
+Tabs can be reordered inside a panel, moved to another panel, dropped on a panel edge to create a split, floated into an overlay, or popped out into a native window. Only one tab is active in a panel at a time.
+
+Tab content is rendered through stable React portal hosts. When a tab moves between panels, React keeps the subtree mounted, so local component state, refs, and uncontrolled inputs can survive the move.
+
+## Groups and sizes
+
+Initial layouts are authored as n-ary group trees. A horizontal group places children left to right. A vertical group places children top to bottom.
+
+```tsx
+{
+  type: 'group',
+  direction: 'horizontal',
+  children: [
+    { type: 'panel', id: 'sidebar', size: 40, tabs: [...] },
+    {
+      type: 'group',
+      direction: 'vertical',
+      size: 60,
+      children: [
+        { type: 'panel', id: 'editor', size: 60, tabs: [...] },
+        { type: 'panel', id: 'terminal', size: 40, tabs: [...] },
+      ],
+    },
+  ],
+}
+```
+
+`size` belongs to each child item and controls that child’s allocation inside its parent group. Omitted sizes share the remaining space.
+
+## Runtime state
+
+The public runtime state keeps panels and tabs in flat lookup objects for direct access, while layout geometry stays in the nested tree. That gives controller methods quick access to panels and tabs without losing the authoring model used for persistence.
+
+```tsx
+type TileryLayoutState = {
+  panels: Record<TileryPanelId, TileryPanelState>;
+  panelOrder: TileryPanelId[];
+  floatingPanelOrder?: TileryPanelId[];
+  tabs: Record<TileryTabId, TileryTabState>;
+  layout?: TileryLayoutTree | null;
+};
+```
+
+Use runtime state for callbacks and inspection. Use layout snapshots for persistence.
+
+## Layout snapshots
+
+`getLayout()` returns the serializable shape your application should save. Pass that snapshot back to `initialLayout` or `setLayout(snapshot)` to restore the same workspace.
+
+```tsx
+const saved = localStorage.getItem('tilery-layout');
+
+<Tilery
+  ref={tileryRef}
+  initialLayout={saved ? JSON.parse(saved) : defaultLayout}
+  onChange={() => {
+    const layout = tileryRef.current?.getLayout<MyTabData>();
+    if (layout) {
+      localStorage.setItem('tilery-layout', JSON.stringify(layout));
+    }
+  }}
+  renderTabHeader={renderTabHeader}
+  renderTabContent={renderTabContent}
+/>;
+```
+
+Snapshots store the panel tree, tab order, active tabs, fullscreen state, size constraints, explicit behavior booleans, floating bounds, popout window bounds, and z-order.
+
+## Floating and popout panels
+
+Floating panels render above the tiled workspace in the same browser window. They can be moved, resized, focused for z-order, and docked back into the tiled tree.
+
+Native popout panels render through a React portal into a same-origin browser window. React context is preserved, but the popup has its own document, so styling needs to come from copied document-head styles rather than wrapper-scoped variables.
+
+## Dividers, constraints, and locking
+
+Dividers are computed from split boundaries in the layout tree. Resizing updates one split at a time, then Tilery derives fresh panel insets for rendering.
+
+Use `minSize` and `maxSize` when a panel needs usable bounds. Use `locked: true` when a panel or tab should not participate in close, drag, drop, or resize behavior. Use the explicit behavior fields when only one interaction should be disabled.

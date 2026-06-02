@@ -1,0 +1,142 @@
+---
+title: Styling API
+description: Stable CSS variables, selectors, data attributes, and styling-related props.
+---
+
+## CSS Variables
+
+Use this table when building a theme. Tilery reads visual tokens from CSS custom properties on the `.tilery` root element. Variables can also be inherited from ancestors in the same document.
+
+For native popout windows, prefer variables that match `.tilery` or `.tilery__popout` directly. Wrapper-scoped variables are not available in the popup unless the copied stylesheet can still match the popup root.
+
+| Variable                           | Default                  | Description                                          |
+| ---------------------------------- | ------------------------ | ---------------------------------------------------- |
+| `--tilery-bg`                      | `#0e0f12`                | Root background                                      |
+| `--tilery-fg`                      | `#d9dde3`                | Root text color                                      |
+| `--tilery-font`                    | `inherit`                | Font family                                          |
+| `--tilery-panel-bg`                | `#1a1c20`                | Panel background                                     |
+| `--tilery-panel-border`            | `#2a2d33`                | Panel and tab-bar borders                            |
+| `--tilery-panel-gap`               | `4px`                    | Gap between panels                                   |
+| `--tilery-outer-gap`               | `(panel-gap)`            | Gap around the outer edge                            |
+| `--tilery-tabbar-bg`               | `#16181c`                | Tab bar background                                   |
+| `--tilery-tabbar-height`           | `32px`                   | Tab bar height                                       |
+| `--tilery-tab-font-size`           | `12px`                   | Tab label font size                                  |
+| `--tilery-tab-fg`                  | `#9aa1ab`                | Inactive tab text color                              |
+| `--tilery-tab-active-bg`           | `(panel-bg)`             | Active tab background                                |
+| `--tilery-tab-active-fg`           | `#f3f4f7`                | Active tab text color                                |
+| `--tilery-tab-hover-bg`            | `transparent`            | Inactive tab hover background                        |
+| `--tilery-menu-bg`                 | `#1f2228`                | Panel action menu background                         |
+| `--tilery-menu-shadow`             | `0 8px 24px rgba(...)`   | Panel action menu shadow                             |
+| `--tilery-action-hover-bg`         | `rgba(255,255,255,0.08)` | Action, close button, and menu item hover background |
+| `--tilery-accent`                  | `#3884ff`                | Accent (active indicator, focus)                     |
+| `--tilery-drop-bg`                 | `rgba(56,132,255,0.18)`  | Drop overlay background                              |
+| `--tilery-drop-border`             | `rgba(56,132,255,0.6)`   | Drop overlay border and insertion marker             |
+| `--tilery-resize-handle-active-bg` | `transparent`            | Active resize handle background                      |
+
+## Stable Selectors
+
+Use these selectors when variables are not enough, such as pill-shaped tabs or app-specific menu spacing. Keep overrides scoped to your own wrapper so they do not affect every Tilery instance.
+
+| Selector                          | Description                                   |
+| --------------------------------- | --------------------------------------------- |
+| `.tilery`                         | Root element for one Tilery instance          |
+| `.tilery__inner`                  | Main tiled-panel viewport                     |
+| `.tilery__panel`                  | Panel container                               |
+| `.tilery__tab-bar`                | Panel header containing tabs and actions      |
+| `.tilery__tab-list`               | Scrollable tab row                            |
+| `.tilery__tab`                    | Tab button                                    |
+| `.tilery__tab-header`             | Tab label wrapper                             |
+| `.tilery__tab-close`              | Tab close button                              |
+| `.tilery__panel-content`          | Panel content host                            |
+| `.tilery__panel-actions`          | Panel action menu trigger                     |
+| `.tilery__panel-action-button`    | Panel action button                           |
+| `.tilery__panel-menu`             | Panel action menu                             |
+| `.tilery__panel-menu-item`        | Panel action menu item                        |
+| `.tilery__divider`                | One-dimensional resize divider                |
+| `.tilery__junction`               | T-junction resize control                     |
+| `.tilery__floating-resize-handle` | Floating panel resize control                 |
+| `.tilery__drop-overlay`           | Panel drop preview                            |
+| `.tilery__drop-insertion`         | Tab-row insertion preview                     |
+| `.tilery__drag-ghost`             | Floating drag preview                         |
+| `.tilery__tab-host`               | Stable tab content portal host                |
+| `.tilery__tab-content`            | Rendered tab panel content wrapper            |
+| `.tilery__popout`                 | Root class added inside native popout windows |
+
+## Data Attributes
+
+Use data attributes for component state that is not always expressible through pseudo-classes: active tabs, disabled resize handles, floating panels, and drop zones.
+
+Hover and keyboard focus are normal browser interaction states, so style them with `:hover` and `:focus-visible`.
+
+| Attribute                   | Elements                                         | Description                                                    |
+| --------------------------- | ------------------------------------------------ | -------------------------------------------------------------- |
+| `data-panel-id`             | `.tilery__panel`                                 | Panel id                                                       |
+| `data-tab-id`               | `.tilery__tab`                                   | Tab id                                                         |
+| `data-active`               | `.tilery__tab, .tilery__tab-content`             | Whether the tab or tab content is active                       |
+| `data-closeable`            | `.tilery__tab`                                   | Whether the tab can be closed                                  |
+| `data-draggable`            | `.tilery__tab, .tilery__tab-bar, .tilery__panel` | Whether the tab, tab bar, or panel can start drag interactions |
+| `data-droppable`            | `.tilery__tab-bar, .tilery__panel`               | Whether the panel area accepts drops                           |
+| `data-floating`             | `.tilery__panel`                                 | Whether the panel is detached as a floating panel              |
+| `data-popout`               | `.tilery__panel`                                 | Whether the panel is in a native popout window                 |
+| `data-full-screen`          | `.tilery__panel`                                 | Whether the panel is maximized                                 |
+| `data-resizable`            | `.tilery__panel`                                 | Whether the panel participates in resize interactions          |
+| `data-zone`                 | `.tilery__drop-overlay`                          | Current panel drop preview zone                                |
+| `data-orientation`          | `.tilery__divider`                               | Divider orientation: horizontal or vertical                    |
+| `data-resize-active`        | `.tilery__divider, .tilery__junction`            | Set while the resize control is being dragged                  |
+| `data-resize-disabled`      | `.tilery__divider, .tilery__junction`            | Set when the resize control cannot resize its adjacent panels  |
+| `data-resize-at-min`        | `.tilery__divider, .tilery__junction`            | Set when a resize boundary is clamped at a minimum size        |
+| `data-resize-at-max`        | `.tilery__divider, .tilery__junction`            | Set when a resize boundary is clamped at a maximum size        |
+| `data-floating-resize-edge` | `.tilery__floating-resize-handle`                | Floating panel resize edge or corner                           |
+
+## Resize State Styling
+
+Resize dividers and T-junction controls expose active, disabled, and min/max clamp states.
+
+```css
+.tilery__divider[data-resize-active],
+.tilery__junction[data-resize-active] {
+  background: color-mix(in srgb, var(--tilery-accent), transparent 70%);
+}
+
+.tilery__divider[data-resize-disabled],
+.tilery__junction[data-resize-disabled] {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.tilery__divider[data-resize-at-min],
+.tilery__divider[data-resize-at-max] {
+  background: color-mix(in srgb, var(--tilery-accent), transparent 84%);
+}
+
+.tilery__divider:hover,
+.tilery__junction:hover {
+  background: color-mix(in srgb, var(--tilery-accent), transparent 86%);
+}
+
+.tilery__divider:focus-visible {
+  outline: 2px solid var(--tilery-accent);
+  outline-offset: -2px;
+}
+```
+
+## Styling Props
+
+Use these props when styling needs a runtime decision rather than a static CSS rule. For example, `resizeHandleHitSize` changes pointer hit targets, while action props decide whether built-in action controls render.
+
+| Prop                  | Type                                                         | Description                                                         |
+| --------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------- |
+| `resizeHandleHitSize` | `number`                                                     | Pointer hit target size for dividers and T-junction resize controls |
+| `showActionsButton`   | `boolean \| (panel: TileryPanel) => boolean`                 | Controls whether built-in panel action buttons render               |
+| `showNewTabButton`    | `boolean \| (panel: TileryPanel) => boolean`                 | Controls whether the new-tab button renders                         |
+| `renderPanelActions`  | `(ctx: TileryPanelActionsRenderContext<TData>) => ReactNode` | Replaces or extends the panel action area                           |
+
+## Popout Styling Contract
+
+Native popout panels render into a same-origin browser window through a React portal. React context is preserved, but the popup has its own document.
+
+Tilery copies style tags and stylesheet links from the main document head, then creates a `.tilery.tilery__popout` root in the popup document.
+
+The popup does not copy `html` or `body` classes, wrapper elements, inline styles, or CSS variables inherited from page ancestors.
+
+For popout-safe themes, place variables in copied stylesheets that match `.tilery` or `.tilery__popout` directly.

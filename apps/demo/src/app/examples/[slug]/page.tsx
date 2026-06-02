@@ -61,7 +61,7 @@ export default async function Page({ params }: ExampleRouteProps) {
       slug={slug}
       title={meta.title}
       description={meta.description}
-      notes={meta.notes}
+      guide={meta.guide}
       demos={demos}
       navigation={pageNavigation}
     />

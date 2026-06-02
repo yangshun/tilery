@@ -1,0 +1,105 @@
+---
+title: Styling
+description: Choose the right styling tool for themes, overrides, and popout windows.
+---
+
+## Choose variables first
+
+Use CSS variables for ordinary theming: colors, borders, gaps, tab sizing, menu styling, and drop previews. Variables keep the styling contract stable while your application changes the look of one Tilery instance or a whole page.
+
+```css
+.tilery {
+  --tilery-bg: #ffffff;
+  --tilery-fg: #1a1a1a;
+  --tilery-panel-bg: #f8f9fa;
+  --tilery-panel-border: #e0e0e0;
+  --tilery-tabbar-bg: #f0f1f3;
+  --tilery-tab-fg: #6b7280;
+  --tilery-tab-active-bg: #ffffff;
+  --tilery-tab-active-fg: #1a1a1a;
+  --tilery-tab-hover-bg: #e5e7eb;
+  --tilery-action-hover-bg: #e5e7eb;
+  --tilery-accent: #2563eb;
+  --tilery-drop-bg: rgba(37, 99, 235, 0.14);
+  --tilery-drop-border: rgba(37, 99, 235, 0.55);
+}
+```
+
+Use the Styling API reference for the full variable list and the stable selectors Tilery exposes.
+
+<ul className="doc-link-list">
+  <li className="doc-link-list__item">
+    <a href="/docs/api/styling" className="doc-link-list__title">
+      Styling API
+    </a>
+    <p>
+      CSS variables, selectors, data attributes, resize states, and
+      styling-related props.
+    </p>
+  </li>
+</ul>
+
+## Use class overrides for shape
+
+Reach for scoped class overrides when the component shape or interaction treatment changes in a way variables cannot express. Keep overrides under your own wrapper class so they do not affect every Tilery instance in the app.
+
+```css
+.pill-tabs .tilery__tab {
+  border-radius: 999px;
+  margin-inline: 2px;
+}
+
+.pill-tabs .tilery__tab[data-active='true'] {
+  box-shadow: inset 0 0 0 1px var(--tilery-accent);
+}
+```
+
+Use this for treatments like pill tabs, denser toolbar spacing, or app-specific tab affordances. Do not use overrides to patch behavior; behavior belongs in props, layout config, or controller calls.
+
+## Style resize and drag states
+
+Use data attributes when Tilery exposes structural state, such as active tabs, disabled resize handles, floating panels, or drop zones. Use normal pseudo-classes for transient browser interaction states like hover and keyboard focus.
+
+```css
+.tilery__divider[data-resize-active],
+.tilery__junction[data-resize-active] {
+  background: color-mix(in srgb, var(--tilery-accent), transparent 70%);
+}
+
+.tilery__divider[data-resize-disabled],
+.tilery__junction[data-resize-disabled] {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.tilery__divider:focus-visible {
+  outline: 2px solid var(--tilery-accent);
+  outline-offset: -2px;
+}
+```
+
+This matters because resize state is application state, while hover and focus are browser interaction states.
+
+## Make popout styles portable
+
+Native popout panels render into a same-origin browser window through a React portal. React context is preserved, but the popup has its own document.
+
+When a popup opens, Tilery copies style tags and stylesheet links from the main document head, then creates a `.tilery.tilery__popout` root in the popup document. The popup does not copy `html` or `body` classes, wrapper elements, inline styles, or CSS variables inherited from page ancestors.
+
+Put popout-safe theme variables on selectors that match both the main Tilery root and the popup root, in a stylesheet that is present in the document head.
+
+```css
+/* Copied stylesheet rules can match both the main root and popup root. */
+.tilery {
+  --tilery-bg: #101419;
+  --tilery-panel-bg: #171d24;
+  --tilery-tabbar-bg: #11161c;
+}
+
+/* This only works in-page if .app-shell is not present in the popup window. */
+.app-shell .tilery {
+  --tilery-panel-bg: #162b2a;
+}
+```
+
+If a theme looks correct in the main page but wrong in a native popout, check whether the important variables are scoped to a wrapper that the popup window cannot inherit.

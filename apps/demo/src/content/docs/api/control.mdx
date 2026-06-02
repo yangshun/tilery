@@ -1,0 +1,217 @@
+---
+title: Programmatic Control
+description: Imperative control exposed through the Tilery ref, panel objects, and tab objects.
+---
+
+## Controller Ref
+
+The Tilery ref exposes a `TileryController`. Use it when the application, not a direct drag gesture, needs to change the workspace.
+
+## Common workflows
+
+| Workflow                              | Use                                                          | Why                                                                          |
+| ------------------------------------- | ------------------------------------------------------------ | ---------------------------------------------------------------------------- |
+| Open a file, query, or issue tab once | `openOrActivateTab()`                                        | Activates an existing resource tab by id or inserts it if missing.           |
+| Rename a temporary resource tab       | `changeTabId()`                                              | Moves a draft or untitled tab to a durable id without rebuilding the layout. |
+| Split a workspace region              | `splitPanel()` or `panel.split()`                            | Creates a new panel beside an existing panel.                                |
+| Move a tab from app code              | `moveTab()` or `tab.moveTo()`                                | Supports panel, before-tab, after-tab, and split targets.                    |
+| Float or pop out content              | `floatPanel()`, `floatTab()`, `popoutPanel()`, `popoutTab()` | Extracts existing content without closing its tabs.                          |
+| Persist or restore the workspace      | `getLayout()` and `setLayout()`                              | Round-trips the serializable snapshot shape.                                 |
+
+## Controller methods
+
+| Method                                    | Description                                                                                 |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `getPanel(id)`                            | Returns a TileryPanel or null                                                               |
+| `getTab(id)`                              | Returns a TileryTab or null                                                                 |
+| `getPanels()`                             | Returns all TileryPanel[]                                                                   |
+| `getTabs()`                               | Returns all TileryTab[]                                                                     |
+| `splitPanel(panelId, direction, opts?)`   | Splits a panel and returns the new TileryPanel                                              |
+| `removePanel(panelId)`                    | Removes a panel and redistributes space                                                     |
+| `maximizePanel(panelId)`                  | Shows one panel fullscreen                                                                  |
+| `restorePanel(panelId)`                   | Restores a fullscreen panel                                                                 |
+| `floatPanel(panelId, opts?)`              | Detaches a panel into the floating layer with optional bounds and behavior                  |
+| `dockPanel(panelId, target?)`             | Docks a floating panel into the tiled tree                                                  |
+| `popoutPanel(panelId, opts?)`             | Opens a panel in a native same-origin browser window                                        |
+| `returnPanelToFloating(panelId, bounds?)` | Returns a popped-out panel to the in-page floating layer                                    |
+| `focusPanel(panelId)`                     | Raises a floating panel above its peers                                                     |
+| `setFloatingPanelBounds(panelId, bounds)` | Sets floating panel position and size                                                       |
+| `setPopoutWindowBounds(panelId, bounds)`  | Stores the native window position and size for a popped-out panel                           |
+| `appendTab(panelId, tab, opts?)`          | Appends a tab to a panel                                                                    |
+| `insertTab(panelId, tab, index, opts?)`   | Inserts a tab at a specific index                                                           |
+| `openOrActivateTab(tab, target)`          | Activates an existing tab by id, or opens it once at a tab-row target                       |
+| `changeTabId(oldTabId, newTabId)`         | Renames a tab id and returns the renamed TileryTab, or null if the rename cannot be applied |
+| `removeTab(tabId)`                        | Removes a tab and removes panel if last                                                     |
+| `moveTab(tabId, target)`                  | Moves a tab to a target location                                                            |
+| `floatTab(tabId, opts?)`                  | Extracts a tab into a new floating panel                                                    |
+| `popoutTab(tabId, opts?)`                 | Extracts a tab into a new native-window panel                                               |
+| `setTabBehavior(tabId, behavior)`         | Updates tab close and drag behavior                                                         |
+| `setActiveTab(tabId)`                     | Activates a tab                                                                             |
+| `swapPanels(panelA, panelB)`              | Swaps two panels positions                                                                  |
+| `getLayout()`                             | Returns a serializable TileryLayoutSnapshot                                                 |
+| `setLayout(layout)`                       | Restores a TileryLayoutSnapshot                                                             |
+| `getState()`                              | Returns the current TileryLayoutState                                                       |
+
+## Tab Workflow APIs
+
+Use openOrActivateTab() when app resources have stable ids, such as file paths, issue ids, or routes. If the id already exists, Tilery activates that tab and does not update its data or create a duplicate. If the id is missing, Tilery inserts the tab at the supplied target and activates it.
+
+Use changeTabId() when a temporary tab receives a durable id later, for example after saving a draft file. The rename updates panel tab order and active tab references; it returns null when the old id is missing or the new id is already in use.
+
+```tsx
+tilery.openOrActivateTab(
+  {
+    id: filePath,
+    data: { title: basename(filePath), filePath },
+  },
+  { afterTab: relatedTabId },
+);
+
+tilery.changeTabId('untitled-1', savedFilePath)?.activate();
+```
+
+## Panel Objects
+
+TileryPanel objects are returned by getPanel() and getPanels().
+
+| Property / Method               | Description                                                                |
+| ------------------------------- | -------------------------------------------------------------------------- |
+| `id`                            | Panel identifier                                                           |
+| `kind`                          | Panel kind: tiled or floating                                              |
+| `inset`                         | Current &#123; top, right, bottom, left &#125; percentages                 |
+| `floating`                      | Whether this panel is detached                                             |
+| `floatingBounds`                | Floating &#123; x, y, width, height &#125; percentages, if detached        |
+| `floatingZIndex`                | Current floating z-index, if detached                                      |
+| `poppedOut`                     | Whether this floating panel is in a native window                          |
+| `popoutWindowBounds`            | Native window &#123; left, top, width, height &#125; pixels, if popped out |
+| `tabs`                          | Array of TileryTab for this panel                                          |
+| `activeTab`                     | The active TileryTab or null                                               |
+| `fullScreen`                    | Whether this panel is currently fullscreen                                 |
+| `minSize`                       | Panel minimum size constraint, if set                                      |
+| `maxSize`                       | Panel maximum size constraint, if set                                      |
+| `appendTab(tab, opts?)`         | Append a tab to this panel                                                 |
+| `insertTab(tab, index, opts?)`  | Insert a tab at index                                                      |
+| `split(direction, opts?)`       | Split this panel                                                           |
+| `remove()`                      | Remove this panel                                                          |
+| `maximize()`                    | Show this panel fullscreen                                                 |
+| `restore()`                     | Restore this panel from fullscreen                                         |
+| `float(opts?)`                  | Detach this panel with optional bounds and behavior                        |
+| `popout(opts?)`                 | Open this panel in a native browser window                                 |
+| `returnToFloating(bounds?)`     | Return this popped-out panel to the in-page floating layer                 |
+| `dock(target?)`                 | Dock this floating panel                                                   |
+| `focus()`                       | Raise this floating panel                                                  |
+| `setFloatingBounds(bounds)`     | Set floating panel bounds                                                  |
+| `setPopoutWindowBounds(bounds)` | Store this popped-out panel window bounds                                  |
+| `setActiveTab(tabId)`           | Set the active tab                                                         |
+
+## Tab Objects
+
+TileryTab objects are returned by getTab(), getTabs(), and panel tab properties.
+
+| Property / Method       | Description                            |
+| ----------------------- | -------------------------------------- |
+| `id`                    | Tab identifier                         |
+| `panel`                 | The parent TileryPanel                 |
+| `index`                 | Position within the panel tab list     |
+| `data`                  | The TData payload                      |
+| `closeable`             | Whether close actions are allowed      |
+| `draggable`             | Whether move actions are allowed       |
+| `setData(data)`         | Update the tab data                    |
+| `setBehavior(behavior)` | Update tab close and drag behavior     |
+| `moveTo(target)`        | Move to a target location              |
+| `float(opts?)`          | Extract into a new floating panel      |
+| `popout(opts?)`         | Extract into a new native-window panel |
+| `activate()`            | Make this the active tab               |
+| `remove()`              | Remove this tab                        |
+
+## TileryMoveTarget
+
+Used with moveTab() and tab.moveTo():
+
+```tsx
+type TileryMoveTarget =
+  | { panel: TileryPanelId; index?: number }
+  | { beforeTab: TileryTabId }
+  | { afterTab: TileryTabId }
+  | ({
+      splitPanel: TileryPanelId;
+      direction: TileryDirection;
+      size?: number;
+      minSize?: TilerySize;
+      maxSize?: TilerySize;
+    } & TileryLayoutBehaviorConfig);
+```
+
+## TileryOpenTabTarget
+
+Used with openOrActivateTab() for the insertion path:
+
+```tsx
+type TileryOpenTabTarget =
+  | { panel: TileryPanelId; index?: number }
+  | { beforeTab: TileryTabId }
+  | { afterTab: TileryTabId };
+```
+
+## TileryFloatPanelOptions
+
+Used with floatPanel() and panel.float():
+
+```tsx
+type TileryFloatPanelOptions = TileryFloatingPanelBoundsInit &
+  TileryLayoutBehaviorConfig;
+```
+
+## TileryPopoutPanelOptions
+
+Used with popoutPanel() and panel.popout():
+
+```tsx
+type TileryPopoutPanelOptions = {
+  floatingBounds?: TileryFloatingPanelBoundsInit;
+  windowBounds?: TileryPopoutWindowBoundsInit;
+} & TileryLayoutBehaviorConfig;
+```
+
+## TileryFloatTabOptions
+
+Used with floatTab() and tab.float():
+
+```tsx
+type TileryFloatTabOptions = {
+  panelId?: TileryPanelId;
+  bounds?: TileryFloatingPanelBoundsInit;
+} & TileryLayoutBehaviorConfig;
+```
+
+## TileryPopoutTabOptions
+
+Used with popoutTab() and tab.popout():
+
+```tsx
+type TileryPopoutTabOptions = {
+  panelId?: TileryPanelId;
+  floatingBounds?: TileryFloatingPanelBoundsInit;
+  windowBounds?: TileryPopoutWindowBoundsInit;
+} & TileryLayoutBehaviorConfig;
+```
+
+## TileryDockPanelTarget
+
+Used with dockPanel() and panel.dock():
+
+```tsx
+type TileryDockPanelTarget = {
+  splitPanel?: TileryPanelId;
+  direction?: TileryDirection;
+  size?: number;
+  minSize?: TilerySize;
+  maxSize?: TilerySize;
+} & TileryLayoutBehaviorConfig;
+```
+
+## TileryDirection
+
+```tsx
+type TileryDirection = 'left' | 'right' | 'top' | 'bottom';
+```
