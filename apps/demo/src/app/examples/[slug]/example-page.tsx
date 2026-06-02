@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { PageNavigation } from '../../../components/page-navigation';
+import type { SiteNavigationItem } from '../../../content/navigation';
 import {
   BasicExample,
   IdeExample,
@@ -108,12 +110,17 @@ export function ExamplePage({
   description,
   notes,
   demos,
+  navigation,
 }: {
   slug: string;
   title: string;
   description: string;
   notes: string[];
   demos: Array<{ id: string; sourceHtml: string }>;
+  navigation: {
+    previous: SiteNavigationItem | null;
+    next: SiteNavigationItem | null;
+  };
 }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -157,6 +164,7 @@ export function ExamplePage({
           );
         })}
       </div>
+      <PageNavigation previous={navigation.previous} next={navigation.next} />
     </div>
   );
 }

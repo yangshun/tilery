@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { docs } from '../../../content/docs';
 import { CodeBlock } from '../../../components/code-block';
+import { PageNavigation } from '../../../components/page-navigation';
+import { getAdjacentSiteNavigation } from '../../../content/navigation';
 
 type DocPageProps = {
   params: Promise<{ slug: string[] }>;
@@ -31,6 +33,7 @@ export default async function DocPage({ params }: DocPageProps) {
   const slug = slugParts.join('/');
   const page = docs.find((d) => d.slug === slug);
   if (!page) notFound();
+  const navigation = getAdjacentSiteNavigation(`/docs/${page.slug}`);
 
   return (
     <article>
@@ -81,6 +84,7 @@ export default async function DocPage({ params }: DocPageProps) {
           )}
         </section>
       ))}
+      <PageNavigation previous={navigation.previous} next={navigation.next} />
     </article>
   );
 }

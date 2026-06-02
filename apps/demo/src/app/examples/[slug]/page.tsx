@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { codeToHtml } from 'shiki';
 import { examples } from '../../../content/examples';
+import { getAdjacentSiteNavigation } from '../../../content/navigation';
 import { ExamplePage } from './example-page';
 
 type ExampleRouteProps = {
@@ -31,6 +32,7 @@ export default async function Page({ params }: ExampleRouteProps) {
   const { slug } = await params;
   const meta = examples.find((e) => e.slug === slug);
   if (!meta) notFound();
+  const pageNavigation = getAdjacentSiteNavigation(`/examples/${slug}`);
 
   const filePath = resolve(
     process.cwd(),
@@ -61,6 +63,7 @@ export default async function Page({ params }: ExampleRouteProps) {
       description={meta.description}
       notes={meta.notes}
       demos={demos}
+      navigation={pageNavigation}
     />
   );
 }
