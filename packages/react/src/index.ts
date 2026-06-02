@@ -1,15 +1,8 @@
 export {
   Tilery,
-  type TileryActiveTabChange,
-  type TileryActiveTabChangeEvent,
   type TileryNewTabHandler,
-  type TileryLifecycleSource,
-  type TileryPanelLifecycleChange,
   type TileryPanelActionsRenderContext,
   type TileryPanelVisibility,
-  type TileryPanelSplitEvent,
-  type TileryPanelsOpenEvent,
-  type TileryPanelsCloseEvent,
   type TileryProps,
   type TileryResizeDimension,
   type TileryResizeEvent,
@@ -17,12 +10,22 @@ export {
   type TileryResizePanelChange,
   type TileryResizePhase,
   type TileryResizeSource,
-  type TileryTabLifecycleChange,
-  type TileryTabMoveChange,
-  type TileryTabsCloseEvent,
-  type TileryTabsMoveEvent,
-  type TileryTabsOpenEvent,
 } from './tilery';
+
+export type {
+  TileryActiveTabChange,
+  TileryActiveTabChangeEvent,
+  TileryLifecycleSource,
+  TileryPanelLifecycleChange,
+  TileryPanelSplitEvent,
+  TileryPanelsCloseEvent,
+  TileryPanelsOpenEvent,
+  TileryTabLifecycleChange,
+  TileryTabMoveChange,
+  TileryTabsCloseEvent,
+  TileryTabsMoveEvent,
+  TileryTabsOpenEvent,
+} from './lifecycle';
 
 export type {
   TileryDirection,

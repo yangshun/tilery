@@ -12,15 +12,24 @@ import {
   useState,
 } from 'react';
 import { createPortal } from 'react-dom';
-import {
-  PanelChrome,
-  type TileryFloatingResizeEdge,
-} from './components/panel-chrome';
+import { PanelChrome } from './components/panel-chrome';
 import { TileryDivider, type DividerAccessibility } from './components/divider';
 import { TileryJunction } from './components/junction';
 import { DropOverlay } from './components/drop-overlay';
 import { tileryPanelDomId } from './dom-ids';
+import {
+  makeLifecycleEvents,
+  type TileryActiveTabChangeEvent,
+  type TileryPanelsCloseEvent,
+  type TileryPanelsOpenEvent,
+  type TileryPanelSplitEvent,
+  type TileryTabsCloseEvent,
+  type TileryTabsMoveEvent,
+  type TileryTabsOpenEvent,
+} from './lifecycle';
 import { useTileryDragController } from './use-drag-controller';
+import { useTileryFloatingPanelDrag } from './use-floating-panel-drag';
+import { useTileryPopoutWindows } from './use-popout-windows';
 import {
   tileryCreateInitialState,
   tileryReducer,
@@ -30,20 +39,15 @@ import {
   tileryDeriveDividers,
   tileryDeriveJunctions,
   tileryGetFullScreenPanelId,
-  tileryPanelBehaviorFromState,
   tileryWarnForConstraintDiagnostics,
   type TileryReducerAction,
-  type TileryDirection,
   type TileryInitialLayout,
   type TileryDivider as TileryDividerState,
   type TileryDividerOrientation,
-  type TileryFloatingPanelBounds,
   type TileryLayoutState,
   type TileryHandle,
   type TileryPanelHandle,
   type TileryPanelId,
-  type TileryPopoutPanelOptions,
-  type TileryPopoutWindowBounds,
   type TilerySize,
   type TilerySizeResolutionContext,
   type TileryTabHandle,
@@ -108,139 +112,10 @@ export type TileryResizeEvent = {
   state: TileryLayoutState;
 };
 
-export type TileryLifecycleSource =
-  | 'SPLIT_PANEL'
-  | 'REMOVE_PANEL'
-  | 'APPEND_TAB'
-  | 'INSERT_TAB'
-  | 'REMOVE_TAB'
-  | 'MOVE_TAB'
-  | 'FLOAT_TAB'
-  | 'POPOUT_TAB'
-  | 'SET_ACTIVE_TAB'
-  | 'REPLACE_STATE';
-
-export type TileryTabLifecycleChange<TData = unknown> = {
-  id: TileryTabId;
-  panelId: TileryPanelId;
-  data: TData;
-  closeable: boolean;
-  draggable: boolean;
-};
-
-export type TileryPanelLifecycleChange = {
-  id: TileryPanelId;
-  tabIds: TileryTabId[];
-  activeTabId: TileryTabId | null;
-};
-
-export type TileryActiveTabChange = {
-  panelId: TileryPanelId;
-  previousTabId: TileryTabId | null;
-  tabId: TileryTabId | null;
-};
-
-export type TileryTabMoveChange<TData = unknown> = {
-  id: TileryTabId;
-  previousPanelId: TileryPanelId;
-  panelId: TileryPanelId;
-  previousIndex: number;
-  index: number;
-  data: TData;
-  closeable: boolean;
-  draggable: boolean;
-};
-
-export type TileryActiveTabChangeEvent = {
-  source: TileryLifecycleSource;
-  changes: TileryActiveTabChange[];
-  previousState: TileryLayoutState;
-  state: TileryLayoutState;
-};
-
-export type TileryTabsMoveEvent<TData = unknown> = {
-  source: TileryLifecycleSource;
-  tabs: TileryTabMoveChange<TData>[];
-  previousState: TileryLayoutState;
-  state: TileryLayoutState;
-};
-
-export type TileryPanelsOpenEvent<TData = unknown> = {
-  source: TileryLifecycleSource;
-  panels: TileryPanelLifecycleChange[];
-  tabs: TileryTabLifecycleChange<TData>[];
-  previousState: TileryLayoutState;
-  state: TileryLayoutState;
-};
-
-export type TileryPanelSplitEvent<TData = unknown> = {
-  source: 'SPLIT_PANEL' | 'MOVE_TAB';
-  splitPanelId: TileryPanelId;
-  createdPanelId: TileryPanelId;
-  direction: TileryDirection;
-  size: number;
-  splitPanel: TileryPanelLifecycleChange;
-  createdPanel: TileryPanelLifecycleChange;
-  tabs: TileryTabLifecycleChange<TData>[];
-  previousState: TileryLayoutState;
-  state: TileryLayoutState;
-};
-
-export type TileryTabsOpenEvent<TData = unknown> = {
-  source: TileryLifecycleSource;
-  tabs: TileryTabLifecycleChange<TData>[];
-  previousState: TileryLayoutState;
-  state: TileryLayoutState;
-};
-
-export type TileryTabsCloseEvent<TData = unknown> = {
-  source: TileryLifecycleSource;
-  tabs: TileryTabLifecycleChange<TData>[];
-  panels: TileryPanelLifecycleChange[];
-  previousState: TileryLayoutState;
-  state: TileryLayoutState;
-};
-
-export type TileryPanelsCloseEvent<TData = unknown> = {
-  source: TileryLifecycleSource;
-  panels: TileryPanelLifecycleChange[];
-  tabs: TileryTabLifecycleChange<TData>[];
-  previousState: TileryLayoutState;
-  state: TileryLayoutState;
-};
-
-type TileryLifecycleEvents<TData = unknown> = {
-  activeTabChange: TileryActiveTabChangeEvent | null;
-  tabsMove: TileryTabsMoveEvent<TData> | null;
-  panelsOpen: TileryPanelsOpenEvent<TData> | null;
-  panelSplit: TileryPanelSplitEvent<TData> | null;
-  tabsOpen: TileryTabsOpenEvent<TData> | null;
-  tabsClose: TileryTabsCloseEvent<TData> | null;
-  panelsClose: TileryPanelsCloseEvent<TData> | null;
-};
-
 type TileryResizeAction = Extract<
   TileryReducerAction,
   { type: 'RESIZE_DIVIDER' | 'RESIZE_JUNCTION' }
 >;
-
-type TileryFloatingPanelDragState = {
-  panelId: TileryPanelId;
-  pointerId: number;
-  edge?: TileryFloatingResizeEdge;
-  startX: number;
-  startY: number;
-  startBounds: TileryFloatingPanelBounds;
-  containerWidth: number;
-  containerHeight: number;
-};
-
-type TileryPopoutWindowRecord = {
-  win: Window;
-  root: HTMLElement;
-  closing: boolean;
-  cleanup: () => void;
-};
 
 export type TileryProps<TData = unknown> = {
   initialLayout: TileryInitialLayout<TData>;
@@ -343,12 +218,6 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
   };
 
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const popoutWindowsRef = useRef<Map<TileryPanelId, TileryPopoutWindowRecord>>(
-    new Map(),
-  );
-  const [popoutRoots, setPopoutRoots] = useState<
-    Record<TileryPanelId, HTMLElement | null>
-  >({});
   const [sizeContext, setSizeContext] = useState<TilerySizeResolutionContext>(
     {},
   );
@@ -466,122 +335,12 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
 
   const getState = useCallback(() => stateRef.current, []);
 
-  const setPopoutRoot = useCallback(
-    (panelId: TileryPanelId, root: HTMLElement | null) => {
-      setPopoutRoots((prev) => {
-        /* v8 ignore next -- popout roots are only set when they change. */
-        if (prev[panelId] === root) return prev;
-        if (!root) {
-          const { [panelId]: _drop, ...next } = prev;
-          return next;
-        }
-        return { ...prev, [panelId]: root };
-      });
-    },
-    [],
-  );
-
-  const syncPopoutWindowBounds = useCallback(
-    (panelId: TileryPanelId) => {
-      const record = popoutWindowsRef.current.get(panelId);
-      if (!record || record.win.closed) return;
-      const bounds = readPopoutWindowBounds(record.win);
-      dispatchWithLifecycle({
-        type: 'SET_POPOUT_WINDOW_BOUNDS',
-        panelId,
-        bounds,
-      });
-    },
-    [dispatchWithLifecycle],
-  );
-
-  const closePopoutWindow = useCallback(
-    (panelId: TileryPanelId) => {
-      const record = popoutWindowsRef.current.get(panelId);
-      if (!record) return;
-      record.closing = true;
-      record.cleanup();
-      popoutWindowsRef.current.delete(panelId);
-      setPopoutRoot(panelId, null);
-      if (!record.win.closed) {
-        record.win.close();
-      }
-    },
-    [setPopoutRoot],
-  );
-
-  const requestPopoutPanel = useCallback(
-    (panelId: TileryPanelId, opts?: TileryPopoutPanelOptions): boolean => {
-      const existing = popoutWindowsRef.current.get(panelId);
-      if (existing && !existing.win.closed) {
-        existing.win.focus();
-        return true;
-      }
-
-      /* v8 ignore next 3 -- React DOM popout requests always have an owner window. */
-      const ownerWindow =
-        containerRef.current?.ownerDocument.defaultView ??
-        (typeof window === 'undefined' ? null : window);
-      /* v8 ignore next -- covered by the owner-window invariant above. */
-      if (!ownerWindow) return false;
-      const fallbackBounds = defaultPopoutWindowBounds(ownerWindow);
-      const bounds = normalizePopoutWindowBounds(
-        opts?.windowBounds,
-        fallbackBounds,
-      );
-      const features = popoutFeatureString(bounds);
-      const win = ownerWindow.open('', `tilery-popout-${panelId}`, features);
-      if (!win) return false;
-
-      const root = preparePopoutDocument(win, containerRef.current, panelId);
-      if (!root) {
-        win.close();
-        return false;
-      }
-
-      const handleBeforeUnload = () => {
-        const record = popoutWindowsRef.current.get(panelId);
-        /* v8 ignore next -- cleanup removes this listener with the record. */
-        if (!record) return;
-        syncPopoutWindowBounds(panelId);
-        /* v8 ignore next -- close cleanup removes this listener first. */
-        if (!record.closing) {
-          dispatchWithLifecycle({
-            type: 'RETURN_PANEL_TO_FLOATING',
-            panelId,
-          });
-        }
-      };
-      const handleResize = () => syncPopoutWindowBounds(panelId);
-      const handleFocus = () => {
-        dispatchWithLifecycle({ type: 'FOCUS_PANEL', panelId });
-      };
-      win.addEventListener('beforeunload', handleBeforeUnload);
-      win.addEventListener('resize', handleResize);
-      win.addEventListener('focus', handleFocus);
-      popoutWindowsRef.current.set(panelId, {
-        win,
-        root,
-        closing: false,
-        cleanup: () => {
-          win.removeEventListener('beforeunload', handleBeforeUnload);
-          win.removeEventListener('resize', handleResize);
-          win.removeEventListener('focus', handleFocus);
-        },
-      });
-      setPopoutRoot(panelId, root);
-      win.focus();
-      return true;
-    },
-    [dispatchWithLifecycle, setPopoutRoot, syncPopoutWindowBounds],
-  );
-
-  const returnPopoutPanelToFloating = useCallback(
-    (panelId: TileryPanelId) => {
-      closePopoutWindow(panelId);
-    },
-    [closePopoutWindow],
-  );
+  const { popoutRoots, requestPopoutPanel, returnPopoutPanelToFloating } =
+    useTileryPopoutWindows({
+      containerRef,
+      state,
+      dispatchWithLifecycle,
+    });
 
   const tileryRef = useRef<TileryHandle | null>(null);
   if (!tileryRef.current) {
@@ -639,44 +398,14 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
     onChange?.(state);
   }, [state, onChange]);
 
-  useEffect(() => {
-    const poppedOut = new Set<TileryPanelId>();
-    for (const panelId of tileryAllPanelOrderFromState(state)) {
-      const panel = state.panels[panelId];
-      if (panel?.kind === 'floating' && panel.floating.popout) {
-        poppedOut.add(panelId);
-        const record = popoutWindowsRef.current.get(panelId);
-        if (!record || record.win.closed) {
-          const ok = requestPopoutPanel(panelId, {
-            windowBounds: panel.floating.popout.windowBounds,
-          });
-          if (!ok) {
-            dispatchWithLifecycle({
-              type: 'RETURN_PANEL_TO_FLOATING',
-              panelId,
-            });
-          }
-        }
-      }
-    }
-
-    const openPanelIds = Array.from(popoutWindowsRef.current.keys());
-    for (const panelId of openPanelIds) {
-      if (!poppedOut.has(panelId)) closePopoutWindow(panelId);
-    }
-  }, [closePopoutWindow, dispatchWithLifecycle, requestPopoutPanel, state]);
-
-  useEffect(() => {
-    return () => {
-      const openPanelIds = Array.from(popoutWindowsRef.current.keys());
-      for (const panelId of openPanelIds) {
-        closePopoutWindow(panelId);
-      }
-    };
-  }, [closePopoutWindow]);
-
   const drag = useTileryDragController(() => tileryRef.current);
-  const floatingDragRef = useRef<TileryFloatingPanelDragState | null>(null);
+  const floatingDrag = useTileryFloatingPanelDrag({
+    tilery: () => tileryRef.current,
+    containerRef,
+    onTabPointerMove: drag.onTabPointerMove,
+    onTabBarPointerUp: drag.onTabBarPointerUp,
+    onTabPointerCancel: drag.onTabPointerCancel,
+  });
 
   const [limboEl] = useState(() => {
     /* v8 ignore next */
@@ -789,134 +518,6 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
       tileryRef.current?.focusPanel(panelId);
     },
     [],
-  );
-  const onFloatingTabBarPointerDown = useCallback(
-    (e: React.PointerEvent, panelId: string) => {
-      if (e.button !== 0) return;
-      const panel = tileryRef.current?.getPanel(panelId);
-      const bounds = panel?.floatingBounds;
-      const container = containerRef.current;
-      if (!panel?.floating || !bounds || !container) return;
-      panel.focus();
-      const behavior = tileryPanelBehaviorFromState(
-        tileryRef.current!.getState(),
-        panelId,
-      );
-      if (!behavior.draggable) return;
-      const rect = container.getBoundingClientRect();
-      if (rect.width <= 0 || rect.height <= 0) return;
-      try {
-        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-      } catch {
-        // ignore
-      }
-      e.preventDefault();
-      floatingDragRef.current = {
-        panelId,
-        pointerId: e.pointerId,
-        startX: e.clientX,
-        startY: e.clientY,
-        startBounds: { ...bounds },
-        containerWidth: rect.width,
-        containerHeight: rect.height,
-      };
-    },
-    [],
-  );
-  const onFloatingResizePointerDown = useCallback(
-    (
-      e: React.PointerEvent,
-      panelId: string,
-      edge: TileryFloatingResizeEdge,
-    ) => {
-      if (e.button !== 0) return;
-      const panel = tileryRef.current?.getPanel(panelId);
-      const bounds = panel?.floatingBounds;
-      const container = containerRef.current;
-      if (!panel?.floating || !bounds || !container) return;
-      panel.focus();
-      const behavior = tileryPanelBehaviorFromState(
-        tileryRef.current!.getState(),
-        panelId,
-      );
-      if (!behavior.resizable) return;
-      const rect = container.getBoundingClientRect();
-      if (rect.width <= 0 || rect.height <= 0) return;
-      try {
-        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-      } catch {
-        // ignore
-      }
-      e.preventDefault();
-      e.stopPropagation();
-      floatingDragRef.current = {
-        panelId,
-        pointerId: e.pointerId,
-        edge,
-        startX: e.clientX,
-        startY: e.clientY,
-        startBounds: { ...bounds },
-        containerWidth: rect.width,
-        containerHeight: rect.height,
-      };
-    },
-    [],
-  );
-  const onPointerMove = useCallback(
-    (e: React.PointerEvent) => {
-      const floatingDrag = floatingDragRef.current;
-      if (!floatingDrag || floatingDrag.pointerId !== e.pointerId) {
-        drag.onTabPointerMove(e);
-        return;
-      }
-      const dx =
-        ((e.clientX - floatingDrag.startX) / floatingDrag.containerWidth) * 100;
-      const dy =
-        ((e.clientY - floatingDrag.startY) / floatingDrag.containerHeight) *
-        100;
-      const nextBounds = floatingDrag.edge
-        ? resizeFloatingBounds(
-            floatingDrag.startBounds,
-            floatingDrag.edge,
-            dx,
-            dy,
-          )
-        : {
-            ...floatingDrag.startBounds,
-            x: floatingDrag.startBounds.x + dx,
-            y: floatingDrag.startBounds.y + dy,
-          };
-      tileryRef.current?.setFloatingPanelBounds(
-        floatingDrag.panelId,
-        nextBounds,
-      );
-    },
-    [drag],
-  );
-  const onTabBarPointerUp = useCallback(
-    (e: React.PointerEvent) => {
-      const floatingDrag = floatingDragRef.current;
-      if (floatingDrag?.pointerId === e.pointerId) {
-        floatingDragRef.current = null;
-        try {
-          (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
-        } catch {
-          // ignore
-        }
-        return;
-      }
-      drag.onTabBarPointerUp(e);
-    },
-    [drag],
-  );
-  const onPointerCancel = useCallback(
-    (e: React.PointerEvent) => {
-      if (floatingDragRef.current?.pointerId === e.pointerId) {
-        floatingDragRef.current = null;
-      }
-      drag.onTabPointerCancel(e);
-    },
-    [drag],
   );
   const onDividerDrag = useCallback(
     (
@@ -1054,14 +655,18 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
               registerTabBar={getRegisterTabBar(panelId)}
               registerTab={stableRegisterTab}
               onPanelPointerDown={onPanelPointerDown}
-              onFloatingResizePointerDown={onFloatingResizePointerDown}
+              onFloatingResizePointerDown={
+                floatingDrag.onFloatingResizePointerDown
+              }
               onTabPointerDown={drag.onTabPointerDown}
-              onTabPointerMove={onPointerMove}
+              onTabPointerMove={floatingDrag.onPointerMove}
               onTabPointerUp={drag.onTabPointerUp}
-              onTabPointerCancel={onPointerCancel}
+              onTabPointerCancel={floatingDrag.onPointerCancel}
               onTabBarPointerDown={drag.onTabBarPointerDown}
-              onFloatingTabBarPointerDown={onFloatingTabBarPointerDown}
-              onTabBarPointerUp={onTabBarPointerUp}
+              onFloatingTabBarPointerDown={
+                floatingDrag.onFloatingTabBarPointerDown
+              }
+              onTabBarPointerUp={floatingDrag.onTabBarPointerUp}
               onTabClick={onTabClick}
               onTabClose={onTabClose}
               showActionsButton={resolvePanelVisibility(
@@ -1150,358 +755,6 @@ function resolvePanelVisibility(
   panel: TileryPanelHandle,
 ): boolean {
   return typeof value === 'function' ? value(panel) : value;
-}
-
-function resizeFloatingBounds(
-  bounds: TileryFloatingPanelBounds,
-  edge: TileryFloatingResizeEdge,
-  dx: number,
-  dy: number,
-): TileryFloatingPanelBounds {
-  const next = { ...bounds };
-  if (edge.includes('left')) {
-    next.x = bounds.x + dx;
-    next.width = bounds.width - dx;
-  }
-  if (edge.includes('right')) {
-    next.width = bounds.width + dx;
-  }
-  if (edge.includes('top')) {
-    next.y = bounds.y + dy;
-    next.height = bounds.height - dy;
-  }
-  if (edge.includes('bottom')) {
-    next.height = bounds.height + dy;
-  }
-  return next;
-}
-
-function defaultPopoutWindowBounds(win: Window): TileryPopoutWindowBounds {
-  const width = 720;
-  const height = 520;
-  const screenLeft = finiteNumber(win.screenX, 0);
-  const screenTop = finiteNumber(win.screenY, 0);
-  const outerWidth = finiteNumber(win.outerWidth, width + 120);
-  const outerHeight = finiteNumber(win.outerHeight, height + 120);
-  return {
-    left: Math.round(screenLeft + Math.max(24, (outerWidth - width) / 2)),
-    top: Math.round(screenTop + Math.max(24, (outerHeight - height) / 2)),
-    width,
-    height,
-  };
-}
-
-function normalizePopoutWindowBounds(
-  value: Partial<TileryPopoutWindowBounds> | undefined,
-  fallback: TileryPopoutWindowBounds,
-): TileryPopoutWindowBounds {
-  return {
-    left: Math.round(finiteNumber(value?.left, fallback.left)),
-    top: Math.round(finiteNumber(value?.top, fallback.top)),
-    width: Math.round(
-      Math.max(240, finiteNumber(value?.width, fallback.width)),
-    ),
-    height: Math.round(
-      Math.max(160, finiteNumber(value?.height, fallback.height)),
-    ),
-  };
-}
-
-function readPopoutWindowBounds(win: Window): TileryPopoutWindowBounds {
-  return normalizePopoutWindowBounds(
-    {
-      left: win.screenX,
-      top: win.screenY,
-      width: win.outerWidth,
-      height: win.outerHeight,
-    },
-    defaultPopoutWindowBounds(win),
-  );
-}
-
-function popoutFeatureString(bounds: TileryPopoutWindowBounds): string {
-  return [
-    'popup=yes',
-    `left=${bounds.left}`,
-    `top=${bounds.top}`,
-    `width=${bounds.width}`,
-    `height=${bounds.height}`,
-  ].join(',');
-}
-
-function preparePopoutDocument(
-  win: Window,
-  sourceContainer: HTMLElement | null,
-  panelId: TileryPanelId,
-): HTMLElement | null {
-  const sourceDocument = sourceContainer?.ownerDocument;
-  const doc = win.document;
-  if (!doc || !sourceDocument) return null;
-
-  doc.head.innerHTML = '';
-  doc.body.innerHTML = '';
-  doc.title = `Tilery - ${panelId}`;
-  doc.body.style.margin = '0';
-  doc.body.style.overflow = 'hidden';
-  doc.documentElement.style.height = '100%';
-  doc.body.style.height = '100%';
-  copyPopoutStyles(sourceDocument, doc);
-
-  const root = doc.createElement('div');
-  root.className = 'tilery tilery__popout';
-  root.setAttribute('data-tilery-popout-root', panelId);
-  doc.body.appendChild(root);
-  return root;
-}
-
-function copyPopoutStyles(sourceDocument: Document, targetDocument: Document) {
-  const base = targetDocument.createElement('base');
-  base.href = sourceDocument.baseURI;
-  targetDocument.head.appendChild(base);
-
-  for (const node of Array.from(sourceDocument.head.children)) {
-    const tagName = node.tagName.toLowerCase();
-    const isStylesheetLink =
-      tagName === 'link' &&
-      (node as HTMLLinkElement).rel.toLowerCase() === 'stylesheet';
-    if (tagName === 'style' || isStylesheetLink) {
-      targetDocument.head.appendChild(node.cloneNode(true));
-    }
-  }
-}
-
-function finiteNumber(value: unknown, fallback: number): number {
-  return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
-}
-
-function makeLifecycleEvents<TData>(
-  previousState: TileryLayoutState,
-  state: TileryLayoutState,
-  action: TileryReducerAction,
-): TileryLifecycleEvents<TData> {
-  const source = action.type;
-  const lifecycleSource = source as TileryLifecycleSource;
-  const activeTabChanges = makeActiveTabChanges(previousState, state);
-  const movedTabs = makeTabMoveChanges<TData>(previousState, state, action);
-  const openedPanels = tileryAllPanelOrderFromState(state)
-    .filter((panelId) => !previousState.panels[panelId])
-    .map((panelId) => makePanelLifecycleChange(state.panels[panelId]!));
-  const openedPanelTabs = openedPanels.flatMap((panel) =>
-    panel.tabIds.map((tabId) =>
-      makeTabLifecycleChange<TData>(state.tabs[tabId]!),
-    ),
-  );
-  const panelSplit = makePanelSplitEvent<TData>(previousState, state, action);
-  const openedTabs = Object.values(state.tabs)
-    .filter((tab) => !previousState.tabs[tab.id])
-    .map(makeTabLifecycleChange<TData>);
-  const closedTabs = Object.values(previousState.tabs)
-    .filter((tab) => !state.tabs[tab.id])
-    .map(makeTabLifecycleChange<TData>);
-  const closedPanels = tileryAllPanelOrderFromState(previousState)
-    .filter((panelId) => !state.panels[panelId])
-    .map((panelId) => makePanelLifecycleChange(previousState.panels[panelId]!));
-  const panelTabs = closedPanels.flatMap((panel) =>
-    panel.tabIds.map((tabId) =>
-      makeTabLifecycleChange<TData>(previousState.tabs[tabId]!),
-    ),
-  );
-
-  return {
-    activeTabChange:
-      activeTabChanges.length === 0
-        ? null
-        : {
-            source: lifecycleSource,
-            changes: activeTabChanges,
-            previousState,
-            state,
-          },
-    tabsMove:
-      movedTabs.length === 0
-        ? null
-        : {
-            source: lifecycleSource,
-            tabs: movedTabs,
-            previousState,
-            state,
-          },
-    panelsOpen:
-      openedPanels.length === 0
-        ? null
-        : {
-            source: lifecycleSource,
-            panels: openedPanels,
-            tabs: openedPanelTabs,
-            previousState,
-            state,
-          },
-    panelSplit,
-    tabsOpen:
-      openedTabs.length === 0
-        ? null
-        : {
-            source: lifecycleSource,
-            tabs: openedTabs,
-            previousState,
-            state,
-          },
-    tabsClose:
-      closedTabs.length === 0
-        ? null
-        : {
-            source: lifecycleSource,
-            tabs: closedTabs,
-            panels: closedPanels,
-            previousState,
-            state,
-          },
-    panelsClose:
-      closedPanels.length === 0
-        ? null
-        : {
-            source: lifecycleSource,
-            panels: closedPanels,
-            tabs: panelTabs,
-            previousState,
-            state,
-          },
-  };
-}
-
-function makeActiveTabChanges(
-  previousState: TileryLayoutState,
-  state: TileryLayoutState,
-): TileryActiveTabChange[] {
-  const changes: TileryActiveTabChange[] = [];
-  for (const panelId of tileryAllPanelOrderFromState(state)) {
-    const previousPanel = previousState.panels[panelId];
-    const panel = state.panels[panelId];
-    if (!previousPanel || !panel) continue;
-    if (previousPanel.activeTabId === panel.activeTabId) continue;
-    changes.push({
-      panelId,
-      previousTabId: previousPanel.activeTabId,
-      tabId: panel.activeTabId,
-    });
-  }
-  return changes;
-}
-
-function makeTabMoveChanges<TData>(
-  previousState: TileryLayoutState,
-  state: TileryLayoutState,
-  action: TileryReducerAction,
-): TileryTabMoveChange<TData>[] {
-  const tabId =
-    action.type === 'MOVE_TAB' ||
-    action.type === 'FLOAT_TAB' ||
-    action.type === 'POPOUT_TAB'
-      ? action.tabId
-      : null;
-  if (!tabId) return [];
-  const previousTab = previousState.tabs[tabId];
-  const tab = state.tabs[tabId];
-  if (!previousTab || !tab) return [];
-  const previousPanel = previousState.panels[previousTab.panelId]!;
-  const panel = state.panels[tab.panelId]!;
-  const previousIndex = previousPanel.tabs.indexOf(tabId);
-  const index = panel.tabs.indexOf(tabId);
-  if (previousTab.panelId === tab.panelId && previousIndex === index) return [];
-  return [
-    {
-      id: tab.id,
-      previousPanelId: previousTab.panelId,
-      panelId: tab.panelId,
-      previousIndex,
-      index,
-      data: tab.data as TData,
-      closeable: tab.closeable,
-      draggable: tab.draggable,
-    },
-  ];
-}
-
-function makePanelSplitEvent<TData>(
-  previousState: TileryLayoutState,
-  state: TileryLayoutState,
-  action: TileryReducerAction,
-): TileryPanelSplitEvent<TData> | null {
-  if (action.type === 'SPLIT_PANEL') {
-    return makePanelSplitEventFromParts(
-      previousState,
-      state,
-      'SPLIT_PANEL',
-      action.panelId,
-      action.newPanelId,
-      action.direction,
-      action.sizePercent,
-    );
-  }
-  if (action.type === 'MOVE_TAB' && 'splitPanelId' in action.to) {
-    return makePanelSplitEventFromParts(
-      previousState,
-      state,
-      'MOVE_TAB',
-      action.to.splitPanelId,
-      action.to.newPanelId,
-      action.to.direction,
-      action.to.sizePercent,
-    );
-  }
-  return null;
-}
-
-function makePanelSplitEventFromParts<TData>(
-  previousState: TileryLayoutState,
-  state: TileryLayoutState,
-  source: TileryPanelSplitEvent['source'],
-  splitPanelId: TileryPanelId,
-  createdPanelId: TileryPanelId,
-  direction: TileryDirection,
-  size: number,
-): TileryPanelSplitEvent<TData> | null {
-  const splitPanel = state.panels[splitPanelId];
-  const createdPanel = state.panels[createdPanelId];
-  if (!previousState.panels[splitPanelId] || !splitPanel || !createdPanel) {
-    return null;
-  }
-  return {
-    source,
-    splitPanelId,
-    createdPanelId,
-    direction,
-    size,
-    splitPanel: makePanelLifecycleChange(splitPanel),
-    createdPanel: makePanelLifecycleChange(createdPanel),
-    tabs: createdPanel.tabs.map((tabId) =>
-      makeTabLifecycleChange<TData>(state.tabs[tabId]!),
-    ),
-    previousState,
-    state,
-  };
-}
-
-function makeTabLifecycleChange<TData>(
-  tab: NonNullable<TileryLayoutState['tabs'][string]>,
-): TileryTabLifecycleChange<TData> {
-  return {
-    id: tab.id,
-    panelId: tab.panelId,
-    data: tab.data as TData,
-    closeable: tab.closeable,
-    draggable: tab.draggable,
-  };
-}
-
-function makePanelLifecycleChange(
-  panel: NonNullable<TileryLayoutState['panels'][string]>,
-): TileryPanelLifecycleChange {
-  return {
-    id: panel.id,
-    tabIds: [...panel.tabs],
-    activeTabId: panel.activeTabId,
-  };
 }
 
 function makeResizeEvent(

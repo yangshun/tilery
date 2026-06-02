@@ -2,6 +2,7 @@
 
 import {
   tileryPanelBehaviorFromState,
+  type TileryFloatingResizeEdge,
   type TileryPanelHandle,
   type TileryTabHandle,
 } from 'tilery/internal';
@@ -24,16 +25,6 @@ export type PanelChromeProps = Omit<TabBarProps, 'panel' | 'renderHeader'> & {
     edge: TileryFloatingResizeEdge,
   ) => void;
 };
-
-export type TileryFloatingResizeEdge =
-  | 'top'
-  | 'right'
-  | 'bottom'
-  | 'left'
-  | 'top-left'
-  | 'top-right'
-  | 'bottom-left'
-  | 'bottom-right';
 
 const floatingResizeEdges: TileryFloatingResizeEdge[] = [
   'top',

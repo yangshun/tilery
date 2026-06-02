@@ -26,6 +26,16 @@ export type TileryFloatingPanelBounds = {
 
 export type TileryFloatingPanelBoundsInit = Partial<TileryFloatingPanelBounds>;
 
+export type TileryFloatingResizeEdge =
+  | 'top'
+  | 'right'
+  | 'bottom'
+  | 'left'
+  | 'top-left'
+  | 'top-right'
+  | 'bottom-left'
+  | 'bottom-right';
+
 export type TileryPopoutWindowBounds = {
   left: number;
   top: number;

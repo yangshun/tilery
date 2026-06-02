@@ -1,22 +1,20 @@
 // @vitest-environment jsdom
 
+import { readFileSync } from 'node:fs';
 import { afterEach, describe, expect, it, vi } from 'vite-plus/test';
 import React, { act, createRef } from 'react';
 import { createRoot } from 'react-dom/client';
-import { readFileSync } from 'node:fs';
 
-import {
-  Tilery,
-  type TileryActiveTabChangeEvent,
-  type TileryPanelsCloseEvent,
-  type TileryPanelsOpenEvent,
-  type TileryPanelSplitEvent,
-  type TileryProps,
-  type TileryResizeEvent,
-  type TileryTabsCloseEvent,
-  type TileryTabsMoveEvent,
-  type TileryTabsOpenEvent,
-} from './tilery';
+import { Tilery, type TileryProps, type TileryResizeEvent } from './tilery';
+import type {
+  TileryActiveTabChangeEvent,
+  TileryPanelsCloseEvent,
+  TileryPanelsOpenEvent,
+  TileryPanelSplitEvent,
+  TileryTabsCloseEvent,
+  TileryTabsMoveEvent,
+  TileryTabsOpenEvent,
+} from './lifecycle';
 import type { TileryInitialLayout, TileryHandle } from 'tilery/internal';
 
 // Integration tests for the Tilery component itself. They exercise the
@@ -439,9 +437,8 @@ describe('Tilery — rendering', () => {
   });
 
   it('isolates the root stacking context', () => {
-    const css = readFileSync('packages/core/src/tilery.css', 'utf8');
-
-    expect(css).toMatch(/\.tilery\s*\{[^}]*isolation:\s*isolate;/);
+    const tileryCss = readFileSync('packages/core/src/tilery.css', 'utf8');
+    expect(tileryCss).toMatch(/\.tilery\s*\{[^}]*isolation:\s*isolate;/);
   });
 
   it('marks locked panel and tab-bar affordance state in the DOM', () => {
@@ -672,6 +669,48 @@ describe('Tilery — rendering', () => {
     style.remove();
     link.remove();
     meta.remove();
+  });
+
+  it('uses fallback native window geometry when owner window values are not finite', () => {
+    const descriptors = {
+      screenX: Object.getOwnPropertyDescriptor(window, 'screenX'),
+      screenY: Object.getOwnPropertyDescriptor(window, 'screenY'),
+      outerWidth: Object.getOwnPropertyDescriptor(window, 'outerWidth'),
+      outerHeight: Object.getOwnPropertyDescriptor(window, 'outerHeight'),
+    };
+    Object.defineProperties(window, {
+      screenX: { configurable: true, value: Infinity },
+      screenY: { configurable: true, value: Number.NaN },
+      outerWidth: { configurable: true, value: Number.NaN },
+      outerHeight: { configurable: true, value: Infinity },
+    });
+    const popout = createPopoutWindowMock();
+    const open = vi.spyOn(window, 'open').mockReturnValue(popout);
+    const t = mount(floatingLayout());
+
+    try {
+      act(() => {
+        t.handle().popoutPanel('palette');
+      });
+
+      expect(open).toHaveBeenCalledWith(
+        '',
+        'tilery-popout-palette',
+        'popup=yes,left=60,top=60,width=720,height=520',
+      );
+    } finally {
+      t.cleanup();
+      for (const key of Object.keys(descriptors) as Array<
+        keyof typeof descriptors
+      >) {
+        const descriptor = descriptors[key];
+        if (descriptor) {
+          Object.defineProperty(window, key, descriptor);
+        } else {
+          delete (window as unknown as Record<string, unknown>)[key];
+        }
+      }
+    }
   });
 
   it('opens native windows for popped-out panels from the initial layout', () => {

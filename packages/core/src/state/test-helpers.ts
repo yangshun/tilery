@@ -21,7 +21,7 @@ type FlatPanelInit = {
     closeable?: boolean;
     draggable?: boolean;
   }[];
-  activeTabId?: string;
+  activeTabId?: string | null;
   fullScreen?: boolean;
   minSize?: TilerySize;
   maxSize?: TilerySize;
