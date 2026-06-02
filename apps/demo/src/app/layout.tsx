@@ -6,7 +6,10 @@ import { docs } from '../content/docs';
 import { examples } from '../content/examples';
 
 export const metadata: Metadata = {
-  title: 'Tilery',
+  title: {
+    default: 'Tilery',
+    template: '%s | Tilery',
+  },
   description: 'A tiling panel layout engine for React',
 };
 

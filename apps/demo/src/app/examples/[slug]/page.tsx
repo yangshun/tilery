@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -5,15 +6,28 @@ import { codeToHtml } from 'shiki';
 import { examples } from '../../../content/examples';
 import { ExamplePage } from './example-page';
 
+type ExampleRouteProps = {
+  params: Promise<{ slug: string }>;
+};
+
 export function generateStaticParams() {
   return examples.map((e) => ({ slug: e.slug }));
 }
 
-export default async function Page({
+export async function generateMetadata({
   params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
+}: ExampleRouteProps): Promise<Metadata> {
+  const { slug } = await params;
+  const meta = examples.find((e) => e.slug === slug);
+  if (!meta) notFound();
+
+  return {
+    title: meta.title,
+    description: meta.description,
+  };
+}
+
+export default async function Page({ params }: ExampleRouteProps) {
   const { slug } = await params;
   const meta = examples.find((e) => e.slug === slug);
   if (!meta) notFound();

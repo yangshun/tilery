@@ -1,5 +1,14 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { HomeDemo } from './home-demo';
+
+export const metadata: Metadata = {
+  title: {
+    absolute: 'Tilery',
+  },
+  description:
+    'Build IDE-like tiled interfaces with draggable tabs, resizable panels, preserved React state, and programmable workspaces.',
+};
 
 const principles = [
   {

@@ -1,17 +1,32 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { docs } from '../../../content/docs';
 import { CodeBlock } from '../../../components/code-block';
 
+type DocPageProps = {
+  params: Promise<{ slug: string[] }>;
+};
+
 export function generateStaticParams() {
   return docs.map((d) => ({ slug: d.slug.split('/') }));
 }
 
-export default async function DocPage({
+export async function generateMetadata({
   params,
-}: {
-  params: Promise<{ slug: string[] }>;
-}) {
+}: DocPageProps): Promise<Metadata> {
+  const { slug: slugParts } = await params;
+  const slug = slugParts.join('/');
+  const page = docs.find((d) => d.slug === slug);
+  if (!page) notFound();
+
+  return {
+    title: page.title,
+    description: page.description,
+  };
+}
+
+export default async function DocPage({ params }: DocPageProps) {
   const { slug: slugParts } = await params;
   const slug = slugParts.join('/');
   const page = docs.find((d) => d.slug === slug);
