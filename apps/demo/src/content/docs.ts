@@ -119,9 +119,9 @@ function App() {
         heading: 'Panels and Tabs',
         body: [
           'A panel is a rectangular region containing a tab bar and a content area. Each panel holds one or more tabs. Only one tab is active within each panel.',
-          'Tabs can be dragged between panels, reordered within a panel, or dropped on a panel edge to split it into two.',
+          'Tabs can be dragged between panels, reordered within a panel, dropped on a panel edge to split it into two, or extracted into a new floating panel.',
           'A fullscreen panel renders over the full container and suppresses dividers and panel drop zones until restored.',
-          'A floating panel stays in the same browser window, renders above the tiled tree, can be resized from its edges or corners, and can be docked back into the main layout.',
+          'A floating panel stays in the same browser window, renders above the tiled tree, can be resized from its edges or corners, popped out to a native same-origin browser window, and docked back into the main layout.',
         ],
       },
       {
@@ -263,6 +263,27 @@ function App() {
   --tilery-accent: #2563eb;
   --tilery-drop-bg: rgba(37, 99, 235, 0.14);
   --tilery-drop-border: rgba(37, 99, 235, 0.55);
+}`,
+        language: 'css',
+      },
+      {
+        heading: 'Native Popout Styling',
+        body: [
+          'Native popout panels render into a same-origin browser window through a React portal. React context is preserved, but the popup has its own document.',
+          'When a popup opens, Tilery copies style tags and stylesheet links from the main document head, then creates a .tilery.tilery__popout root in the popup document.',
+          'The popup does not copy html/body classes, wrapper elements, inline styles, or CSS variables inherited from page ancestors. If a theme is scoped to a wrapper around Tilery, the popped-out panel will not inherit that wrapper context.',
+          'Put popout-safe theme variables on selectors that match both the main Tilery root and the popup root, such as .tilery or .tilery__popout, in a stylesheet that is present in the document head.',
+        ],
+        code: `/* Copied stylesheet rules can match both the main root and popup root. */
+.tilery {
+  --tilery-bg: #101419;
+  --tilery-panel-bg: #171d24;
+  --tilery-tabbar-bg: #11161c;
+}
+
+/* This only works in-page if .app-shell is not present in the popup window. */
+.app-shell .tilery {
+  --tilery-panel-bg: #162b2a;
 }`,
         language: 'css',
       },
@@ -499,11 +520,19 @@ type TileryFloatingPanelBounds = {
   height: number;
 };
 
+type TileryPopoutWindowBounds = {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+};
+
 type TileryFloatingPanelInit<TData> = {
   type: 'floatingPanel';
   id?: string;
   bounds?: Partial<TileryFloatingPanelBounds>;
   zIndex?: number;
+  popout?: true | { windowBounds?: Partial<TileryPopoutWindowBounds> };
   tabs: TileryTabInit<TData>[];
   activeTabId?: string;
   fullScreen?: boolean;
@@ -581,6 +610,7 @@ type TileryFloatingPanelSnapshot<TData> = {
   id?: string;
   bounds: TileryFloatingPanelBounds;
   zIndex: number;
+  popout?: { windowBounds: TileryPopoutWindowBounds };
   tabs: TileryTabSnapshot<TData>[];
   activeTabId?: string;
   fullScreen?: boolean;
@@ -639,6 +669,8 @@ type TileryFloatingPanelSnapshot<TData> = {
   | 'INSERT_TAB'
   | 'REMOVE_TAB'
   | 'MOVE_TAB'
+  | 'FLOAT_TAB'
+  | 'POPOUT_TAB'
   | 'SET_ACTIVE_TAB'
   | 'REPLACE_STATE';
 
@@ -751,17 +783,29 @@ type TileryPanelsCloseEvent<TData> = {
             ['maximizePanel(panelId)', 'Shows one panel fullscreen'],
             ['restorePanel(panelId)', 'Restores a fullscreen panel'],
             [
-              'floatPanel(panelId, bounds?)',
-              'Detaches a panel into the floating layer',
+              'floatPanel(panelId, opts?)',
+              'Detaches a panel into the floating layer with optional bounds and behavior',
             ],
             [
               'dockPanel(panelId, target?)',
               'Docks a floating panel into the tiled tree',
             ],
+            [
+              'popoutPanel(panelId, opts?)',
+              'Opens a panel in a native same-origin browser window',
+            ],
+            [
+              'returnPanelToFloating(panelId, bounds?)',
+              'Returns a popped-out panel to the in-page floating layer',
+            ],
             ['focusPanel(panelId)', 'Raises a floating panel above its peers'],
             [
               'setFloatingPanelBounds(panelId, bounds)',
               'Sets floating panel position and size',
+            ],
+            [
+              'setPopoutWindowBounds(panelId, bounds)',
+              'Stores the native window position and size for a popped-out panel',
             ],
             ['appendTab(panelId, tab, opts?)', 'Appends a tab to a panel'],
             [
@@ -770,6 +814,14 @@ type TileryPanelsCloseEvent<TData> = {
             ],
             ['removeTab(tabId)', 'Removes a tab and removes panel if last'],
             ['moveTab(tabId, target)', 'Moves a tab to a target location'],
+            [
+              'floatTab(tabId, opts?)',
+              'Extracts a tab into a new floating panel',
+            ],
+            [
+              'popoutTab(tabId, opts?)',
+              'Extracts a tab into a new native-window panel',
+            ],
             [
               'setTabBehavior(tabId, behavior)',
               'Updates tab close and drag behavior',
@@ -797,6 +849,11 @@ type TileryPanelsCloseEvent<TData> = {
               'Floating { x, y, width, height } percentages, if detached',
             ],
             ['floatingZIndex', 'Current floating z-index, if detached'],
+            ['poppedOut', 'Whether this floating panel is in a native window'],
+            [
+              'popoutWindowBounds',
+              'Native window { left, top, width, height } pixels, if popped out',
+            ],
             ['tabs', 'Array of TileryTabHandle for this panel'],
             ['activeTab', 'The active TileryTabHandle or null'],
             ['fullScreen', 'Whether this panel is currently fullscreen'],
@@ -808,10 +865,22 @@ type TileryPanelsCloseEvent<TData> = {
             ['remove()', 'Remove this panel'],
             ['maximize()', 'Show this panel fullscreen'],
             ['restore()', 'Restore this panel from fullscreen'],
-            ['float(bounds?)', 'Detach this panel'],
+            [
+              'float(opts?)',
+              'Detach this panel with optional bounds and behavior',
+            ],
+            ['popout(opts?)', 'Open this panel in a native browser window'],
+            [
+              'returnToFloating(bounds?)',
+              'Return this popped-out panel to the in-page floating layer',
+            ],
             ['dock(target?)', 'Dock this floating panel'],
             ['focus()', 'Raise this floating panel'],
             ['setFloatingBounds(bounds)', 'Set floating panel bounds'],
+            [
+              'setPopoutWindowBounds(bounds)',
+              'Store this popped-out panel window bounds',
+            ],
             ['setActiveTab(tabId)', 'Set the active tab'],
           ],
         },
@@ -831,6 +900,8 @@ type TileryPanelsCloseEvent<TData> = {
             ['setData(data)', 'Update the tab data'],
             ['setBehavior(behavior)', 'Update tab close and drag behavior'],
             ['moveTo(target)', 'Move to a target location'],
+            ['float(opts?)', 'Extract into a new floating panel'],
+            ['popout(opts?)', 'Extract into a new native-window panel'],
             ['activate()', 'Make this the active tab'],
             ['remove()', 'Remove this tab'],
           ],
@@ -850,6 +921,38 @@ type TileryPanelsCloseEvent<TData> = {
       minSize?: TilerySize;
       maxSize?: TilerySize;
     } & TileryLayoutBehaviorConfig);`,
+      },
+      {
+        heading: 'TileryFloatPanelOptions',
+        body: ['Used with floatPanel() and panelHandle.float():'],
+        code: `type TileryFloatPanelOptions =
+  TileryFloatingPanelBoundsInit &
+  TileryLayoutBehaviorConfig;`,
+      },
+      {
+        heading: 'TileryPopoutPanelOptions',
+        body: ['Used with popoutPanel() and panelHandle.popout():'],
+        code: `type TileryPopoutPanelOptions = {
+  floatingBounds?: TileryFloatingPanelBoundsInit;
+  windowBounds?: TileryPopoutWindowBoundsInit;
+} & TileryLayoutBehaviorConfig;`,
+      },
+      {
+        heading: 'TileryFloatTabOptions',
+        body: ['Used with floatTab() and tabHandle.float():'],
+        code: `type TileryFloatTabOptions = {
+  panelId?: TileryPanelId;
+  bounds?: TileryFloatingPanelBoundsInit;
+} & TileryLayoutBehaviorConfig;`,
+      },
+      {
+        heading: 'TileryPopoutTabOptions',
+        body: ['Used with popoutTab() and tabHandle.popout():'],
+        code: `type TileryPopoutTabOptions = {
+  panelId?: TileryPanelId;
+  floatingBounds?: TileryFloatingPanelBoundsInit;
+  windowBounds?: TileryPopoutWindowBoundsInit;
+} & TileryLayoutBehaviorConfig;`,
       },
       {
         heading: 'TileryDockPanelTarget',
@@ -908,6 +1011,16 @@ type TileryFloatingPanelInit<TData> = {
     height: number;
   }>;
   zIndex?: number;
+  popout?:
+    | true
+    | {
+        windowBounds?: Partial<{
+          left: number;
+          top: number;
+          width: number;
+          height: number;
+        }>;
+      };
   tabs: TileryTabInit<TData>[];
   activeTabId?: string;
   fullScreen?: boolean;

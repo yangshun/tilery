@@ -98,12 +98,20 @@ function floatingPanelToSnapshot<TData>(
   panelId: string,
 ): TileryFloatingPanelSnapshot<TData> | null {
   const panel = state.panels[panelId];
+  /* v8 ignore next -- floating panel ids are filtered before snapshotting. */
   if (!panel || panel.kind !== 'floating') return null;
   return {
     type: 'floatingPanel',
     id: panel.id,
     bounds: { ...panel.floating.bounds },
     zIndex: panel.floating.zIndex,
+    ...(panel.floating.popout
+      ? {
+          popout: {
+            windowBounds: { ...panel.floating.popout.windowBounds },
+          },
+        }
+      : {}),
     ...panel.behavior,
     activeTabId: panel.activeTabId ?? undefined,
     fullScreen: panel.fullScreen,

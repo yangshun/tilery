@@ -42,6 +42,8 @@ import {
   type TileryHandle,
   type TileryPanelHandle,
   type TileryPanelId,
+  type TileryPopoutPanelOptions,
+  type TileryPopoutWindowBounds,
   type TilerySize,
   type TilerySizeResolutionContext,
   type TileryTabHandle,
@@ -113,6 +115,8 @@ export type TileryLifecycleSource =
   | 'INSERT_TAB'
   | 'REMOVE_TAB'
   | 'MOVE_TAB'
+  | 'FLOAT_TAB'
+  | 'POPOUT_TAB'
   | 'SET_ACTIVE_TAB'
   | 'REPLACE_STATE';
 
@@ -231,6 +235,13 @@ type TileryFloatingPanelDragState = {
   containerHeight: number;
 };
 
+type TileryPopoutWindowRecord = {
+  win: Window;
+  root: HTMLElement;
+  closing: boolean;
+  cleanup: () => void;
+};
+
 export type TileryProps<TData = unknown> = {
   initialLayout: TileryInitialLayout<TData>;
   renderTabHeader: (
@@ -332,6 +343,12 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
   };
 
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const popoutWindowsRef = useRef<Map<TileryPanelId, TileryPopoutWindowRecord>>(
+    new Map(),
+  );
+  const [popoutRoots, setPopoutRoots] = useState<
+    Record<TileryPanelId, HTMLElement | null>
+  >({});
   const [sizeContext, setSizeContext] = useState<TilerySizeResolutionContext>(
     {},
   );
@@ -449,12 +466,133 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
 
   const getState = useCallback(() => stateRef.current, []);
 
+  const setPopoutRoot = useCallback(
+    (panelId: TileryPanelId, root: HTMLElement | null) => {
+      setPopoutRoots((prev) => {
+        /* v8 ignore next -- popout roots are only set when they change. */
+        if (prev[panelId] === root) return prev;
+        if (!root) {
+          const { [panelId]: _drop, ...next } = prev;
+          return next;
+        }
+        return { ...prev, [panelId]: root };
+      });
+    },
+    [],
+  );
+
+  const syncPopoutWindowBounds = useCallback(
+    (panelId: TileryPanelId) => {
+      const record = popoutWindowsRef.current.get(panelId);
+      if (!record || record.win.closed) return;
+      const bounds = readPopoutWindowBounds(record.win);
+      dispatchWithLifecycle({
+        type: 'SET_POPOUT_WINDOW_BOUNDS',
+        panelId,
+        bounds,
+      });
+    },
+    [dispatchWithLifecycle],
+  );
+
+  const closePopoutWindow = useCallback(
+    (panelId: TileryPanelId) => {
+      const record = popoutWindowsRef.current.get(panelId);
+      if (!record) return;
+      record.closing = true;
+      record.cleanup();
+      popoutWindowsRef.current.delete(panelId);
+      setPopoutRoot(panelId, null);
+      if (!record.win.closed) {
+        record.win.close();
+      }
+    },
+    [setPopoutRoot],
+  );
+
+  const requestPopoutPanel = useCallback(
+    (panelId: TileryPanelId, opts?: TileryPopoutPanelOptions): boolean => {
+      const existing = popoutWindowsRef.current.get(panelId);
+      if (existing && !existing.win.closed) {
+        existing.win.focus();
+        return true;
+      }
+
+      /* v8 ignore next 3 -- React DOM popout requests always have an owner window. */
+      const ownerWindow =
+        containerRef.current?.ownerDocument.defaultView ??
+        (typeof window === 'undefined' ? null : window);
+      /* v8 ignore next -- covered by the owner-window invariant above. */
+      if (!ownerWindow) return false;
+      const fallbackBounds = defaultPopoutWindowBounds(ownerWindow);
+      const bounds = normalizePopoutWindowBounds(
+        opts?.windowBounds,
+        fallbackBounds,
+      );
+      const features = popoutFeatureString(bounds);
+      const win = ownerWindow.open('', `tilery-popout-${panelId}`, features);
+      if (!win) return false;
+
+      const root = preparePopoutDocument(win, containerRef.current, panelId);
+      if (!root) {
+        win.close();
+        return false;
+      }
+
+      const handleBeforeUnload = () => {
+        const record = popoutWindowsRef.current.get(panelId);
+        /* v8 ignore next -- cleanup removes this listener with the record. */
+        if (!record) return;
+        syncPopoutWindowBounds(panelId);
+        /* v8 ignore next -- close cleanup removes this listener first. */
+        if (!record.closing) {
+          dispatchWithLifecycle({
+            type: 'RETURN_PANEL_TO_FLOATING',
+            panelId,
+          });
+        }
+      };
+      const handleResize = () => syncPopoutWindowBounds(panelId);
+      const handleFocus = () => {
+        dispatchWithLifecycle({ type: 'FOCUS_PANEL', panelId });
+      };
+      win.addEventListener('beforeunload', handleBeforeUnload);
+      win.addEventListener('resize', handleResize);
+      win.addEventListener('focus', handleFocus);
+      popoutWindowsRef.current.set(panelId, {
+        win,
+        root,
+        closing: false,
+        cleanup: () => {
+          win.removeEventListener('beforeunload', handleBeforeUnload);
+          win.removeEventListener('resize', handleResize);
+          win.removeEventListener('focus', handleFocus);
+        },
+      });
+      setPopoutRoot(panelId, root);
+      win.focus();
+      return true;
+    },
+    [dispatchWithLifecycle, setPopoutRoot, syncPopoutWindowBounds],
+  );
+
+  const returnPopoutPanelToFloating = useCallback(
+    (panelId: TileryPanelId) => {
+      closePopoutWindow(panelId);
+    },
+    [closePopoutWindow],
+  );
+
   const tileryRef = useRef<TileryHandle | null>(null);
   if (!tileryRef.current) {
     tileryRef.current = makeTileryHandle(
       getState,
       dispatchWithLifecycle,
       getSizeContext,
+      {
+        requestPopoutPanel,
+        onReturnPanelToFloating: returnPopoutPanelToFloating,
+      },
     );
   }
   useImperativeHandle(ref, () => tileryRef.current!, []);
@@ -500,6 +638,42 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
   useEffect(() => {
     onChange?.(state);
   }, [state, onChange]);
+
+  useEffect(() => {
+    const poppedOut = new Set<TileryPanelId>();
+    for (const panelId of tileryAllPanelOrderFromState(state)) {
+      const panel = state.panels[panelId];
+      if (panel?.kind === 'floating' && panel.floating.popout) {
+        poppedOut.add(panelId);
+        const record = popoutWindowsRef.current.get(panelId);
+        if (!record || record.win.closed) {
+          const ok = requestPopoutPanel(panelId, {
+            windowBounds: panel.floating.popout.windowBounds,
+          });
+          if (!ok) {
+            dispatchWithLifecycle({
+              type: 'RETURN_PANEL_TO_FLOATING',
+              panelId,
+            });
+          }
+        }
+      }
+    }
+
+    const openPanelIds = Array.from(popoutWindowsRef.current.keys());
+    for (const panelId of openPanelIds) {
+      if (!poppedOut.has(panelId)) closePopoutWindow(panelId);
+    }
+  }, [closePopoutWindow, dispatchWithLifecycle, requestPopoutPanel, state]);
+
+  useEffect(() => {
+    return () => {
+      const openPanelIds = Array.from(popoutWindowsRef.current.keys());
+      for (const panelId of openPanelIds) {
+        closePopoutWindow(panelId);
+      }
+    };
+  }, [closePopoutWindow]);
 
   const drag = useTileryDragController(() => tileryRef.current);
   const floatingDragRef = useRef<TileryFloatingPanelDragState | null>(null);
@@ -867,7 +1041,8 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
           const panel = getCachedPanelHandle(panelId);
           /* v8 ignore next */
           if (!panel) return null;
-          return (
+          const popoutRoot = panel.poppedOut ? popoutRoots[panelId] : null;
+          const panelChrome = (
             <PanelChrome
               key={panelId}
               panel={panel}
@@ -875,6 +1050,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
               renderHeader={renderHeaderAdapter}
               registerPanel={getRegisterPanel(panelId)}
               registerContentSlot={getRegisterContentSlot(panelId)}
+              popoutWindow={Boolean(popoutRoot)}
               registerTabBar={getRegisterTabBar(panelId)}
               registerTab={stableRegisterTab}
               onPanelPointerDown={onPanelPointerDown}
@@ -898,6 +1074,12 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
               renderActionsButtonIcon={renderActionsButtonIcon}
             />
           );
+          if (panel.poppedOut) {
+            return popoutRoot
+              ? createPortal(panelChrome, popoutRoot, `popout-${panelId}`)
+              : null;
+          }
+          return panelChrome;
         })}
 
         {dividers.map((d) => (
@@ -992,6 +1174,104 @@ function resizeFloatingBounds(
     next.height = bounds.height + dy;
   }
   return next;
+}
+
+function defaultPopoutWindowBounds(win: Window): TileryPopoutWindowBounds {
+  const width = 720;
+  const height = 520;
+  const screenLeft = finiteNumber(win.screenX, 0);
+  const screenTop = finiteNumber(win.screenY, 0);
+  const outerWidth = finiteNumber(win.outerWidth, width + 120);
+  const outerHeight = finiteNumber(win.outerHeight, height + 120);
+  return {
+    left: Math.round(screenLeft + Math.max(24, (outerWidth - width) / 2)),
+    top: Math.round(screenTop + Math.max(24, (outerHeight - height) / 2)),
+    width,
+    height,
+  };
+}
+
+function normalizePopoutWindowBounds(
+  value: Partial<TileryPopoutWindowBounds> | undefined,
+  fallback: TileryPopoutWindowBounds,
+): TileryPopoutWindowBounds {
+  return {
+    left: Math.round(finiteNumber(value?.left, fallback.left)),
+    top: Math.round(finiteNumber(value?.top, fallback.top)),
+    width: Math.round(
+      Math.max(240, finiteNumber(value?.width, fallback.width)),
+    ),
+    height: Math.round(
+      Math.max(160, finiteNumber(value?.height, fallback.height)),
+    ),
+  };
+}
+
+function readPopoutWindowBounds(win: Window): TileryPopoutWindowBounds {
+  return normalizePopoutWindowBounds(
+    {
+      left: win.screenX,
+      top: win.screenY,
+      width: win.outerWidth,
+      height: win.outerHeight,
+    },
+    defaultPopoutWindowBounds(win),
+  );
+}
+
+function popoutFeatureString(bounds: TileryPopoutWindowBounds): string {
+  return [
+    'popup=yes',
+    `left=${bounds.left}`,
+    `top=${bounds.top}`,
+    `width=${bounds.width}`,
+    `height=${bounds.height}`,
+  ].join(',');
+}
+
+function preparePopoutDocument(
+  win: Window,
+  sourceContainer: HTMLElement | null,
+  panelId: TileryPanelId,
+): HTMLElement | null {
+  const sourceDocument = sourceContainer?.ownerDocument;
+  const doc = win.document;
+  if (!doc || !sourceDocument) return null;
+
+  doc.head.innerHTML = '';
+  doc.body.innerHTML = '';
+  doc.title = `Tilery - ${panelId}`;
+  doc.body.style.margin = '0';
+  doc.body.style.overflow = 'hidden';
+  doc.documentElement.style.height = '100%';
+  doc.body.style.height = '100%';
+  copyPopoutStyles(sourceDocument, doc);
+
+  const root = doc.createElement('div');
+  root.className = 'tilery tilery__popout';
+  root.setAttribute('data-tilery-popout-root', panelId);
+  doc.body.appendChild(root);
+  return root;
+}
+
+function copyPopoutStyles(sourceDocument: Document, targetDocument: Document) {
+  const base = targetDocument.createElement('base');
+  base.href = sourceDocument.baseURI;
+  targetDocument.head.appendChild(base);
+
+  for (const node of Array.from(sourceDocument.head.children)) {
+    const tagName = node.tagName.toLowerCase();
+    const isStylesheetLink =
+      tagName === 'link' &&
+      (node as HTMLLinkElement).rel.toLowerCase() === 'stylesheet';
+    if (tagName === 'style' || isStylesheetLink) {
+      targetDocument.head.appendChild(node.cloneNode(true));
+    }
+  }
+}
+
+function finiteNumber(value: unknown, fallback: number): number {
+  return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
 }
 
 function makeLifecycleEvents<TData>(
@@ -1113,14 +1393,20 @@ function makeTabMoveChanges<TData>(
   state: TileryLayoutState,
   action: TileryReducerAction,
 ): TileryTabMoveChange<TData>[] {
-  if (action.type !== 'MOVE_TAB') return [];
-  const previousTab = previousState.tabs[action.tabId];
-  const tab = state.tabs[action.tabId];
+  const tabId =
+    action.type === 'MOVE_TAB' ||
+    action.type === 'FLOAT_TAB' ||
+    action.type === 'POPOUT_TAB'
+      ? action.tabId
+      : null;
+  if (!tabId) return [];
+  const previousTab = previousState.tabs[tabId];
+  const tab = state.tabs[tabId];
   if (!previousTab || !tab) return [];
   const previousPanel = previousState.panels[previousTab.panelId]!;
   const panel = state.panels[tab.panelId]!;
-  const previousIndex = previousPanel.tabs.indexOf(action.tabId);
-  const index = panel.tabs.indexOf(action.tabId);
+  const previousIndex = previousPanel.tabs.indexOf(tabId);
+  const index = panel.tabs.indexOf(tabId);
   if (previousTab.panelId === tab.panelId && previousIndex === index) return [];
   return [
     {

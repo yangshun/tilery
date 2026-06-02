@@ -26,9 +26,46 @@ export type TileryFloatingPanelBounds = {
 
 export type TileryFloatingPanelBoundsInit = Partial<TileryFloatingPanelBounds>;
 
+export type TileryPopoutWindowBounds = {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+};
+
+export type TileryPopoutWindowBoundsInit = Partial<TileryPopoutWindowBounds>;
+
+export type TileryPopoutPanelPlacement = {
+  windowBounds: TileryPopoutWindowBounds;
+};
+
+export type TileryPopoutPanelConfig =
+  | boolean
+  | {
+      windowBounds?: TileryPopoutWindowBoundsInit;
+    };
+
+export type TileryFloatPanelOptions = TileryFloatingPanelBoundsInit &
+  TileryLayoutBehaviorConfig;
+
+export type TileryPopoutPanelOptions = {
+  floatingBounds?: TileryFloatingPanelBoundsInit;
+  windowBounds?: TileryPopoutWindowBoundsInit;
+} & TileryLayoutBehaviorConfig;
+
+export type TileryFloatTabOptions = {
+  panelId?: TileryPanelId;
+  bounds?: TileryFloatingPanelBoundsInit;
+} & TileryLayoutBehaviorConfig;
+
+export type TileryPopoutTabOptions = TileryPopoutPanelOptions & {
+  panelId?: TileryPanelId;
+};
+
 export type TileryFloatingPanelPlacement = {
   bounds: TileryFloatingPanelBounds;
   zIndex: number;
+  popout?: TileryPopoutPanelPlacement;
 };
 
 type TileryPanelStateBase = {
@@ -178,6 +215,7 @@ export type TileryFloatingPanelInit<TData = unknown> = {
   id?: TileryPanelId;
   bounds?: TileryFloatingPanelBoundsInit;
   zIndex?: number;
+  popout?: TileryPopoutPanelConfig;
   tabs: TileryTabInit<TData>[];
   activeTabId?: TileryTabId;
   fullScreen?: boolean;
@@ -229,6 +267,7 @@ export type TileryFloatingPanelSnapshot<TData = unknown> = {
   id?: TileryPanelId;
   bounds: TileryFloatingPanelBounds;
   zIndex: number;
+  popout?: TileryPopoutPanelPlacement;
   tabs: TileryTabSnapshot<TData>[];
   activeTabId?: TileryTabId;
   fullScreen?: boolean;
@@ -311,7 +350,9 @@ export type TileryHandle = {
   removePanel(panelId: TileryPanelId): void;
   maximizePanel(panelId: TileryPanelId): void;
   restorePanel(panelId: TileryPanelId): void;
-  floatPanel(
+  floatPanel(panelId: TileryPanelId, opts?: TileryFloatPanelOptions): void;
+  popoutPanel(panelId: TileryPanelId, opts?: TileryPopoutPanelOptions): void;
+  returnPanelToFloating(
     panelId: TileryPanelId,
     bounds?: TileryFloatingPanelBoundsInit,
   ): void;
@@ -320,6 +361,10 @@ export type TileryHandle = {
   setFloatingPanelBounds(
     panelId: TileryPanelId,
     bounds: TileryFloatingPanelBounds,
+  ): void;
+  setPopoutWindowBounds(
+    panelId: TileryPanelId,
+    bounds: TileryPopoutWindowBounds,
   ): void;
   appendTab(
     panelId: TileryPanelId,
@@ -334,6 +379,14 @@ export type TileryHandle = {
   ): TileryTabHandle;
   removeTab(tabId: TileryTabId): void;
   moveTab(tabId: TileryTabId, target: TileryMoveTarget): void;
+  floatTab(
+    tabId: TileryTabId,
+    opts?: TileryFloatTabOptions,
+  ): TileryPanelHandle | null;
+  popoutTab(
+    tabId: TileryTabId,
+    opts?: TileryPopoutTabOptions,
+  ): TileryPanelHandle | null;
   setTabBehavior(tabId: TileryTabId, behavior: TileryTabBehaviorUpdate): void;
   setActiveTab(tabId: TileryTabId): void;
   swapPanels(panelA: TileryPanelId, panelB: TileryPanelId): void;
@@ -349,6 +402,8 @@ export type TileryPanelHandle = {
   readonly floating: boolean;
   readonly floatingBounds: Readonly<TileryFloatingPanelBounds> | undefined;
   readonly floatingZIndex: number | undefined;
+  readonly poppedOut: boolean;
+  readonly popoutWindowBounds: Readonly<TileryPopoutWindowBounds> | undefined;
   readonly tabs: readonly TileryTabHandle[];
   readonly activeTab: TileryTabHandle | null;
   readonly fullScreen: boolean;
@@ -373,10 +428,13 @@ export type TileryPanelHandle = {
   remove(): void;
   maximize(): void;
   restore(): void;
-  float(bounds?: TileryFloatingPanelBoundsInit): void;
+  float(opts?: TileryFloatPanelOptions): void;
+  popout(opts?: TileryPopoutPanelOptions): void;
+  returnToFloating(bounds?: TileryFloatingPanelBoundsInit): void;
   dock(target?: TileryDockPanelTarget): void;
   focus(): void;
   setFloatingBounds(bounds: TileryFloatingPanelBounds): void;
+  setPopoutWindowBounds(bounds: TileryPopoutWindowBounds): void;
   setActiveTab(id: TileryTabId): void;
 };
 
@@ -390,6 +448,8 @@ export type TileryTabHandle<TData = unknown> = {
   setData(data: TData): void;
   setBehavior(behavior: TileryTabBehaviorUpdate): void;
   moveTo(target: TileryMoveTarget): void;
+  float(opts?: TileryFloatTabOptions): TileryPanelHandle | null;
+  popout(opts?: TileryPopoutTabOptions): TileryPanelHandle | null;
   activate(): void;
   remove(): void;
 };

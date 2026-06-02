@@ -3,6 +3,7 @@
 import { afterEach, describe, expect, it, vi } from 'vite-plus/test';
 import React, { act, createRef } from 'react';
 import { createRoot } from 'react-dom/client';
+import { readFileSync } from 'node:fs';
 
 import {
   Tilery,
@@ -365,6 +366,61 @@ function pointerEvent(
   } as unknown as React.PointerEvent;
 }
 
+type PopoutWindowMock = Window & {
+  document: Document;
+  closed: boolean;
+  screenX: number;
+  screenY: number;
+  outerWidth: number;
+  outerHeight: number;
+  focus: ReturnType<typeof vi.fn>;
+  close: ReturnType<typeof vi.fn>;
+  dispatchPopoutEvent: (type: string) => void;
+};
+
+function createPopoutWindowMock(
+  bounds = { left: 90, top: 80, width: 760, height: 540 },
+): PopoutWindowMock {
+  const doc = document.implementation.createHTMLDocument('Popout');
+  const listeners = new Map<string, Set<EventListenerOrEventListenerObject>>();
+  const win = {
+    document: doc,
+    closed: false,
+    screenX: bounds.left,
+    screenY: bounds.top,
+    outerWidth: bounds.width,
+    outerHeight: bounds.height,
+    focus: vi.fn(),
+    close: vi.fn(),
+    addEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject,
+    ) {
+      const set = listeners.get(type) ?? new Set();
+      set.add(listener);
+      listeners.set(type, set);
+    },
+    removeEventListener(
+      type: string,
+      listener: EventListenerOrEventListenerObject,
+    ) {
+      listeners.get(type)?.delete(listener);
+    },
+    dispatchPopoutEvent(type: string) {
+      const event = new Event(type);
+      for (const listener of listeners.get(type) ?? []) {
+        if (typeof listener === 'function') listener.call(win, event);
+        else listener.handleEvent(event);
+      }
+    },
+  } as unknown as PopoutWindowMock;
+  win.close = vi.fn(() => {
+    win.closed = true;
+    win.dispatchPopoutEvent('beforeunload');
+  });
+  return win;
+}
+
 describe('Tilery — rendering', () => {
   it('renders one panel per initial layout tree leaf with the right tab strip', () => {
     const t = mount(lShapeLayout());
@@ -380,6 +436,12 @@ describe('Tilery — rendering', () => {
       'bash×',
     ]);
     t.cleanup();
+  });
+
+  it('isolates the root stacking context', () => {
+    const css = readFileSync('packages/core/src/tilery.css', 'utf8');
+
+    expect(css).toMatch(/\.tilery\s*\{[^}]*isolation:\s*isolate;/);
   });
 
   it('marks locked panel and tab-bar affordance state in the DOM', () => {
@@ -498,6 +560,407 @@ describe('Tilery — rendering', () => {
         '.tilery__panel[data-panel-id="locked"] .tilery__floating-resize-handle',
       ),
     ).toHaveLength(0);
+    t.cleanup();
+  });
+
+  it('does not render resize handles when a panel is floated with resizable=false', () => {
+    const t = mount(simpleLayout());
+
+    act(() => {
+      t.handle().floatPanel('left', {
+        x: 8,
+        y: 10,
+        width: 36,
+        height: 44,
+        resizable: false,
+      });
+    });
+
+    expect(
+      t.host.querySelectorAll(
+        '.tilery__panel[data-panel-id="left"] .tilery__floating-resize-handle',
+      ),
+    ).toHaveLength(0);
+    t.cleanup();
+  });
+
+  it('focuses floating panels from panel pointerdown', () => {
+    const t = mount({
+      type: 'root',
+      main: {
+        type: 'panel',
+        id: 'main',
+        tabs: [{ id: 'main-tab', data: { title: 'Main' } }],
+      },
+      floating: [
+        {
+          type: 'floatingPanel',
+          id: 'first',
+          tabs: [{ id: 'first-tab', data: { title: 'First' } }],
+        },
+        {
+          type: 'floatingPanel',
+          id: 'second',
+          tabs: [{ id: 'second-tab', data: { title: 'Second' } }],
+        },
+      ],
+    });
+    const first = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="first"]',
+    )!;
+
+    act(() => {
+      reactProps(first).onPointerDown(pointerEvent());
+    });
+
+    expect(t.handle().getPanel('first')?.floatingZIndex).toBe(21);
+    expect(t.handle().getPanel('second')?.floatingZIndex).toBe(20);
+    t.cleanup();
+  });
+
+  it('renders a popped-out panel into a native window portal', () => {
+    const popout = createPopoutWindowMock();
+    const open = vi.spyOn(window, 'open').mockReturnValue(popout);
+    const style = document.createElement('style');
+    style.textContent = '.copied-style { color: red; }';
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = '/tilery-test.css';
+    const meta = document.createElement('meta');
+    meta.name = 'not-copied';
+    document.head.append(style, link, meta);
+    const t = mount(floatingLayout());
+
+    act(() => {
+      t.handle().popoutPanel('palette', {
+        windowBounds: { left: 90, top: 80, width: 760, height: 540 },
+      });
+    });
+
+    expect(open).toHaveBeenCalledWith(
+      '',
+      'tilery-popout-palette',
+      'popup=yes,left=90,top=80,width=760,height=540',
+    );
+    expect(t.handle().getPanel('palette')?.poppedOut).toBe(true);
+    expect(t.handle().getPanel('palette')?.popoutWindowBounds).toEqual({
+      left: 90,
+      top: 80,
+      width: 760,
+      height: 540,
+    });
+    expect(
+      t.host.querySelector('.tilery__panel[data-panel-id="palette"]'),
+    ).toBeNull();
+    expect(
+      popout.document.querySelector('.tilery__panel[data-panel-id="palette"]'),
+    ).not.toBeNull();
+    expect(
+      popout.document.querySelector('[data-content-of="palette-tab"]')
+        ?.textContent,
+    ).toBe('Palette');
+    expect(popout.document.head.querySelector('style')?.textContent).toContain(
+      '.copied-style',
+    );
+    expect(
+      popout.document.head.querySelector('link[rel="stylesheet"]'),
+    ).not.toBeNull();
+    expect(popout.document.head.querySelector('meta[name="not-copied"]')).toBe(
+      null,
+    );
+    t.cleanup();
+    style.remove();
+    link.remove();
+    meta.remove();
+  });
+
+  it('opens native windows for popped-out panels from the initial layout', () => {
+    const popout = createPopoutWindowMock();
+    const open = vi.spyOn(window, 'open').mockReturnValue(popout);
+    const t = mount({
+      type: 'root',
+      main: {
+        type: 'panel',
+        id: 'main',
+        tabs: [{ id: 'main-tab', data: { title: 'Main' } }],
+      },
+      floating: [
+        {
+          type: 'floatingPanel',
+          id: 'palette',
+          popout: {
+            windowBounds: { left: 90, top: 80, width: 760, height: 540 },
+          },
+          tabs: [{ id: 'palette-tab', data: { title: 'Palette' } }],
+        },
+      ],
+    });
+
+    expect(open).toHaveBeenCalledWith(
+      '',
+      'tilery-popout-palette',
+      'popup=yes,left=90,top=80,width=760,height=540',
+    );
+    expect(t.handle().getPanel('palette')?.poppedOut).toBe(true);
+    expect(
+      popout.document.querySelector('.tilery__panel[data-panel-id="palette"]'),
+    ).not.toBeNull();
+    t.cleanup();
+  });
+
+  it('returns initial popped-out panels to floating when the native window is blocked', () => {
+    vi.spyOn(window, 'open').mockReturnValue(null);
+    const t = mount({
+      type: 'root',
+      main: {
+        type: 'panel',
+        id: 'main',
+        tabs: [{ id: 'main-tab', data: { title: 'Main' } }],
+      },
+      floating: [
+        {
+          type: 'floatingPanel',
+          id: 'palette',
+          popout: {
+            windowBounds: { left: 90, top: 80, width: 760, height: 540 },
+          },
+          tabs: [{ id: 'palette-tab', data: { title: 'Palette' } }],
+        },
+      ],
+    });
+
+    expect(t.handle().getPanel('palette')?.poppedOut).toBe(false);
+    expect(
+      t.host.querySelector('.tilery__panel[data-panel-id="palette"]'),
+    ).not.toBeNull();
+    t.cleanup();
+  });
+
+  it('leaves a panel floating when native popout document setup fails', () => {
+    const badWindow = {
+      document: null,
+      closed: false,
+      screenX: 0,
+      screenY: 0,
+      outerWidth: 760,
+      outerHeight: 540,
+      focus: vi.fn(),
+      close: vi.fn(),
+      addEventListener() {},
+      removeEventListener() {},
+    } as unknown as Window;
+    vi.spyOn(window, 'open').mockReturnValue(badWindow);
+    const t = mount(floatingLayout());
+
+    act(() => {
+      t.handle().popoutPanel('palette');
+    });
+
+    expect(
+      (badWindow as unknown as { close: ReturnType<typeof vi.fn> }).close,
+    ).toHaveBeenCalledTimes(1);
+    expect(t.handle().getPanel('palette')?.poppedOut).toBe(false);
+    t.cleanup();
+  });
+
+  it('renders a popped-out tab as a new native-window panel', () => {
+    const popout = createPopoutWindowMock();
+    const open = vi.spyOn(window, 'open').mockReturnValue(popout);
+    const t = mount(lShapeLayout());
+
+    act(() => {
+      t.handle().popoutTab('bar', {
+        panelId: 'bar-popout',
+        floatingBounds: { x: 12, y: 14, width: 36, height: 38 },
+        windowBounds: { left: 90, top: 80, width: 760, height: 540 },
+      });
+    });
+
+    expect(open).toHaveBeenCalledWith(
+      '',
+      'tilery-popout-bar-popout',
+      'popup=yes,left=90,top=80,width=760,height=540',
+    );
+    expect(t.handle().getTab('bar')?.panel.id).toBe('bar-popout');
+    expect(
+      t
+        .handle()
+        .getPanel('editor')
+        ?.tabs.map((tab) => tab.id),
+    ).toEqual(['foo']);
+    expect(t.handle().getPanel('bar-popout')?.poppedOut).toBe(true);
+    expect(
+      t.host.querySelector('.tilery__panel[data-panel-id="bar-popout"]'),
+    ).toBeNull();
+    expect(
+      popout.document.querySelector(
+        '.tilery__panel[data-panel-id="bar-popout"]',
+      ),
+    ).not.toBeNull();
+    expect(
+      popout.document.querySelector('[data-content-of="bar"]')?.textContent,
+    ).toBe('bar.ts');
+    t.cleanup();
+  });
+
+  it('leaves a tab in place when its native popout window is blocked', () => {
+    vi.spyOn(window, 'open').mockReturnValue(null);
+    const t = mount(lShapeLayout());
+
+    act(() => {
+      t.handle().popoutTab('bar', { panelId: 'bar-popout' });
+    });
+
+    expect(t.handle().getPanel('bar-popout')).toBeNull();
+    expect(t.handle().getTab('bar')?.panel.id).toBe('editor');
+    expect(
+      t.host.querySelector('.tilery__panel[data-panel-id="editor"]'),
+    ).not.toBeNull();
+    t.cleanup();
+  });
+
+  it('returns a popped-out panel to the in-page floating layer', () => {
+    const popout = createPopoutWindowMock();
+    vi.spyOn(window, 'open').mockReturnValue(popout);
+    const t = mount(floatingLayout());
+
+    act(() => {
+      t.handle().popoutPanel('palette');
+    });
+    act(() => {
+      t.handle().returnPanelToFloating('palette');
+    });
+
+    expect(popout.close).toHaveBeenCalledTimes(1);
+    expect(t.handle().getPanel('palette')?.poppedOut).toBe(false);
+    expect(
+      t.host.querySelector('.tilery__panel[data-panel-id="palette"]'),
+    ).not.toBeNull();
+    t.cleanup();
+  });
+
+  it('focuses an existing native popout window when popout is requested again', () => {
+    const popout = createPopoutWindowMock();
+    vi.spyOn(window, 'open').mockReturnValue(popout);
+    const t = mount(floatingLayout());
+
+    act(() => {
+      t.handle().popoutPanel('palette');
+    });
+    act(() => {
+      t.handle().popoutPanel('palette');
+    });
+
+    expect(popout.focus).toHaveBeenCalledTimes(2);
+    t.cleanup();
+  });
+
+  it('syncs native popout bounds on resize and focuses the panel on focus', () => {
+    const popout = createPopoutWindowMock();
+    vi.spyOn(window, 'open').mockReturnValue(popout);
+    const t = mount(floatingLayout());
+
+    act(() => {
+      t.handle().popoutPanel('palette');
+    });
+    popout.screenX = 120;
+    popout.screenY = 130;
+    popout.outerWidth = 640;
+    popout.outerHeight = 420;
+    act(() => {
+      popout.dispatchPopoutEvent('resize');
+      popout.dispatchPopoutEvent('focus');
+    });
+
+    expect(t.handle().getPanel('palette')?.popoutWindowBounds).toEqual({
+      left: 120,
+      top: 130,
+      width: 640,
+      height: 420,
+    });
+    t.cleanup();
+  });
+
+  it('ignores native popout resize events after the window is already closed', () => {
+    const popout = createPopoutWindowMock();
+    vi.spyOn(window, 'open').mockReturnValue(popout);
+    const t = mount(floatingLayout());
+
+    act(() => {
+      t.handle().popoutPanel('palette');
+    });
+    popout.closed = true;
+    popout.screenX = 140;
+    act(() => {
+      popout.dispatchPopoutEvent('resize');
+    });
+
+    expect(t.handle().getPanel('palette')?.popoutWindowBounds?.left).not.toBe(
+      140,
+    );
+    t.cleanup();
+  });
+
+  it('returns an already-closed native window record without closing it again', () => {
+    const popout = createPopoutWindowMock();
+    vi.spyOn(window, 'open').mockReturnValue(popout);
+    const t = mount(floatingLayout());
+
+    act(() => {
+      t.handle().popoutPanel('palette');
+    });
+    popout.closed = true;
+    act(() => {
+      t.handle().returnPanelToFloating('palette');
+    });
+
+    expect(popout.close).not.toHaveBeenCalled();
+    expect(t.handle().getPanel('palette')?.poppedOut).toBe(false);
+    t.cleanup();
+  });
+
+  it('ignores return-to-floating window cleanup for panels without a popout record', () => {
+    const t = mount(floatingLayout());
+
+    act(() => {
+      t.handle().returnPanelToFloating('palette');
+    });
+
+    expect(t.handle().getPanel('palette')?.poppedOut).toBe(false);
+    t.cleanup();
+  });
+
+  it('returns a popped-out panel when the native window closes', () => {
+    const popout = createPopoutWindowMock();
+    vi.spyOn(window, 'open').mockReturnValue(popout);
+    const t = mount(floatingLayout());
+
+    act(() => {
+      t.handle().popoutPanel('palette');
+    });
+    act(() => {
+      popout.dispatchPopoutEvent('beforeunload');
+    });
+
+    expect(t.handle().getPanel('palette')?.poppedOut).toBe(false);
+    expect(
+      t.host.querySelector('.tilery__panel[data-panel-id="palette"]'),
+    ).not.toBeNull();
+    t.cleanup();
+  });
+
+  it('leaves the panel unchanged when the popup is blocked', () => {
+    vi.spyOn(window, 'open').mockReturnValue(null);
+    const t = mount(floatingLayout());
+
+    act(() => {
+      t.handle().popoutPanel('palette');
+    });
+
+    expect(t.handle().getPanel('palette')?.poppedOut).toBe(false);
+    expect(
+      t.host.querySelector('.tilery__panel[data-panel-id="palette"]'),
+    ).not.toBeNull();
     t.cleanup();
   });
 
@@ -1156,6 +1619,66 @@ describe('Tilery — open and close lifecycle callbacks', () => {
     t.cleanup();
   });
 
+  it('reports tab moves and panel opens when a tab is floated', () => {
+    const moves: TileryTabsMoveEvent<Data>[] = [];
+    const panelOpens: TileryPanelsOpenEvent<Data>[] = [];
+    const t = mount(lShapeLayout(), undefined, {
+      onTabsMove: (event) => moves.push(event),
+      onPanelsOpen: (event) => panelOpens.push(event),
+    });
+
+    act(() => {
+      t.handle().floatTab('bar', {
+        panelId: 'bar-floating',
+        bounds: { x: 10, y: 12, width: 32, height: 34 },
+      });
+    });
+
+    expect(moves).toHaveLength(1);
+    expect(panelOpens).toHaveLength(1);
+    expect(moves[0]).toMatchObject({
+      source: 'FLOAT_TAB',
+      tabs: [
+        {
+          id: 'bar',
+          previousPanelId: 'editor',
+          panelId: 'bar-floating',
+          previousIndex: 1,
+          index: 0,
+        },
+      ],
+    });
+    expect(panelOpens[0]).toMatchObject({
+      source: 'FLOAT_TAB',
+      panels: [{ id: 'bar-floating', tabIds: ['bar'], activeTabId: 'bar' }],
+      tabs: [{ id: 'bar', panelId: 'bar-floating' }],
+    });
+    t.cleanup();
+  });
+
+  it('reports panel closes without tab closes when a last tab is floated', () => {
+    const closes: TileryTabsCloseEvent<Data>[] = [];
+    const panelCloses: TileryPanelsCloseEvent<Data>[] = [];
+    const t = mount(lShapeLayout(), undefined, {
+      onTabsClose: (event) => closes.push(event),
+      onPanelsClose: (event) => panelCloses.push(event),
+    });
+
+    act(() => {
+      t.handle().floatTab('side', { panelId: 'side-floating' });
+    });
+
+    expect(closes).toEqual([]);
+    expect(panelCloses).toHaveLength(1);
+    expect(panelCloses[0]).toMatchObject({
+      source: 'FLOAT_TAB',
+      panels: [{ id: 'sidebar', tabIds: ['side'], activeTabId: 'side' }],
+      tabs: [{ id: 'side', panelId: 'sidebar' }],
+    });
+    expect(t.handle().getTab('side')!.panel.id).toBe('side-floating');
+    t.cleanup();
+  });
+
   it('reports tab closes and the panel that disappears with the last tab', () => {
     const closes: TileryTabsCloseEvent<Data>[] = [];
     const panelCloses: TileryPanelsCloseEvent<Data>[] = [];
@@ -1549,6 +2072,43 @@ describe('Tilery — panel action UI', () => {
     t.cleanup();
   });
 
+  it('runs popout and return actions from the built-in panel action menu', () => {
+    const popout = createPopoutWindowMock();
+    vi.spyOn(window, 'open').mockReturnValue(popout);
+    const t = mount(floatingLayout(), undefined, {
+      showActionsButton: true,
+    });
+    const button = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="palette"] .tilery__panel-action-button[aria-label="Panel actions"]',
+    )!;
+    act(() => {
+      reactProps(button).onClick({});
+    });
+    const popoutAction = Array.from(
+      t.host.querySelectorAll<HTMLElement>('.tilery__panel-menu-item'),
+    ).find((el) => el.textContent === 'Pop out window')!;
+    act(() => {
+      reactProps(popoutAction).onClick({});
+    });
+    expect(t.handle().getPanel('palette')?.poppedOut).toBe(true);
+
+    const poppedOutButton = popout.document.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="palette"] .tilery__panel-action-button[aria-label="Panel actions"]',
+    )!;
+    act(() => {
+      reactProps(poppedOutButton).onClick({});
+    });
+    const returnAction = Array.from(
+      popout.document.querySelectorAll<HTMLElement>('.tilery__panel-menu-item'),
+    ).find((el) => el.textContent === 'Return to floating layer')!;
+    act(() => {
+      reactProps(returnAction).onClick({});
+    });
+    expect(t.handle().getPanel('palette')?.poppedOut).toBe(false);
+    expect(t.host.querySelector('.tilery__panel-menu')).toBeNull();
+    t.cleanup();
+  });
+
   it('runs close-panel actions from the built-in panel action menu', () => {
     const t = mount(lShapeLayout(), undefined, {
       showActionsButton: true,
@@ -1653,6 +2213,138 @@ describe('Tilery — drag flow covers the drop overlay path', () => {
     t.cleanup();
   });
 
+  it('does not show split hover zones on floating panel edges', () => {
+    const t = mount({
+      type: 'root',
+      main: {
+        type: 'panel',
+        id: 'main',
+        tabs: [{ id: 'main-tab', data: { title: 'Main' } }],
+      },
+      floating: [
+        {
+          type: 'floatingPanel',
+          id: 'palette',
+          bounds: { x: 20, y: 20, width: 30, height: 30 },
+          tabs: [{ id: 'palette-tab', data: { title: 'Palette' } }],
+        },
+      ],
+    });
+    const mainTab = t.host.querySelector<HTMLElement>(
+      '.tilery__tab[data-tab-id="main-tab"]',
+    )!;
+    const mainPanel = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="main"]',
+    )!;
+    const palettePanel = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="palette"]',
+    )!;
+    mainPanel.getBoundingClientRect = () =>
+      ({
+        left: 0,
+        top: 0,
+        right: 100,
+        bottom: 100,
+        width: 100,
+        height: 100,
+        x: 0,
+        y: 0,
+        toJSON: () => ({}),
+      }) as DOMRect;
+    palettePanel.getBoundingClientRect = () =>
+      ({
+        left: 200,
+        top: 100,
+        right: 500,
+        bottom: 400,
+        width: 300,
+        height: 300,
+        x: 200,
+        y: 100,
+        toJSON: () => ({}),
+      }) as DOMRect;
+
+    act(() => {
+      reactProps(mainTab).onPointerDown(
+        pointerEvent({ clientX: 20, clientY: 20, pointerId: 14 }),
+      );
+      reactProps(mainTab).onPointerMove(
+        pointerEvent({ clientX: 205, clientY: 250, pointerId: 14 }),
+      );
+    });
+
+    expect(t.host.querySelector('.tilery__drag-ghost')).not.toBeNull();
+    expect(t.host.querySelector('.tilery__drop-overlay')).toBeNull();
+    t.cleanup();
+  });
+
+  it('shows center drop feedback over a floating panel', () => {
+    const t = mount({
+      type: 'root',
+      main: {
+        type: 'panel',
+        id: 'main',
+        tabs: [{ id: 'main-tab', data: { title: 'Main' } }],
+      },
+      floating: [
+        {
+          type: 'floatingPanel',
+          id: 'palette',
+          bounds: { x: 20, y: 20, width: 30, height: 30 },
+          tabs: [{ id: 'palette-tab', data: { title: 'Palette' } }],
+        },
+      ],
+    });
+    const mainTab = t.host.querySelector<HTMLElement>(
+      '.tilery__tab[data-tab-id="main-tab"]',
+    )!;
+    const mainPanel = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="main"]',
+    )!;
+    const palettePanel = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="palette"]',
+    )!;
+    mainPanel.getBoundingClientRect = () =>
+      ({
+        left: 0,
+        top: 0,
+        right: 100,
+        bottom: 100,
+        width: 100,
+        height: 100,
+        x: 0,
+        y: 0,
+        toJSON: () => ({}),
+      }) as DOMRect;
+    palettePanel.getBoundingClientRect = () =>
+      ({
+        left: 200,
+        top: 100,
+        right: 500,
+        bottom: 400,
+        width: 300,
+        height: 300,
+        x: 200,
+        y: 100,
+        toJSON: () => ({}),
+      }) as DOMRect;
+
+    act(() => {
+      reactProps(mainTab).onPointerDown(
+        pointerEvent({ clientX: 20, clientY: 20, pointerId: 15 }),
+      );
+      reactProps(mainTab).onPointerMove(
+        pointerEvent({ clientX: 350, clientY: 250, pointerId: 15 }),
+      );
+    });
+
+    const overlay = t.host.querySelector<HTMLElement>('.tilery__drop-overlay');
+    expect(overlay).not.toBeNull();
+    expect(overlay?.dataset.zone).toBe('center');
+    expect(t.host.querySelector('.tilery__drag-ghost')).not.toBeNull();
+    t.cleanup();
+  });
+
   it('shows sibling count while panel-dragging and falls back if that tab is removed', () => {
     const t = mount(lShapeLayout());
     const editorBar = t.host.querySelector<HTMLElement>(
@@ -1715,6 +2407,212 @@ describe('Tilery — drag flow covers the drop overlay path', () => {
     t.cleanup();
   });
 
+  it('ignores non-left-button floating panel drag starts', () => {
+    const t = mount(floatingLayout());
+    const paletteBar = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="palette"] .tilery__tab-bar',
+    )!;
+    const down = pointerEvent({
+      button: 2,
+      clientX: 100,
+      clientY: 80,
+      pointerId: 9,
+    });
+    Object.assign(down as unknown as Record<string, unknown>, {
+      currentTarget: paletteBar,
+      target: paletteBar,
+    });
+
+    act(() => {
+      reactProps(paletteBar).onPointerDown(down);
+      reactProps(paletteBar).onPointerMove(
+        pointerEvent({ clientX: 200, clientY: 160, pointerId: 9 }),
+      );
+      reactProps(paletteBar).onPointerUp(
+        pointerEvent({ clientX: 200, clientY: 160, pointerId: 9 }),
+      );
+    });
+
+    expect(t.handle().getPanel('palette')?.floatingBounds).toEqual({
+      x: 10,
+      y: 10,
+      width: 32,
+      height: 40,
+    });
+    t.cleanup();
+  });
+
+  it('ignores stale floating tab-bar drags after the panel is removed', () => {
+    const t = mount(floatingLayout());
+    const paletteBar = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="palette"] .tilery__tab-bar',
+    )!;
+    const onPointerDown = reactProps(paletteBar).onPointerDown;
+    const down = pointerEvent({ clientX: 100, clientY: 80, pointerId: 9 });
+    Object.assign(down as unknown as Record<string, unknown>, {
+      currentTarget: paletteBar,
+      target: paletteBar,
+    });
+    act(() => {
+      t.handle().removePanel('palette');
+    });
+
+    act(() => {
+      onPointerDown(down);
+    });
+
+    expect(t.handle().getPanel('palette')).toBeNull();
+    t.cleanup();
+  });
+
+  it('ignores floating panel drag starts when dragging is disabled', () => {
+    const t = mount({
+      type: 'root',
+      main: {
+        type: 'panel',
+        id: 'main',
+        tabs: [{ id: 'main-tab', data: { title: 'Main' } }],
+      },
+      floating: [
+        {
+          type: 'floatingPanel',
+          id: 'palette',
+          draggable: false,
+          bounds: { x: 10, y: 10, width: 32, height: 40 },
+          tabs: [{ id: 'palette-tab', data: { title: 'Palette' } }],
+        },
+      ],
+    });
+    const paletteBar = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="palette"] .tilery__tab-bar',
+    )!;
+    const down = pointerEvent({ clientX: 100, clientY: 80, pointerId: 9 });
+    Object.assign(down as unknown as Record<string, unknown>, {
+      currentTarget: paletteBar,
+      target: paletteBar,
+    });
+
+    act(() => {
+      reactProps(paletteBar).onPointerDown(down);
+      reactProps(paletteBar).onPointerMove(
+        pointerEvent({ clientX: 200, clientY: 160, pointerId: 9 }),
+      );
+    });
+
+    expect(t.handle().getPanel('palette')?.floatingBounds).toEqual({
+      x: 10,
+      y: 10,
+      width: 32,
+      height: 40,
+    });
+    t.cleanup();
+  });
+
+  it('ignores floating panel drag starts when the container has no size', () => {
+    const t = mount(floatingLayout(), undefined, {}, { stubRect: false });
+    const paletteBar = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="palette"] .tilery__tab-bar',
+    )!;
+    const down = pointerEvent({ clientX: 100, clientY: 80, pointerId: 9 });
+    Object.assign(down as unknown as Record<string, unknown>, {
+      currentTarget: paletteBar,
+      target: paletteBar,
+    });
+
+    act(() => {
+      reactProps(paletteBar).onPointerDown(down);
+      reactProps(paletteBar).onPointerMove(
+        pointerEvent({ clientX: 200, clientY: 160, pointerId: 9 }),
+      );
+    });
+
+    expect(t.handle().getPanel('palette')?.floatingBounds).toEqual({
+      x: 10,
+      y: 10,
+      width: 32,
+      height: 40,
+    });
+    t.cleanup();
+  });
+
+  it('ignores stale floating tab-bar handlers after unmount', () => {
+    const t = mount(floatingLayout());
+    const paletteBar = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="palette"] .tilery__tab-bar',
+    )!;
+    const onPointerDown = reactProps(paletteBar).onPointerDown;
+    const down = pointerEvent({ clientX: 100, clientY: 80, pointerId: 9 });
+    Object.assign(down as unknown as Record<string, unknown>, {
+      currentTarget: paletteBar,
+      target: paletteBar,
+    });
+
+    t.cleanup();
+
+    act(() => {
+      onPointerDown(down);
+    });
+  });
+
+  it('delegates pointer cancel when no floating drag is active', () => {
+    const t = mount(floatingLayout());
+    const paletteBar = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="palette"] .tilery__tab-bar',
+    )!;
+
+    act(() => {
+      reactProps(paletteBar).onPointerCancel(pointerEvent({ pointerId: 99 }));
+    });
+
+    expect(t.handle().getPanel('palette')).not.toBeNull();
+    t.cleanup();
+  });
+
+  it('clears floating panel drags on pointer cancel', () => {
+    const t = mount(floatingLayout());
+    const paletteBar = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="palette"] .tilery__tab-bar',
+    )!;
+    paletteBar.setPointerCapture = () => {};
+    const down = pointerEvent({ clientX: 100, clientY: 80, pointerId: 9 });
+    Object.assign(down as unknown as Record<string, unknown>, {
+      currentTarget: paletteBar,
+      target: paletteBar,
+    });
+
+    act(() => {
+      reactProps(paletteBar).onPointerDown(down);
+      reactProps(paletteBar).onPointerCancel(
+        pointerEvent({ clientX: 120, clientY: 120, pointerId: 9 }),
+      );
+      reactProps(paletteBar).onPointerMove(
+        pointerEvent({ clientX: 200, clientY: 160, pointerId: 9 }),
+      );
+    });
+
+    expect(t.handle().getPanel('palette')?.floatingBounds).toEqual({
+      x: 10,
+      y: 10,
+      width: 32,
+      height: 40,
+    });
+    t.cleanup();
+  });
+
+  it('delegates tab-bar pointerup when no floating drag is active', () => {
+    const t = mount(floatingLayout());
+    const paletteBar = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="palette"] .tilery__tab-bar',
+    )!;
+
+    act(() => {
+      reactProps(paletteBar).onPointerUp(pointerEvent({ pointerId: 99 }));
+    });
+
+    expect(t.handle().getPanel('palette')).not.toBeNull();
+    t.cleanup();
+  });
+
   it('resizes a floating panel by dragging a resize handle', () => {
     const t = mount(floatingLayout());
     const resizeHandle = t.host.querySelector<HTMLElement>(
@@ -1743,6 +2641,168 @@ describe('Tilery — drag flow covers the drop overlay path', () => {
       y: 10,
       width: 42,
       height: 50,
+    });
+    t.cleanup();
+  });
+
+  it('resizes a floating panel from its top-left edge', () => {
+    const t = mount(floatingLayout());
+    const resizeHandle = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="palette"] .tilery__floating-resize-handle[data-floating-resize-edge="top-left"]',
+    )!;
+    resizeHandle.setPointerCapture = () => {};
+    resizeHandle.releasePointerCapture = () => {};
+    const down = pointerEvent({ clientX: 100, clientY: 80, pointerId: 10 });
+    Object.assign(down as unknown as Record<string, unknown>, {
+      currentTarget: resizeHandle,
+      target: resizeHandle,
+    });
+
+    act(() => {
+      reactProps(resizeHandle).onPointerDown(down);
+      reactProps(resizeHandle).onPointerMove(
+        pointerEvent({ clientX: 200, clientY: 160, pointerId: 10 }),
+      );
+      reactProps(resizeHandle).onPointerUp(
+        pointerEvent({ clientX: 200, clientY: 160, pointerId: 10 }),
+      );
+    });
+
+    expect(t.handle().getPanel('palette')?.floatingBounds).toEqual({
+      x: 20,
+      y: 20,
+      width: 22,
+      height: 30,
+    });
+    t.cleanup();
+  });
+
+  it('ignores non-left-button floating resize starts', () => {
+    const t = mount(floatingLayout());
+    const resizeHandle = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="palette"] .tilery__floating-resize-handle[data-floating-resize-edge="bottom-right"]',
+    )!;
+    const down = pointerEvent({
+      button: 2,
+      clientX: 420,
+      clientY: 400,
+      pointerId: 10,
+    });
+    Object.assign(down as unknown as Record<string, unknown>, {
+      currentTarget: resizeHandle,
+      target: resizeHandle,
+    });
+
+    act(() => {
+      reactProps(resizeHandle).onPointerDown(down);
+      reactProps(resizeHandle).onPointerMove(
+        pointerEvent({ clientX: 520, clientY: 480, pointerId: 10 }),
+      );
+    });
+
+    expect(t.handle().getPanel('palette')?.floatingBounds).toEqual({
+      x: 10,
+      y: 10,
+      width: 32,
+      height: 40,
+    });
+    t.cleanup();
+  });
+
+  it('ignores stale floating resize handles after the panel is removed', () => {
+    const t = mount(floatingLayout());
+    const resizeHandle = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="palette"] .tilery__floating-resize-handle[data-floating-resize-edge="bottom-right"]',
+    )!;
+    const onPointerDown = reactProps(resizeHandle).onPointerDown;
+    const down = pointerEvent({ clientX: 420, clientY: 400, pointerId: 10 });
+    Object.assign(down as unknown as Record<string, unknown>, {
+      currentTarget: resizeHandle,
+      target: resizeHandle,
+    });
+    act(() => {
+      t.handle().removePanel('palette');
+    });
+
+    act(() => {
+      onPointerDown(down);
+    });
+
+    expect(t.handle().getPanel('palette')).toBeNull();
+    t.cleanup();
+  });
+
+  it('ignores floating resize starts when resizing is disabled after render', () => {
+    const t = mount(floatingLayout());
+    const resizeHandle = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="palette"] .tilery__floating-resize-handle[data-floating-resize-edge="bottom-right"]',
+    )!;
+    const onPointerDown = reactProps(resizeHandle).onPointerDown;
+    const onPointerMove = reactProps(resizeHandle).onPointerMove;
+    act(() => {
+      t.handle().setLayout({
+        type: 'root',
+        main: {
+          type: 'panel',
+          id: 'main',
+          tabs: [{ id: 'main-tab', data: { title: 'Main' } }],
+        },
+        floating: [
+          {
+            type: 'floatingPanel',
+            id: 'palette',
+            resizable: false,
+            bounds: { x: 10, y: 10, width: 32, height: 40 },
+            tabs: [{ id: 'palette-tab', data: { title: 'Palette' } }],
+          },
+        ],
+      });
+    });
+    const down = pointerEvent({ clientX: 420, clientY: 400, pointerId: 10 });
+    Object.assign(down as unknown as Record<string, unknown>, {
+      currentTarget: resizeHandle,
+      target: resizeHandle,
+    });
+
+    act(() => {
+      onPointerDown(down);
+      onPointerMove(
+        pointerEvent({ clientX: 520, clientY: 480, pointerId: 10 }),
+      );
+    });
+
+    expect(t.handle().getPanel('palette')?.floatingBounds).toEqual({
+      x: 10,
+      y: 10,
+      width: 32,
+      height: 40,
+    });
+    t.cleanup();
+  });
+
+  it('ignores floating resize starts when the container has no size', () => {
+    const t = mount(floatingLayout(), undefined, {}, { stubRect: false });
+    const resizeHandle = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="palette"] .tilery__floating-resize-handle[data-floating-resize-edge="bottom-right"]',
+    )!;
+    const down = pointerEvent({ clientX: 420, clientY: 400, pointerId: 10 });
+    Object.assign(down as unknown as Record<string, unknown>, {
+      currentTarget: resizeHandle,
+      target: resizeHandle,
+    });
+
+    act(() => {
+      reactProps(resizeHandle).onPointerDown(down);
+      reactProps(resizeHandle).onPointerMove(
+        pointerEvent({ clientX: 520, clientY: 480, pointerId: 10 }),
+      );
+    });
+
+    expect(t.handle().getPanel('palette')?.floatingBounds).toEqual({
+      x: 10,
+      y: 10,
+      width: 32,
+      height: 40,
     });
     t.cleanup();
   });

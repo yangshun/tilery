@@ -1,13 +1,19 @@
 import type {
   TileryDockPanelTarget,
   TileryDirection,
+  TileryFloatPanelOptions,
+  TileryFloatTabOptions,
   TileryFloatingPanelBounds,
   TileryFloatingPanelBoundsInit,
+  TileryLayoutBehaviorConfig,
   TileryLayoutState,
   TileryHandle,
   TileryMoveTarget,
   TileryPanelHandle,
   TileryPanelId,
+  TileryPopoutPanelOptions,
+  TileryPopoutTabOptions,
+  TileryPopoutWindowBounds,
   TilerySizeResolutionContext,
   TileryTabBehaviorUpdate,
   TileryTabHandle,
@@ -22,7 +28,10 @@ import {
 } from './reducer';
 import { tileryAllPanelOrderFromState } from './layout-tree';
 import { tileryCreateLayoutSnapshot } from './snapshot';
-import { tileryNormalizeLayoutBehavior } from './layout-behavior';
+import {
+  tileryNormalizeLayoutBehavior,
+  tileryPanelBehaviorFromState,
+} from './layout-behavior';
 
 export type TileryDispatch = (action: TileryReducerAction) => void;
 export type TileryGetState = () => TileryLayoutState;
@@ -30,10 +39,19 @@ export type TileryGetSizeContext = () =>
   | TilerySizeResolutionContext
   | undefined;
 
+export type TileryHandleOptions = {
+  requestPopoutPanel?: (
+    panelId: TileryPanelId,
+    opts?: TileryPopoutPanelOptions,
+  ) => boolean | void;
+  onReturnPanelToFloating?: (panelId: TileryPanelId) => void;
+};
+
 export function makeTileryHandle(
   getState: TileryGetState,
   dispatch: TileryDispatch,
   getSizeContext?: TileryGetSizeContext,
+  options?: TileryHandleOptions,
 ): TileryHandle {
   const handle: TileryHandle = {
     getState,
@@ -87,8 +105,24 @@ export function makeTileryHandle(
     restorePanel(panelId) {
       dispatch({ type: 'SET_PANEL_FULLSCREEN', panelId, fullScreen: false });
     },
-    floatPanel(panelId, bounds) {
-      dispatch({ type: 'FLOAT_PANEL', panelId, bounds });
+    floatPanel(panelId, opts) {
+      const behavior = layoutBehaviorConfigFromOptions(opts);
+      const bounds = floatingBoundsFromOptions(opts);
+      dispatch({
+        type: 'FLOAT_PANEL',
+        panelId,
+        ...(bounds ? { bounds } : {}),
+        ...(behavior ? { behavior } : {}),
+      });
+    },
+    popoutPanel(panelId, opts) {
+      if (!getState().panels[panelId]) return;
+      if (options?.requestPopoutPanel?.(panelId, opts) === false) return;
+      dispatch({ type: 'POPOUT_PANEL', panelId, opts });
+    },
+    returnPanelToFloating(panelId, bounds) {
+      options?.onReturnPanelToFloating?.(panelId);
+      dispatch({ type: 'RETURN_PANEL_TO_FLOATING', panelId, bounds });
     },
     dockPanel(panelId, target) {
       dispatch({
@@ -103,6 +137,9 @@ export function makeTileryHandle(
     },
     setFloatingPanelBounds(panelId, bounds) {
       dispatch({ type: 'SET_FLOATING_PANEL_BOUNDS', panelId, bounds });
+    },
+    setPopoutWindowBounds(panelId, bounds) {
+      dispatch({ type: 'SET_POPOUT_WINDOW_BOUNDS', panelId, bounds });
     },
     appendTab(panelId, tab, opts) {
       const t = tileryTabInitToReducerInit(tab);
@@ -134,6 +171,38 @@ export function makeTileryHandle(
         tabId,
         to: normalizeMoveTarget(target, getSizeContext?.()),
       });
+    },
+    floatTab(tabId, opts) {
+      const newPanelId = opts?.panelId ?? tileryNextId('p');
+      if (!canExtractTabToFloatingPanel(getState(), tabId, newPanelId)) {
+        return null;
+      }
+      const behavior = layoutBehaviorConfigFromOptions(opts);
+      dispatch({
+        type: 'FLOAT_TAB',
+        tabId,
+        newPanelId,
+        bounds: opts?.bounds,
+        ...(behavior ? { behavior } : {}),
+      });
+      return tileryMakePanelHandle(newPanelId, getState, dispatch, handle);
+    },
+    popoutTab(tabId, opts) {
+      const newPanelId = opts?.panelId ?? tileryNextId('p');
+      if (!canExtractTabToFloatingPanel(getState(), tabId, newPanelId)) {
+        return null;
+      }
+      const popoutOpts = tabPopoutOptionsToPanelOptions(opts);
+      if (options?.requestPopoutPanel?.(newPanelId, popoutOpts) === false) {
+        return null;
+      }
+      dispatch({
+        type: 'POPOUT_TAB',
+        tabId,
+        newPanelId,
+        opts: popoutOpts,
+      });
+      return tileryMakePanelHandle(newPanelId, getState, dispatch, handle);
     },
     setTabBehavior(tabId, behavior) {
       dispatch({ type: 'SET_TAB_BEHAVIOR', tabId, behavior });
@@ -211,6 +280,16 @@ export function tileryMakePanelHandle(
       const panel = getState().panels[id];
       return panel?.kind === 'floating' ? panel.floating.zIndex : undefined;
     },
+    get poppedOut() {
+      const panel = getState().panels[id];
+      return panel?.kind === 'floating' && Boolean(panel.floating.popout);
+    },
+    get popoutWindowBounds() {
+      const panel = getState().panels[id];
+      return panel?.kind === 'floating'
+        ? panel.floating.popout?.windowBounds
+        : undefined;
+    },
     get tabs() {
       const p = getState().panels[id];
       if (!p) return [];
@@ -250,8 +329,14 @@ export function tileryMakePanelHandle(
     restore() {
       tilery.restorePanel(id);
     },
-    float(bounds?: TileryFloatingPanelBoundsInit) {
-      tilery.floatPanel(id, bounds);
+    float(opts?: TileryFloatPanelOptions) {
+      tilery.floatPanel(id, opts);
+    },
+    popout(opts?: TileryPopoutPanelOptions) {
+      tilery.popoutPanel(id, opts);
+    },
+    returnToFloating(bounds?: TileryFloatingPanelBoundsInit) {
+      tilery.returnPanelToFloating(id, bounds);
     },
     dock(target?: TileryDockPanelTarget) {
       tilery.dockPanel(id, target);
@@ -261,6 +346,9 @@ export function tileryMakePanelHandle(
     },
     setFloatingBounds(bounds: TileryFloatingPanelBounds) {
       tilery.setFloatingPanelBounds(id, bounds);
+    },
+    setPopoutWindowBounds(bounds: TileryPopoutWindowBounds) {
+      tilery.setPopoutWindowBounds(id, bounds);
     },
     setActiveTab(tabId: TileryTabId) {
       tilery.setActiveTab(tabId);
@@ -310,6 +398,12 @@ export function tileryMakeTabHandle<TData = unknown>(
     moveTo(target) {
       tilery.moveTab(id, target);
     },
+    float(opts?: TileryFloatTabOptions) {
+      return tilery.floatTab(id, opts);
+    },
+    popout(opts?: TileryPopoutTabOptions) {
+      return tilery.popoutTab(id, opts);
+    },
     activate() {
       tilery.setActiveTab(id);
     },
@@ -317,4 +411,56 @@ export function tileryMakeTabHandle<TData = unknown>(
       tilery.removeTab(id);
     },
   };
+}
+
+function canExtractTabToFloatingPanel(
+  state: TileryLayoutState,
+  tabId: TileryTabId,
+  newPanelId: TileryPanelId,
+): boolean {
+  const tab = state.tabs[tabId];
+  if (!tab?.draggable) return false;
+  if (state.panels[newPanelId]) return false;
+  const panel = state.panels[tab.panelId];
+  if (!panel) return false;
+  return tileryPanelBehaviorFromState(state, panel.id).draggable;
+}
+
+function layoutBehaviorConfigFromOptions(
+  opts: TileryLayoutBehaviorConfig | undefined,
+): TileryLayoutBehaviorConfig | undefined {
+  if (!opts) return undefined;
+  if (opts.locked === true) return { locked: true };
+  const behavior: {
+    resizable?: boolean;
+    draggable?: boolean;
+    droppable?: boolean;
+  } = {};
+  if (opts.resizable !== undefined) behavior.resizable = opts.resizable;
+  if (opts.draggable !== undefined) behavior.draggable = opts.draggable;
+  if (opts.droppable !== undefined) behavior.droppable = opts.droppable;
+  return Object.keys(behavior).length > 0 ? behavior : undefined;
+}
+
+function floatingBoundsFromOptions(
+  opts: TileryFloatingPanelBoundsInit | undefined,
+): TileryFloatingPanelBoundsInit | undefined {
+  if (!opts) return undefined;
+  const bounds: TileryFloatingPanelBoundsInit = {};
+  if (opts.x !== undefined) bounds.x = opts.x;
+  if (opts.y !== undefined) bounds.y = opts.y;
+  if (opts.width !== undefined) bounds.width = opts.width;
+  if (opts.height !== undefined) bounds.height = opts.height;
+  return Object.keys(bounds).length > 0 ? bounds : undefined;
+}
+
+function tabPopoutOptionsToPanelOptions(
+  opts: TileryPopoutTabOptions | undefined,
+): TileryPopoutPanelOptions | undefined {
+  if (!opts) return undefined;
+  const behavior = layoutBehaviorConfigFromOptions(opts);
+  const panelOpts: TileryPopoutPanelOptions = { ...behavior };
+  if (opts.floatingBounds) panelOpts.floatingBounds = opts.floatingBounds;
+  if (opts.windowBounds) panelOpts.windowBounds = opts.windowBounds;
+  return Object.keys(panelOpts).length > 0 ? panelOpts : undefined;
 }

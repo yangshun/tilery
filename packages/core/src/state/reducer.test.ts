@@ -171,6 +171,83 @@ describe('tileryCreateInitialState', () => {
       draggable: false,
     });
   });
+
+  it('builds floating panels with generated ids, generated tabs, and no active tab fallback', () => {
+    const state = tileryCreateInitialState({
+      type: 'root',
+      main: { type: 'empty' },
+      floating: [
+        {
+          type: 'floatingPanel',
+          tabs: [{ data: { title: 'generated' } }],
+        },
+        {
+          type: 'floatingPanel',
+          tabs: [],
+        },
+      ],
+    });
+
+    const [withTabId, emptyId] = state.floatingPanelOrder!;
+    const withTab = state.panels[withTabId!]!;
+    const empty = state.panels[emptyId!]!;
+
+    expect(withTabId).toMatch(/^p_/);
+    expect(withTab.tabs[0]).toMatch(/^t_/);
+    expect(state.tabs[withTab.tabs[0]!]!.panelId).toBe(withTabId);
+    expect(empty.activeTabId).toBeNull();
+  });
+
+  it('honors fullscreen on only the first floating panel that requests it', () => {
+    const state = tileryCreateInitialState({
+      type: 'root',
+      main: { type: 'empty' },
+      floating: [
+        {
+          type: 'floatingPanel',
+          id: 'first',
+          fullScreen: true,
+          tabs: [{ id: 'first-tab', data: {} }],
+        },
+        {
+          type: 'floatingPanel',
+          id: 'second',
+          fullScreen: true,
+          tabs: [{ id: 'second-tab', data: {} }],
+        },
+      ],
+    });
+
+    expect(state.panels.first!.fullScreen).toBe(true);
+    expect(state.panels.second!.fullScreen).toBe(false);
+  });
+
+  it('builds root layouts with native popout metadata', () => {
+    const state = tileryCreateInitialState({
+      type: 'root',
+      main: { type: 'empty' },
+      floating: [
+        {
+          type: 'floatingPanel',
+          id: 'preview',
+          popout: {
+            windowBounds: { left: 24, top: 32, width: 640, height: 420 },
+          },
+          tabs: [{ id: 'preview-tab', data: {} }],
+        },
+      ],
+    });
+
+    expect(state.floatingPanelOrder).toEqual(['preview']);
+    expect(state.panels.preview).toMatchObject({
+      kind: 'floating',
+      floating: {
+        popout: {
+          windowBounds: { left: 24, top: 32, width: 640, height: 420 },
+        },
+      },
+    });
+  });
   it('sets activeTabId to null when the panel has no tabs', () => {
     const state = tileryCreateInitialState({
       type: 'panel',
@@ -568,6 +645,25 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next).toBe(state);
   });
 
+  it('SPLIT_PANEL is a no-op when the target panel is floating', () => {
+    const state = tileryReducer(twoSideBySide(), {
+      type: 'FLOAT_PANEL',
+      panelId: 'L',
+    });
+
+    const next = tileryReducer(state, {
+      type: 'SPLIT_PANEL',
+      panelId: 'L',
+      direction: 'right',
+      sizePercent: 50,
+      newPanelId: 'NEW',
+      tabs: [],
+      activate: true,
+    });
+
+    expect(next).toBe(state);
+  });
+
   it('REMOVE_PANEL is a no-op if the panel is missing', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, {
@@ -599,6 +695,506 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.tabs.L2).toMatchObject({ panelId: 'L' });
   });
 
+  it('FLOAT_PANEL applies runtime behavior options', () => {
+    const next = tileryReducer(twoSideBySide(), {
+      type: 'FLOAT_PANEL',
+      panelId: 'L',
+      bounds: { x: 8, y: 10, width: 40, height: 42 },
+      behavior: { resizable: false },
+    });
+
+    expect(next.panels.L).toMatchObject({
+      kind: 'floating',
+      behavior: { resizable: false, draggable: true, droppable: true },
+      floating: { bounds: { x: 8, y: 10, width: 40, height: 42 } },
+    });
+  });
+
+  it('FLOAT_PANEL merges partial behavior options with the source panel behavior', () => {
+    const state = tileryCreateInitialState({
+      type: 'group',
+      direction: 'horizontal',
+      children: [
+        {
+          type: 'panel',
+          id: 'L',
+          draggable: false,
+          droppable: false,
+          tabs: [{ id: 'L1', data: {} }],
+        },
+        {
+          type: 'panel',
+          id: 'R',
+          tabs: [{ id: 'R1', data: {} }],
+        },
+      ],
+    });
+
+    const next = tileryReducer(state, {
+      type: 'FLOAT_PANEL',
+      panelId: 'L',
+      behavior: { resizable: false },
+    });
+
+    expect(next.panels.L).toMatchObject({
+      kind: 'floating',
+      behavior: { resizable: false, draggable: false, droppable: false },
+    });
+  });
+
+  it('FLOAT_PANEL is a no-op if the panel is missing', () => {
+    const state = twoSideBySide();
+
+    expect(
+      tileryReducer(state, {
+        type: 'FLOAT_PANEL',
+        panelId: 'missing',
+      }),
+    ).toBe(state);
+  });
+
+  it('FLOAT_PANEL focuses an already-floating panel without changing bounds', () => {
+    const state = tileryReducer(twoSideBySide(), {
+      type: 'FLOAT_PANEL',
+      panelId: 'L',
+      bounds: { x: 8, y: 10, width: 40, height: 42 },
+    });
+
+    const next = tileryReducer(state, {
+      type: 'FLOAT_PANEL',
+      panelId: 'L',
+    });
+
+    expect(next).toBe(state);
+  });
+
+  it('FLOAT_PANEL updates existing floating bounds and clears popout metadata', () => {
+    const popped = tileryReducer(twoSideBySide(), {
+      type: 'POPOUT_PANEL',
+      panelId: 'L',
+      opts: { floatingBounds: { x: 8, y: 10, width: 40, height: 42 } },
+    });
+
+    const next = tileryReducer(popped, {
+      type: 'FLOAT_PANEL',
+      panelId: 'L',
+      bounds: { x: 20 },
+    });
+
+    expect(next.panels.L).toMatchObject({
+      kind: 'floating',
+      floating: { bounds: { x: 20, y: 10, width: 40, height: 42 } },
+    });
+    expect(
+      next.panels.L?.kind === 'floating' && next.panels.L.floating.popout,
+    ).toBeUndefined();
+  });
+
+  it('FLOAT_PANEL updates existing floating behavior', () => {
+    const state = tileryReducer(twoSideBySide(), {
+      type: 'FLOAT_PANEL',
+      panelId: 'L',
+      bounds: { x: 8, y: 10, width: 40, height: 42 },
+    });
+
+    const next = tileryReducer(state, {
+      type: 'FLOAT_PANEL',
+      panelId: 'L',
+      behavior: { locked: true },
+    });
+
+    expect(next.panels.L).toMatchObject({
+      kind: 'floating',
+      behavior: { resizable: false, draggable: false, droppable: false },
+      floating: { bounds: { x: 8, y: 10, width: 40, height: 42 } },
+    });
+  });
+
+  it('FLOAT_PANEL detaches a tiled panel from legacy flat state', () => {
+    const state = nonTilingSideBySide();
+    expect(state.layout).toBeNull();
+
+    const next = tileryReducer(state, {
+      type: 'FLOAT_PANEL',
+      panelId: 'L',
+      bounds: { x: 5, y: 6, width: 30, height: 40 },
+    });
+
+    expect(next.layout).toBeNull();
+    expect(next.panelOrder).toEqual(['R']);
+    expect(next.floatingPanelOrder).toEqual(['L']);
+    expect(next.panels.L).toMatchObject({
+      kind: 'floating',
+      floating: { bounds: { x: 5, y: 6, width: 30, height: 40 } },
+    });
+  });
+
+  it('POPOUT_PANEL detaches a panel into a native window placement', () => {
+    const next = tileryReducer(twoSideBySide(), {
+      type: 'POPOUT_PANEL',
+      panelId: 'L',
+      opts: {
+        floatingBounds: { x: 8, y: 10, width: 40, height: 42 },
+        windowBounds: { left: 10, top: 20, width: 200, height: 120 },
+        resizable: false,
+      },
+    });
+
+    expect(next.panelOrder).toEqual(['R']);
+    expect(next.floatingPanelOrder).toEqual(['L']);
+    expect(next.panels.L).toMatchObject({
+      kind: 'floating',
+      behavior: { resizable: false, draggable: true, droppable: true },
+      floating: {
+        bounds: { x: 8, y: 10, width: 40, height: 42 },
+        popout: {
+          windowBounds: { left: 10, top: 20, width: 240, height: 160 },
+        },
+      },
+    });
+  });
+
+  it('POPOUT_PANEL returns the floated state when the panel cannot be floated', () => {
+    const state = twoSideBySide();
+
+    expect(
+      tileryReducer(state, {
+        type: 'POPOUT_PANEL',
+        panelId: 'missing',
+      }),
+    ).toBe(state);
+  });
+
+  it('FLOAT_TAB extracts one tab into a new floating panel', () => {
+    const next = tileryReducer(twoSideBySide(), {
+      type: 'FLOAT_TAB',
+      tabId: 'L2',
+      newPanelId: 'FLOATED',
+      bounds: { x: 12, y: 14, width: 34, height: 36 },
+    });
+
+    expect(next.panelOrder).toEqual(['L', 'R']);
+    expect(next.floatingPanelOrder).toEqual(['FLOATED']);
+    expect(next.panels.L!.tabs).toEqual(['L1']);
+    expect(next.panels.L!.activeTabId).toBe('L1');
+    expect(next.panels.FLOATED).toMatchObject({
+      id: 'FLOATED',
+      kind: 'floating',
+      tabs: ['L2'],
+      activeTabId: 'L2',
+      floating: {
+        bounds: { x: 12, y: 14, width: 34, height: 36 },
+        zIndex: 20,
+      },
+    });
+    expect(next.tabs.L2).toMatchObject({ panelId: 'FLOATED' });
+    expect(next.tabs.L2).toMatchObject({
+      closeable: true,
+      draggable: true,
+    });
+  });
+
+  it('FLOAT_TAB applies behavior options to the created floating panel', () => {
+    const next = tileryReducer(twoSideBySide(), {
+      type: 'FLOAT_TAB',
+      tabId: 'L2',
+      newPanelId: 'FLOATED',
+      behavior: { resizable: false },
+    });
+
+    expect(next.panels.FLOATED).toMatchObject({
+      kind: 'floating',
+      behavior: { resizable: false, draggable: true, droppable: true },
+    });
+  });
+
+  it('FLOAT_TAB removes the source panel when extracting its last tab', () => {
+    const state = createStateFromPanels({
+      panels: [
+        {
+          id: 'L',
+          inset: { top: 0, right: 50, bottom: 0, left: 0 },
+          tabs: [{ id: 'L1', data: {} }],
+        },
+        {
+          id: 'R',
+          inset: { top: 0, right: 0, bottom: 0, left: 50 },
+          tabs: [{ id: 'R1', data: {} }],
+        },
+      ],
+    });
+    const next = tileryReducer(state, {
+      type: 'FLOAT_TAB',
+      tabId: 'L1',
+      newPanelId: 'FLOATED',
+      bounds: { x: 20, y: 22, width: 30, height: 32 },
+    });
+
+    expect(next.panels.L).toBeUndefined();
+    expect(next.panels.FLOATED).toMatchObject({
+      kind: 'floating',
+      tabs: ['L1'],
+    });
+    expect(next.tabs.L1).toMatchObject({ panelId: 'FLOATED' });
+    expect(next.panelOrder).toEqual(['R']);
+    expect(next.floatingPanelOrder).toEqual(['FLOATED']);
+    expect(next.layout).toMatchObject({ kind: 'panel', panelId: 'R' });
+  });
+
+  it('FLOAT_TAB selects the next source tab when floating the active tab', () => {
+    const next = tileryReducer(sideBySideWithThreeLeftTabs('L2'), {
+      type: 'FLOAT_TAB',
+      tabId: 'L2',
+      newPanelId: 'FLOATED',
+    });
+
+    expect(next.panels.L!.tabs).toEqual(['L1', 'L3']);
+    expect(next.panels.L!.activeTabId).toBe('L3');
+  });
+
+  it('FLOAT_TAB defensively clears active source tab when source tabs omit it', () => {
+    const state: TileryLayoutState = {
+      panels: {
+        L: {
+          id: 'L',
+          kind: 'tiled',
+          inset: { top: 0, right: 0, bottom: 0, left: 0 },
+          tabs: ['DUMMY'],
+          activeTabId: 'L1',
+        },
+      },
+      panelOrder: ['L'],
+      tabs: {
+        L1: {
+          id: 'L1',
+          panelId: 'L',
+          data: {},
+          closeable: true,
+          draggable: true,
+        },
+        DUMMY: {
+          id: 'DUMMY',
+          panelId: 'L',
+          data: {},
+          closeable: true,
+          draggable: true,
+        },
+      },
+      layout: null,
+    };
+    const next = tileryReducer(state, {
+      type: 'FLOAT_TAB',
+      tabId: 'L1',
+      newPanelId: 'FLOATED',
+    });
+
+    expect(next.panels.L!.activeTabId).toBeNull();
+  });
+
+  it('FLOAT_TAB defaults to the source bounds when extracting from a floating panel', () => {
+    const floating = tileryReducer(twoSideBySide(), {
+      type: 'FLOAT_PANEL',
+      panelId: 'L',
+      bounds: { x: 9, y: 11, width: 35, height: 37 },
+    });
+    const next = tileryReducer(floating, {
+      type: 'FLOAT_TAB',
+      tabId: 'L2',
+      newPanelId: 'FLOATED',
+    });
+
+    expect(next.panels.L).toMatchObject({
+      kind: 'floating',
+      tabs: ['L1'],
+      floating: { bounds: { x: 9, y: 11, width: 35, height: 37 } },
+    });
+    expect(next.panels.FLOATED).toMatchObject({
+      kind: 'floating',
+      tabs: ['L2'],
+      floating: { bounds: { x: 9, y: 11, width: 35, height: 37 } },
+    });
+    expect(next.floatingPanelOrder).toEqual(['L', 'FLOATED']);
+  });
+
+  it('FLOAT_TAB is a no-op when the tab is not draggable', () => {
+    const state = createStateFromPanels({
+      panels: [
+        {
+          id: 'L',
+          inset: { top: 0, right: 0, bottom: 0, left: 0 },
+          tabs: [{ id: 'L1', data: {}, draggable: false }],
+        },
+      ],
+    });
+
+    const next = tileryReducer(state, {
+      type: 'FLOAT_TAB',
+      tabId: 'L1',
+      newPanelId: 'FLOATED',
+    });
+
+    expect(next).toBe(state);
+  });
+
+  it('FLOAT_TAB is a no-op when the tab is missing', () => {
+    const state = twoSideBySide();
+    const next = tileryReducer(state, {
+      type: 'FLOAT_TAB',
+      tabId: 'missing',
+      newPanelId: 'FLOATED',
+    });
+
+    expect(next).toBe(state);
+  });
+
+  it('FLOAT_TAB is a no-op when the new panel id already exists', () => {
+    const state = twoSideBySide();
+    const next = tileryReducer(state, {
+      type: 'FLOAT_TAB',
+      tabId: 'L2',
+      newPanelId: 'R',
+    });
+
+    expect(next).toBe(state);
+  });
+
+  it('FLOAT_TAB is a no-op when the tab source panel is missing', () => {
+    const state = twoSideBySide();
+    const broken = {
+      ...state,
+      tabs: {
+        ...state.tabs,
+        L2: { ...state.tabs.L2!, panelId: 'missing' },
+      },
+    };
+    const next = tileryReducer(broken, {
+      type: 'FLOAT_TAB',
+      tabId: 'L2',
+      newPanelId: 'FLOATED',
+    });
+
+    expect(next).toBe(broken);
+  });
+
+  it('FLOAT_TAB is a no-op when the source panel is not draggable', () => {
+    const state = tileryCreateInitialState({
+      type: 'group',
+      direction: 'horizontal',
+      children: [
+        {
+          type: 'panel',
+          id: 'L',
+          draggable: false,
+          tabs: [{ id: 'L1', data: {} }],
+        },
+        {
+          type: 'panel',
+          id: 'R',
+          tabs: [{ id: 'R1', data: {} }],
+        },
+      ],
+    });
+
+    const next = tileryReducer(state, {
+      type: 'FLOAT_TAB',
+      tabId: 'L1',
+      newPanelId: 'FLOATED',
+    });
+
+    expect(next).toBe(state);
+  });
+
+  it('POPOUT_TAB extracts one tab into a native window placement', () => {
+    const next = tileryReducer(twoSideBySide(), {
+      type: 'POPOUT_TAB',
+      tabId: 'L2',
+      newPanelId: 'FLOATED',
+      opts: {
+        floatingBounds: { x: 8, y: 10, width: 40, height: 42 },
+        windowBounds: { left: 10, top: 20, width: 200, height: 120 },
+      },
+    });
+
+    expect(next.panels.L!.tabs).toEqual(['L1']);
+    expect(next.panels.FLOATED).toMatchObject({
+      kind: 'floating',
+      tabs: ['L2'],
+      floating: {
+        bounds: { x: 8, y: 10, width: 40, height: 42 },
+        popout: {
+          windowBounds: { left: 10, top: 20, width: 240, height: 160 },
+        },
+      },
+    });
+    expect(next.tabs.L2).toMatchObject({ panelId: 'FLOATED' });
+  });
+
+  it('POPOUT_TAB is a no-op when the tab cannot be floated', () => {
+    const state = createStateFromPanels({
+      panels: [
+        {
+          id: 'L',
+          inset: { top: 0, right: 0, bottom: 0, left: 0 },
+          tabs: [{ id: 'L1', data: {}, draggable: false }],
+        },
+      ],
+    });
+
+    const next = tileryReducer(state, {
+      type: 'POPOUT_TAB',
+      tabId: 'L1',
+      newPanelId: 'FLOATED',
+    });
+
+    expect(next).toBe(state);
+  });
+
+  it('RETURN_PANEL_TO_FLOATING removes native window metadata', () => {
+    const poppedOut = tileryReducer(twoSideBySide(), {
+      type: 'POPOUT_PANEL',
+      panelId: 'L',
+      opts: {
+        floatingBounds: { x: 8, y: 10, width: 40, height: 42 },
+      },
+    });
+    const next = tileryReducer(poppedOut, {
+      type: 'RETURN_PANEL_TO_FLOATING',
+      panelId: 'L',
+      bounds: { x: 20 },
+    });
+
+    expect(next.panels.L).toMatchObject({
+      kind: 'floating',
+      inset: { top: 10, right: 40, bottom: 48, left: 20 },
+      floating: {
+        bounds: { x: 20, y: 10, width: 40, height: 42 },
+      },
+    });
+    expect(
+      next.panels.L?.kind === 'floating' && next.panels.L.floating.popout,
+    ).toBeUndefined();
+  });
+
+  it('RETURN_PANEL_TO_FLOATING is a no-op for missing or ordinary floating panels', () => {
+    const state = tileryReducer(twoSideBySide(), {
+      type: 'FLOAT_PANEL',
+      panelId: 'L',
+    });
+
+    expect(
+      tileryReducer(state, {
+        type: 'RETURN_PANEL_TO_FLOATING',
+        panelId: 'missing',
+      }),
+    ).toBe(state);
+    expect(
+      tileryReducer(state, {
+        type: 'RETURN_PANEL_TO_FLOATING',
+        panelId: 'L',
+      }),
+    ).toBe(state);
+  });
+
   it('DOCK_PANEL moves a floating panel back into the tiled tree', () => {
     const floating = tileryReducer(twoSideBySide(), {
       type: 'FLOAT_PANEL',
@@ -627,6 +1223,174 @@ describe('tileryReducer dispatch matrix', () => {
     });
   });
 
+  it('DOCK_PANEL applies explicit layout behavior from the dock target', () => {
+    const floating = tileryReducer(twoSideBySide(), {
+      type: 'FLOAT_PANEL',
+      panelId: 'L',
+    });
+    const next = tileryReducer(floating, {
+      type: 'DOCK_PANEL',
+      panelId: 'L',
+      target: { splitPanel: 'R', direction: 'left', locked: true },
+    });
+
+    expect(next.layout).toMatchObject({
+      kind: 'split',
+      children: [
+        {
+          kind: 'panel',
+          panelId: 'L',
+          resizable: false,
+          draggable: false,
+          droppable: false,
+        },
+        { kind: 'panel', panelId: 'R' },
+      ],
+    });
+  });
+
+  it('DOCK_PANEL creates the tiled root when no tiled panels remain', () => {
+    const floating = tileryReducer(
+      createStateFromPanels({
+        panels: [
+          {
+            id: 'L',
+            inset: { top: 0, right: 0, bottom: 0, left: 0 },
+            tabs: [{ id: 'L1', data: {} }],
+          },
+        ],
+      }),
+      { type: 'FLOAT_PANEL', panelId: 'L' },
+    );
+
+    const next = tileryReducer(floating, {
+      type: 'DOCK_PANEL',
+      panelId: 'L',
+    });
+
+    expect(next.panels.L).toMatchObject({ kind: 'tiled' });
+    expect(next.panelOrder).toEqual(['L']);
+    expect(next.floatingPanelOrder).toEqual([]);
+    expect(next.layout).toMatchObject({ kind: 'panel', panelId: 'L' });
+  });
+
+  it('DOCK_PANEL is a no-op for missing, tiled, and locked floating panels', () => {
+    const state = twoSideBySide();
+    const floating = tileryCreateInitialState({
+      type: 'root',
+      main: {
+        type: 'panel',
+        id: 'main',
+        tabs: [{ id: 'main-tab', data: {} }],
+      },
+      floating: [
+        {
+          type: 'floatingPanel',
+          id: 'locked',
+          draggable: false,
+          tabs: [{ id: 'locked-tab', data: {} }],
+        },
+      ],
+    });
+
+    expect(
+      tileryReducer(state, { type: 'DOCK_PANEL', panelId: 'missing' }),
+    ).toBe(state);
+    expect(tileryReducer(state, { type: 'DOCK_PANEL', panelId: 'L' })).toBe(
+      state,
+    );
+    expect(
+      tileryReducer(floating, { type: 'DOCK_PANEL', panelId: 'locked' }),
+    ).toBe(floating);
+  });
+
+  it('DOCK_PANEL is a no-op when the target cannot receive the docked panel', () => {
+    const base = tileryCreateInitialState({
+      type: 'root',
+      main: {
+        type: 'group',
+        direction: 'horizontal',
+        children: [
+          {
+            type: 'panel',
+            id: 'target',
+            droppable: false,
+            tabs: [{ id: 'target-tab', data: {} }],
+          },
+          {
+            type: 'panel',
+            id: 'fullscreen-target',
+            fullScreen: true,
+            tabs: [{ id: 'fullscreen-tab', data: {} }],
+          },
+        ],
+      },
+      floating: [
+        {
+          type: 'floatingPanel',
+          id: 'floating',
+          tabs: [{ id: 'floating-tab', data: {} }],
+        },
+      ],
+    });
+
+    expect(
+      tileryReducer(base, {
+        type: 'DOCK_PANEL',
+        panelId: 'floating',
+        target: { splitPanel: 'target' },
+      }),
+    ).toBe(base);
+    expect(
+      tileryReducer(base, {
+        type: 'DOCK_PANEL',
+        panelId: 'floating',
+        target: { splitPanel: 'fullscreen-target' },
+      }),
+    ).toBe(base);
+    expect(
+      tileryReducer(base, {
+        type: 'DOCK_PANEL',
+        panelId: 'floating',
+        target: { splitPanel: 'missing' },
+      }),
+    ).toBe(base);
+  });
+
+  it('DOCK_PANEL is a no-op when the split would violate constraints', () => {
+    const floating = tileryReducer(twoSideBySide(), {
+      type: 'FLOAT_PANEL',
+      panelId: 'L',
+    });
+
+    const next = tileryReducer(floating, {
+      type: 'DOCK_PANEL',
+      panelId: 'L',
+      target: { splitPanel: 'R', minSize: '90%', size: 50 },
+      sizeContext: { width: 1000, height: 800 },
+    });
+
+    expect(next).toBe(floating);
+  });
+
+  it('DOCK_PANEL falls back to flat state when no layout tree exists', () => {
+    const floating = tileryReducer(nonTilingSideBySide(), {
+      type: 'FLOAT_PANEL',
+      panelId: 'L',
+    });
+
+    const next = tileryReducer(floating, {
+      type: 'DOCK_PANEL',
+      panelId: 'L',
+      target: { splitPanel: 'R', direction: 'right', size: 30 },
+    });
+
+    expect(next.layout).toBeNull();
+    expect(next.panelOrder).toEqual(['R', 'L']);
+    expect(next.floatingPanelOrder).toEqual([]);
+    expect(next.panels.L).toMatchObject({ kind: 'tiled' });
+  });
+
   it('FOCUS_PANEL raises a floating panel above other floating panels', () => {
     const withLeft = tileryReducer(twoSideBySide(), {
       type: 'FLOAT_PANEL',
@@ -650,6 +1414,31 @@ describe('tileryReducer dispatch matrix', () => {
     ).toBe(21);
   });
 
+  it('FOCUS_PANEL is a no-op for missing or tiled panels', () => {
+    const state = twoSideBySide();
+
+    expect(
+      tileryReducer(state, { type: 'FOCUS_PANEL', panelId: 'missing' }),
+    ).toBe(state);
+    expect(tileryReducer(state, { type: 'FOCUS_PANEL', panelId: 'L' })).toBe(
+      state,
+    );
+  });
+
+  it('FOCUS_PANEL derives floating order when the state has no explicit order', () => {
+    const floating = tileryReducer(twoSideBySide(), {
+      type: 'FLOAT_PANEL',
+      panelId: 'L',
+    });
+    const { floatingPanelOrder: _drop, ...withoutOrder } = floating;
+    const next = tileryReducer(withoutOrder, {
+      type: 'FOCUS_PANEL',
+      panelId: 'L',
+    });
+
+    expect(next.floatingPanelOrder).toEqual(['L']);
+  });
+
   it('SET_FLOATING_PANEL_BOUNDS clamps detached panel bounds', () => {
     const floating = tileryReducer(twoSideBySide(), {
       type: 'FLOAT_PANEL',
@@ -667,6 +1456,137 @@ describe('tileryReducer dispatch matrix', () => {
         bounds: { x: 70, y: 80, width: 30, height: 20 },
       },
     });
+  });
+
+  it('SET_FLOATING_PANEL_BOUNDS is a no-op for missing, tiled, or unchanged panels', () => {
+    const state = twoSideBySide();
+    const floating = tileryReducer(state, {
+      type: 'FLOAT_PANEL',
+      panelId: 'L',
+      bounds: { x: 18, y: 12, width: 46, height: 48 },
+    });
+
+    expect(
+      tileryReducer(state, {
+        type: 'SET_FLOATING_PANEL_BOUNDS',
+        panelId: 'missing',
+        bounds: { x: 1, y: 2, width: 30, height: 40 },
+      }),
+    ).toBe(state);
+    expect(
+      tileryReducer(state, {
+        type: 'SET_FLOATING_PANEL_BOUNDS',
+        panelId: 'L',
+        bounds: { x: 1, y: 2, width: 30, height: 40 },
+      }),
+    ).toBe(state);
+    expect(
+      tileryReducer(floating, {
+        type: 'SET_FLOATING_PANEL_BOUNDS',
+        panelId: 'L',
+        bounds: { x: 18, y: 12, width: 46, height: 48 },
+      }),
+    ).toBe(floating);
+  });
+
+  it('SET_FLOATING_PANEL_BOUNDS clamps non-finite values to the minimum range', () => {
+    const floating = tileryReducer(twoSideBySide(), {
+      type: 'FLOAT_PANEL',
+      panelId: 'L',
+    });
+
+    const next = tileryReducer(floating, {
+      type: 'SET_FLOATING_PANEL_BOUNDS',
+      panelId: 'L',
+      bounds: {
+        x: Number.NaN,
+        y: Number.POSITIVE_INFINITY,
+        width: Number.NaN,
+        height: Number.NaN,
+      },
+    });
+
+    expect(next.panels.L).toMatchObject({
+      kind: 'floating',
+      floating: {
+        bounds: { x: 0, y: 0, width: 12, height: 12 },
+      },
+    });
+  });
+
+  it('SET_POPOUT_WINDOW_BOUNDS stores normalized native window bounds', () => {
+    const poppedOut = tileryReducer(twoSideBySide(), {
+      type: 'POPOUT_PANEL',
+      panelId: 'L',
+    });
+    const next = tileryReducer(poppedOut, {
+      type: 'SET_POPOUT_WINDOW_BOUNDS',
+      panelId: 'L',
+      bounds: { left: 30.4, top: 40.6, width: 100, height: 80 },
+    });
+
+    expect(next.panels.L).toMatchObject({
+      kind: 'floating',
+      floating: {
+        popout: {
+          windowBounds: { left: 30, top: 41, width: 240, height: 160 },
+        },
+      },
+    });
+  });
+
+  it('SET_POPOUT_WINDOW_BOUNDS is a no-op without popout metadata or changes', () => {
+    const floating = tileryReducer(twoSideBySide(), {
+      type: 'FLOAT_PANEL',
+      panelId: 'L',
+    });
+    const poppedOut = tileryReducer(twoSideBySide(), {
+      type: 'POPOUT_PANEL',
+      panelId: 'L',
+      opts: { windowBounds: { left: 80, top: 80, width: 720, height: 520 } },
+    });
+
+    expect(
+      tileryReducer(floating, {
+        type: 'SET_POPOUT_WINDOW_BOUNDS',
+        panelId: 'L',
+        bounds: { left: 80, top: 80, width: 720, height: 520 },
+      }),
+    ).toBe(floating);
+    expect(
+      tileryReducer(poppedOut, {
+        type: 'SET_POPOUT_WINDOW_BOUNDS',
+        panelId: 'L',
+        bounds: { left: 80, top: 80, width: 720, height: 520 },
+      }),
+    ).toBe(poppedOut);
+  });
+
+  it('SET_POPOUT_WINDOW_BOUNDS detects top, width, and height-only changes', () => {
+    const base = tileryReducer(twoSideBySide(), {
+      type: 'POPOUT_PANEL',
+      panelId: 'L',
+      opts: { windowBounds: { left: 80, top: 80, width: 720, height: 520 } },
+    });
+    const topChanged = tileryReducer(base, {
+      type: 'SET_POPOUT_WINDOW_BOUNDS',
+      panelId: 'L',
+      bounds: { left: 80, top: 90, width: 720, height: 520 },
+    });
+    const widthChanged = tileryReducer(base, {
+      type: 'SET_POPOUT_WINDOW_BOUNDS',
+      panelId: 'L',
+      bounds: { left: 80, top: 80, width: 740, height: 520 },
+    });
+    const heightChanged = tileryReducer(base, {
+      type: 'SET_POPOUT_WINDOW_BOUNDS',
+      panelId: 'L',
+      bounds: { left: 80, top: 80, width: 720, height: 540 },
+    });
+
+    expect(topChanged).not.toBe(base);
+    expect(widthChanged).not.toBe(base);
+    expect(heightChanged).not.toBe(base);
   });
 
   it('REMOVE_PANEL removes floating panels and their tabs', () => {
@@ -1387,6 +2307,25 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next).toBe(state);
   });
 
+  it('MOVE_TAB splitPanel is a no-op when the split target is floating', () => {
+    const state = tileryReducer(twoSideBySide(), {
+      type: 'FLOAT_PANEL',
+      panelId: 'R',
+    });
+    const next = tileryReducer(state, {
+      type: 'MOVE_TAB',
+      tabId: 'L1',
+      to: {
+        splitPanelId: 'R',
+        direction: 'right',
+        sizePercent: 50,
+        newPanelId: 'NEW',
+      },
+    });
+
+    expect(next).toBe(state);
+  });
+
   it('MOVE_TAB splitPanel is a no-op when the split target is not droppable', () => {
     const state = tileryCreateInitialState({
       type: 'group',
@@ -2023,6 +2962,18 @@ describe('tileryReducer dispatch matrix', () => {
       }),
     ).toBe(state);
   });
+
+  it('SWAP_PANELS is a no-op when either panel is floating', () => {
+    const state = tileryReducer(twoSideBySide(), {
+      type: 'FLOAT_PANEL',
+      panelId: 'L',
+    });
+
+    expect(
+      tileryReducer(state, { type: 'SWAP_PANELS', panelA: 'L', panelB: 'R' }),
+    ).toBe(state);
+  });
+
   it('SWAP_PANELS is a no-op when given the same panel twice', () => {
     const state = twoSideBySide();
     expect(

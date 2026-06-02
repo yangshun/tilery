@@ -16,6 +16,7 @@ export type PanelChromeProps = Omit<TabBarProps, 'panel' | 'renderHeader'> & {
   ) => React.ReactNode;
   registerPanel: (el: HTMLElement | null) => void;
   registerContentSlot: (el: HTMLElement | null) => void;
+  popoutWindow?: boolean;
   onPanelPointerDown?: (e: React.PointerEvent, panelId: string) => void;
   onFloatingResizePointerDown?: (
     e: React.PointerEvent,
@@ -51,6 +52,7 @@ export function PanelChrome({
   renderHeader,
   registerPanel,
   registerContentSlot,
+  popoutWindow = false,
   onPanelPointerDown,
   onFloatingResizePointerDown,
   ...tabBarProps
@@ -59,6 +61,7 @@ export function PanelChrome({
   const isFullScreen = panel.fullScreen;
   const floatingBounds = panel.floatingBounds;
   const isFloating = panel.floating && Boolean(floatingBounds);
+  const isNativePopout = popoutWindow && panel.poppedOut;
   const behavior = tileryPanelBehaviorFromState(tilery.getState(), panel.id);
   const style = isFullScreen
     ? {
@@ -67,20 +70,27 @@ export function PanelChrome({
         bottom: '0%',
         left: '0%',
       }
-    : isFloating && floatingBounds
+    : isNativePopout
       ? {
-          top: `${floatingBounds.y}%`,
-          left: `${floatingBounds.x}%`,
-          width: `${floatingBounds.width}%`,
-          height: `${floatingBounds.height}%`,
-          zIndex: panel.floatingZIndex,
+          top: '0%',
+          right: '0%',
+          bottom: '0%',
+          left: '0%',
         }
-      : {
-          top: `${top}%`,
-          right: `${right}%`,
-          bottom: `${bottom}%`,
-          left: `${left}%`,
-        };
+      : isFloating && floatingBounds
+        ? {
+            top: `${floatingBounds.y}%`,
+            left: `${floatingBounds.x}%`,
+            width: `${floatingBounds.width}%`,
+            height: `${floatingBounds.height}%`,
+            zIndex: panel.floatingZIndex,
+          }
+        : {
+            top: `${top}%`,
+            right: `${right}%`,
+            bottom: `${bottom}%`,
+            left: `${left}%`,
+          };
   return (
     <div
       id={tileryPanelDomId(panel.id)}
@@ -88,6 +98,7 @@ export function PanelChrome({
       className="tilery__panel"
       data-panel-id={panel.id}
       data-floating={isFloating}
+      data-popout={panel.poppedOut}
       data-full-screen={isFullScreen}
       data-resizable={behavior.resizable}
       data-draggable={behavior.draggable}
@@ -101,7 +112,7 @@ export function PanelChrome({
         {...tabBarProps}
       />
       <div ref={registerContentSlot} className="tilery__panel-content" />
-      {isFloating && !isFullScreen && behavior.resizable
+      {isFloating && !isNativePopout && !isFullScreen && behavior.resizable
         ? floatingResizeEdges.map((edge) => (
             <div
               key={edge}

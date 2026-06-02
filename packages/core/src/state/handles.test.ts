@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vite-plus/test';
-import { makeTileryHandle } from './handles';
+import { makeTileryHandle, type TileryHandleOptions } from './handles';
 import { tileryReducer, type TileryReducerAction } from './reducer';
 import { createStateFromPanels } from './test-helpers';
 import type { TileryLayoutState, TilerySizeResolutionContext } from '../types';
@@ -7,6 +7,7 @@ import type { TileryLayoutState, TilerySizeResolutionContext } from '../types';
 function makeStore(
   initial?: TileryLayoutState,
   getSizeContext?: () => TilerySizeResolutionContext | undefined,
+  options?: TileryHandleOptions,
 ) {
   let state =
     initial ??
@@ -34,7 +35,7 @@ function makeStore(
     state = tileryReducer(state, action);
   };
   const getState = () => state;
-  const handle = makeTileryHandle(getState, dispatch, getSizeContext);
+  const handle = makeTileryHandle(getState, dispatch, getSizeContext, options);
   return { handle, getState, dispatched };
 }
 
@@ -63,6 +64,24 @@ describe('TileryHandle lookups', () => {
       y: 12,
       width: 40,
       height: 44,
+    });
+  });
+  it('floatPanel dispatches runtime behavior options', () => {
+    const { handle, dispatched, getState } = makeStore();
+    handle.floatPanel('P1', {
+      resizable: false,
+      draggable: false,
+      droppable: false,
+    });
+
+    expect(dispatched[0]).toEqual({
+      type: 'FLOAT_PANEL',
+      panelId: 'P1',
+      behavior: { resizable: false, draggable: false, droppable: false },
+    });
+    expect(getState().panels.P1).toMatchObject({
+      kind: 'floating',
+      behavior: { resizable: false, draggable: false, droppable: false },
     });
   });
   it('getTabs returns handles for every tab', () => {
@@ -242,6 +261,109 @@ describe('TileryHandle lookups', () => {
     });
     expect(handle.getPanels().map((panel) => panel.id)).toEqual(['P2', 'P1']);
   });
+  it('round-trips native popout metadata through layout snapshots', () => {
+    const { handle, getState } = makeStore();
+
+    handle.popoutPanel('P1', {
+      floatingBounds: { x: 14, y: 16, width: 42, height: 46 },
+      windowBounds: { left: 90, top: 80, width: 760, height: 540 },
+    });
+    const snapshot = handle.getLayout<{ title: string }>();
+
+    expect(snapshot).toMatchObject({
+      type: 'root',
+      floating: [
+        {
+          type: 'floatingPanel',
+          id: 'P1',
+          popout: {
+            windowBounds: { left: 90, top: 80, width: 760, height: 540 },
+          },
+        },
+      ],
+    });
+
+    handle.setLayout(snapshot);
+
+    expect(getState().panels.P1).toMatchObject({
+      kind: 'floating',
+      floating: {
+        popout: {
+          windowBounds: { left: 90, top: 80, width: 760, height: 540 },
+        },
+      },
+    });
+    expect(handle.getPanel('P1')?.poppedOut).toBe(true);
+    expect(handle.getPanel('P1')?.popoutWindowBounds).toEqual({
+      left: 90,
+      top: 80,
+      width: 760,
+      height: 540,
+    });
+  });
+
+  it('omits activeTabId for a floating panel with no active tab', () => {
+    const { handle } = makeStore(
+      createStateFromPanels({
+        panels: [
+          {
+            id: 'P1',
+            inset: { top: 0, right: 0, bottom: 0, left: 0 },
+            tabs: [],
+            activeTabId: null,
+          },
+        ],
+      }),
+    );
+
+    handle.floatPanel('P1');
+
+    expect(handle.getLayout()).toMatchObject({
+      type: 'root',
+      main: { type: 'empty' },
+      floating: [
+        {
+          type: 'floatingPanel',
+          id: 'P1',
+          activeTabId: undefined,
+          tabs: [],
+        },
+      ],
+    });
+  });
+
+  it('ignores non-floating ids while serializing floating panel snapshots', () => {
+    const state: TileryLayoutState = {
+      ...createStateFromPanels({
+        panels: [
+          {
+            id: 'P1',
+            inset: { top: 0, right: 0, bottom: 0, left: 0 },
+            tabs: [{ id: 'T1', data: { title: 'one' } }],
+          },
+        ],
+      }),
+      floatingPanelOrder: ['P1'],
+    };
+    const { handle } = makeStore(state);
+
+    expect(handle.getLayout()).toMatchObject({
+      type: 'panel',
+      id: 'P1',
+      resizable: true,
+      draggable: true,
+      droppable: true,
+      tabs: [
+        {
+          id: 'T1',
+          data: { title: 'one' },
+          closeable: true,
+          draggable: true,
+        },
+      ],
+    });
+  });
+
   it('serializes a transient single-child split as its remaining child', () => {
     const { handle } = makeStore({
       panels: {
@@ -412,6 +534,19 @@ describe('TileryHandle mutations', () => {
       { type: 'SET_PANEL_FULLSCREEN', panelId: 'P1', fullScreen: true },
       { type: 'SET_PANEL_FULLSCREEN', panelId: 'P1', fullScreen: false },
     ]);
+  });
+  it('popoutPanel ignores missing panels before requesting a window', () => {
+    const requests: unknown[] = [];
+    const { handle, dispatched } = makeStore(undefined, undefined, {
+      requestPopoutPanel(panelId, opts) {
+        requests.push({ panelId, opts });
+      },
+    });
+
+    handle.popoutPanel('missing');
+
+    expect(requests).toEqual([]);
+    expect(dispatched).toEqual([]);
   });
   it('appendTab dispatches APPEND_TAB and returns a handle', () => {
     const { handle, dispatched } = makeStore();
@@ -659,6 +794,187 @@ describe('TileryHandle.moveTab — every TileryMoveTarget shape', () => {
   });
 });
 
+describe('TileryHandle tab floating helpers', () => {
+  it('floatTab extracts a tab into a generated floating panel and returns its handle', () => {
+    const { handle, dispatched, getState } = makeStore();
+    const panel = handle.floatTab('T2', {
+      bounds: { x: 12, y: 14, width: 34, height: 36 },
+    });
+
+    expect(panel?.id).toMatch(/^p_/);
+    expect(dispatched[0]).toMatchObject({
+      type: 'FLOAT_TAB',
+      tabId: 'T2',
+      bounds: { x: 12, y: 14, width: 34, height: 36 },
+    });
+    if (dispatched[0]?.type !== 'FLOAT_TAB') {
+      throw new Error('expected FLOAT_TAB');
+    }
+    expect(dispatched[0].newPanelId).toBe(panel?.id);
+    expect(getState().tabs.T2?.panelId).toBe(panel?.id);
+    expect(panel?.floating).toBe(true);
+  });
+
+  it('floatTab can use an explicit panel id', () => {
+    const { handle, dispatched, getState } = makeStore();
+    const panel = handle.floatTab('T2', {
+      panelId: 'T2_FLOATING',
+      bounds: { x: 20 },
+      resizable: false,
+    });
+
+    expect(panel?.id).toBe('T2_FLOATING');
+    expect(dispatched[0]).toEqual({
+      type: 'FLOAT_TAB',
+      tabId: 'T2',
+      newPanelId: 'T2_FLOATING',
+      bounds: { x: 20 },
+      behavior: { resizable: false },
+    });
+    expect(getState().panels.T2_FLOATING).toBeDefined();
+    expect(getState().panels.T2_FLOATING).toMatchObject({
+      behavior: { resizable: false, draggable: true, droppable: true },
+    });
+  });
+
+  it('floatTab returns null without dispatching when the tab cannot move', () => {
+    const { handle, dispatched } = makeStore(
+      createStateFromPanels({
+        panels: [
+          {
+            id: 'P1',
+            inset: { top: 0, right: 0, bottom: 0, left: 0 },
+            tabs: [{ id: 'T1', data: {}, draggable: false }],
+          },
+        ],
+      }),
+    );
+
+    expect(handle.floatTab('T1', { panelId: 'T1_FLOATING' })).toBeNull();
+    expect(dispatched).toEqual([]);
+  });
+
+  it('popoutTab requests a native window before dispatching extraction', () => {
+    const requests: unknown[] = [];
+    const { handle, dispatched, getState } = makeStore(undefined, undefined, {
+      requestPopoutPanel(panelId, opts) {
+        requests.push({ panelId, opts });
+      },
+    });
+
+    const panel = handle.popoutTab('T2', {
+      panelId: 'T2_POPOUT',
+      floatingBounds: { x: 8, y: 10 },
+      windowBounds: { left: 12, top: 14 },
+      resizable: false,
+    });
+
+    expect(panel?.id).toBe('T2_POPOUT');
+    expect(requests).toEqual([
+      {
+        panelId: 'T2_POPOUT',
+        opts: {
+          floatingBounds: { x: 8, y: 10 },
+          windowBounds: { left: 12, top: 14 },
+          resizable: false,
+        },
+      },
+    ]);
+    expect(dispatched[0]).toEqual({
+      type: 'POPOUT_TAB',
+      tabId: 'T2',
+      newPanelId: 'T2_POPOUT',
+      opts: {
+        floatingBounds: { x: 8, y: 10 },
+        windowBounds: { left: 12, top: 14 },
+        resizable: false,
+      },
+    });
+    expect(getState().tabs.T2?.panelId).toBe('T2_POPOUT');
+    expect(getState().panels.T2_POPOUT).toMatchObject({
+      behavior: { resizable: false, draggable: true, droppable: true },
+    });
+  });
+
+  it('popoutTab returns null without dispatching when the popup is blocked', () => {
+    const { handle, dispatched, getState } = makeStore(undefined, undefined, {
+      requestPopoutPanel() {
+        return false;
+      },
+    });
+
+    expect(handle.popoutTab('T2', { panelId: 'T2_POPOUT' })).toBeNull();
+    expect(dispatched).toEqual([]);
+    expect(getState().tabs.T2?.panelId).toBe('P1');
+  });
+
+  it('popoutTab without options requests no panel options', () => {
+    const requests: unknown[] = [];
+    const { handle, dispatched } = makeStore(undefined, undefined, {
+      requestPopoutPanel(panelId, opts) {
+        requests.push({ panelId, opts });
+      },
+    });
+
+    const panel = handle.popoutTab('T2');
+
+    expect(panel?.id).toMatch(/^p_/);
+    expect(requests).toEqual([{ panelId: panel?.id, opts: undefined }]);
+    expect(dispatched[0]).toMatchObject({
+      type: 'POPOUT_TAB',
+      tabId: 'T2',
+      newPanelId: panel?.id,
+    });
+  });
+
+  it('floatTab returns null before dispatching when the target panel id already exists', () => {
+    const { handle, dispatched } = makeStore();
+
+    expect(handle.floatTab('T2', { panelId: 'P2' })).toBeNull();
+    expect(dispatched).toEqual([]);
+  });
+
+  it('floatTab returns null before dispatching when the source panel is broken', () => {
+    const state = createStateFromPanels({
+      panels: [
+        {
+          id: 'P1',
+          inset: { top: 0, right: 0, bottom: 0, left: 0 },
+          tabs: [{ id: 'T1', data: {} }],
+        },
+      ],
+    });
+    const broken: TileryLayoutState = {
+      ...state,
+      tabs: {
+        ...state.tabs,
+        T1: { ...state.tabs.T1!, panelId: 'missing' },
+      },
+    };
+    const { handle, dispatched } = makeStore(broken);
+
+    expect(handle.floatTab('T1', { panelId: 'T1_FLOATING' })).toBeNull();
+    expect(dispatched).toEqual([]);
+  });
+
+  it('popoutTab returns null before dispatching when the tab cannot move', () => {
+    const { handle, dispatched } = makeStore(
+      createStateFromPanels({
+        panels: [
+          {
+            id: 'P1',
+            inset: { top: 0, right: 0, bottom: 0, left: 0 },
+            tabs: [{ id: 'T1', data: {}, draggable: false }],
+          },
+        ],
+      }),
+    );
+
+    expect(handle.popoutTab('T1', { panelId: 'T1_POPOUT' })).toBeNull();
+    expect(dispatched).toEqual([]);
+  });
+});
+
 describe('TileryPanelHandle', () => {
   it('reads inset live from state', () => {
     const { handle } = makeStore();
@@ -676,6 +992,9 @@ describe('TileryPanelHandle', () => {
     const panel = handle.getPanel('P1')!;
     handle.removePanel('P1');
     expect(panel.tabs).toEqual([]);
+    expect(panel.kind).toBe('tiled');
+    expect(panel.floatingZIndex).toBeUndefined();
+    expect(panel.popoutWindowBounds).toBeUndefined();
   });
   it('returns the live tabs list', () => {
     const { handle } = makeStore();
@@ -770,6 +1089,34 @@ describe('TileryPanelHandle', () => {
       { type: 'SET_PANEL_FULLSCREEN', panelId: 'P1', fullScreen: true },
       { type: 'SET_PANEL_FULLSCREEN', panelId: 'P1', fullScreen: false },
     ]);
+  });
+  it('floating and popout methods delegate to the root handle', () => {
+    const { handle, dispatched } = makeStore();
+    const panel = handle.getPanel('P1')!;
+    panel.setFloatingBounds({ x: 4, y: 5, width: 40, height: 42 });
+    panel.popout({ windowBounds: { left: 1, top: 2 } });
+    panel.returnToFloating({ x: 10 });
+    panel.setPopoutWindowBounds({ left: 3, top: 4, width: 500, height: 400 });
+
+    expect(dispatched[0]).toEqual({
+      type: 'SET_FLOATING_PANEL_BOUNDS',
+      panelId: 'P1',
+      bounds: { x: 4, y: 5, width: 40, height: 42 },
+    });
+    expect(dispatched[1]).toMatchObject({
+      type: 'POPOUT_PANEL',
+      panelId: 'P1',
+    });
+    expect(dispatched[2]).toEqual({
+      type: 'RETURN_PANEL_TO_FLOATING',
+      panelId: 'P1',
+      bounds: { x: 10 },
+    });
+    expect(dispatched[3]).toEqual({
+      type: 'SET_POPOUT_WINDOW_BOUNDS',
+      panelId: 'P1',
+      bounds: { left: 3, top: 4, width: 500, height: 400 },
+    });
   });
   it('setActiveTab delegates to tilery.setActiveTab', () => {
     const { handle, dispatched } = makeStore();
@@ -881,6 +1228,36 @@ describe('TileryTabHandle', () => {
     const tab = handle.getTab('T1')!;
     tab.moveTo({ panel: 'P2' });
     expect(dispatched[0]!.type).toBe('MOVE_TAB');
+  });
+  it('floating helpers delegate to root tab APIs', () => {
+    const { handle, dispatched } = makeStore();
+    const tab = handle.getTab('T2')!;
+    const floated = tab.float({
+      panelId: 'T2_FLOATING',
+      bounds: { x: 12 },
+      resizable: false,
+    });
+    const popped = tab.popout({
+      panelId: 'T2_POPOUT',
+      floatingBounds: { x: 20 },
+      locked: true,
+    });
+
+    expect(floated?.id).toBe('T2_FLOATING');
+    expect(popped?.id).toBe('T2_POPOUT');
+    expect(dispatched[0]).toEqual({
+      type: 'FLOAT_TAB',
+      tabId: 'T2',
+      newPanelId: 'T2_FLOATING',
+      bounds: { x: 12 },
+      behavior: { resizable: false },
+    });
+    expect(dispatched[1]).toEqual({
+      type: 'POPOUT_TAB',
+      tabId: 'T2',
+      newPanelId: 'T2_POPOUT',
+      opts: { floatingBounds: { x: 20 }, locked: true },
+    });
   });
   it('moveTo no-ops for a non-draggable tab after dispatch', () => {
     const { handle, getState } = makeStore(

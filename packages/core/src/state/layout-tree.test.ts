@@ -15,6 +15,7 @@ import {
   tileryClampLayoutDividerPosition,
   tileryDeriveLayoutDividers,
   tileryDeriveLayoutInsets,
+  tileryFloatingPanelOrderFromState,
   tileryInsetToRect,
   tileryNormalizeLayoutForContainerResize,
   tileryNormalizeLayoutState,
@@ -454,6 +455,46 @@ describe('tilerySyncLayoutPanels', () => {
     expect(next).not.toBe(state);
     expect(next.layout).toBeNull();
     expect(next.panelOrder).toEqual(['A', 'B']);
+  });
+
+  it('derives missing floating panel order entries by z-index', () => {
+    const state: TileryLayoutState = {
+      panels: {
+        A: {
+          id: 'A',
+          kind: 'floating',
+          inset: full,
+          tabs: [],
+          activeTabId: null,
+          behavior: { resizable: true, draggable: true, droppable: true },
+          floating: {
+            bounds: { x: 0, y: 0, width: 20, height: 20 },
+            zIndex: 22,
+          },
+        },
+        B: {
+          id: 'B',
+          kind: 'floating',
+          inset: full,
+          tabs: [],
+          activeTabId: null,
+          behavior: { resizable: true, draggable: true, droppable: true },
+          floating: {
+            bounds: { x: 20, y: 20, width: 20, height: 20 },
+            zIndex: 21,
+          },
+        },
+      },
+      panelOrder: [],
+      tabs: {},
+      layout: null,
+    };
+
+    expect(tileryFloatingPanelOrderFromState(state)).toEqual(['B', 'A']);
+    expect(tilerySyncLayoutPanels(state, null).floatingPanelOrder).toEqual([
+      'B',
+      'A',
+    ]);
   });
 });
 

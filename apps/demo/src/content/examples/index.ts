@@ -35,7 +35,10 @@ export {
 export {
   Example as FloatingExample,
   InitialFloatingExample,
+  NativePopoutExample,
+  PopoutStylingExample,
   RuntimeFloatingExample,
+  TabFloatingExample,
 } from './floating/example';
 export {
   Example as PersistenceExample,
@@ -183,12 +186,18 @@ export const examples = [
     demos: [
       { id: 'initial-floating', sourceRegion: 'initial-floating' },
       { id: 'runtime-floating', sourceRegion: 'runtime-floating' },
+      { id: 'tab-floating', sourceRegion: 'tab-floating' },
+      { id: 'native-popout', sourceRegion: 'native-popout' },
+      { id: 'popout-styling', sourceRegion: 'popout-styling' },
     ],
     notes: [
       'Layouts with detached panels use type: "root" with a normal docked layout under main and floatingPanel entries under floating.',
       'Floating panels are rendered above the tiled tree, can be focused for z-order, moved by empty tab-bar space, and resized from their edges or corners.',
       'floatPanel() detaches an existing panel without closing its tabs; dockPanel() inserts it back into the tiled layout.',
-      'getLayout() and setLayout() round-trip floating bounds, tab state, and z-order.',
+      'floatTab() extracts one tab into a new floating panel; moveTab() can insert it back into another tab bar.',
+      'popoutPanel() renders a detached panel into a same-origin browser window through a React portal, so app context is preserved.',
+      'Native popout windows copy style and stylesheet tags from the document head, but they do not inherit wrapper elements, html/body classes, or inline variables from the main page.',
+      'getLayout() and setLayout() round-trip floating bounds, popout window bounds, tab state, and z-order.',
     ],
   },
   {

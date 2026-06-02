@@ -6,6 +6,8 @@ export type {
   TileryDivider,
   TileryDividerOrientation,
   TileryEmptyInit,
+  TileryFloatPanelOptions,
+  TileryFloatTabOptions,
   TileryFloatingPanelBounds,
   TileryFloatingPanelBoundsInit,
   TileryFloatingPanelInit,
@@ -22,6 +24,12 @@ export type {
   TileryGroupSnapshot,
   TileryPanelSnapshot,
   TilerySplitMoveTarget,
+  TileryPopoutPanelConfig,
+  TileryPopoutPanelOptions,
+  TileryPopoutPanelPlacement,
+  TileryPopoutTabOptions,
+  TileryPopoutWindowBounds,
+  TileryPopoutWindowBoundsInit,
   TileryLayoutState,
   TileryLayoutTree,
   TileryHandle,
@@ -61,6 +69,7 @@ export {
   type TileryDispatch,
   type TileryGetSizeContext,
   type TileryGetState,
+  type TileryHandleOptions,
 } from './state/handles';
 
 export { tileryCreateLayoutSnapshot } from './state/snapshot';

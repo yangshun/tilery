@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, type CSSProperties } from 'react';
 import { Tilery } from '@tilery/react';
 import type {
   TileryHandle,
@@ -110,11 +110,97 @@ const runtimeFloatingLayout: TileryInitialLayout<TabData> = {
   ],
 };
 
+const popoutStylingLayout: TileryInitialLayout<TabData> = {
+  type: 'group',
+  direction: 'horizontal',
+  children: [
+    {
+      type: 'panel',
+      id: 'scoped-files',
+      size: 34,
+      tabs: [
+        {
+          id: 'scoped-files-tab',
+          data: {
+            title: 'Files',
+            body: 'This in-page workspace inherits theme variables from a wrapper around Tilery.',
+            meta: 'Wrapper theme',
+          },
+        },
+      ],
+    },
+    {
+      type: 'panel',
+      id: 'scoped-workspace',
+      size: 66,
+      tabs: [
+        {
+          id: 'scoped-workspace-tab',
+          data: {
+            title: 'Workspace',
+            body: 'When this panel is popped out, the window receives copied stylesheet rules, but it does not inherit this wrapper element or its inline variables.',
+            meta: 'Popout styling',
+          },
+        },
+      ],
+    },
+  ],
+};
+
+const tabFloatingLayout: TileryInitialLayout<TabData> = {
+  type: 'group',
+  direction: 'horizontal',
+  children: [
+    {
+      type: 'panel',
+      id: 'editor',
+      size: 64,
+      activeTabId: 'notes-tab',
+      tabs: [
+        {
+          id: 'readme-tab',
+          data: {
+            title: 'README.md',
+            body: 'The editor panel keeps one tab when another tab is extracted.',
+            meta: 'Editor',
+          },
+        },
+        {
+          id: 'notes-tab',
+          data: {
+            title: 'Notes.md',
+            body: 'floatTab() creates a new floating panel that contains this tab.',
+            meta: 'Extractable',
+          },
+        },
+      ],
+    },
+    {
+      type: 'panel',
+      id: 'preview',
+      size: 36,
+      tabs: [
+        {
+          id: 'preview-tab',
+          data: {
+            title: 'Preview',
+            body: 'Move the notes tab back into the editor to remove its temporary panel.',
+            meta: 'Target',
+          },
+        },
+      ],
+    },
+  ],
+};
+
 export function Example() {
   return (
-    <ExampleStack rows="minmax(0, 1fr) minmax(0, 1fr)">
+    <ExampleStack rows="repeat(5, minmax(0, 1fr))">
       <InitialFloatingExample />
       <RuntimeFloatingExample />
+      <TabFloatingExample />
+      <NativePopoutExample />
+      <PopoutStylingExample />
     </ExampleStack>
   );
 }
@@ -146,6 +232,7 @@ export function RuntimeFloatingExample() {
       y: 14,
       width: 34,
       height: 52,
+      resizable: false,
     });
   };
 
@@ -164,7 +251,7 @@ export function RuntimeFloatingExample() {
   return (
     <ExampleSection
       title="Runtime float and dock"
-      description="Panels can be detached, focused, moved, and inserted back into the tiled tree."
+      description="Panels can be detached with runtime options, focused, moved, and inserted back into the tiled tree. This Explorer panel floats with resizing disabled."
       actions={
         <>
           <ExampleButton type="button" onClick={floatExplorer}>
@@ -189,6 +276,168 @@ export function RuntimeFloatingExample() {
   );
 }
 // end-source-region runtime-floating
+
+// source-region tab-floating
+export function TabFloatingExample() {
+  const tileryRef = useRef<TileryHandle | null>(null);
+
+  const floatNotes = () => {
+    tileryRef.current?.floatTab('notes-tab', {
+      panelId: 'notes-floating',
+      bounds: { x: 12, y: 16, width: 38, height: 48 },
+    });
+  };
+
+  const popoutNotes = () => {
+    tileryRef.current?.popoutTab('notes-tab', {
+      panelId: 'notes-popout',
+      floatingBounds: { x: 12, y: 16, width: 38, height: 48 },
+      windowBounds: { left: 160, top: 110, width: 680, height: 460 },
+    });
+  };
+
+  const moveNotesBack = () => {
+    tileryRef.current?.moveTab('notes-tab', {
+      panel: 'editor',
+      index: 1,
+    });
+  };
+
+  return (
+    <ExampleSection
+      title="Floating a single tab"
+      description="Extract one tab into its own floating panel without detaching the rest of the source panel."
+      actions={
+        <>
+          <ExampleButton type="button" onClick={floatNotes}>
+            Float Notes
+          </ExampleButton>
+          <ExampleButton type="button" onClick={popoutNotes}>
+            Pop Out Notes
+          </ExampleButton>
+          <ExampleButton type="button" onClick={moveNotesBack}>
+            Move Notes Back
+          </ExampleButton>
+        </>
+      }>
+      <Tilery<TabData>
+        ref={tileryRef as React.Ref<TileryHandle>}
+        initialLayout={tabFloatingLayout}
+        renderTabHeader={renderHeader}
+        renderTabContent={renderContent}
+        showActionsButton
+      />
+    </ExampleSection>
+  );
+}
+// end-source-region tab-floating
+
+// source-region native-popout
+export function NativePopoutExample() {
+  const tileryRef = useRef<TileryHandle | null>(null);
+
+  const popoutWorkspace = () => {
+    tileryRef.current?.popoutPanel('workspace', {
+      floatingBounds: { x: 12, y: 14, width: 42, height: 56 },
+      windowBounds: { left: 120, top: 90, width: 760, height: 540 },
+    });
+  };
+
+  const returnWorkspace = () => {
+    tileryRef.current?.returnPanelToFloating('workspace');
+  };
+
+  const dockWorkspace = () => {
+    tileryRef.current?.dockPanel('workspace', {
+      splitPanel: 'explorer',
+      direction: 'right',
+      size: 68,
+    });
+  };
+
+  return (
+    <ExampleSection
+      title="Native popout window"
+      description="Open a panel in a same-origin browser window while keeping its React subtree connected."
+      actions={
+        <>
+          <ExampleButton type="button" onClick={popoutWorkspace}>
+            Pop Out Workspace
+          </ExampleButton>
+          <ExampleButton type="button" onClick={returnWorkspace}>
+            Return Floating
+          </ExampleButton>
+          <ExampleButton type="button" onClick={dockWorkspace}>
+            Dock Workspace
+          </ExampleButton>
+        </>
+      }>
+      <Tilery<TabData>
+        ref={tileryRef as React.Ref<TileryHandle>}
+        initialLayout={runtimeFloatingLayout}
+        renderTabHeader={renderHeader}
+        renderTabContent={renderContent}
+        showActionsButton
+      />
+    </ExampleSection>
+  );
+}
+// end-source-region native-popout
+
+// source-region popout-styling
+const popoutScopedThemeStyle = {
+  height: '100%',
+  '--tilery-bg': '#10201f',
+  '--tilery-panel-bg': '#162b2a',
+  '--tilery-tabbar-bg': '#0f2423',
+  '--tilery-tab-active-bg': '#1f3f3d',
+  '--tilery-tab-active-fg': '#effcf8',
+  '--tilery-accent': '#38c7a6',
+  '--tilery-drop-bg': 'rgba(56, 199, 166, 0.16)',
+  '--tilery-drop-border': 'rgba(56, 199, 166, 0.55)',
+} as CSSProperties;
+
+export function PopoutStylingExample() {
+  const tileryRef = useRef<TileryHandle | null>(null);
+
+  const popoutWorkspace = () => {
+    tileryRef.current?.popoutPanel('scoped-workspace', {
+      floatingBounds: { x: 16, y: 18, width: 42, height: 52 },
+      windowBounds: { left: 180, top: 120, width: 720, height: 500 },
+    });
+  };
+
+  const returnWorkspace = () => {
+    tileryRef.current?.returnPanelToFloating('scoped-workspace');
+  };
+
+  return (
+    <ExampleSection
+      title="Popout styling context"
+      description="Popout windows copy style and stylesheet tags from the document head, but they do not copy wrapper elements, html/body classes, or inline CSS variables."
+      actions={
+        <>
+          <ExampleButton type="button" onClick={popoutWorkspace}>
+            Pop Out Workspace
+          </ExampleButton>
+          <ExampleButton type="button" onClick={returnWorkspace}>
+            Return Floating
+          </ExampleButton>
+        </>
+      }>
+      <div style={popoutScopedThemeStyle}>
+        <Tilery<TabData>
+          ref={tileryRef as React.Ref<TileryHandle>}
+          initialLayout={popoutStylingLayout}
+          renderTabHeader={renderHeader}
+          renderTabContent={renderContent}
+          showActionsButton
+        />
+      </div>
+    </ExampleSection>
+  );
+}
+// end-source-region popout-styling
 
 function renderHeader(tab: TileryTabHandle<TabData>) {
   return <span>{tab.data.title}</span>;

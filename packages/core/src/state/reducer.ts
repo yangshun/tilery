@@ -6,11 +6,18 @@ import type {
   TileryFloatingPanelBoundsInit,
   TileryFloatingPanelInit,
   TileryInitialLayout,
+  TileryLayoutBehavior,
+  TileryLayoutBehaviorConfig,
   TileryLayoutTree,
   TileryLayoutState,
   TileryPanelId,
   TileryPanelInit,
   TileryPanelState,
+  TileryPopoutPanelConfig,
+  TileryPopoutPanelOptions,
+  TileryPopoutPanelPlacement,
+  TileryPopoutWindowBounds,
+  TileryPopoutWindowBoundsInit,
   TilerySize,
   TilerySizeResolutionContext,
   TileryTabBehaviorUpdate,
@@ -93,6 +100,30 @@ export type TileryReducerAction =
       type: 'FLOAT_PANEL';
       panelId: TileryPanelId;
       bounds?: TileryFloatingPanelBoundsInit;
+      behavior?: TileryLayoutBehaviorConfig;
+    }
+  | {
+      type: 'POPOUT_PANEL';
+      panelId: TileryPanelId;
+      opts?: TileryPopoutPanelOptions;
+    }
+  | {
+      type: 'RETURN_PANEL_TO_FLOATING';
+      panelId: TileryPanelId;
+      bounds?: TileryFloatingPanelBoundsInit;
+    }
+  | {
+      type: 'FLOAT_TAB';
+      tabId: TileryTabId;
+      newPanelId: TileryPanelId;
+      bounds?: TileryFloatingPanelBoundsInit;
+      behavior?: TileryLayoutBehaviorConfig;
+    }
+  | {
+      type: 'POPOUT_TAB';
+      tabId: TileryTabId;
+      newPanelId: TileryPanelId;
+      opts?: TileryPopoutPanelOptions;
     }
   | {
       type: 'DOCK_PANEL';
@@ -105,6 +136,11 @@ export type TileryReducerAction =
       type: 'SET_FLOATING_PANEL_BOUNDS';
       panelId: TileryPanelId;
       bounds: TileryFloatingPanelBounds;
+    }
+  | {
+      type: 'SET_POPOUT_WINDOW_BOUNDS';
+      panelId: TileryPanelId;
+      bounds: TileryPopoutWindowBounds;
     }
   | {
       type: 'APPEND_TAB';
@@ -290,6 +326,7 @@ function buildInitialFloatingPanel(
     width: 46,
     height: 48,
   });
+  const popout = normalizePopoutPanelPlacement(init.popout);
   ctx.panels[panelId] = {
     id: panelId,
     kind: 'floating',
@@ -303,6 +340,7 @@ function buildInitialFloatingPanel(
     floating: {
       bounds,
       zIndex: init.zIndex ?? floatingZIndex(index),
+      ...(popout ? { popout } : {}),
     },
   };
   ctx.floatingPanelOrder.push(panelId);
@@ -477,7 +515,30 @@ export function tileryReducer(
       return { ...current, panels: nextPanels };
     }
     case 'FLOAT_PANEL': {
-      return floatPanel(current, action.panelId, action.bounds);
+      return floatPanel(
+        current,
+        action.panelId,
+        action.bounds,
+        action.behavior,
+      );
+    }
+    case 'POPOUT_PANEL': {
+      return popoutPanel(current, action.panelId, action.opts);
+    }
+    case 'RETURN_PANEL_TO_FLOATING': {
+      return returnPanelToFloating(current, action.panelId, action.bounds);
+    }
+    case 'FLOAT_TAB': {
+      return floatTab(
+        current,
+        action.tabId,
+        action.newPanelId,
+        action.bounds,
+        action.behavior,
+      );
+    }
+    case 'POPOUT_TAB': {
+      return popoutTab(current, action.tabId, action.newPanelId, action.opts);
     }
     case 'DOCK_PANEL': {
       return dockPanel(
@@ -506,6 +567,37 @@ export function tileryReducer(
             ...panel,
             inset: floatingBoundsToInset(bounds),
             floating: { ...panel.floating, bounds },
+          },
+        },
+      };
+    }
+    case 'SET_POPOUT_WINDOW_BOUNDS': {
+      const panel = current.panels[action.panelId];
+      if (!panel || panel.kind !== 'floating' || !panel.floating.popout) {
+        return current;
+      }
+      const windowBounds = normalizePopoutWindowBounds(
+        action.bounds,
+        panel.floating.popout.windowBounds,
+      );
+      if (
+        popoutWindowBoundsEqual(
+          panel.floating.popout.windowBounds,
+          windowBounds,
+        )
+      ) {
+        return current;
+      }
+      return {
+        ...current,
+        panels: {
+          ...current.panels,
+          [action.panelId]: {
+            ...panel,
+            floating: {
+              ...panel.floating,
+              popout: { windowBounds },
+            },
           },
         },
       };
@@ -961,6 +1053,7 @@ function floatPanel(
   state: TileryLayoutState,
   panelId: TileryPanelId,
   boundsInit?: TileryFloatingPanelBoundsInit,
+  behaviorConfig?: TileryLayoutBehaviorConfig,
 ): TileryLayoutState {
   const panel = state.panels[panelId];
   if (!panel) return state;
@@ -968,21 +1061,28 @@ function floatPanel(
     const bounds = boundsInit
       ? normalizeFloatingBounds(boundsInit, panel.floating.bounds)
       : panel.floating.bounds;
-    const next =
-      bounds === panel.floating.bounds ||
-      floatingBoundsEqual(bounds, panel.floating.bounds)
-        ? state
-        : {
-            ...state,
-            panels: {
-              ...state.panels,
-              [panelId]: {
-                ...panel,
-                inset: floatingBoundsToInset(bounds),
-                floating: { ...panel.floating, bounds },
+    const behavior = mergeFloatingBehavior(panel.behavior, behaviorConfig);
+    const changed =
+      !floatingBoundsEqual(bounds, panel.floating.bounds) ||
+      Boolean(panel.floating.popout) ||
+      !layoutBehaviorEqual(panel.behavior, behavior);
+    const next = changed
+      ? {
+          ...state,
+          panels: {
+            ...state.panels,
+            [panelId]: {
+              ...panel,
+              inset: floatingBoundsToInset(bounds),
+              floating: {
+                bounds,
+                zIndex: panel.floating.zIndex,
               },
+              behavior,
             },
-          };
+          },
+        }
+      : state;
     return focusFloatingPanel(next, panelId);
   }
 
@@ -999,7 +1099,10 @@ function floatPanel(
     fullScreen: false,
     minSize: panel.minSize,
     maxSize: panel.maxSize,
-    behavior: tileryPanelBehaviorFromState(state, panelId),
+    behavior: mergeFloatingBehavior(
+      tileryPanelBehaviorFromState(state, panelId),
+      behaviorConfig,
+    ),
     floating: {
       bounds,
       zIndex: nextFloatingZIndex(state),
@@ -1040,9 +1143,9 @@ function floatPanel(
       (item): item is TileryPanelState =>
         Boolean(item) && item.kind === 'tiled' && item.id !== panelId,
     );
+  /* v8 ignore next 8 -- filler ids are derived from existing tiled panels. */
   for (const filler of tileryFindRemovalFillers(otherPanels, panel)) {
     const current = nextPanels[filler.id];
-    /* v8 ignore next */
     if (!current) continue;
     nextPanels = {
       ...nextPanels,
@@ -1059,6 +1162,189 @@ function floatPanel(
       layout: null,
     },
     panelId,
+  );
+}
+
+function popoutPanel(
+  state: TileryLayoutState,
+  panelId: TileryPanelId,
+  opts?: TileryPopoutPanelOptions,
+): TileryLayoutState {
+  const floated = floatPanel(state, panelId, opts?.floatingBounds, opts);
+  const panel = floated.panels[panelId];
+  if (!panel || panel.kind !== 'floating') return floated;
+  const popout = normalizePopoutPanelPlacement(
+    opts?.windowBounds ? { windowBounds: opts.windowBounds } : true,
+  );
+  return focusFloatingPanel(
+    {
+      ...floated,
+      panels: {
+        ...floated.panels,
+        [panelId]: {
+          ...panel,
+          floating: {
+            ...panel.floating,
+            popout,
+          },
+        },
+      },
+    },
+    panelId,
+  );
+}
+
+function returnPanelToFloating(
+  state: TileryLayoutState,
+  panelId: TileryPanelId,
+  boundsInit?: TileryFloatingPanelBoundsInit,
+): TileryLayoutState {
+  const panel = state.panels[panelId];
+  if (!panel || panel.kind !== 'floating') return state;
+  if (!panel.floating.popout && !boundsInit) return state;
+  const bounds = boundsInit
+    ? normalizeFloatingBounds(boundsInit, panel.floating.bounds)
+    : panel.floating.bounds;
+  return focusFloatingPanel(
+    {
+      ...state,
+      panels: {
+        ...state.panels,
+        [panelId]: {
+          ...panel,
+          inset: floatingBoundsToInset(bounds),
+          floating: {
+            bounds,
+            zIndex: panel.floating.zIndex,
+          },
+        },
+      },
+    },
+    panelId,
+  );
+}
+
+function floatTab(
+  state: TileryLayoutState,
+  tabId: TileryTabId,
+  newPanelId: TileryPanelId,
+  boundsInit?: TileryFloatingPanelBoundsInit,
+  behaviorConfig?: TileryLayoutBehaviorConfig,
+): TileryLayoutState {
+  const tab = state.tabs[tabId];
+  if (!tab) return state;
+  if (!tab.draggable) return state;
+  if (state.panels[newPanelId]) return state;
+  const sourcePanel = state.panels[tab.panelId];
+  if (!sourcePanel) return state;
+  if (!tileryPanelBehaviorFromState(state, sourcePanel.id).draggable) {
+    return state;
+  }
+
+  const bounds = normalizeFloatingBounds(
+    boundsInit,
+    sourcePanel.kind === 'floating'
+      ? sourcePanel.floating.bounds
+      : defaultFloatingBounds(sourcePanel),
+  );
+  const newPanel: TileryPanelState = {
+    id: newPanelId,
+    kind: 'floating',
+    inset: floatingBoundsToInset(bounds),
+    tabs: [tabId],
+    activeTabId: tabId,
+    fullScreen: false,
+    behavior: tileryNormalizeLayoutBehavior(behaviorConfig),
+    floating: {
+      bounds,
+      zIndex: nextFloatingZIndex(state),
+    },
+  };
+  const sourceTabs = sourcePanel.tabs.filter((id) => id !== tabId);
+  const wasActiveInSource = sourcePanel.activeTabId === tabId;
+  let next: TileryLayoutState = {
+    ...state,
+    panels: {
+      ...state.panels,
+      [newPanelId]: newPanel,
+    },
+    tabs: {
+      ...state.tabs,
+      [tabId]: {
+        ...tab,
+        panelId: newPanelId,
+      },
+    },
+    floatingPanelOrder: [
+      ...tileryFloatingPanelOrderFromState(state).filter(
+        (id) => id !== newPanelId,
+      ),
+      newPanelId,
+    ],
+  };
+
+  if (sourceTabs.length === 0) {
+    next = removePanelAndFill(next, {
+      ...sourcePanel,
+      tabs: [],
+      activeTabId: null,
+    });
+  } else {
+    next = {
+      ...next,
+      panels: {
+        ...next.panels,
+        [sourcePanel.id]: {
+          ...sourcePanel,
+          tabs: sourceTabs,
+          activeTabId: wasActiveInSource
+            ? (sourceTabs[
+                Math.min(sourceTabs.length - 1, sourcePanel.tabs.indexOf(tabId))
+              ] ?? null)
+            : sourcePanel.activeTabId,
+        },
+      },
+    };
+  }
+
+  return focusFloatingPanel(next, newPanelId);
+}
+
+function popoutTab(
+  state: TileryLayoutState,
+  tabId: TileryTabId,
+  newPanelId: TileryPanelId,
+  opts?: TileryPopoutPanelOptions,
+): TileryLayoutState {
+  const floated = floatTab(
+    state,
+    tabId,
+    newPanelId,
+    opts?.floatingBounds,
+    opts,
+  );
+  if (floated === state) return state;
+  const panel = floated.panels[newPanelId];
+  /* v8 ignore next -- floatTab just created this floating panel. */
+  if (!panel || panel.kind !== 'floating') return floated;
+  const popout = normalizePopoutPanelPlacement({
+    windowBounds: opts?.windowBounds,
+  });
+  return focusFloatingPanel(
+    {
+      ...floated,
+      panels: {
+        ...floated.panels,
+        [newPanelId]: {
+          ...panel,
+          floating: {
+            ...panel.floating,
+            popout,
+          },
+        },
+      },
+    },
+    newPanelId,
   );
 }
 
@@ -1205,9 +1491,11 @@ function syncFloatingZIndexes(
   order: TileryPanelId[],
 ): TileryLayoutState {
   let panels = state.panels;
+  /* v8 ignore next -- normalized floating states carry an explicit order. */
   let changed = !arrayEqual(state.floatingPanelOrder ?? [], order);
   order.forEach((panelId, index) => {
     const panel = panels[panelId];
+    /* v8 ignore next -- order is produced from existing floating panels. */
     if (!panel || panel.kind !== 'floating') return;
     const zIndex = floatingZIndex(index);
     if (panel.floating.zIndex === zIndex) return;
@@ -1331,6 +1619,40 @@ function normalizeFloatingBounds(
   };
 }
 
+const DEFAULT_POPOUT_WINDOW_BOUNDS: TileryPopoutWindowBounds = {
+  left: 80,
+  top: 80,
+  width: 720,
+  height: 520,
+};
+
+function normalizePopoutPanelPlacement(
+  value: TileryPopoutPanelConfig | undefined,
+): TileryPopoutPanelPlacement | undefined {
+  if (!value) return undefined;
+  const init = value === true ? undefined : value.windowBounds;
+  return {
+    windowBounds: normalizePopoutWindowBounds(
+      init,
+      DEFAULT_POPOUT_WINDOW_BOUNDS,
+    ),
+  };
+}
+
+function normalizePopoutWindowBounds(
+  value: TileryPopoutWindowBoundsInit | undefined,
+  fallback: TileryPopoutWindowBounds,
+): TileryPopoutWindowBounds {
+  const width = clampFinite(value?.width ?? fallback.width, 240, 10000);
+  const height = clampFinite(value?.height ?? fallback.height, 160, 10000);
+  return {
+    left: Math.round(clampFinite(value?.left ?? fallback.left, -10000, 10000)),
+    top: Math.round(clampFinite(value?.top ?? fallback.top, -10000, 10000)),
+    width: Math.round(width),
+    height: Math.round(height),
+  };
+}
+
 function floatingBoundsToInset(bounds: TileryFloatingPanelBounds) {
   return {
     top: bounds.y,
@@ -1346,6 +1668,43 @@ function floatingBoundsEqual(
 ): boolean {
   return (
     a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height
+  );
+}
+
+function popoutWindowBoundsEqual(
+  a: TileryPopoutWindowBounds,
+  b: TileryPopoutWindowBounds,
+): boolean {
+  return (
+    a.left === b.left &&
+    a.top === b.top &&
+    a.width === b.width &&
+    a.height === b.height
+  );
+}
+
+function mergeFloatingBehavior(
+  base: TileryLayoutBehavior,
+  config: TileryLayoutBehaviorConfig | undefined,
+): TileryLayoutBehavior {
+  if (config?.locked === true) {
+    return { resizable: false, draggable: false, droppable: false };
+  }
+  return {
+    resizable: config?.resizable ?? base.resizable,
+    draggable: config?.draggable ?? base.draggable,
+    droppable: config?.droppable ?? base.droppable,
+  };
+}
+
+function layoutBehaviorEqual(
+  a: TileryLayoutBehavior,
+  b: TileryLayoutBehavior,
+): boolean {
+  return (
+    a.resizable === b.resizable &&
+    a.draggable === b.draggable &&
+    a.droppable === b.droppable
   );
 }
 

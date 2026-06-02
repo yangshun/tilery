@@ -128,6 +128,7 @@ export function TabBar({
       const target = e.target as HTMLElement;
       if (
         panel.floating &&
+        !panel.poppedOut &&
         !target.closest('[data-tab-id]') &&
         !target.closest('[data-tilery-panel-actions]')
       ) {
@@ -136,7 +137,13 @@ export function TabBar({
       }
       onTabBarPointerDown(e, panelId);
     },
-    [onFloatingTabBarPointerDown, onTabBarPointerDown, panel.floating, panelId],
+    [
+      onFloatingTabBarPointerDown,
+      onTabBarPointerDown,
+      panel.floating,
+      panel.poppedOut,
+      panelId,
+    ],
   );
   return (
     <div

@@ -186,6 +186,21 @@ export function PanelActions({
                   type="button"
                   className="tilery__panel-menu-item"
                   role="menuitem"
+                  onClick={() =>
+                    runAction(() =>
+                      panel.poppedOut
+                        ? panel.returnToFloating()
+                        : panel.popout(),
+                    )
+                  }>
+                  {panel.poppedOut
+                    ? 'Return to floating layer'
+                    : 'Pop out window'}
+                </button>
+                <button
+                  type="button"
+                  className="tilery__panel-menu-item"
+                  role="menuitem"
                   onClick={() => runAction(() => panel.maximize())}>
                   Maximize
                 </button>
