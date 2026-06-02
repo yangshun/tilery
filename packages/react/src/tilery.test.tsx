@@ -330,6 +330,41 @@ function stubScrollMetrics(
   });
 }
 
+function stubOverflowTabRow(
+  host: HTMLElement,
+  tabList: HTMLElement,
+  opts: { clientWidth: number; tabWidth?: number },
+) {
+  const tabWidth = opts.tabWidth ?? 80;
+  const tabs = Array.from(host.querySelectorAll<HTMLElement>('.tilery__tab'));
+  stubScrollMetrics(tabList, {
+    clientWidth: opts.clientWidth,
+    scrollWidth: tabs.length * tabWidth,
+  });
+  stubElementRect(tabList, {
+    left: 0,
+    top: 0,
+    width: opts.clientWidth,
+    height: 32,
+  });
+  tabs.forEach((tab, index) => {
+    tab.getBoundingClientRect = () => {
+      const left = index * tabWidth - tabList.scrollLeft;
+      return {
+        left,
+        top: 0,
+        right: left + tabWidth,
+        bottom: 32,
+        width: tabWidth,
+        height: 32,
+        x: left,
+        y: 0,
+        toJSON: () => ({}),
+      } as DOMRect;
+    };
+  });
+}
+
 function mount(
   initialLayout: TileryInitialLayout<Data>,
   onChange?: (s: unknown) => void,
@@ -572,6 +607,119 @@ describe('Tilery — rendering', () => {
 
     expect(tabList.scrollLeft).toBe(300);
     expect(preventDefaultCalls).toBe(0);
+    t.cleanup();
+  });
+
+  it('opens hidden tabs from the tab overflow menu', () => {
+    const t = mount(overflowTabsLayout());
+    const tabList = t.host.querySelector<HTMLElement>('.tilery__tab-list')!;
+    stubOverflowTabRow(t.host, tabList, { clientWidth: 160 });
+
+    act(() => {
+      reactProps(tabList).onScroll({});
+    });
+
+    const button = t.host.querySelector<HTMLElement>(
+      '.tilery__tab-overflow-button',
+    )!;
+    expect(button).not.toBeNull();
+    expect(button.getAttribute('aria-expanded')).toBe('false');
+    expect(tabList.getAttribute('data-overflowing')).toBe('true');
+
+    act(() => {
+      reactProps(button).onClick({});
+    });
+
+    const menuItems = Array.from(
+      t.host.querySelectorAll<HTMLElement>('.tilery__tab-overflow-menu-item'),
+    );
+    expect(menuItems.map((item) => item.textContent)).toEqual([
+      'Very long tab title 3',
+      'Very long tab title 4',
+      'Very long tab title 5',
+      'Very long tab title 6',
+      'Very long tab title 7',
+      'Very long tab title 8',
+    ]);
+
+    const tabSix = menuItems.find(
+      (item) => item.textContent === 'Very long tab title 6',
+    )!;
+    act(() => {
+      reactProps(tabSix).onClick({});
+    });
+
+    expect(t.controller().getPanel('overflow')!.activeTab?.id).toBe('tab-6');
+    expect(tabList.scrollLeft).toBe(320);
+    expect(t.host.querySelector('.tilery__tab-overflow-menu')).toBeNull();
+    t.cleanup();
+  });
+
+  it('closes and hides the tab overflow menu when all tabs fit', () => {
+    const t = mount(overflowTabsLayout());
+    const tabList = t.host.querySelector<HTMLElement>('.tilery__tab-list')!;
+    stubOverflowTabRow(t.host, tabList, { clientWidth: 160 });
+
+    act(() => {
+      reactProps(tabList).onScroll({});
+    });
+    const button = t.host.querySelector<HTMLElement>(
+      '.tilery__tab-overflow-button',
+    )!;
+    act(() => {
+      reactProps(button).onClick({});
+    });
+    expect(t.host.querySelector('.tilery__tab-overflow-menu')).not.toBeNull();
+
+    stubOverflowTabRow(t.host, tabList, { clientWidth: 640 });
+    act(() => {
+      reactProps(tabList).onScroll({});
+    });
+
+    expect(tabList.getAttribute('data-overflowing')).toBe('false');
+    expect(t.host.querySelector('.tilery__tab-overflow')).toBeNull();
+    expect(t.host.querySelector('.tilery__tab-overflow-menu')).toBeNull();
+    t.cleanup();
+  });
+
+  it('handles tab overflow menu keyboard and pointer affordances', () => {
+    const t = mount(overflowTabsLayout());
+    const tabList = t.host.querySelector<HTMLElement>('.tilery__tab-list')!;
+    stubOverflowTabRow(t.host, tabList, { clientWidth: 160 });
+
+    act(() => {
+      reactProps(tabList).onScroll({});
+    });
+    const overflow = t.host.querySelector<HTMLElement>(
+      '.tilery__tab-overflow',
+    )!;
+    let stopCalls = 0;
+    act(() => {
+      reactProps(overflow).onPointerDown({
+        stopPropagation() {
+          stopCalls++;
+        },
+      });
+    });
+    expect(stopCalls).toBe(1);
+
+    const button = t.host.querySelector<HTMLElement>(
+      '.tilery__tab-overflow-button',
+    )!;
+    act(() => {
+      reactProps(button).onClick({});
+    });
+    const menu = t.host.querySelector<HTMLElement>(
+      '.tilery__tab-overflow-menu',
+    )!;
+    act(() => {
+      reactProps(menu).onKeyDown({ key: 'Enter' });
+    });
+    expect(t.host.querySelector('.tilery__tab-overflow-menu')).not.toBeNull();
+    act(() => {
+      reactProps(menu).onKeyDown({ key: 'Escape' });
+    });
+    expect(t.host.querySelector('.tilery__tab-overflow-menu')).toBeNull();
     t.cleanup();
   });
 

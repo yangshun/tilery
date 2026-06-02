@@ -221,6 +221,32 @@
   opacity: 1;
 }
 
+.tilery__tab-overflow {
+  position: relative;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: stretch;
+  border-left: 1px solid var(--tilery-panel-border, #2a2d33);
+  background: var(--tilery-tabbar-bg, #16181c);
+}
+
+.tilery__tab-overflow-menu {
+  min-width: 220px;
+  max-width: 320px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.tilery__tab-overflow-menu-item {
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.tilery__tab-overflow-menu-item[data-active='true'] {
+  background: var(--tilery-tab-active-bg, var(--tilery-panel-bg, #1a1c20));
+  color: var(--tilery-tab-active-fg, #f3f4f7);
+}
+
 .tilery__panel-actions {
   flex: 0 0 auto;
   display: flex;

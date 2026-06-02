@@ -175,12 +175,13 @@ export const examples = [
   {
     slug: 'overflow',
     title: 'Tab Overflow',
-    description: 'Many tabs in one panel with horizontal scrolling.',
+    description: 'Many tabs in one panel with scrolling and a hidden-tab menu.',
     demos: [{ id: 'tab-overflow', sourceRegion: 'tab-overflow' }],
     notes: [
       'Tabs keep their natural width and the tab row scrolls horizontally when there is not enough space.',
       'Wheel input over the tab row scrolls horizontally without taking over page scrolling at the row boundaries.',
       'When a tab becomes active through the API or by clicking, Tilery scrolls it into view automatically.',
+      'When tabs are clipped, the overflow button lists the hidden tabs and activates the selected tab.',
     ],
   },
   {

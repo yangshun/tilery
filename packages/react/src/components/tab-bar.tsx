@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useLayoutEffect, useRef } from 'react';
+import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import type { TileryController, TileryPanel, TileryTab } from 'tilery/internal';
 import { tileryPanelBehaviorFromState } from 'tilery/internal';
 import { PanelActions, type PanelActionsProps } from './panel-actions';
@@ -88,6 +88,26 @@ function TabRow({
   );
 }
 
+function TabOverflowIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      focusable="false"
+      width="16"
+      height="16"
+      viewBox="0 0 16 16">
+      <path
+        d="M4.5 6.25 8 9.75l3.5-3.5"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.5"
+      />
+    </svg>
+  );
+}
+
 export function TabBar({
   panel,
   tilery,
@@ -112,6 +132,8 @@ export function TabBar({
   const panelId = panel.id;
   const activeTabId = panel.activeTab?.id ?? null;
   const tabListRef = useRef<HTMLDivElement | null>(null);
+  const [hiddenTabIds, setHiddenTabIds] = useState<string[]>([]);
+  const [isOverflowMenuOpen, setIsOverflowMenuOpen] = useState(false);
   const behavior = tileryPanelBehaviorFromState(tilery.getState(), panelId);
   const canDragPanel =
     behavior.draggable &&
@@ -125,6 +147,7 @@ export function TabBar({
         panel.floating &&
         !panel.poppedOut &&
         !target.closest('[data-tab-id]') &&
+        !target.closest('[data-tilery-tab-overflow]') &&
         !target.closest('[data-tilery-panel-actions]')
       ) {
         onFloatingTabBarPointerDown?.(e, panelId);
@@ -147,23 +170,65 @@ export function TabBar({
     },
     [registerTabBar],
   );
-  const handleTabListWheel = useCallback((e: React.WheelEvent) => {
+  const updateHiddenTabs = useCallback(() => {
     const tabList = tabListRef.current;
-    /* v8 ignore next -- the handler is detached before this is reachable. */
-    if (!tabList) return;
-    const maxScrollLeft = tabList.scrollWidth - tabList.clientWidth;
-    if (maxScrollLeft <= 0) return;
+    /* v8 ignore next 4 -- callers only run after the tab-list ref is registered. */
+    if (!tabList) {
+      setHiddenTabIds((previous) => (previous.length === 0 ? previous : []));
+      setIsOverflowMenuOpen(false);
+      return;
+    }
 
-    const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-    const next = Math.max(
-      0,
-      Math.min(maxScrollLeft, tabList.scrollLeft + delta),
+    const next = getHiddenTabIds(tabList, panel.tabs);
+    setHiddenTabIds((previous) =>
+      areStringArraysEqual(previous, next) ? previous : next,
     );
-    if (next === tabList.scrollLeft) return;
+    if (next.length === 0) setIsOverflowMenuOpen(false);
+  }, [panel.tabs]);
+  const handleTabListWheel = useCallback(
+    (e: React.WheelEvent) => {
+      const tabList = tabListRef.current;
+      /* v8 ignore next -- the handler is detached before this is reachable. */
+      if (!tabList) return;
+      const maxScrollLeft = tabList.scrollWidth - tabList.clientWidth;
+      if (maxScrollLeft <= 0) return;
 
-    e.preventDefault();
-    tabList.scrollLeft = next;
+      const delta =
+        Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      const next = Math.max(
+        0,
+        Math.min(maxScrollLeft, tabList.scrollLeft + delta),
+      );
+      if (next === tabList.scrollLeft) return;
+
+      e.preventDefault();
+      tabList.scrollLeft = next;
+      updateHiddenTabs();
+    },
+    [updateHiddenTabs],
+  );
+  const handleTabListScroll = useCallback(() => {
+    updateHiddenTabs();
+  }, [updateHiddenTabs]);
+  const closeOverflowMenu = useCallback(() => {
+    setIsOverflowMenuOpen(false);
   }, []);
+  const activateOverflowTab = useCallback(
+    (tabId: string) => {
+      const tabList = tabListRef.current;
+      const tab = tabList?.querySelector<HTMLElement>(
+        `[data-tab-id="${cssEscape(tabId)}"]`,
+      );
+      /* v8 ignore next 4 -- overflow menu items are rendered from existing tabs. */
+      if (tabList && tab) {
+        scrollTabIntoView(tabList, tab);
+        updateHiddenTabs();
+      }
+      onTabClick(tabId);
+      closeOverflowMenu();
+    },
+    [closeOverflowMenu, onTabClick, updateHiddenTabs],
+  );
 
   useLayoutEffect(() => {
     const tabList = tabListRef.current;
@@ -177,7 +242,24 @@ export function TabBar({
     /* v8 ignore next -- panel objects only expose active tabs present in the row. */
     if (!activeTab) return;
     scrollTabIntoView(tabList, activeTab);
-  }, [activeTabId, panel.tabs]);
+    updateHiddenTabs();
+  }, [activeTabId, panel.tabs, updateHiddenTabs]);
+
+  useLayoutEffect(() => {
+    updateHiddenTabs();
+  }, [updateHiddenTabs]);
+
+  useLayoutEffect(() => {
+    const tabList = tabListRef.current;
+    /* v8 ignore next -- React always calls the ref before this effect runs. */
+    if (!tabList) return;
+    const win = tabList.ownerDocument.defaultView;
+    win?.addEventListener('resize', updateHiddenTabs);
+    return () => win?.removeEventListener('resize', updateHiddenTabs);
+  }, [updateHiddenTabs]);
+
+  const hiddenTabs = panel.tabs.filter((tab) => hiddenTabIds.includes(tab.id));
+  const hasHiddenTabs = hiddenTabs.length > 0;
 
   return (
     <div
@@ -192,7 +274,9 @@ export function TabBar({
       <div
         ref={handleTabListRef}
         className="tilery__tab-list"
+        data-overflowing={hasHiddenTabs}
         role="tablist"
+        onScroll={handleTabListScroll}
         onWheel={handleTabListWheel}>
         {panel.tabs.map((tab) => (
           <TabRow
@@ -210,6 +294,48 @@ export function TabBar({
           />
         ))}
       </div>
+      {hasHiddenTabs && (
+        <div
+          className="tilery__tab-overflow"
+          data-tilery-tab-overflow=""
+          onPointerDown={(e) => {
+            e.stopPropagation();
+          }}>
+          <button
+            type="button"
+            className="tilery__panel-action-button tilery__tab-overflow-button"
+            aria-label="Show hidden tabs"
+            aria-haspopup="menu"
+            aria-expanded={isOverflowMenuOpen}
+            onClick={() => setIsOverflowMenuOpen((open) => !open)}>
+            <TabOverflowIcon />
+          </button>
+          {isOverflowMenuOpen && (
+            <div
+              className="tilery__panel-menu tilery__tab-overflow-menu"
+              role="menu"
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') closeOverflowMenu();
+              }}>
+              {hiddenTabs.map((tab) => {
+                const isActive = activeTabId === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    className="tilery__panel-menu-item tilery__tab-overflow-menu-item"
+                    data-active={isActive}
+                    role="menuitemradio"
+                    aria-checked={isActive}
+                    onClick={() => activateOverflowTab(tab.id)}>
+                    {renderHeader(tab, { isActive })}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
       <PanelActions
         panel={panel}
         tilery={tilery}
@@ -223,6 +349,25 @@ export function TabBar({
   );
 }
 
+function getHiddenTabIds(tabList: HTMLElement, tabs: readonly TileryTab[]) {
+  if (tabList.scrollWidth <= tabList.clientWidth) return [];
+
+  const listRect = tabList.getBoundingClientRect();
+  const listLeft = listRect.left;
+  const listRight = listRect.right;
+  return tabs
+    .filter((tab) => {
+      const tabEl = tabList.querySelector<HTMLElement>(
+        `[data-tab-id="${cssEscape(tab.id)}"]`,
+      );
+      /* v8 ignore next -- stale refs are only possible during unmount churn. */
+      if (!tabEl) return false;
+      const tabRect = tabEl.getBoundingClientRect();
+      return tabRect.left < listLeft || tabRect.right > listRight;
+    })
+    .map((tab) => tab.id);
+}
+
 function scrollTabIntoView(tabList: HTMLElement, tab: HTMLElement) {
   const listRect = tabList.getBoundingClientRect();
   const tabRect = tab.getBoundingClientRect();
@@ -232,6 +377,10 @@ function scrollTabIntoView(tabList: HTMLElement, tab: HTMLElement) {
   } else if (tabRect.right > listRect.right) {
     tabList.scrollLeft += tabRect.right - listRect.right;
   }
+}
+
+function areStringArraysEqual(a: readonly string[], b: readonly string[]) {
+  return a.length === b.length && a.every((value, index) => value === b[index]);
 }
 
 function cssEscape(value: string): string {
