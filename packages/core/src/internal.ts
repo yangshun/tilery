@@ -4,19 +4,19 @@ export type {
   TileryDividerOrientation,
   TileryFloatingPanelBounds,
   TileryFloatingResizeEdge,
-  TileryHandle,
+  TileryController,
   TileryInitialLayout,
   TileryInset,
   TileryJunction,
   TileryLayoutState,
-  TileryPanelHandle,
+  TileryPanel,
   TileryPanelId,
   TileryPanelState,
   TileryPopoutPanelOptions,
   TileryPopoutWindowBounds,
   TilerySize,
   TilerySizeResolutionContext,
-  TileryTabHandle,
+  TileryTab,
   TileryTabId,
   TileryTabInit,
 } from './types';
@@ -29,12 +29,12 @@ export {
 } from './state/reducer';
 
 export {
-  makeTileryHandle,
+  makeTileryController,
   type TileryDispatch,
   type TileryGetSizeContext,
   type TileryGetState,
-  type TileryHandleOptions,
-} from './state/handles';
+  type TileryControllerOptions,
+} from './state/controller';
 
 export { tileryPanelBehaviorFromState } from './state/layout-behavior';
 

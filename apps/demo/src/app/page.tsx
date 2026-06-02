@@ -12,7 +12,7 @@ const principles = [
   },
   {
     title: 'Programmable by default',
-    body: 'Use typed handles to create panels, move tabs, activate views, persist layouts, and build your own controls.',
+    body: 'Use the typed controller plus panel and tab objects to create panels, move tabs, activate views, persist layouts, and build your own controls.',
   },
 ];
 

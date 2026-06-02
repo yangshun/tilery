@@ -1,7 +1,11 @@
 'use client';
 
 import { useCallback, useRef, useState } from 'react';
-import type { TileryHandle, TileryPanelId, TileryTabId } from 'tilery/internal';
+import type {
+  TileryController,
+  TileryPanelId,
+  TileryTabId,
+} from 'tilery/internal';
 import {
   tileryAdjacencySide,
   tileryTabBarDropAt,
@@ -29,7 +33,7 @@ type Refs = {
 
 const DRAG_THRESHOLD_PX = 4;
 
-export function useTileryDragController(tilery: () => TileryHandle | null) {
+export function useTileryDragController(tilery: () => TileryController | null) {
   const refs = useRef<Refs>({
     panelEls: new Map(),
     tabBarEls: new Map(),

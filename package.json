@@ -14,7 +14,7 @@
     "lint:fix": "vp lint . --fix",
     "fmt": "vp fmt . --write",
     "fmt:check": "vp fmt . --check",
-    "typecheck": "tsc -b",
+    "typecheck": "tsc -b --noEmit && tsc -p apps/demo/tsconfig.json --noEmit",
     "clean": "rm -rf packages/*/dist apps/*/dist apps/*/.next"
   },
   "devDependencies": {

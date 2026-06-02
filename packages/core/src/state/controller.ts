@@ -7,17 +7,17 @@ import type {
   TileryFloatingPanelBoundsInit,
   TileryLayoutBehaviorConfig,
   TileryLayoutState,
-  TileryHandle,
+  TileryController,
   TileryMoveTarget,
   TileryOpenTabTarget,
-  TileryPanelHandle,
+  TileryPanel,
   TileryPanelId,
   TileryPopoutPanelOptions,
   TileryPopoutTabOptions,
   TileryPopoutWindowBounds,
   TilerySizeResolutionContext,
   TileryTabBehaviorUpdate,
-  TileryTabHandle,
+  TileryTab,
   TileryTabId,
   TileryTabInit,
 } from '../types';
@@ -40,7 +40,7 @@ export type TileryGetSizeContext = () =>
   | TilerySizeResolutionContext
   | undefined;
 
-export type TileryHandleOptions = {
+export type TileryControllerOptions = {
   requestPopoutPanel?: (
     panelId: TileryPanelId,
     opts?: TileryPopoutPanelOptions,
@@ -48,35 +48,35 @@ export type TileryHandleOptions = {
   onReturnPanelToFloating?: (panelId: TileryPanelId) => void;
 };
 
-export function makeTileryHandle(
+export function makeTileryController(
   getState: TileryGetState,
   dispatch: TileryDispatch,
   getSizeContext?: TileryGetSizeContext,
-  options?: TileryHandleOptions,
-): TileryHandle {
-  const handle: TileryHandle = {
+  options?: TileryControllerOptions,
+): TileryController {
+  const controller: TileryController = {
     getState,
     getPanel(id: TileryPanelId) {
       const state = getState();
       if (!state.panels[id]) return null;
-      return tileryMakePanelHandle(id, getState, dispatch, handle);
+      return tileryMakePanel(id, getState, dispatch, controller);
     },
     getTab(id: TileryTabId) {
       const state = getState();
       if (!state.tabs[id]) return null;
-      return tileryMakeTabHandle(id, getState, dispatch, handle);
+      return tileryMakeTab(id, getState, dispatch, controller);
     },
     getPanels() {
       const state = getState();
       return tileryAllPanelOrderFromState(state)
-        .map((id) => handle.getPanel(id))
-        .filter((p): p is TileryPanelHandle => Boolean(p));
+        .map((id) => controller.getPanel(id))
+        .filter((p): p is TileryPanel => Boolean(p));
     },
     getTabs() {
       const state = getState();
       return Object.keys(state.tabs)
-        .map((id) => handle.getTab(id))
-        .filter((t): t is TileryTabHandle => Boolean(t));
+        .map((id) => controller.getTab(id))
+        .filter((t): t is TileryTab => Boolean(t));
     },
     splitPanel(panelId, direction, opts) {
       const newPanelId = tileryNextId('p');
@@ -95,7 +95,7 @@ export function makeTileryHandle(
         tabs,
         activate: opts?.activate ?? true,
       });
-      return tileryMakePanelHandle(newPanelId, getState, dispatch, handle);
+      return tileryMakePanel(newPanelId, getState, dispatch, controller);
     },
     removePanel(panelId) {
       dispatch({ type: 'REMOVE_PANEL', panelId });
@@ -150,7 +150,7 @@ export function makeTileryHandle(
         tab: t,
         activate: opts?.activate ?? true,
       });
-      return tileryMakeTabHandle(t.id, getState, dispatch, handle);
+      return tileryMakeTab(t.id, getState, dispatch, controller);
     },
     insertTab(panelId, tab, index, opts) {
       const t = tileryTabInitToReducerInit(tab);
@@ -161,12 +161,12 @@ export function makeTileryHandle(
         index,
         activate: opts?.activate ?? true,
       });
-      return tileryMakeTabHandle(t.id, getState, dispatch, handle);
+      return tileryMakeTab(t.id, getState, dispatch, controller);
     },
     openOrActivateTab(tab, target) {
       if (tab.id && getState().tabs[tab.id]) {
         dispatch({ type: 'SET_ACTIVE_TAB', tabId: tab.id });
-        return tileryMakeTabHandle(tab.id, getState, dispatch, handle);
+        return tileryMakeTab(tab.id, getState, dispatch, controller);
       }
       const resolved = resolveOpenTabTarget(getState(), target);
       if (!resolved) return null;
@@ -178,21 +178,21 @@ export function makeTileryHandle(
         index: resolved.index,
         activate: true,
       });
-      return tileryMakeTabHandle(t.id, getState, dispatch, handle);
+      return tileryMakeTab(t.id, getState, dispatch, controller);
     },
     changeTabId(oldTabId, newTabId) {
       const state = getState();
       const tab = state.tabs[oldTabId];
       if (oldTabId === newTabId) {
         return tab && state.panels[tab.panelId]
-          ? tileryMakeTabHandle(oldTabId, getState, dispatch, handle)
+          ? tileryMakeTab(oldTabId, getState, dispatch, controller)
           : null;
       }
       if (!tab || !state.panels[tab.panelId] || state.tabs[newTabId]) {
         return null;
       }
       dispatch({ type: 'CHANGE_TAB_ID', oldTabId, newTabId });
-      return tileryMakeTabHandle(newTabId, getState, dispatch, handle);
+      return tileryMakeTab(newTabId, getState, dispatch, controller);
     },
     removeTab(tabId) {
       dispatch({ type: 'REMOVE_TAB', tabId });
@@ -217,7 +217,7 @@ export function makeTileryHandle(
         bounds: opts?.bounds,
         ...(behavior ? { behavior } : {}),
       });
-      return tileryMakePanelHandle(newPanelId, getState, dispatch, handle);
+      return tileryMakePanel(newPanelId, getState, dispatch, controller);
     },
     popoutTab(tabId, opts) {
       const newPanelId = opts?.panelId ?? tileryNextId('p');
@@ -234,7 +234,7 @@ export function makeTileryHandle(
         newPanelId,
         opts: popoutOpts,
       });
-      return tileryMakePanelHandle(newPanelId, getState, dispatch, handle);
+      return tileryMakePanel(newPanelId, getState, dispatch, controller);
     },
     setTabBehavior(tabId, behavior) {
       dispatch({ type: 'SET_TAB_BEHAVIOR', tabId, behavior });
@@ -255,7 +255,7 @@ export function makeTileryHandle(
       });
     },
   };
-  return handle;
+  return controller;
 }
 
 function resolveOpenTabTarget(
@@ -309,12 +309,12 @@ function normalizeMoveTarget(
   };
 }
 
-export function tileryMakePanelHandle(
+export function tileryMakePanel(
   id: TileryPanelId,
   getState: TileryGetState,
   dispatch: TileryDispatch,
-  tilery: TileryHandle,
-): TileryPanelHandle {
+  tilery: TileryController,
+): TileryPanel {
   return {
     get id() {
       return id;
@@ -352,13 +352,13 @@ export function tileryMakePanelHandle(
       const p = getState().panels[id];
       if (!p) return [];
       return p.tabs.map((tid) =>
-        tileryMakeTabHandle(tid, getState, dispatch, tilery),
+        tileryMakeTab(tid, getState, dispatch, tilery),
       );
     },
     get activeTab() {
       const p = getState().panels[id];
       if (!p || !p.activeTabId) return null;
-      return tileryMakeTabHandle(p.activeTabId, getState, dispatch, tilery);
+      return tileryMakeTab(p.activeTabId, getState, dispatch, tilery);
     },
     get fullScreen() {
       return getState().panels[id]?.fullScreen ?? false;
@@ -414,23 +414,23 @@ export function tileryMakePanelHandle(
   };
 }
 
-export function tileryMakeTabHandle<TData = unknown>(
+export function tileryMakeTab<TData = unknown>(
   id: TileryTabId,
   getState: TileryGetState,
   dispatch: TileryDispatch,
-  tilery: TileryHandle,
-): TileryTabHandle<TData> {
+  tilery: TileryController,
+): TileryTab<TData> {
   return {
     get id() {
       return id;
     },
-    get panel(): TileryPanelHandle {
+    get panel(): TileryPanel {
       const state = getState();
       const tab = state.tabs[id];
       if (!tab) {
         throw new Error(`Tab ${id} no longer exists`);
       }
-      return tileryMakePanelHandle(tab.panelId, getState, dispatch, tilery);
+      return tileryMakePanel(tab.panelId, getState, dispatch, tilery);
     },
     get index() {
       const state = getState();

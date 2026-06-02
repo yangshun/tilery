@@ -3,9 +3,9 @@
 import { useMemo, useRef, useState } from 'react';
 import { Tilery } from '@tilery/react';
 import type {
-  TileryHandle,
+  TileryController,
   TileryInitialLayout,
-  TileryTabHandle,
+  TileryTab,
 } from '@tilery/react';
 import { ExampleButton, ExampleSection, TabContent } from '../example-ui';
 
@@ -57,7 +57,7 @@ export function Example() {
 
 // source-region tab-overflow
 export function TabOverflowExample() {
-  const tileryRef = useRef<TileryHandle | null>(null);
+  const tileryRef = useRef<TileryController | null>(null);
   const [activeId, setActiveId] = useState('file-1');
   const jumpTargets = useMemo(
     () => [
@@ -89,10 +89,10 @@ export function TabOverflowExample() {
           );
           if (editorChange?.tabId) setActiveId(editorChange.tabId);
         }}
-        renderTabHeader={(tab: TileryTabHandle<TabData>) => (
+        renderTabHeader={(tab: TileryTab<TabData>) => (
           <span>{tab.data.title}</span>
         )}
-        renderTabContent={(tab: TileryTabHandle<TabData>) => (
+        renderTabContent={(tab: TileryTab<TabData>) => (
           <TabContent meta={tab.data.section}>
             <p style={{ margin: 0 }}>
               {tab.id === 'tree'

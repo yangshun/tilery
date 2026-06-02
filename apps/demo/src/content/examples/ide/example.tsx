@@ -1,7 +1,7 @@
 'use client';
 
 import { Tilery } from '@tilery/react';
-import type { TileryInitialLayout, TileryTabHandle } from '@tilery/react';
+import type { TileryInitialLayout, TileryTab } from '@tilery/react';
 import { TabContent } from '../example-ui';
 
 type TabData = {
@@ -60,10 +60,10 @@ export function Example() {
   return (
     <Tilery<TabData>
       initialLayout={layout}
-      renderTabHeader={(tab: TileryTabHandle<TabData>) => (
+      renderTabHeader={(tab: TileryTab<TabData>) => (
         <span>{tab.data.title}</span>
       )}
-      renderTabContent={(tab: TileryTabHandle<TabData>) => (
+      renderTabContent={(tab: TileryTab<TabData>) => (
         <TabContent>
           {tab.data.kind === 'explorer' && (
             <div style={monoBlockStyle}>

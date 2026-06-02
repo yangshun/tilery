@@ -346,11 +346,11 @@ export type TileryJunction = {
   disabled?: boolean;
 };
 
-export type TileryHandle = {
-  getPanel(id: TileryPanelId): TileryPanelHandle | null;
-  getTab(id: TileryTabId): TileryTabHandle | null;
-  getPanels(): TileryPanelHandle[];
-  getTabs(): TileryTabHandle[];
+export type TileryController = {
+  getPanel(id: TileryPanelId): TileryPanel | null;
+  getTab(id: TileryTabId): TileryTab | null;
+  getPanels(): TileryPanel[];
+  getTabs(): TileryTab[];
   splitPanel(
     panelId: TileryPanelId,
     direction: TileryDirection,
@@ -361,7 +361,7 @@ export type TileryHandle = {
       tabs?: TileryTabInit[];
       activate?: boolean;
     } & TileryLayoutBehaviorConfig,
-  ): TileryPanelHandle;
+  ): TileryPanel;
   removePanel(panelId: TileryPanelId): void;
   maximizePanel(panelId: TileryPanelId): void;
   restorePanel(panelId: TileryPanelId): void;
@@ -385,31 +385,28 @@ export type TileryHandle = {
     panelId: TileryPanelId,
     tab: TileryTabInit,
     opts?: { activate?: boolean },
-  ): TileryTabHandle;
+  ): TileryTab;
   insertTab(
     panelId: TileryPanelId,
     tab: TileryTabInit,
     index: number,
     opts?: { activate?: boolean },
-  ): TileryTabHandle;
+  ): TileryTab;
   openOrActivateTab(
     tab: TileryTabInit,
     target: TileryOpenTabTarget,
-  ): TileryTabHandle | null;
-  changeTabId(
-    oldTabId: TileryTabId,
-    newTabId: TileryTabId,
-  ): TileryTabHandle | null;
+  ): TileryTab | null;
+  changeTabId(oldTabId: TileryTabId, newTabId: TileryTabId): TileryTab | null;
   removeTab(tabId: TileryTabId): void;
   moveTab(tabId: TileryTabId, target: TileryMoveTarget): void;
   floatTab(
     tabId: TileryTabId,
     opts?: TileryFloatTabOptions,
-  ): TileryPanelHandle | null;
+  ): TileryPanel | null;
   popoutTab(
     tabId: TileryTabId,
     opts?: TileryPopoutTabOptions,
-  ): TileryPanelHandle | null;
+  ): TileryPanel | null;
   setTabBehavior(tabId: TileryTabId, behavior: TileryTabBehaviorUpdate): void;
   setActiveTab(tabId: TileryTabId): void;
   swapPanels(panelA: TileryPanelId, panelB: TileryPanelId): void;
@@ -418,7 +415,7 @@ export type TileryHandle = {
   getState(): TileryLayoutState;
 };
 
-export type TileryPanelHandle = {
+export type TileryPanel = {
   readonly id: TileryPanelId;
   readonly kind: TileryPanelState['kind'];
   readonly inset: Readonly<TileryInset>;
@@ -427,17 +424,17 @@ export type TileryPanelHandle = {
   readonly floatingZIndex: number | undefined;
   readonly poppedOut: boolean;
   readonly popoutWindowBounds: Readonly<TileryPopoutWindowBounds> | undefined;
-  readonly tabs: readonly TileryTabHandle[];
-  readonly activeTab: TileryTabHandle | null;
+  readonly tabs: readonly TileryTab[];
+  readonly activeTab: TileryTab | null;
   readonly fullScreen: boolean;
   readonly minSize: TilerySize | undefined;
   readonly maxSize: TilerySize | undefined;
-  appendTab(tab: TileryTabInit, opts?: { activate?: boolean }): TileryTabHandle;
+  appendTab(tab: TileryTabInit, opts?: { activate?: boolean }): TileryTab;
   insertTab(
     tab: TileryTabInit,
     index: number,
     opts?: { activate?: boolean },
-  ): TileryTabHandle;
+  ): TileryTab;
   split(
     direction: TileryDirection,
     opts?: {
@@ -447,7 +444,7 @@ export type TileryPanelHandle = {
       tabs?: TileryTabInit[];
       activate?: boolean;
     } & TileryLayoutBehaviorConfig,
-  ): TileryPanelHandle;
+  ): TileryPanel;
   remove(): void;
   maximize(): void;
   restore(): void;
@@ -461,9 +458,9 @@ export type TileryPanelHandle = {
   setActiveTab(id: TileryTabId): void;
 };
 
-export type TileryTabHandle<TData = unknown> = {
+export type TileryTab<TData = unknown> = {
   readonly id: TileryTabId;
-  readonly panel: TileryPanelHandle;
+  readonly panel: TileryPanel;
   readonly index: number;
   readonly data: TData;
   readonly closeable: boolean;
@@ -471,8 +468,8 @@ export type TileryTabHandle<TData = unknown> = {
   setData(data: TData): void;
   setBehavior(behavior: TileryTabBehaviorUpdate): void;
   moveTo(target: TileryMoveTarget): void;
-  float(opts?: TileryFloatTabOptions): TileryPanelHandle | null;
-  popout(opts?: TileryPopoutTabOptions): TileryPanelHandle | null;
+  float(opts?: TileryFloatTabOptions): TileryPanel | null;
+  popout(opts?: TileryPopoutTabOptions): TileryPanel | null;
   activate(): void;
   remove(): void;
 };

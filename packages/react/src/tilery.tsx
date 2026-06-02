@@ -33,7 +33,7 @@ import { useTileryPopoutWindows } from './use-popout-windows';
 import {
   tileryCreateInitialState,
   tileryReducer,
-  makeTileryHandle,
+  makeTileryController,
   tileryAllPanelOrderFromState,
   tileryClampDividerPosition,
   tileryDeriveDividers,
@@ -45,29 +45,27 @@ import {
   type TileryDivider as TileryDividerState,
   type TileryDividerOrientation,
   type TileryLayoutState,
-  type TileryHandle,
-  type TileryPanelHandle,
+  type TileryController,
+  type TileryPanel,
   type TileryPanelId,
   type TilerySize,
   type TilerySizeResolutionContext,
-  type TileryTabHandle,
+  type TileryTab,
   type TileryTabId,
   type TileryTabInit,
 } from 'tilery/internal';
 
 import 'tilery/style.css';
 
-export type TileryPanelVisibility =
-  | boolean
-  | ((panel: TileryPanelHandle) => boolean);
+export type TileryPanelVisibility = boolean | ((panel: TileryPanel) => boolean);
 
 export type TileryNewTabHandler<TData = unknown> = (
-  panel: TileryPanelHandle,
-  ctx: { tilery: TileryHandle },
+  panel: TileryPanel,
+  ctx: { tilery: TileryController },
 ) => TileryTabInit<TData> | void;
 
 export type TileryPanelActionsRenderContext = {
-  tilery: TileryHandle;
+  tilery: TileryController;
   closeMenu: () => void;
 };
 
@@ -120,10 +118,10 @@ type TileryResizeAction = Extract<
 export type TileryProps<TData = unknown> = {
   initialLayout: TileryInitialLayout<TData>;
   renderTabHeader: (
-    tab: TileryTabHandle<TData>,
+    tab: TileryTab<TData>,
     ctx: { isActive: boolean },
   ) => React.ReactNode;
-  renderTabContent: (tab: TileryTabHandle<TData>) => React.ReactNode;
+  renderTabContent: (tab: TileryTab<TData>) => React.ReactNode;
   onChange?: (state: TileryLayoutState) => void;
   onResize?: (event: TileryResizeEvent) => void;
   onResizeEnd?: (event: TileryResizeEvent) => void;
@@ -141,15 +139,15 @@ export type TileryProps<TData = unknown> = {
   showNewTabButton?: TileryPanelVisibility;
   onNewTab?: TileryNewTabHandler<TData>;
   renderPanelActions?: (
-    panel: TileryPanelHandle,
+    panel: TileryPanel,
     ctx: TileryPanelActionsRenderContext,
   ) => React.ReactNode;
-  renderActionsButtonIcon?: (panel: TileryPanelHandle) => React.ReactNode;
+  renderActionsButtonIcon?: (panel: TileryPanel) => React.ReactNode;
 };
 
 export const Tilery = forwardRef(function Tilery<TData = unknown>(
   props: TileryProps<TData>,
-  ref: React.Ref<TileryHandle>,
+  ref: React.Ref<TileryController>,
 ) {
   const {
     initialLayout,
@@ -342,9 +340,9 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
       dispatchWithLifecycle,
     });
 
-  const tileryRef = useRef<TileryHandle | null>(null);
+  const tileryRef = useRef<TileryController | null>(null);
   if (!tileryRef.current) {
-    tileryRef.current = makeTileryHandle(
+    tileryRef.current = makeTileryController(
       getState,
       dispatchWithLifecycle,
       getSizeContext,
@@ -356,43 +354,38 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
   }
   useImperativeHandle(ref, () => tileryRef.current!, []);
 
-  const panelHandleCache = useRef<Map<TileryPanelId, TileryPanelHandle>>(
-    new Map(),
-  );
-  const getCachedPanelHandle = useCallback(
-    (id: TileryPanelId): TileryPanelHandle | null => {
+  const panelCache = useRef<Map<TileryPanelId, TileryPanel>>(new Map());
+  const getCachedPanel = useCallback(
+    (id: TileryPanelId): TileryPanel | null => {
       /* v8 ignore next 4 */
       if (!stateRef.current.panels[id]) {
-        panelHandleCache.current.delete(id);
+        panelCache.current.delete(id);
         return null;
       }
-      const cached = panelHandleCache.current.get(id);
+      const cached = panelCache.current.get(id);
       if (cached) return cached;
       const fresh = tileryRef.current!.getPanel(id);
       /* v8 ignore next */
       if (!fresh) return null;
-      panelHandleCache.current.set(id, fresh);
+      panelCache.current.set(id, fresh);
       return fresh;
     },
     [],
   );
-  const tabHandleCache = useRef<Map<TileryTabId, TileryTabHandle>>(new Map());
-  const getCachedTabHandle = useCallback(
-    (id: TileryTabId): TileryTabHandle | null => {
-      if (!stateRef.current.tabs[id]) {
-        tabHandleCache.current.delete(id);
-        return null;
-      }
-      const cached = tabHandleCache.current.get(id);
-      if (cached) return cached;
-      const fresh = tileryRef.current!.getTab(id);
-      /* v8 ignore next */
-      if (!fresh) return null;
-      tabHandleCache.current.set(id, fresh);
-      return fresh;
-    },
-    [],
-  );
+  const tabCache = useRef<Map<TileryTabId, TileryTab>>(new Map());
+  const getCachedTab = useCallback((id: TileryTabId): TileryTab | null => {
+    if (!stateRef.current.tabs[id]) {
+      tabCache.current.delete(id);
+      return null;
+    }
+    const cached = tabCache.current.get(id);
+    if (cached) return cached;
+    const fresh = tileryRef.current!.getTab(id);
+    /* v8 ignore next */
+    if (!fresh) return null;
+    tabCache.current.set(id, fresh);
+    return fresh;
+  }, []);
 
   useEffect(() => {
     onChange?.(state);
@@ -564,8 +557,8 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
   );
 
   const renderHeaderAdapter = useCallback(
-    (tab: TileryTabHandle, ctx: { isActive: boolean }) =>
-      renderTabHeader(tab as TileryTabHandle<TData>, ctx),
+    (tab: TileryTab, ctx: { isActive: boolean }) =>
+      renderTabHeader(tab as TileryTab<TData>, ctx),
     [renderTabHeader],
   );
 
@@ -620,26 +613,26 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
       /* v8 ignore next */
       if (!host) return null;
       const isActive = activeByPanel[tabState.panelId] === tabState.id;
-      const tabHandle = getCachedTabHandle(tabState.id);
+      const tab = getCachedTab(tabState.id);
       /* v8 ignore next */
-      if (!tabHandle) return null;
+      if (!tab) return null;
       return createPortal(
         <div className="tilery__tab-content" data-active={isActive}>
-          {renderTabContent(tabHandle as TileryTabHandle<TData>)}
+          {renderTabContent(tab as TileryTab<TData>)}
         </div>,
         host,
         tabState.id,
       );
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.tabs, activeByPanel, renderTabContent, getCachedTabHandle]);
+  }, [state.tabs, activeByPanel, renderTabContent, getCachedTab]);
 
   return (
     <div className="tilery">
       <div ref={containerRef} className="tilery__inner">
         {tileryAllPanelOrderFromState(state).map((panelId) => {
           if (fullScreenPanelId && panelId !== fullScreenPanelId) return null;
-          const panel = getCachedPanelHandle(panelId);
+          const panel = getCachedPanel(panelId);
           /* v8 ignore next */
           if (!panel) return null;
           const popoutRoot = panel.poppedOut ? popoutRoots[panelId] : null;
@@ -716,7 +709,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
 
         {drag.dragState &&
           (() => {
-            const draggedTab = getCachedTabHandle(drag.dragState.tabId);
+            const draggedTab = getCachedTab(drag.dragState.tabId);
             const siblingCount = drag.panelDragRef.current
               ? draggedTab
                 ? draggedTab.panel.tabs.length - 1
@@ -747,12 +740,12 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
     </div>
   );
 }) as <TData = unknown>(
-  props: TileryProps<TData> & { ref?: React.Ref<TileryHandle> },
+  props: TileryProps<TData> & { ref?: React.Ref<TileryController> },
 ) => React.ReactElement;
 
 function resolvePanelVisibility(
   value: TileryPanelVisibility,
-  panel: TileryPanelHandle,
+  panel: TileryPanel,
 ): boolean {
   return typeof value === 'function' ? value(panel) : value;
 }

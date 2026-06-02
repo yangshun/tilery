@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Tilery } from '@tilery/react';
-import type { TileryInitialLayout, TileryTabHandle } from '@tilery/react';
+import type { TileryInitialLayout, TileryTab } from '@tilery/react';
 import {
   ExampleButton,
   ExampleSection,
@@ -219,7 +219,7 @@ export function ContainerResizeExample() {
 }
 // end-source-region container-resize
 
-function renderHeader(tab: TileryTabHandle<TabData>) {
+function renderHeader(tab: TileryTab<TabData>) {
   return (
     <>
       <span
@@ -233,7 +233,7 @@ function renderHeader(tab: TileryTabHandle<TabData>) {
   );
 }
 
-function renderContent(tab: TileryTabHandle<TabData>) {
+function renderContent(tab: TileryTab<TabData>) {
   return (
     <TabContent meta={tab.data.constraints}>
       <p style={{ margin: 0 }}>{tab.data.summary}</p>

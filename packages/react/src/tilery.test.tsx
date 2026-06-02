@@ -15,14 +15,14 @@ import type {
   TileryTabsMoveEvent,
   TileryTabsOpenEvent,
 } from './lifecycle';
-import type { TileryInitialLayout, TileryHandle } from 'tilery/internal';
+import type { TileryInitialLayout, TileryController } from 'tilery/internal';
 
 // Integration tests for the Tilery component itself. They exercise the
 // JSX tree that the per-piece unit tests don't reach: panel-chrome, tab,
 // tab-bar, divider, drop-overlay, and the wiring in tilery.tsx itself
-// (handle caches, the tab portal effect, divider-drag dispatch). Each
+// (API object caches, the tab portal effect, divider-drag dispatch). Each
 // test mounts a small layout, performs a single interaction, and asserts
-// the resulting DOM and the imperative-handle state.
+// the resulting DOM and the controller state.
 
 type Data = { title: string };
 
@@ -339,7 +339,7 @@ function mount(
   const host = document.createElement('div');
   document.body.appendChild(host);
   const root = createRoot(host);
-  const ref = createRef<TileryHandle>();
+  const ref = createRef<TileryController>();
   act(() => {
     root.render(
       <Tilery<Data>
@@ -362,7 +362,7 @@ function mount(
   return {
     host,
     inner,
-    handle: () => ref.current!,
+    controller: () => ref.current!,
     cleanup() {
       act(() => {
         root.unmount();
@@ -493,14 +493,14 @@ describe('Tilery — rendering', () => {
     tabList.scrollLeft = 0;
 
     act(() => {
-      t.handle().setActiveTab('tab-6');
+      t.controller().setActiveTab('tab-6');
     });
 
     expect(tabList.scrollLeft).toBe(200);
 
     stubElementRect(firstTab, { left: -40, top: 0, width: 80, height: 32 });
     act(() => {
-      t.handle().setActiveTab('tab-1');
+      t.controller().setActiveTab('tab-1');
     });
 
     expect(tabList.scrollLeft).toBe(160);
@@ -661,7 +661,7 @@ describe('Tilery — rendering', () => {
     expect(
       palette.querySelectorAll('.tilery__floating-resize-handle'),
     ).toHaveLength(8);
-    expect(t.handle().getLayout()).toMatchObject({
+    expect(t.controller().getLayout()).toMatchObject({
       type: 'root',
       floating: [
         {
@@ -703,7 +703,7 @@ describe('Tilery — rendering', () => {
     const t = mount(simpleLayout());
 
     act(() => {
-      t.handle().floatPanel('left', {
+      t.controller().floatPanel('left', {
         x: 8,
         y: 10,
         width: 36,
@@ -749,8 +749,8 @@ describe('Tilery — rendering', () => {
       reactProps(first).onPointerDown(pointerEvent());
     });
 
-    expect(t.handle().getPanel('first')?.floatingZIndex).toBe(21);
-    expect(t.handle().getPanel('second')?.floatingZIndex).toBe(20);
+    expect(t.controller().getPanel('first')?.floatingZIndex).toBe(21);
+    expect(t.controller().getPanel('second')?.floatingZIndex).toBe(20);
     t.cleanup();
   });
 
@@ -768,7 +768,7 @@ describe('Tilery — rendering', () => {
     const t = mount(floatingLayout());
 
     act(() => {
-      t.handle().popoutPanel('palette', {
+      t.controller().popoutPanel('palette', {
         windowBounds: { left: 90, top: 80, width: 760, height: 540 },
       });
     });
@@ -778,8 +778,8 @@ describe('Tilery — rendering', () => {
       'tilery-popout-palette',
       'popup=yes,left=90,top=80,width=760,height=540',
     );
-    expect(t.handle().getPanel('palette')?.poppedOut).toBe(true);
-    expect(t.handle().getPanel('palette')?.popoutWindowBounds).toEqual({
+    expect(t.controller().getPanel('palette')?.poppedOut).toBe(true);
+    expect(t.controller().getPanel('palette')?.popoutWindowBounds).toEqual({
       left: 90,
       top: 80,
       width: 760,
@@ -829,7 +829,7 @@ describe('Tilery — rendering', () => {
 
     try {
       act(() => {
-        t.handle().popoutPanel('palette');
+        t.controller().popoutPanel('palette');
       });
 
       expect(open).toHaveBeenCalledWith(
@@ -879,7 +879,7 @@ describe('Tilery — rendering', () => {
       'tilery-popout-palette',
       'popup=yes,left=90,top=80,width=760,height=540',
     );
-    expect(t.handle().getPanel('palette')?.poppedOut).toBe(true);
+    expect(t.controller().getPanel('palette')?.poppedOut).toBe(true);
     expect(
       popout.document.querySelector('.tilery__panel[data-panel-id="palette"]'),
     ).not.toBeNull();
@@ -907,7 +907,7 @@ describe('Tilery — rendering', () => {
       ],
     });
 
-    expect(t.handle().getPanel('palette')?.poppedOut).toBe(false);
+    expect(t.controller().getPanel('palette')?.poppedOut).toBe(false);
     expect(
       t.host.querySelector('.tilery__panel[data-panel-id="palette"]'),
     ).not.toBeNull();
@@ -931,13 +931,13 @@ describe('Tilery — rendering', () => {
     const t = mount(floatingLayout());
 
     act(() => {
-      t.handle().popoutPanel('palette');
+      t.controller().popoutPanel('palette');
     });
 
     expect(
       (badWindow as unknown as { close: ReturnType<typeof vi.fn> }).close,
     ).toHaveBeenCalledTimes(1);
-    expect(t.handle().getPanel('palette')?.poppedOut).toBe(false);
+    expect(t.controller().getPanel('palette')?.poppedOut).toBe(false);
     t.cleanup();
   });
 
@@ -947,7 +947,7 @@ describe('Tilery — rendering', () => {
     const t = mount(lShapeLayout());
 
     act(() => {
-      t.handle().popoutTab('bar', {
+      t.controller().popoutTab('bar', {
         panelId: 'bar-popout',
         floatingBounds: { x: 12, y: 14, width: 36, height: 38 },
         windowBounds: { left: 90, top: 80, width: 760, height: 540 },
@@ -959,14 +959,14 @@ describe('Tilery — rendering', () => {
       'tilery-popout-bar-popout',
       'popup=yes,left=90,top=80,width=760,height=540',
     );
-    expect(t.handle().getTab('bar')?.panel.id).toBe('bar-popout');
+    expect(t.controller().getTab('bar')?.panel.id).toBe('bar-popout');
     expect(
       t
-        .handle()
+        .controller()
         .getPanel('editor')
         ?.tabs.map((tab) => tab.id),
     ).toEqual(['foo']);
-    expect(t.handle().getPanel('bar-popout')?.poppedOut).toBe(true);
+    expect(t.controller().getPanel('bar-popout')?.poppedOut).toBe(true);
     expect(
       t.host.querySelector('.tilery__panel[data-panel-id="bar-popout"]'),
     ).toBeNull();
@@ -986,11 +986,11 @@ describe('Tilery — rendering', () => {
     const t = mount(lShapeLayout());
 
     act(() => {
-      t.handle().popoutTab('bar', { panelId: 'bar-popout' });
+      t.controller().popoutTab('bar', { panelId: 'bar-popout' });
     });
 
-    expect(t.handle().getPanel('bar-popout')).toBeNull();
-    expect(t.handle().getTab('bar')?.panel.id).toBe('editor');
+    expect(t.controller().getPanel('bar-popout')).toBeNull();
+    expect(t.controller().getTab('bar')?.panel.id).toBe('editor');
     expect(
       t.host.querySelector('.tilery__panel[data-panel-id="editor"]'),
     ).not.toBeNull();
@@ -1003,14 +1003,14 @@ describe('Tilery — rendering', () => {
     const t = mount(floatingLayout());
 
     act(() => {
-      t.handle().popoutPanel('palette');
+      t.controller().popoutPanel('palette');
     });
     act(() => {
-      t.handle().returnPanelToFloating('palette');
+      t.controller().returnPanelToFloating('palette');
     });
 
     expect(popout.close).toHaveBeenCalledTimes(1);
-    expect(t.handle().getPanel('palette')?.poppedOut).toBe(false);
+    expect(t.controller().getPanel('palette')?.poppedOut).toBe(false);
     expect(
       t.host.querySelector('.tilery__panel[data-panel-id="palette"]'),
     ).not.toBeNull();
@@ -1023,10 +1023,10 @@ describe('Tilery — rendering', () => {
     const t = mount(floatingLayout());
 
     act(() => {
-      t.handle().popoutPanel('palette');
+      t.controller().popoutPanel('palette');
     });
     act(() => {
-      t.handle().popoutPanel('palette');
+      t.controller().popoutPanel('palette');
     });
 
     expect(popout.focus).toHaveBeenCalledTimes(2);
@@ -1039,7 +1039,7 @@ describe('Tilery — rendering', () => {
     const t = mount(floatingLayout());
 
     act(() => {
-      t.handle().popoutPanel('palette');
+      t.controller().popoutPanel('palette');
     });
     popout.screenX = 120;
     popout.screenY = 130;
@@ -1050,7 +1050,7 @@ describe('Tilery — rendering', () => {
       popout.dispatchPopoutEvent('focus');
     });
 
-    expect(t.handle().getPanel('palette')?.popoutWindowBounds).toEqual({
+    expect(t.controller().getPanel('palette')?.popoutWindowBounds).toEqual({
       left: 120,
       top: 130,
       width: 640,
@@ -1065,7 +1065,7 @@ describe('Tilery — rendering', () => {
     const t = mount(floatingLayout());
 
     act(() => {
-      t.handle().popoutPanel('palette');
+      t.controller().popoutPanel('palette');
     });
     popout.closed = true;
     popout.screenX = 140;
@@ -1073,9 +1073,9 @@ describe('Tilery — rendering', () => {
       popout.dispatchPopoutEvent('resize');
     });
 
-    expect(t.handle().getPanel('palette')?.popoutWindowBounds?.left).not.toBe(
-      140,
-    );
+    expect(
+      t.controller().getPanel('palette')?.popoutWindowBounds?.left,
+    ).not.toBe(140);
     t.cleanup();
   });
 
@@ -1085,15 +1085,15 @@ describe('Tilery — rendering', () => {
     const t = mount(floatingLayout());
 
     act(() => {
-      t.handle().popoutPanel('palette');
+      t.controller().popoutPanel('palette');
     });
     popout.closed = true;
     act(() => {
-      t.handle().returnPanelToFloating('palette');
+      t.controller().returnPanelToFloating('palette');
     });
 
     expect(popout.close).not.toHaveBeenCalled();
-    expect(t.handle().getPanel('palette')?.poppedOut).toBe(false);
+    expect(t.controller().getPanel('palette')?.poppedOut).toBe(false);
     t.cleanup();
   });
 
@@ -1101,10 +1101,10 @@ describe('Tilery — rendering', () => {
     const t = mount(floatingLayout());
 
     act(() => {
-      t.handle().returnPanelToFloating('palette');
+      t.controller().returnPanelToFloating('palette');
     });
 
-    expect(t.handle().getPanel('palette')?.poppedOut).toBe(false);
+    expect(t.controller().getPanel('palette')?.poppedOut).toBe(false);
     t.cleanup();
   });
 
@@ -1114,13 +1114,13 @@ describe('Tilery — rendering', () => {
     const t = mount(floatingLayout());
 
     act(() => {
-      t.handle().popoutPanel('palette');
+      t.controller().popoutPanel('palette');
     });
     act(() => {
       popout.dispatchPopoutEvent('beforeunload');
     });
 
-    expect(t.handle().getPanel('palette')?.poppedOut).toBe(false);
+    expect(t.controller().getPanel('palette')?.poppedOut).toBe(false);
     expect(
       t.host.querySelector('.tilery__panel[data-panel-id="palette"]'),
     ).not.toBeNull();
@@ -1132,19 +1132,19 @@ describe('Tilery — rendering', () => {
     const t = mount(floatingLayout());
 
     act(() => {
-      t.handle().popoutPanel('palette');
+      t.controller().popoutPanel('palette');
     });
 
-    expect(t.handle().getPanel('palette')?.poppedOut).toBe(false);
+    expect(t.controller().getPanel('palette')?.poppedOut).toBe(false);
     expect(
       t.host.querySelector('.tilery__panel[data-panel-id="palette"]'),
     ).not.toBeNull();
     t.cleanup();
   });
 
-  it('exposes the TileryHandle via forwardRef', () => {
+  it('exposes the TileryController via forwardRef', () => {
     const t = mount(lShapeLayout());
-    const h = t.handle();
+    const h = t.controller();
     expect(h.getPanels()).toHaveLength(3);
     expect(h.getTabs()).toHaveLength(4);
     expect(h.getPanel('sidebar')).not.toBeNull();
@@ -1152,10 +1152,10 @@ describe('Tilery — rendering', () => {
     t.cleanup();
   });
 
-  it('restores a layout snapshot through the TileryHandle', () => {
+  it('restores a layout snapshot through the TileryController', () => {
     const t = mount(simpleLayout());
     act(() => {
-      t.handle().setLayout({
+      t.controller().setLayout({
         type: 'panel',
         id: 'restored',
         tabs: [
@@ -1170,7 +1170,7 @@ describe('Tilery — rendering', () => {
 
     expect(
       t
-        .handle()
+        .controller()
         .getPanels()
         .map((panel) => panel.id),
     ).toEqual(['restored']);
@@ -1178,7 +1178,7 @@ describe('Tilery — rendering', () => {
     expect(t.host.querySelector('.tilery__tab')?.textContent?.trim()).toBe(
       'Restored',
     );
-    expect(t.handle().getLayout()).toMatchObject({
+    expect(t.controller().getLayout()).toMatchObject({
       type: 'panel',
       id: 'restored',
       tabs: [{ id: 'restored-tab', closeable: false }],
@@ -1186,7 +1186,7 @@ describe('Tilery — rendering', () => {
     t.cleanup();
   });
 
-  it('rerenders tab content when tab behavior changes through handles', () => {
+  it('rerenders tab content when tab behavior changes through controller methods', () => {
     const t = mount(singlePanelLayout(), undefined, {
       renderTabContent: (tab) => (
         <div data-content-of={tab.id}>
@@ -1201,14 +1201,14 @@ describe('Tilery — rendering', () => {
     );
 
     act(() => {
-      t.handle().setTabBehavior('only', { closeable: false });
+      t.controller().setTabBehavior('only', { closeable: false });
     });
     expect(t.host.querySelector('[data-content-of="only"]')?.textContent).toBe(
       'close:off drag:on',
     );
 
     act(() => {
-      t.handle().getTab('only')!.setBehavior({ locked: true });
+      t.controller().getTab('only')!.setBehavior({ locked: true });
     });
     expect(t.host.querySelector('[data-content-of="only"]')?.textContent).toBe(
       'close:off drag:off',
@@ -1283,10 +1283,10 @@ describe('Tilery — rendering', () => {
   it('renders an empty layout after removing the last panel', () => {
     const t = mount(singlePanelLayout());
     act(() => {
-      t.handle().getTab('only')!.remove();
+      t.controller().getTab('only')!.remove();
     });
     expect(t.host.querySelectorAll('.tilery__panel')).toHaveLength(0);
-    expect(t.handle().getPanels()).toEqual([]);
+    expect(t.controller().getPanels()).toEqual([]);
     t.cleanup();
   });
 });
@@ -1307,7 +1307,7 @@ describe('Tilery — tab click + close', () => {
       dragDown(pointerEvent({ clientX: 10, clientY: 10 }));
       dragUp(pointerEvent({ clientX: 10, clientY: 10 }));
     });
-    expect(t.handle().getPanel('editor')!.activeTab?.id).toBe('bar');
+    expect(t.controller().getPanel('editor')!.activeTab?.id).toBe('bar');
     t.cleanup();
   });
 
@@ -1322,8 +1322,8 @@ describe('Tilery — tab click + close', () => {
         stopPropagation() {},
       });
     });
-    expect(t.handle().getTab('foo')).toBeNull();
-    expect(t.handle().getPanel('editor')!.tabs).toHaveLength(1);
+    expect(t.controller().getTab('foo')).toBeNull();
+    expect(t.controller().getPanel('editor')!.tabs).toHaveLength(1);
     t.cleanup();
   });
 });
@@ -1335,7 +1335,7 @@ describe('Tilery — divider drag dispatch', () => {
     const divider = Array.from(
       t.host.querySelectorAll<HTMLElement>('.tilery__divider'),
     ).find((el) => el.getAttribute('data-orientation') === 'vertical')!;
-    const before = t.handle().getPanel('sidebar')!.inset.right;
+    const before = t.controller().getPanel('sidebar')!.inset.right;
     act(() => {
       reactProps(divider).onPointerDown(pointerEvent());
       reactProps(divider).onPointerMove(
@@ -1343,7 +1343,7 @@ describe('Tilery — divider drag dispatch', () => {
       );
       reactProps(divider).onPointerUp(pointerEvent());
     });
-    const after = t.handle().getPanel('sidebar')!.inset.right;
+    const after = t.controller().getPanel('sidebar')!.inset.right;
     expect(after).not.toBe(before);
     expect(after).toBe(50); // 500 / 1000 = 50%
     t.cleanup();
@@ -1447,9 +1447,9 @@ describe('Tilery — divider drag dispatch', () => {
       );
       reactProps(junction).onPointerUp(pointerEvent());
     });
-    expect(t.handle().getPanel('sidebar')!.inset.right).toBe(70);
-    expect(t.handle().getPanel('editor')!.inset.bottom).toBe(30);
-    expect(t.handle().getPanel('term')!.inset.top).toBe(70);
+    expect(t.controller().getPanel('sidebar')!.inset.right).toBe(70);
+    expect(t.controller().getPanel('editor')!.inset.bottom).toBe(30);
+    expect(t.controller().getPanel('term')!.inset.top).toBe(70);
     t.cleanup();
   });
 
@@ -1517,7 +1517,7 @@ describe('Tilery — divider drag dispatch', () => {
         stopPropagation() {},
       });
     });
-    expect(t.handle().getPanel('sidebar')!.inset.right).toBe(58);
+    expect(t.controller().getPanel('sidebar')!.inset.right).toBe(58);
 
     act(() => {
       reactProps(horizontal).onKeyDown({
@@ -1527,7 +1527,7 @@ describe('Tilery — divider drag dispatch', () => {
         stopPropagation() {},
       });
     });
-    expect(t.handle().getPanel('editor')!.inset.bottom).toBe(48);
+    expect(t.controller().getPanel('editor')!.inset.bottom).toBe(48);
     t.cleanup();
   });
 
@@ -1610,7 +1610,7 @@ describe('Tilery — onChange callback', () => {
     const t = mount(lShapeLayout(), () => calls.push(Date.now()));
     const initial = calls.length;
     act(() => {
-      t.handle().setActiveTab('bar');
+      t.controller().setActiveTab('bar');
     });
     expect(calls.length).toBeGreaterThan(initial);
     t.cleanup();
@@ -1629,17 +1629,17 @@ describe('Tilery — open and close lifecycle callbacks', () => {
     });
 
     act(() => {
-      t.handle().appendTab(
+      t.controller().appendTab(
         'sidebar',
         { id: 'side-2', data: { title: 'Side 2' }, closeable: false },
         { activate: false },
       );
-      t.handle().insertTab(
+      t.controller().insertTab(
         'editor',
         { id: 'readme', data: { title: 'README.md' } },
         1,
       );
-      t.handle().splitPanel('term', 'right', {
+      t.controller().splitPanel('term', 'right', {
         tabs: [
           { id: 'logs', data: { title: 'Logs' } },
           { id: 'problems', data: { title: 'Problems' } },
@@ -1695,8 +1695,8 @@ describe('Tilery — open and close lifecycle callbacks', () => {
     });
 
     act(() => {
-      t.handle().setActiveTab('bar');
-      t.handle().appendTab('editor', {
+      t.controller().setActiveTab('bar');
+      t.controller().appendTab('editor', {
         id: 'baz',
         data: { title: 'baz.ts' },
       });
@@ -1725,7 +1725,7 @@ describe('Tilery — open and close lifecycle callbacks', () => {
     });
 
     act(() => {
-      t.handle().moveTab('bar', { beforeTab: 'foo' });
+      t.controller().moveTab('bar', { beforeTab: 'foo' });
     });
 
     expect(moves).toHaveLength(1);
@@ -1757,7 +1757,7 @@ describe('Tilery — open and close lifecycle callbacks', () => {
     });
 
     act(() => {
-      t.handle().moveTab('bar', {
+      t.controller().moveTab('bar', {
         splitPanel: 'term',
         direction: 'left',
         size: 35,
@@ -1806,7 +1806,7 @@ describe('Tilery — open and close lifecycle callbacks', () => {
     });
 
     act(() => {
-      t.handle().floatTab('bar', {
+      t.controller().floatTab('bar', {
         panelId: 'bar-floating',
         bounds: { x: 10, y: 12, width: 32, height: 34 },
       });
@@ -1843,7 +1843,7 @@ describe('Tilery — open and close lifecycle callbacks', () => {
     });
 
     act(() => {
-      t.handle().floatTab('side', { panelId: 'side-floating' });
+      t.controller().floatTab('side', { panelId: 'side-floating' });
     });
 
     expect(closes).toEqual([]);
@@ -1853,7 +1853,7 @@ describe('Tilery — open and close lifecycle callbacks', () => {
       panels: [{ id: 'sidebar', tabIds: ['side'], activeTabId: 'side' }],
       tabs: [{ id: 'side', panelId: 'sidebar' }],
     });
-    expect(t.handle().getTab('side')!.panel.id).toBe('side-floating');
+    expect(t.controller().getTab('side')!.panel.id).toBe('side-floating');
     t.cleanup();
   });
 
@@ -1866,8 +1866,8 @@ describe('Tilery — open and close lifecycle callbacks', () => {
     });
 
     act(() => {
-      t.handle().removeTab('bar');
-      t.handle().removeTab('side');
+      t.controller().removeTab('bar');
+      t.controller().removeTab('side');
     });
 
     expect(closes).toHaveLength(2);
@@ -1907,7 +1907,7 @@ describe('Tilery — open and close lifecycle callbacks', () => {
     });
 
     act(() => {
-      t.handle().removePanel('editor');
+      t.controller().removePanel('editor');
     });
 
     expect(closes).toHaveLength(1);
@@ -1934,7 +1934,7 @@ describe('Tilery — open and close lifecycle callbacks', () => {
     });
 
     act(() => {
-      t.handle().moveTab('side', { panel: 'editor' });
+      t.controller().moveTab('side', { panel: 'editor' });
     });
 
     expect(closes).toEqual([]);
@@ -1944,7 +1944,7 @@ describe('Tilery — open and close lifecycle callbacks', () => {
       panels: [{ id: 'sidebar', tabIds: ['side'], activeTabId: 'side' }],
       tabs: [{ id: 'side', panelId: 'sidebar' }],
     });
-    expect(t.handle().getTab('side')!.panel.id).toBe('editor');
+    expect(t.controller().getTab('side')!.panel.id).toBe('editor');
     t.cleanup();
   });
 
@@ -1967,11 +1967,11 @@ describe('Tilery — open and close lifecycle callbacks', () => {
     });
 
     act(() => {
-      t.handle().removeTab('missing');
-      t.handle().removePanel('missing');
-      t.handle().moveTab('missing', { panel: 'editor' });
-      t.handle().moveTab('foo', { beforeTab: 'foo' });
-      t.handle().splitPanel('missing', 'right');
+      t.controller().removeTab('missing');
+      t.controller().removePanel('missing');
+      t.controller().moveTab('missing', { panel: 'editor' });
+      t.controller().moveTab('foo', { beforeTab: 'foo' });
+      t.controller().splitPanel('missing', 'right');
     });
 
     expect(activeChanges).toEqual([]);
@@ -1995,7 +1995,7 @@ describe('Tilery — panel modes', () => {
     expect(panels[0]!.style.left).toBe('0%');
     expect(panels[0]!.style.right).toBe('0%');
     expect(t.host.querySelectorAll('.tilery__divider')).toHaveLength(0);
-    expect(t.handle().getPanel('editor')!.fullScreen).toBe(true);
+    expect(t.controller().getPanel('editor')!.fullScreen).toBe(true);
     t.cleanup();
   });
 });
@@ -2023,7 +2023,7 @@ describe('Tilery — panel action UI', () => {
     });
     expect(
       t
-        .handle()
+        .controller()
         .getPanel('sidebar')!
         .tabs.map((tab) => tab.id),
     ).toEqual(['side', 'sidebar-new']);
@@ -2041,7 +2041,9 @@ describe('Tilery — panel action UI', () => {
     act(() => {
       reactProps(disabledButton).onClick({});
     });
-    expect(withoutHandler.handle().getPanel('sidebar')!.tabs).toHaveLength(1);
+    expect(withoutHandler.controller().getPanel('sidebar')!.tabs).toHaveLength(
+      1,
+    );
     withoutHandler.cleanup();
 
     const withoutTab = mount(lShapeLayout(), undefined, {
@@ -2055,7 +2057,7 @@ describe('Tilery — panel action UI', () => {
     act(() => {
       reactProps(button).onClick({});
     });
-    expect(withoutTab.handle().getPanel('sidebar')!.tabs).toHaveLength(1);
+    expect(withoutTab.controller().getPanel('sidebar')!.tabs).toHaveLength(1);
     withoutTab.cleanup();
   });
 
@@ -2105,7 +2107,7 @@ describe('Tilery — panel action UI', () => {
     act(() => {
       reactProps(maximize).onClick({});
     });
-    expect(t.handle().getPanel('editor')!.fullScreen).toBe(true);
+    expect(t.controller().getPanel('editor')!.fullScreen).toBe(true);
     expect(t.host.querySelectorAll('.tilery__panel')).toHaveLength(1);
     expect(t.host.querySelector('.tilery__panel-menu')).toBeNull();
     expect(
@@ -2127,7 +2129,7 @@ describe('Tilery — panel action UI', () => {
     act(() => {
       reactProps(fullscreenButton[0]!).onClick({});
     });
-    expect(t.handle().getPanel('editor')!.fullScreen).toBe(false);
+    expect(t.controller().getPanel('editor')!.fullScreen).toBe(false);
     expect(t.host.querySelectorAll('.tilery__panel')).toHaveLength(3);
     t.cleanup();
   });
@@ -2210,7 +2212,7 @@ describe('Tilery — panel action UI', () => {
     act(() => {
       reactProps(splitLeft).onClick({});
     });
-    expect(t.handle().getPanels()).toHaveLength(4);
+    expect(t.controller().getPanels()).toHaveLength(4);
     expect(t.host.querySelector('.tilery__panel-menu')).toBeNull();
     t.cleanup();
   });
@@ -2231,7 +2233,7 @@ describe('Tilery — panel action UI', () => {
     act(() => {
       reactProps(float).onClick({});
     });
-    expect(t.handle().getPanel('sidebar')?.floating).toBe(true);
+    expect(t.controller().getPanel('sidebar')?.floating).toBe(true);
 
     const floatingButton = t.host.querySelector<HTMLElement>(
       '.tilery__panel[data-panel-id="sidebar"] .tilery__panel-action-button[aria-label="Panel actions"]',
@@ -2245,7 +2247,7 @@ describe('Tilery — panel action UI', () => {
     act(() => {
       reactProps(dock).onClick({});
     });
-    expect(t.handle().getPanel('sidebar')?.floating).toBe(false);
+    expect(t.controller().getPanel('sidebar')?.floating).toBe(false);
     expect(t.host.querySelector('.tilery__panel-menu')).toBeNull();
     t.cleanup();
   });
@@ -2268,7 +2270,7 @@ describe('Tilery — panel action UI', () => {
     act(() => {
       reactProps(popoutAction).onClick({});
     });
-    expect(t.handle().getPanel('palette')?.poppedOut).toBe(true);
+    expect(t.controller().getPanel('palette')?.poppedOut).toBe(true);
 
     const poppedOutButton = popout.document.querySelector<HTMLElement>(
       '.tilery__panel[data-panel-id="palette"] .tilery__panel-action-button[aria-label="Panel actions"]',
@@ -2282,7 +2284,7 @@ describe('Tilery — panel action UI', () => {
     act(() => {
       reactProps(returnAction).onClick({});
     });
-    expect(t.handle().getPanel('palette')?.poppedOut).toBe(false);
+    expect(t.controller().getPanel('palette')?.poppedOut).toBe(false);
     expect(t.host.querySelector('.tilery__panel-menu')).toBeNull();
     t.cleanup();
   });
@@ -2303,7 +2305,7 @@ describe('Tilery — panel action UI', () => {
     act(() => {
       reactProps(close).onClick({});
     });
-    expect(t.handle().getPanel('term')).toBeNull();
+    expect(t.controller().getPanel('term')).toBeNull();
     expect(t.host.querySelector('.tilery__panel-menu')).toBeNull();
     t.cleanup();
   });
@@ -2545,7 +2547,7 @@ describe('Tilery — drag flow covers the drop overlay path', () => {
       'foo.ts+1',
     );
     act(() => {
-      t.handle().getTab('foo')!.remove();
+      t.controller().getTab('foo')!.remove();
     });
     expect(t.host.querySelector('.tilery__drag-ghost')?.textContent).toBe(
       'Tab',
@@ -2576,7 +2578,7 @@ describe('Tilery — drag flow covers the drop overlay path', () => {
       );
     });
 
-    expect(t.handle().getPanel('palette')?.floatingBounds).toEqual({
+    expect(t.controller().getPanel('palette')?.floatingBounds).toEqual({
       x: 20,
       y: 20,
       width: 32,
@@ -2611,7 +2613,7 @@ describe('Tilery — drag flow covers the drop overlay path', () => {
       );
     });
 
-    expect(t.handle().getPanel('palette')?.floatingBounds).toEqual({
+    expect(t.controller().getPanel('palette')?.floatingBounds).toEqual({
       x: 10,
       y: 10,
       width: 32,
@@ -2632,14 +2634,14 @@ describe('Tilery — drag flow covers the drop overlay path', () => {
       target: paletteBar,
     });
     act(() => {
-      t.handle().removePanel('palette');
+      t.controller().removePanel('palette');
     });
 
     act(() => {
       onPointerDown(down);
     });
 
-    expect(t.handle().getPanel('palette')).toBeNull();
+    expect(t.controller().getPanel('palette')).toBeNull();
     t.cleanup();
   });
 
@@ -2677,7 +2679,7 @@ describe('Tilery — drag flow covers the drop overlay path', () => {
       );
     });
 
-    expect(t.handle().getPanel('palette')?.floatingBounds).toEqual({
+    expect(t.controller().getPanel('palette')?.floatingBounds).toEqual({
       x: 10,
       y: 10,
       width: 32,
@@ -2704,7 +2706,7 @@ describe('Tilery — drag flow covers the drop overlay path', () => {
       );
     });
 
-    expect(t.handle().getPanel('palette')?.floatingBounds).toEqual({
+    expect(t.controller().getPanel('palette')?.floatingBounds).toEqual({
       x: 10,
       y: 10,
       width: 32,
@@ -2742,7 +2744,7 @@ describe('Tilery — drag flow covers the drop overlay path', () => {
       reactProps(paletteBar).onPointerCancel(pointerEvent({ pointerId: 99 }));
     });
 
-    expect(t.handle().getPanel('palette')).not.toBeNull();
+    expect(t.controller().getPanel('palette')).not.toBeNull();
     t.cleanup();
   });
 
@@ -2768,7 +2770,7 @@ describe('Tilery — drag flow covers the drop overlay path', () => {
       );
     });
 
-    expect(t.handle().getPanel('palette')?.floatingBounds).toEqual({
+    expect(t.controller().getPanel('palette')?.floatingBounds).toEqual({
       x: 10,
       y: 10,
       width: 32,
@@ -2787,7 +2789,7 @@ describe('Tilery — drag flow covers the drop overlay path', () => {
       reactProps(paletteBar).onPointerUp(pointerEvent({ pointerId: 99 }));
     });
 
-    expect(t.handle().getPanel('palette')).not.toBeNull();
+    expect(t.controller().getPanel('palette')).not.toBeNull();
     t.cleanup();
   });
 
@@ -2814,7 +2816,7 @@ describe('Tilery — drag flow covers the drop overlay path', () => {
       );
     });
 
-    expect(t.handle().getPanel('palette')?.floatingBounds).toEqual({
+    expect(t.controller().getPanel('palette')?.floatingBounds).toEqual({
       x: 10,
       y: 10,
       width: 42,
@@ -2846,7 +2848,7 @@ describe('Tilery — drag flow covers the drop overlay path', () => {
       );
     });
 
-    expect(t.handle().getPanel('palette')?.floatingBounds).toEqual({
+    expect(t.controller().getPanel('palette')?.floatingBounds).toEqual({
       x: 20,
       y: 20,
       width: 22,
@@ -2878,7 +2880,7 @@ describe('Tilery — drag flow covers the drop overlay path', () => {
       );
     });
 
-    expect(t.handle().getPanel('palette')?.floatingBounds).toEqual({
+    expect(t.controller().getPanel('palette')?.floatingBounds).toEqual({
       x: 10,
       y: 10,
       width: 32,
@@ -2899,14 +2901,14 @@ describe('Tilery — drag flow covers the drop overlay path', () => {
       target: resizeHandle,
     });
     act(() => {
-      t.handle().removePanel('palette');
+      t.controller().removePanel('palette');
     });
 
     act(() => {
       onPointerDown(down);
     });
 
-    expect(t.handle().getPanel('palette')).toBeNull();
+    expect(t.controller().getPanel('palette')).toBeNull();
     t.cleanup();
   });
 
@@ -2918,7 +2920,7 @@ describe('Tilery — drag flow covers the drop overlay path', () => {
     const onPointerDown = reactProps(resizeHandle).onPointerDown;
     const onPointerMove = reactProps(resizeHandle).onPointerMove;
     act(() => {
-      t.handle().setLayout({
+      t.controller().setLayout({
         type: 'root',
         main: {
           type: 'panel',
@@ -2949,7 +2951,7 @@ describe('Tilery — drag flow covers the drop overlay path', () => {
       );
     });
 
-    expect(t.handle().getPanel('palette')?.floatingBounds).toEqual({
+    expect(t.controller().getPanel('palette')?.floatingBounds).toEqual({
       x: 10,
       y: 10,
       width: 32,
@@ -2976,7 +2978,7 @@ describe('Tilery — drag flow covers the drop overlay path', () => {
       );
     });
 
-    expect(t.handle().getPanel('palette')?.floatingBounds).toEqual({
+    expect(t.controller().getPanel('palette')?.floatingBounds).toEqual({
       x: 10,
       y: 10,
       width: 32,
@@ -2986,24 +2988,24 @@ describe('Tilery — drag flow covers the drop overlay path', () => {
   });
 });
 
-describe('Tilery — handle cache invalidation', () => {
-  it('drops a tab handle from the cache after the tab is removed', () => {
+describe('Tilery — API object cache invalidation', () => {
+  it('drops a tab object from the cache after the tab is removed', () => {
     const t = mount(lShapeLayout());
-    const h = t.handle();
+    const h = t.controller();
     // Prime the cache: first lookup populates it.
     expect(h.getTab('foo')).not.toBeNull();
     act(() => {
       h.getTab('foo')!.remove();
     });
     // After removal, a subsequent lookup must return null AND clear the
-    // cache entry (the deletion branch in tilery.tsx's getCachedTabHandle).
+    // cache entry (the deletion branch in tilery.tsx's getCachedTab).
     expect(h.getTab('foo')).toBeNull();
     t.cleanup();
   });
 
-  it('drops a panel handle from the cache after the panel is removed', () => {
+  it('drops a panel object from the cache after the panel is removed', () => {
     const t = mount(lShapeLayout());
-    const h = t.handle();
+    const h = t.controller();
     expect(h.getPanel('term')).not.toBeNull();
     act(() => {
       // Removing the only tab in `term` deletes the panel itself.
@@ -3014,9 +3016,9 @@ describe('Tilery — handle cache invalidation', () => {
   });
 
   it('drag ghost label falls back to "Tab" when the dragged tab gets removed mid-drag', () => {
-    // Triggers the cache-delete branches inside getCachedTabHandle /
-    // getCachedPanelHandle: a drag is in flight (so the ghost render
-    // path queries the cached handles), then we remove the dragged tab
+    // Triggers the cache-delete branches inside getCachedTab /
+    // getCachedPanel: a drag is in flight (so the ghost render
+    // path queries the cached objects), then we remove the dragged tab
     // through the imperative API, then force a re-render — the cache
     // entries point at IDs no longer in state, so the next lookup must
     // delete them and return null. The ghost falls back to "Tab".
@@ -3037,19 +3039,19 @@ describe('Tilery — handle cache invalidation', () => {
     );
     // Remove the tab via the imperative API while the drag is still live.
     act(() => {
-      t.handle().getTab('foo')!.remove();
+      t.controller().getTab('foo')!.remove();
     });
     // Tilery re-renders. The drag controller still holds tabId='foo' in
     // dragState but the tab is gone. The ghost label resolution misses
     // and falls back to 'Tab' (also exercises the cache.delete branch
-    // for getCachedTabHandle).
+    // for getCachedTab).
     const ghost = t.host.querySelector('.tilery__drag-ghost');
     expect(ghost?.textContent).toBe('Tab');
     t.cleanup();
   });
 });
 
-describe('Tilery — min panel size honored by handle', () => {
+describe('Tilery — min panel size honored by controller', () => {
   it('forwards minSize to RESIZE_DIVIDER clamps', () => {
     const t = mount(lShapeLayout());
     const divider = Array.from(
@@ -3063,7 +3065,7 @@ describe('Tilery — min panel size honored by handle', () => {
       );
       reactProps(divider).onPointerUp(pointerEvent());
     });
-    const sidebar = t.handle().getPanel('sidebar')!;
+    const sidebar = t.controller().getPanel('sidebar')!;
     // Default min is 10%, so the right inset can't go below 10.
     expect(100 - sidebar.inset.right).toBeLessThanOrEqual(90 + 1e-6);
     t.cleanup();
@@ -3087,7 +3089,7 @@ describe('Tilery — min panel size honored by handle', () => {
       );
       reactProps(divider).onPointerUp(pointerEvent());
     });
-    expect(100 - t.handle().getPanel('navigator')!.inset.right).toBe(34);
+    expect(100 - t.controller().getPanel('navigator')!.inset.right).toBe(34);
 
     act(() => {
       reactProps(divider).onPointerDown(pointerEvent());
@@ -3096,7 +3098,7 @@ describe('Tilery — min panel size honored by handle', () => {
       );
       reactProps(divider).onPointerUp(pointerEvent());
     });
-    expect(100 - t.handle().getPanel('navigator')!.inset.right).toBe(18);
+    expect(100 - t.controller().getPanel('navigator')!.inset.right).toBe(18);
     t.cleanup();
   });
 
@@ -3104,7 +3106,7 @@ describe('Tilery — min panel size honored by handle', () => {
     const t = mount(pixelConstrainedLayout());
     const divider = t.host.querySelector<HTMLElement>('.tilery__divider')!;
     expect(t.inner.getBoundingClientRect().width).toBe(1000);
-    expect(t.handle().getState().panels.left!.minSize).toBe('200px');
+    expect(t.controller().getState().panels.left!.minSize).toBe('200px');
 
     act(() => {
       reactProps(divider).onPointerDown(pointerEvent());
@@ -3113,7 +3115,7 @@ describe('Tilery — min panel size honored by handle', () => {
       );
       reactProps(divider).onPointerUp(pointerEvent());
     });
-    expect(100 - t.handle().getPanel('left')!.inset.right).toBe(20);
+    expect(100 - t.controller().getPanel('left')!.inset.right).toBe(20);
     expect(divider.hasAttribute('data-resize-at-min')).toBe(true);
 
     act(() => {
@@ -3123,7 +3125,7 @@ describe('Tilery — min panel size honored by handle', () => {
       );
       reactProps(divider).onPointerUp(pointerEvent());
     });
-    expect(100 - t.handle().getPanel('left')!.inset.right).toBe(40);
+    expect(100 - t.controller().getPanel('left')!.inset.right).toBe(40);
     expect(divider.hasAttribute('data-resize-at-max')).toBe(true);
     t.cleanup();
   });
@@ -3145,7 +3147,7 @@ describe('Tilery — min panel size honored by handle', () => {
     expect(warn.mock.calls[0]![0]).toContain(
       'Constraints around divider "tree|initial:horizontal:left|right#0" cannot all be satisfied',
     );
-    expect(100 - t.handle().getPanel('left')!.inset.right).toBe(50);
+    expect(100 - t.controller().getPanel('left')!.inset.right).toBe(50);
     t.cleanup();
   });
 
@@ -3163,7 +3165,7 @@ describe('Tilery — min panel size honored by handle', () => {
     });
 
     expect(warn).not.toHaveBeenCalled();
-    expect(100 - t.handle().getPanel('left')!.inset.right).toBe(20);
+    expect(100 - t.controller().getPanel('left')!.inset.right).toBe(20);
     t.cleanup();
   });
 
@@ -3171,7 +3173,7 @@ describe('Tilery — min panel size honored by handle', () => {
     const resizeObserver = installResizeObserverMock();
     const t = mount(containerResizeConstrainedLayout());
 
-    expect(100 - t.handle().getPanel('left')!.inset.right).toBe(30);
+    expect(100 - t.controller().getPanel('left')!.inset.right).toBe(30);
     act(() => {
       resizeObserver.observers[0]!.callback(
         [],
@@ -3179,8 +3181,8 @@ describe('Tilery — min panel size honored by handle', () => {
       );
     });
 
-    expect(100 - t.handle().getPanel('left')!.inset.right).toBe(40);
-    expect(t.handle().getPanel('right')!.inset.left).toBe(40);
+    expect(100 - t.controller().getPanel('left')!.inset.right).toBe(40);
+    expect(t.controller().getPanel('right')!.inset.left).toBe(40);
     t.cleanup();
     resizeObserver.restore();
   });
@@ -3196,7 +3198,7 @@ describe('Tilery — min panel size honored by handle', () => {
       );
     });
 
-    expect(100 - t.handle().getPanel('left')!.inset.right).toBe(30);
+    expect(100 - t.controller().getPanel('left')!.inset.right).toBe(30);
     t.cleanup();
     resizeObserver.restore();
   });
@@ -3215,7 +3217,7 @@ describe('Tilery — min panel size honored by handle', () => {
       );
       reactProps(divider).onPointerUp?.(pointerEvent());
     });
-    expect(100 - t.handle().getPanel('left')!.inset.right).toBe(60);
+    expect(100 - t.controller().getPanel('left')!.inset.right).toBe(60);
     t.cleanup();
   });
 
@@ -3232,7 +3234,7 @@ describe('Tilery — min panel size honored by handle', () => {
       );
       reactProps(divider).onPointerUp?.(pointerEvent());
     });
-    expect(100 - t.handle().getPanel('navigator')!.inset.right).toBe(30);
+    expect(100 - t.controller().getPanel('navigator')!.inset.right).toBe(30);
     t.cleanup();
   });
 
@@ -3277,9 +3279,9 @@ describe('Tilery — min panel size honored by handle', () => {
       );
       reactProps(junction).onPointerUp?.(pointerEvent());
     });
-    expect(t.handle().getPanel('sidebar')!.inset.right).toBe(60);
-    expect(t.handle().getPanel('editor')!.inset.bottom).toBe(50);
-    expect(t.handle().getPanel('term')!.inset.top).toBe(50);
+    expect(t.controller().getPanel('sidebar')!.inset.right).toBe(60);
+    expect(t.controller().getPanel('editor')!.inset.bottom).toBe(50);
+    expect(t.controller().getPanel('term')!.inset.top).toBe(50);
     t.cleanup();
   });
 });

@@ -1,7 +1,7 @@
 'use client';
 
 import { Tilery } from '@tilery/react';
-import type { TileryInitialLayout, TileryTabHandle } from '@tilery/react';
+import type { TileryInitialLayout, TileryTab } from '@tilery/react';
 import {
   ExampleButton,
   ExampleSection,
@@ -129,7 +129,7 @@ export function RuntimeTabBehaviorExample() {
   return (
     <ExampleSection
       title="Runtime tab behavior"
-      description="Use a tab handle to update close and drag behavior while the tab is mounted.">
+      description="Use a tab object to update close and drag behavior while the tab is mounted.">
       <Tilery<TabData>
         initialLayout={runtimeLayout}
         renderTabHeader={renderHeader}
@@ -144,11 +144,11 @@ export function RuntimeTabBehaviorExample() {
 }
 // end-source-region runtime-behavior
 
-function renderHeader(tab: TileryTabHandle<TabData>) {
+function renderHeader(tab: TileryTab<TabData>) {
   return <span>{tab.data.title}</span>;
 }
 
-function renderStatusContent(tab: TileryTabHandle<TabData>) {
+function renderStatusContent(tab: TileryTab<TabData>) {
   return (
     <TabContent meta={tab.data.note}>
       <StatusGrid tab={tab} />
@@ -156,7 +156,7 @@ function renderStatusContent(tab: TileryTabHandle<TabData>) {
   );
 }
 
-function TabBehaviorControls({ tab }: { tab: TileryTabHandle<TabData> }) {
+function TabBehaviorControls({ tab }: { tab: TileryTab<TabData> }) {
   const locked = !tab.closeable && !tab.draggable;
 
   return (
@@ -188,7 +188,7 @@ function TabBehaviorControls({ tab }: { tab: TileryTabHandle<TabData> }) {
   );
 }
 
-function StatusGrid({ tab }: { tab: TileryTabHandle<TabData> }) {
+function StatusGrid({ tab }: { tab: TileryTab<TabData> }) {
   return (
     <dl style={statusGridStyle}>
       <div>

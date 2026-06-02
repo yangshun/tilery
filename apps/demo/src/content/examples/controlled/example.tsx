@@ -3,9 +3,9 @@
 import { useRef, type Ref } from 'react';
 import { Tilery } from '@tilery/react';
 import type {
-  TileryHandle,
+  TileryController,
   TileryInitialLayout,
-  TileryTabHandle,
+  TileryTab,
 } from '@tilery/react';
 import {
   ExampleButton,
@@ -24,7 +24,7 @@ const panelApiLayout: TileryInitialLayout<TabData> = {
       id: 'welcome',
       data: {
         title: 'Welcome',
-        body: 'Panel handles can append tabs, split panels, and remove panels.',
+        body: 'Panel objects can append tabs, split panels, and remove panels.',
       },
     },
   ],
@@ -43,7 +43,7 @@ const tabApiLayout: TileryInitialLayout<TabData> = {
           id: 'main-ts',
           data: {
             title: 'main.ts',
-            body: 'Tab handles can move, activate, remove, and update data.',
+            body: 'Tab objects can move, activate, remove, and update data.',
           },
         },
         {
@@ -126,9 +126,9 @@ export function Example() {
   );
 }
 
-// source-region panel-handles
+// source-region panel-objects
 export function PanelApiExample() {
-  const tileryRef = useRef<TileryHandle | null>(null);
+  const tileryRef = useRef<TileryController | null>(null);
   const counterRef = useRef(0);
 
   const getFirstPanel = () => tileryRef.current?.getPanels()[0] ?? null;
@@ -141,7 +141,7 @@ export function PanelApiExample() {
       id: `tab-${counterRef.current}`,
       data: {
         title: `Tab ${counterRef.current}`,
-        body: 'This tab was appended through a panel handle.',
+        body: 'This tab was appended through a panel object.',
       },
     });
   };
@@ -170,8 +170,8 @@ export function PanelApiExample() {
 
   return (
     <ExampleSection
-      title="Panel handles"
-      description="Mutate the layout through handles returned by the Tilery ref."
+      title="Panel objects"
+      description="Mutate the layout through panel objects returned by the Tilery controller."
       actions={
         <>
           <ExampleButton type="button" onClick={addTab}>
@@ -186,7 +186,7 @@ export function PanelApiExample() {
         </>
       }>
       <Tilery<TabData>
-        ref={tileryRef as Ref<TileryHandle>}
+        ref={tileryRef as Ref<TileryController>}
         initialLayout={panelApiLayout}
         renderTabHeader={renderHeader}
         renderTabContent={renderContent}
@@ -194,18 +194,18 @@ export function PanelApiExample() {
     </ExampleSection>
   );
 }
-// end-source-region panel-handles
+// end-source-region panel-objects
 
-// source-region tab-handles
+// source-region tab-objects
 export function TabApiExample() {
-  const tileryRef = useRef<TileryHandle | null>(null);
+  const tileryRef = useRef<TileryController | null>(null);
   const renameCounterRef = useRef(0);
 
-  const getActiveTab = (): TileryTabHandle<TabData> | null => {
+  const getActiveTab = (): TileryTab<TabData> | null => {
     const tab =
       tileryRef.current?.getPanels().find((panel) => panel.activeTab)
         ?.activeTab ?? null;
-    return tab as TileryTabHandle<TabData> | null;
+    return tab as TileryTab<TabData> | null;
   };
 
   const renameActive = () => {
@@ -231,7 +231,7 @@ export function TabApiExample() {
 
   return (
     <ExampleSection
-      title="Tab handles"
+      title="Tab objects"
       description="Work with a tab directly when the app already knows which tab it wants."
       actions={
         <>
@@ -247,7 +247,7 @@ export function TabApiExample() {
         </>
       }>
       <Tilery<TabData>
-        ref={tileryRef as Ref<TileryHandle>}
+        ref={tileryRef as Ref<TileryController>}
         initialLayout={tabApiLayout}
         renderTabHeader={renderHeader}
         renderTabContent={renderContent}
@@ -255,11 +255,11 @@ export function TabApiExample() {
     </ExampleSection>
   );
 }
-// end-source-region tab-handles
+// end-source-region tab-objects
 
 // source-region tab-workflows
 export function WorkflowApiExample() {
-  const tileryRef = useRef<TileryHandle | null>(null);
+  const tileryRef = useRef<TileryController | null>(null);
 
   const openOrActivateSettings = () => {
     tileryRef.current?.openOrActivateTab(
@@ -313,7 +313,7 @@ export function WorkflowApiExample() {
         </>
       }>
       <Tilery<TabData>
-        ref={tileryRef as Ref<TileryHandle>}
+        ref={tileryRef as Ref<TileryController>}
         initialLayout={workflowApiLayout}
         renderTabHeader={renderHeader}
         renderTabContent={renderContent}
@@ -323,11 +323,11 @@ export function WorkflowApiExample() {
 }
 // end-source-region tab-workflows
 
-function renderHeader(tab: TileryTabHandle<TabData>) {
+function renderHeader(tab: TileryTab<TabData>) {
   return <span>{tab.data.title}</span>;
 }
 
-function renderContent(tab: TileryTabHandle<TabData>) {
+function renderContent(tab: TileryTab<TabData>) {
   return (
     <TabContent>
       <p style={{ margin: 0 }}>{tab.data.body}</p>

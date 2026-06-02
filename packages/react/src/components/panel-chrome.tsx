@@ -3,18 +3,15 @@
 import {
   tileryPanelBehaviorFromState,
   type TileryFloatingResizeEdge,
-  type TileryPanelHandle,
-  type TileryTabHandle,
+  type TileryPanel,
+  type TileryTab,
 } from 'tilery/internal';
 import { tileryPanelDomId } from '../dom-ids';
 import { TabBar, type TabBarProps } from './tab-bar';
 
 export type PanelChromeProps = Omit<TabBarProps, 'panel' | 'renderHeader'> & {
-  panel: TileryPanelHandle;
-  renderHeader: (
-    tab: TileryTabHandle,
-    ctx: { isActive: boolean },
-  ) => React.ReactNode;
+  panel: TileryPanel;
+  renderHeader: (tab: TileryTab, ctx: { isActive: boolean }) => React.ReactNode;
   registerPanel: (el: HTMLElement | null) => void;
   registerContentSlot: (el: HTMLElement | null) => void;
   popoutWindow?: boolean;

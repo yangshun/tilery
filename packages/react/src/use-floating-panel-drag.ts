@@ -6,7 +6,7 @@ import {
   tileryResizeFloatingBounds,
   type TileryFloatingPanelBounds,
   type TileryFloatingResizeEdge,
-  type TileryHandle,
+  type TileryController,
   type TileryPanelId,
 } from 'tilery/internal';
 
@@ -40,7 +40,7 @@ export function useTileryFloatingPanelDrag({
   onTabBarPointerUp,
   onTabPointerCancel,
 }: {
-  tilery: () => TileryHandle | null;
+  tilery: () => TileryController | null;
   containerRef: RefObject<HTMLDivElement | null>;
   onTabPointerMove: (e: PointerEvent) => void;
   onTabBarPointerUp: (e: PointerEvent) => void;

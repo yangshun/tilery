@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vite-plus/test';
-import { makeTileryHandle, type TileryHandleOptions } from './handles';
+import {
+  makeTileryController,
+  type TileryControllerOptions,
+} from './controller';
 import { tileryReducer, type TileryReducerAction } from './reducer';
 import { createStateFromPanels } from './test-helpers';
 import type { TileryLayoutState, TilerySizeResolutionContext } from '../types';
@@ -7,7 +10,7 @@ import type { TileryLayoutState, TilerySizeResolutionContext } from '../types';
 function makeStore(
   initial?: TileryLayoutState,
   getSizeContext?: () => TilerySizeResolutionContext | undefined,
-  options?: TileryHandleOptions,
+  options?: TileryControllerOptions,
 ) {
   let state =
     initial ??
@@ -35,31 +38,36 @@ function makeStore(
     state = tileryReducer(state, action);
   };
   const getState = () => state;
-  const handle = makeTileryHandle(getState, dispatch, getSizeContext, options);
-  return { handle, getState, dispatched };
+  const controller = makeTileryController(
+    getState,
+    dispatch,
+    getSizeContext,
+    options,
+  );
+  return { controller, getState, dispatched };
 }
 
-describe('TileryHandle lookups', () => {
-  it('getPanel returns a handle for an existing panel and null otherwise', () => {
-    const { handle } = makeStore();
-    expect(handle.getPanel('P1')?.id).toBe('P1');
-    expect(handle.getPanel('does-not-exist')).toBeNull();
+describe('TileryController lookups', () => {
+  it('getPanel returns an object for an existing panel and null otherwise', () => {
+    const { controller } = makeStore();
+    expect(controller.getPanel('P1')?.id).toBe('P1');
+    expect(controller.getPanel('does-not-exist')).toBeNull();
   });
-  it('getTab returns a handle for an existing tab and null otherwise', () => {
-    const { handle } = makeStore();
-    expect(handle.getTab('T1')?.id).toBe('T1');
-    expect(handle.getTab('does-not-exist')).toBeNull();
+  it('getTab returns an object for an existing tab and null otherwise', () => {
+    const { controller } = makeStore();
+    expect(controller.getTab('T1')?.id).toBe('T1');
+    expect(controller.getTab('does-not-exist')).toBeNull();
   });
-  it('getPanels returns handles in panelOrder', () => {
-    const { handle } = makeStore();
-    expect(handle.getPanels().map((p) => p.id)).toEqual(['P1', 'P2']);
+  it('getPanels returns panel objects in panelOrder', () => {
+    const { controller } = makeStore();
+    expect(controller.getPanels().map((p) => p.id)).toEqual(['P1', 'P2']);
   });
   it('getPanels returns tiled panels followed by floating panels', () => {
-    const { handle } = makeStore();
-    handle.floatPanel('P1', { x: 10, y: 12, width: 40, height: 44 });
-    expect(handle.getPanels().map((p) => p.id)).toEqual(['P2', 'P1']);
-    expect(handle.getPanel('P1')?.floating).toBe(true);
-    expect(handle.getPanel('P1')?.floatingBounds).toEqual({
+    const { controller } = makeStore();
+    controller.floatPanel('P1', { x: 10, y: 12, width: 40, height: 44 });
+    expect(controller.getPanels().map((p) => p.id)).toEqual(['P2', 'P1']);
+    expect(controller.getPanel('P1')?.floating).toBe(true);
+    expect(controller.getPanel('P1')?.floatingBounds).toEqual({
       x: 10,
       y: 12,
       width: 40,
@@ -67,8 +75,8 @@ describe('TileryHandle lookups', () => {
     });
   });
   it('floatPanel dispatches runtime behavior options', () => {
-    const { handle, dispatched, getState } = makeStore();
-    handle.floatPanel('P1', {
+    const { controller, dispatched, getState } = makeStore();
+    controller.floatPanel('P1', {
       resizable: false,
       draggable: false,
       droppable: false,
@@ -84,20 +92,20 @@ describe('TileryHandle lookups', () => {
       behavior: { resizable: false, draggable: false, droppable: false },
     });
   });
-  it('getTabs returns handles for every tab', () => {
-    const { handle } = makeStore();
-    const ids = handle
+  it('getTabs returns tab objects for every tab', () => {
+    const { controller } = makeStore();
+    const ids = controller
       .getTabs()
       .map((t) => t.id)
       .sort();
     expect(ids).toEqual(['T1', 'T2', 'T3']);
   });
   it('exposes getState() returning the live state', () => {
-    const { handle, getState } = makeStore();
-    expect(handle.getState()).toBe(getState());
+    const { controller, getState } = makeStore();
+    expect(controller.getState()).toBe(getState());
   });
   it('returns a serializable layout snapshot', () => {
-    const { handle } = makeStore(
+    const { controller } = makeStore(
       createStateFromPanels({
         panels: [
           {
@@ -121,7 +129,7 @@ describe('TileryHandle lookups', () => {
       }),
     );
 
-    expect(handle.getLayout()).toMatchObject({
+    expect(controller.getLayout()).toMatchObject({
       type: 'group',
       direction: 'horizontal',
       children: [
@@ -165,16 +173,16 @@ describe('TileryHandle lookups', () => {
     });
   });
   it('returns an empty layout snapshot when no panels remain', () => {
-    const { handle } = makeStore(
+    const { controller } = makeStore(
       createStateFromPanels({
         panels: [],
       }),
     );
 
-    expect(handle.getLayout()).toEqual({ type: 'empty' });
+    expect(controller.getLayout()).toEqual({ type: 'empty' });
   });
   it('round-trips explicit tab behavior through setLayout', () => {
-    const { handle, getState } = makeStore(
+    const { controller, getState } = makeStore(
       createStateFromPanels({
         panels: [
           {
@@ -192,7 +200,7 @@ describe('TileryHandle lookups', () => {
         ],
       }),
     );
-    const snapshot = handle.getLayout<{ title: string }>();
+    const snapshot = controller.getLayout<{ title: string }>();
 
     expect(snapshot).toMatchObject({
       type: 'panel',
@@ -206,7 +214,7 @@ describe('TileryHandle lookups', () => {
       ],
     });
 
-    handle.setLayout(snapshot);
+    controller.setLayout(snapshot);
 
     expect(getState().tabs.T).toMatchObject({
       closeable: false,
@@ -214,11 +222,11 @@ describe('TileryHandle lookups', () => {
     });
   });
   it('round-trips floating panels through layout snapshots', () => {
-    const { handle, getState } = makeStore();
+    const { controller, getState } = makeStore();
 
-    handle.floatPanel('P1', { x: 14, y: 16, width: 42, height: 46 });
-    handle.focusPanel('P1');
-    const snapshot = handle.getLayout<{ title: string }>();
+    controller.floatPanel('P1', { x: 14, y: 16, width: 42, height: 46 });
+    controller.focusPanel('P1');
+    const snapshot = controller.getLayout<{ title: string }>();
 
     expect(snapshot).toMatchObject({
       type: 'root',
@@ -250,7 +258,7 @@ describe('TileryHandle lookups', () => {
       ],
     });
 
-    handle.setLayout(snapshot);
+    controller.setLayout(snapshot);
 
     expect(getState().panels.P1).toMatchObject({
       kind: 'floating',
@@ -259,16 +267,19 @@ describe('TileryHandle lookups', () => {
         zIndex: 20,
       },
     });
-    expect(handle.getPanels().map((panel) => panel.id)).toEqual(['P2', 'P1']);
+    expect(controller.getPanels().map((panel) => panel.id)).toEqual([
+      'P2',
+      'P1',
+    ]);
   });
   it('round-trips native popout metadata through layout snapshots', () => {
-    const { handle, getState } = makeStore();
+    const { controller, getState } = makeStore();
 
-    handle.popoutPanel('P1', {
+    controller.popoutPanel('P1', {
       floatingBounds: { x: 14, y: 16, width: 42, height: 46 },
       windowBounds: { left: 90, top: 80, width: 760, height: 540 },
     });
-    const snapshot = handle.getLayout<{ title: string }>();
+    const snapshot = controller.getLayout<{ title: string }>();
 
     expect(snapshot).toMatchObject({
       type: 'root',
@@ -283,7 +294,7 @@ describe('TileryHandle lookups', () => {
       ],
     });
 
-    handle.setLayout(snapshot);
+    controller.setLayout(snapshot);
 
     expect(getState().panels.P1).toMatchObject({
       kind: 'floating',
@@ -293,8 +304,8 @@ describe('TileryHandle lookups', () => {
         },
       },
     });
-    expect(handle.getPanel('P1')?.poppedOut).toBe(true);
-    expect(handle.getPanel('P1')?.popoutWindowBounds).toEqual({
+    expect(controller.getPanel('P1')?.poppedOut).toBe(true);
+    expect(controller.getPanel('P1')?.popoutWindowBounds).toEqual({
       left: 90,
       top: 80,
       width: 760,
@@ -303,7 +314,7 @@ describe('TileryHandle lookups', () => {
   });
 
   it('omits activeTabId for a floating panel with no active tab', () => {
-    const { handle } = makeStore(
+    const { controller } = makeStore(
       createStateFromPanels({
         panels: [
           {
@@ -316,9 +327,9 @@ describe('TileryHandle lookups', () => {
       }),
     );
 
-    handle.floatPanel('P1');
+    controller.floatPanel('P1');
 
-    expect(handle.getLayout()).toMatchObject({
+    expect(controller.getLayout()).toMatchObject({
       type: 'root',
       main: { type: 'empty' },
       floating: [
@@ -345,9 +356,9 @@ describe('TileryHandle lookups', () => {
       }),
       floatingPanelOrder: ['P1'],
     };
-    const { handle } = makeStore(state);
+    const { controller } = makeStore(state);
 
-    expect(handle.getLayout()).toMatchObject({
+    expect(controller.getLayout()).toMatchObject({
       type: 'panel',
       id: 'P1',
       resizable: true,
@@ -365,7 +376,7 @@ describe('TileryHandle lookups', () => {
   });
 
   it('serializes a transient single-child split as its remaining child', () => {
-    const { handle } = makeStore({
+    const { controller } = makeStore({
       panels: {
         P: {
           id: 'P',
@@ -394,7 +405,7 @@ describe('TileryHandle lookups', () => {
       },
     });
 
-    const snapshot = handle.getLayout();
+    const snapshot = controller.getLayout();
     expect(snapshot).toMatchObject({
       type: 'panel',
       id: 'P',
@@ -413,7 +424,7 @@ describe('TileryHandle lookups', () => {
   });
 
   it('serializes parent resize metadata from a transient single-child split', () => {
-    const { handle } = makeStore({
+    const { controller } = makeStore({
       panels: {
         P: {
           id: 'P',
@@ -443,7 +454,7 @@ describe('TileryHandle lookups', () => {
       },
     });
 
-    expect(handle.getLayout()).toMatchObject({
+    expect(controller.getLayout()).toMatchObject({
       type: 'panel',
       id: 'P',
       size: 75,
@@ -452,10 +463,10 @@ describe('TileryHandle lookups', () => {
   });
 });
 
-describe('TileryHandle mutations', () => {
-  it('splitPanel dispatches SPLIT_PANEL with defaults and returns a handle to the new panel', () => {
-    const { handle, dispatched } = makeStore();
-    const newPanel = handle.splitPanel('P1', 'right');
+describe('TileryController mutations', () => {
+  it('splitPanel dispatches SPLIT_PANEL with defaults and returns the new panel object', () => {
+    const { controller, dispatched } = makeStore();
+    const newPanel = controller.splitPanel('P1', 'right');
     expect(dispatched).toHaveLength(1);
     const action = dispatched[0]!;
     if (action.type !== 'SPLIT_PANEL') throw new Error('expected SPLIT_PANEL');
@@ -466,8 +477,8 @@ describe('TileryHandle mutations', () => {
     expect(newPanel.id).toBe(action.newPanelId);
   });
   it('splitPanel forwards opts (size, activate, tabs)', () => {
-    const { handle, dispatched } = makeStore();
-    handle.splitPanel('P1', 'bottom', {
+    const { controller, dispatched } = makeStore();
+    controller.splitPanel('P1', 'bottom', {
       size: 30,
       minSize: 20,
       maxSize: 80,
@@ -487,11 +498,11 @@ describe('TileryHandle mutations', () => {
     ]);
   });
   it('splitPanel forwards measured size context for unit constraints', () => {
-    const { handle, dispatched } = makeStore(undefined, () => ({
+    const { controller, dispatched } = makeStore(undefined, () => ({
       width: 1000,
       height: 800,
     }));
-    handle.splitPanel('P1', 'bottom', {
+    controller.splitPanel('P1', 'bottom', {
       minSize: '240px',
       maxSize: '50%',
     });
@@ -502,8 +513,8 @@ describe('TileryHandle mutations', () => {
     expect(action.sizeContext).toEqual({ width: 1000, height: 800 });
   });
   it('splitPanel normalizes locked tabs to explicit behavior booleans', () => {
-    const { handle, dispatched } = makeStore();
-    handle.splitPanel('P1', 'bottom', {
+    const { controller, dispatched } = makeStore();
+    controller.splitPanel('P1', 'bottom', {
       tabs: [{ id: 'LOCKED', data: {}, locked: true }],
     });
     const action = dispatched[0]!;
@@ -513,8 +524,8 @@ describe('TileryHandle mutations', () => {
     ]);
   });
   it('splitPanel normalizes locked options to explicit behavior booleans', () => {
-    const { handle, dispatched } = makeStore();
-    handle.splitPanel('P1', 'right', { locked: true });
+    const { controller, dispatched } = makeStore();
+    controller.splitPanel('P1', 'right', { locked: true });
     const action = dispatched[0]!;
     if (action.type !== 'SPLIT_PANEL') throw new Error('expected SPLIT_PANEL');
     expect(action.resizable).toBe(false);
@@ -522,14 +533,14 @@ describe('TileryHandle mutations', () => {
     expect(action.droppable).toBe(false);
   });
   it('removePanel dispatches REMOVE_PANEL', () => {
-    const { handle, dispatched } = makeStore();
-    handle.removePanel('P1');
+    const { controller, dispatched } = makeStore();
+    controller.removePanel('P1');
     expect(dispatched[0]).toEqual({ type: 'REMOVE_PANEL', panelId: 'P1' });
   });
   it('dispatches fullscreen panel mode actions', () => {
-    const { handle, dispatched } = makeStore();
-    handle.maximizePanel('P1');
-    handle.restorePanel('P1');
+    const { controller, dispatched } = makeStore();
+    controller.maximizePanel('P1');
+    controller.restorePanel('P1');
     expect(dispatched).toEqual([
       { type: 'SET_PANEL_FULLSCREEN', panelId: 'P1', fullScreen: true },
       { type: 'SET_PANEL_FULLSCREEN', panelId: 'P1', fullScreen: false },
@@ -537,20 +548,20 @@ describe('TileryHandle mutations', () => {
   });
   it('popoutPanel ignores missing panels before requesting a window', () => {
     const requests: unknown[] = [];
-    const { handle, dispatched } = makeStore(undefined, undefined, {
+    const { controller, dispatched } = makeStore(undefined, undefined, {
       requestPopoutPanel(panelId, opts) {
         requests.push({ panelId, opts });
       },
     });
 
-    handle.popoutPanel('missing');
+    controller.popoutPanel('missing');
 
     expect(requests).toEqual([]);
     expect(dispatched).toEqual([]);
   });
-  it('appendTab dispatches APPEND_TAB and returns a handle', () => {
-    const { handle, dispatched } = makeStore();
-    const t = handle.appendTab('P1', { id: 'TX', data: { title: 'x' } });
+  it('appendTab dispatches APPEND_TAB and returns a tab object', () => {
+    const { controller, dispatched } = makeStore();
+    const t = controller.appendTab('P1', { id: 'TX', data: { title: 'x' } });
     expect(t.id).toBe('TX');
     expect(dispatched[0]).toEqual({
       type: 'APPEND_TAB',
@@ -560,8 +571,8 @@ describe('TileryHandle mutations', () => {
     });
   });
   it('appendTab normalizes explicit tab behavior', () => {
-    const { handle, dispatched } = makeStore();
-    const tab = handle.appendTab('P1', {
+    const { controller, dispatched } = makeStore();
+    const tab = controller.appendTab('P1', {
       id: 'LOCKED',
       data: {},
       locked: true,
@@ -574,16 +585,20 @@ describe('TileryHandle mutations', () => {
     });
   });
   it('appendTab honors activate=false and auto-id when none provided', () => {
-    const { handle, dispatched } = makeStore();
-    handle.appendTab('P1', { data: { title: 'auto' } }, { activate: false });
+    const { controller, dispatched } = makeStore();
+    controller.appendTab(
+      'P1',
+      { data: { title: 'auto' } },
+      { activate: false },
+    );
     const action = dispatched[0]!;
     if (action.type !== 'APPEND_TAB') throw new Error('expected APPEND_TAB');
     expect(action.activate).toBe(false);
     expect(action.tab.id).toMatch(/^t_/);
   });
   it('insertTab dispatches INSERT_TAB at the given index', () => {
-    const { handle, dispatched } = makeStore();
-    handle.insertTab('P1', { id: 'TI', data: {} }, 1, { activate: false });
+    const { controller, dispatched } = makeStore();
+    controller.insertTab('P1', { id: 'TI', data: {} }, 1, { activate: false });
     expect(dispatched[0]).toEqual({
       type: 'INSERT_TAB',
       panelId: 'P1',
@@ -593,15 +608,15 @@ describe('TileryHandle mutations', () => {
     });
   });
   it('insertTab activates by default', () => {
-    const { handle, dispatched } = makeStore();
-    handle.insertTab('P1', { id: 'TI2', data: {} }, 0);
+    const { controller, dispatched } = makeStore();
+    controller.insertTab('P1', { id: 'TI2', data: {} }, 0);
     const action = dispatched[0]!;
     if (action.type !== 'INSERT_TAB') throw new Error('expected INSERT_TAB');
     expect(action.activate).toBe(true);
   });
   it('openOrActivateTab activates an existing tab without adding another one', () => {
-    const { handle, dispatched, getState } = makeStore();
-    const tab = handle.openOrActivateTab(
+    const { controller, dispatched, getState } = makeStore();
+    const tab = controller.openOrActivateTab(
       { id: 'T2', data: { title: 'updated' } },
       { panel: 'P2' },
     );
@@ -613,8 +628,8 @@ describe('TileryHandle mutations', () => {
     expect(getState().panels.P1!.activeTabId).toBe('T2');
   });
   it('openOrActivateTab opens a missing tab at a panel target', () => {
-    const { handle, dispatched, getState } = makeStore();
-    const tab = handle.openOrActivateTab(
+    const { controller, dispatched, getState } = makeStore();
+    const tab = controller.openOrActivateTab(
       { id: 'NEW', data: { title: 'new' } },
       { panel: 'P1', index: 1 },
     );
@@ -636,8 +651,8 @@ describe('TileryHandle mutations', () => {
     expect(getState().panels.P1!.activeTabId).toBe('NEW');
   });
   it('openOrActivateTab appends to a panel when no index is provided', () => {
-    const { handle, dispatched, getState } = makeStore();
-    const tab = handle.openOrActivateTab(
+    const { controller, dispatched, getState } = makeStore();
+    const tab = controller.openOrActivateTab(
       { id: 'APPENDED', data: { title: 'appended' } },
       { panel: 'P1' },
     );
@@ -651,24 +666,27 @@ describe('TileryHandle mutations', () => {
     expect(getState().panels.P1!.tabs).toEqual(['T1', 'T2', 'APPENDED']);
   });
   it('openOrActivateTab opens around beforeTab and afterTab targets', () => {
-    const { handle, getState } = makeStore();
+    const { controller, getState } = makeStore();
 
-    handle.openOrActivateTab({ id: 'BEFORE', data: {} }, { beforeTab: 'T2' });
-    handle.openOrActivateTab({ id: 'AFTER', data: {} }, { afterTab: 'T2' });
+    controller.openOrActivateTab(
+      { id: 'BEFORE', data: {} },
+      { beforeTab: 'T2' },
+    );
+    controller.openOrActivateTab({ id: 'AFTER', data: {} }, { afterTab: 'T2' });
 
     expect(getState().panels.P1!.tabs).toEqual(['T1', 'BEFORE', 'T2', 'AFTER']);
   });
   it('openOrActivateTab returns null when the open target cannot be resolved', () => {
-    const { handle, dispatched } = makeStore();
+    const { controller, dispatched } = makeStore();
 
     expect(
-      handle.openOrActivateTab(
+      controller.openOrActivateTab(
         { id: 'MISSING_PANEL', data: {} },
         { panel: 'X' },
       ),
     ).toBeNull();
     expect(
-      handle.openOrActivateTab(
+      controller.openOrActivateTab(
         { id: 'MISSING_TAB', data: {} },
         { beforeTab: 'X' },
       ),
@@ -693,10 +711,10 @@ describe('TileryHandle mutations', () => {
         P: { ...state.panels.P!, tabs: [] },
       },
     };
-    const { handle, dispatched } = makeStore(broken);
+    const { controller, dispatched } = makeStore(broken);
 
     expect(
-      handle.openOrActivateTab({ id: 'NEW', data: {} }, { afterTab: 'T' }),
+      controller.openOrActivateTab({ id: 'NEW', data: {} }, { afterTab: 'T' }),
     ).toBeNull();
     expect(dispatched).toEqual([]);
 
@@ -707,7 +725,7 @@ describe('TileryHandle mutations', () => {
     const stale = makeStore(missingPanel);
 
     expect(
-      stale.handle.openOrActivateTab(
+      stale.controller.openOrActivateTab(
         { id: 'NEW_FROM_MISSING_PANEL', data: {} },
         { afterTab: 'T' },
       ),
@@ -715,8 +733,8 @@ describe('TileryHandle mutations', () => {
     expect(stale.dispatched).toEqual([]);
   });
   it('changeTabId renames the tab, panel references, and active tab id', () => {
-    const { handle, dispatched, getState } = makeStore();
-    const tab = handle.changeTabId('T1', 'T1_RENAMED');
+    const { controller, dispatched, getState } = makeStore();
+    const tab = controller.changeTabId('T1', 'T1_RENAMED');
 
     expect(tab?.id).toBe('T1_RENAMED');
     expect(dispatched[0]).toEqual({
@@ -724,23 +742,23 @@ describe('TileryHandle mutations', () => {
       oldTabId: 'T1',
       newTabId: 'T1_RENAMED',
     });
-    expect(handle.getTab('T1')).toBeNull();
-    expect(handle.getTab('T1_RENAMED')?.data).toEqual({ title: 'one' });
+    expect(controller.getTab('T1')).toBeNull();
+    expect(controller.getTab('T1_RENAMED')?.data).toEqual({ title: 'one' });
     expect(getState().panels.P1!.tabs).toEqual(['T1_RENAMED', 'T2']);
     expect(getState().panels.P1!.activeTabId).toBe('T1_RENAMED');
   });
-  it('changeTabId returns an existing handle when the id is unchanged', () => {
-    const { handle, dispatched } = makeStore();
+  it('changeTabId returns the existing tab object when the id is unchanged', () => {
+    const { controller, dispatched } = makeStore();
 
-    expect(handle.changeTabId('T1', 'T1')?.id).toBe('T1');
-    expect(handle.changeTabId('missing', 'missing')).toBeNull();
+    expect(controller.changeTabId('T1', 'T1')?.id).toBe('T1');
+    expect(controller.changeTabId('missing', 'missing')).toBeNull();
     expect(dispatched).toEqual([]);
   });
   it('changeTabId returns null for missing tabs, duplicate ids, and stale panel refs', () => {
-    const { handle, dispatched } = makeStore();
+    const { controller, dispatched } = makeStore();
 
-    expect(handle.changeTabId('missing', 'NEW')).toBeNull();
-    expect(handle.changeTabId('T1', 'T2')).toBeNull();
+    expect(controller.changeTabId('missing', 'NEW')).toBeNull();
+    expect(controller.changeTabId('T1', 'T2')).toBeNull();
     expect(dispatched).toEqual([]);
 
     const state = createStateFromPanels({
@@ -758,17 +776,17 @@ describe('TileryHandle mutations', () => {
     };
     const stale = makeStore(broken);
 
-    expect(stale.handle.changeTabId('T', 'NEW')).toBeNull();
+    expect(stale.controller.changeTabId('T', 'NEW')).toBeNull();
     expect(stale.dispatched).toEqual([]);
   });
   it('removeTab dispatches REMOVE_TAB', () => {
-    const { handle, dispatched } = makeStore();
-    handle.removeTab('T1');
+    const { controller, dispatched } = makeStore();
+    controller.removeTab('T1');
     expect(dispatched[0]).toEqual({ type: 'REMOVE_TAB', tabId: 'T1' });
   });
   it('setTabBehavior dispatches SET_TAB_BEHAVIOR', () => {
-    const { handle, dispatched, getState } = makeStore();
-    handle.setTabBehavior('T1', { draggable: false });
+    const { controller, dispatched, getState } = makeStore();
+    controller.setTabBehavior('T1', { draggable: false });
     expect(dispatched[0]).toEqual({
       type: 'SET_TAB_BEHAVIOR',
       tabId: 'T1',
@@ -780,13 +798,13 @@ describe('TileryHandle mutations', () => {
     });
   });
   it('setActiveTab dispatches SET_ACTIVE_TAB', () => {
-    const { handle, dispatched } = makeStore();
-    handle.setActiveTab('T2');
+    const { controller, dispatched } = makeStore();
+    controller.setActiveTab('T2');
     expect(dispatched[0]).toEqual({ type: 'SET_ACTIVE_TAB', tabId: 'T2' });
   });
   it('swapPanels dispatches SWAP_PANELS with both ids', () => {
-    const { handle, dispatched } = makeStore();
-    handle.swapPanels('P1', 'P2');
+    const { controller, dispatched } = makeStore();
+    controller.swapPanels('P1', 'P2');
     expect(dispatched[0]).toEqual({
       type: 'SWAP_PANELS',
       panelA: 'P1',
@@ -794,8 +812,8 @@ describe('TileryHandle mutations', () => {
     });
   });
   it('setLayout replaces the current state from a layout snapshot', () => {
-    const { handle, dispatched, getState } = makeStore();
-    handle.setLayout({
+    const { controller, dispatched, getState } = makeStore();
+    controller.setLayout({
       type: 'group',
       direction: 'vertical',
       resizable: false,
@@ -824,7 +842,7 @@ describe('TileryHandle mutations', () => {
       bottom: 75,
       left: 0,
     });
-    expect(handle.getLayout()).toMatchObject({
+    expect(controller.getLayout()).toMatchObject({
       type: 'group',
       direction: 'vertical',
       resizable: false,
@@ -835,8 +853,8 @@ describe('TileryHandle mutations', () => {
     });
   });
   it('setLayout supports an empty snapshot', () => {
-    const { handle, getState } = makeStore();
-    handle.setLayout({ type: 'empty' });
+    const { controller, getState } = makeStore();
+    controller.setLayout({ type: 'empty' });
 
     expect(getState()).toEqual({
       panels: {},
@@ -845,10 +863,10 @@ describe('TileryHandle mutations', () => {
       tabs: {},
       layout: null,
     });
-    expect(handle.getLayout()).toEqual({ type: 'empty' });
+    expect(controller.getLayout()).toEqual({ type: 'empty' });
   });
   it('setLayout replaces current locked tabs explicitly', () => {
-    const { handle, getState } = makeStore(
+    const { controller, getState } = makeStore(
       createStateFromPanels({
         panels: [
           {
@@ -862,7 +880,7 @@ describe('TileryHandle mutations', () => {
       }),
     );
 
-    handle.setLayout({
+    controller.setLayout({
       type: 'panel',
       id: 'P',
       tabs: [{ id: 'OPEN', data: {} }],
@@ -876,10 +894,10 @@ describe('TileryHandle mutations', () => {
   });
 });
 
-describe('TileryHandle.moveTab — every TileryMoveTarget shape', () => {
+describe('TileryController.moveTab — every TileryMoveTarget shape', () => {
   it('panel target without index uses MAX_SAFE_INTEGER (append)', () => {
-    const { handle, dispatched } = makeStore();
-    handle.moveTab('T1', { panel: 'P2' });
+    const { controller, dispatched } = makeStore();
+    controller.moveTab('T1', { panel: 'P2' });
     const action = dispatched[0]!;
     if (action.type !== 'MOVE_TAB') throw new Error('expected MOVE_TAB');
     expect(action.to).toEqual({
@@ -888,29 +906,29 @@ describe('TileryHandle.moveTab — every TileryMoveTarget shape', () => {
     });
   });
   it('panel target with index passes it through', () => {
-    const { handle, dispatched } = makeStore();
-    handle.moveTab('T1', { panel: 'P2', index: 0 });
+    const { controller, dispatched } = makeStore();
+    controller.moveTab('T1', { panel: 'P2', index: 0 });
     const action = dispatched[0]!;
     if (action.type !== 'MOVE_TAB') throw new Error('expected MOVE_TAB');
     expect(action.to).toEqual({ panelId: 'P2', index: 0 });
   });
   it('beforeTab target maps to beforeTabId', () => {
-    const { handle, dispatched } = makeStore();
-    handle.moveTab('T1', { beforeTab: 'T3' });
+    const { controller, dispatched } = makeStore();
+    controller.moveTab('T1', { beforeTab: 'T3' });
     const action = dispatched[0]!;
     if (action.type !== 'MOVE_TAB') throw new Error('expected MOVE_TAB');
     expect(action.to).toEqual({ beforeTabId: 'T3' });
   });
   it('afterTab target maps to afterTabId', () => {
-    const { handle, dispatched } = makeStore();
-    handle.moveTab('T1', { afterTab: 'T3' });
+    const { controller, dispatched } = makeStore();
+    controller.moveTab('T1', { afterTab: 'T3' });
     const action = dispatched[0]!;
     if (action.type !== 'MOVE_TAB') throw new Error('expected MOVE_TAB');
     expect(action.to).toEqual({ afterTabId: 'T3' });
   });
   it('splitPanel target maps size to reducer sizePercent', () => {
-    const { handle, dispatched } = makeStore();
-    handle.moveTab('T1', {
+    const { controller, dispatched } = makeStore();
+    controller.moveTab('T1', {
       splitPanel: 'P2',
       direction: 'top',
       size: 25,
@@ -931,8 +949,8 @@ describe('TileryHandle.moveTab — every TileryMoveTarget shape', () => {
     expect(action.to.newPanelId).toMatch(/^p_/);
   });
   it('splitPanel move target normalizes locked to explicit behavior booleans', () => {
-    const { handle, dispatched } = makeStore();
-    handle.moveTab('T1', {
+    const { controller, dispatched } = makeStore();
+    controller.moveTab('T1', {
       splitPanel: 'P2',
       direction: 'top',
       locked: true,
@@ -946,8 +964,8 @@ describe('TileryHandle.moveTab — every TileryMoveTarget shape', () => {
     expect(action.to.droppable).toBe(false);
   });
   it('splitPanel target defaults size to 50', () => {
-    const { handle, dispatched } = makeStore();
-    handle.moveTab('T1', { splitPanel: 'P2', direction: 'left' });
+    const { controller, dispatched } = makeStore();
+    controller.moveTab('T1', { splitPanel: 'P2', direction: 'left' });
     const action = dispatched[0]!;
     if (action.type !== 'MOVE_TAB') throw new Error('expected MOVE_TAB');
     if (!('splitPanelId' in action.to))
@@ -956,10 +974,10 @@ describe('TileryHandle.moveTab — every TileryMoveTarget shape', () => {
   });
 });
 
-describe('TileryHandle tab floating helpers', () => {
-  it('floatTab extracts a tab into a generated floating panel and returns its handle', () => {
-    const { handle, dispatched, getState } = makeStore();
-    const panel = handle.floatTab('T2', {
+describe('TileryController tab floating helpers', () => {
+  it('floatTab extracts a tab into a generated floating panel and returns its tab object', () => {
+    const { controller, dispatched, getState } = makeStore();
+    const panel = controller.floatTab('T2', {
       bounds: { x: 12, y: 14, width: 34, height: 36 },
     });
 
@@ -978,8 +996,8 @@ describe('TileryHandle tab floating helpers', () => {
   });
 
   it('floatTab can use an explicit panel id', () => {
-    const { handle, dispatched, getState } = makeStore();
-    const panel = handle.floatTab('T2', {
+    const { controller, dispatched, getState } = makeStore();
+    const panel = controller.floatTab('T2', {
       panelId: 'T2_FLOATING',
       bounds: { x: 20 },
       resizable: false,
@@ -1000,7 +1018,7 @@ describe('TileryHandle tab floating helpers', () => {
   });
 
   it('floatTab returns null without dispatching when the tab cannot move', () => {
-    const { handle, dispatched } = makeStore(
+    const { controller, dispatched } = makeStore(
       createStateFromPanels({
         panels: [
           {
@@ -1012,19 +1030,23 @@ describe('TileryHandle tab floating helpers', () => {
       }),
     );
 
-    expect(handle.floatTab('T1', { panelId: 'T1_FLOATING' })).toBeNull();
+    expect(controller.floatTab('T1', { panelId: 'T1_FLOATING' })).toBeNull();
     expect(dispatched).toEqual([]);
   });
 
   it('popoutTab requests a native window before dispatching extraction', () => {
     const requests: unknown[] = [];
-    const { handle, dispatched, getState } = makeStore(undefined, undefined, {
-      requestPopoutPanel(panelId, opts) {
-        requests.push({ panelId, opts });
+    const { controller, dispatched, getState } = makeStore(
+      undefined,
+      undefined,
+      {
+        requestPopoutPanel(panelId, opts) {
+          requests.push({ panelId, opts });
+        },
       },
-    });
+    );
 
-    const panel = handle.popoutTab('T2', {
+    const panel = controller.popoutTab('T2', {
       panelId: 'T2_POPOUT',
       floatingBounds: { x: 8, y: 10 },
       windowBounds: { left: 12, top: 14 },
@@ -1059,26 +1081,30 @@ describe('TileryHandle tab floating helpers', () => {
   });
 
   it('popoutTab returns null without dispatching when the popup is blocked', () => {
-    const { handle, dispatched, getState } = makeStore(undefined, undefined, {
-      requestPopoutPanel() {
-        return false;
+    const { controller, dispatched, getState } = makeStore(
+      undefined,
+      undefined,
+      {
+        requestPopoutPanel() {
+          return false;
+        },
       },
-    });
+    );
 
-    expect(handle.popoutTab('T2', { panelId: 'T2_POPOUT' })).toBeNull();
+    expect(controller.popoutTab('T2', { panelId: 'T2_POPOUT' })).toBeNull();
     expect(dispatched).toEqual([]);
     expect(getState().tabs.T2?.panelId).toBe('P1');
   });
 
   it('popoutTab without options requests no panel options', () => {
     const requests: unknown[] = [];
-    const { handle, dispatched } = makeStore(undefined, undefined, {
+    const { controller, dispatched } = makeStore(undefined, undefined, {
       requestPopoutPanel(panelId, opts) {
         requests.push({ panelId, opts });
       },
     });
 
-    const panel = handle.popoutTab('T2');
+    const panel = controller.popoutTab('T2');
 
     expect(panel?.id).toMatch(/^p_/);
     expect(requests).toEqual([{ panelId: panel?.id, opts: undefined }]);
@@ -1090,9 +1116,9 @@ describe('TileryHandle tab floating helpers', () => {
   });
 
   it('floatTab returns null before dispatching when the target panel id already exists', () => {
-    const { handle, dispatched } = makeStore();
+    const { controller, dispatched } = makeStore();
 
-    expect(handle.floatTab('T2', { panelId: 'P2' })).toBeNull();
+    expect(controller.floatTab('T2', { panelId: 'P2' })).toBeNull();
     expect(dispatched).toEqual([]);
   });
 
@@ -1113,14 +1139,14 @@ describe('TileryHandle tab floating helpers', () => {
         T1: { ...state.tabs.T1!, panelId: 'missing' },
       },
     };
-    const { handle, dispatched } = makeStore(broken);
+    const { controller, dispatched } = makeStore(broken);
 
-    expect(handle.floatTab('T1', { panelId: 'T1_FLOATING' })).toBeNull();
+    expect(controller.floatTab('T1', { panelId: 'T1_FLOATING' })).toBeNull();
     expect(dispatched).toEqual([]);
   });
 
   it('popoutTab returns null before dispatching when the tab cannot move', () => {
-    const { handle, dispatched } = makeStore(
+    const { controller, dispatched } = makeStore(
       createStateFromPanels({
         panels: [
           {
@@ -1132,42 +1158,42 @@ describe('TileryHandle tab floating helpers', () => {
       }),
     );
 
-    expect(handle.popoutTab('T1', { panelId: 'T1_POPOUT' })).toBeNull();
+    expect(controller.popoutTab('T1', { panelId: 'T1_POPOUT' })).toBeNull();
     expect(dispatched).toEqual([]);
   });
 });
 
-describe('TileryPanelHandle', () => {
+describe('TileryPanel', () => {
   it('reads inset live from state', () => {
-    const { handle } = makeStore();
-    const panel = handle.getPanel('P1')!;
+    const { controller } = makeStore();
+    const panel = controller.getPanel('P1')!;
     expect(panel.inset).toEqual({ top: 0, right: 50, bottom: 0, left: 0 });
   });
   it('returns the default zero-inset when the panel no longer exists', () => {
-    const { handle } = makeStore();
-    const panel = handle.getPanel('P1')!;
-    handle.removePanel('P1');
+    const { controller } = makeStore();
+    const panel = controller.getPanel('P1')!;
+    controller.removePanel('P1');
     expect(panel.inset).toEqual({ top: 0, right: 0, bottom: 0, left: 0 });
   });
   it('returns empty tabs list when the panel no longer exists', () => {
-    const { handle } = makeStore();
-    const panel = handle.getPanel('P1')!;
-    handle.removePanel('P1');
+    const { controller } = makeStore();
+    const panel = controller.getPanel('P1')!;
+    controller.removePanel('P1');
     expect(panel.tabs).toEqual([]);
     expect(panel.kind).toBe('tiled');
     expect(panel.floatingZIndex).toBeUndefined();
     expect(panel.popoutWindowBounds).toBeUndefined();
   });
   it('returns the live tabs list', () => {
-    const { handle } = makeStore();
-    const panel = handle.getPanel('P1')!;
+    const { controller } = makeStore();
+    const panel = controller.getPanel('P1')!;
     expect(panel.tabs.map((t) => t.id)).toEqual(['T1', 'T2']);
   });
-  it('returns the active tab handle, or null when missing', () => {
-    const { handle } = makeStore();
-    const panel = handle.getPanel('P1')!;
+  it('returns the active tab object, or null when missing', () => {
+    const { controller } = makeStore();
+    const panel = controller.getPanel('P1')!;
     expect(panel.activeTab?.id).toBe('T1');
-    handle.removePanel('P1');
+    controller.removePanel('P1');
     expect(panel.activeTab).toBeNull();
   });
   it('reads fullscreen panel mode metadata live from state', () => {
@@ -1183,13 +1209,13 @@ describe('TileryPanelHandle', () => {
         },
       ],
     });
-    const handle = makeTileryHandle(
+    const controller = makeTileryController(
       () => state,
       (action) => {
         state = tileryReducer(state, action);
       },
     );
-    const panel = handle.getPanel('P')!;
+    const panel = controller.getPanel('P')!;
     expect(panel.fullScreen).toBe(false);
     expect(panel.minSize).toBe(20);
     expect(panel.maxSize).toBe(80);
@@ -1197,9 +1223,9 @@ describe('TileryPanelHandle', () => {
     expect(panel.fullScreen).toBe(true);
   });
   it('returns false for fullscreen when the panel no longer exists', () => {
-    const { handle } = makeStore();
-    const panel = handle.getPanel('P1')!;
-    handle.removePanel('P1');
+    const { controller } = makeStore();
+    const panel = controller.getPanel('P1')!;
+    controller.removePanel('P1');
     expect(panel.fullScreen).toBe(false);
     expect(panel.minSize).toBeUndefined();
     expect(panel.maxSize).toBeUndefined();
@@ -1215,36 +1241,36 @@ describe('TileryPanelHandle', () => {
       panels: { ...state.panels, P: { ...state.panels.P!, activeTabId: null } },
     };
     const dispatch = () => {};
-    const handle = makeTileryHandle(() => state, dispatch);
-    expect(handle.getPanel('P')!.activeTab).toBeNull();
+    const controller = makeTileryController(() => state, dispatch);
+    expect(controller.getPanel('P')!.activeTab).toBeNull();
   });
   it('appendTab delegates to tilery.appendTab', () => {
-    const { handle, dispatched } = makeStore();
-    const panel = handle.getPanel('P1')!;
+    const { controller, dispatched } = makeStore();
+    const panel = controller.getPanel('P1')!;
     panel.appendTab({ id: 'NEW', data: {} });
     expect(dispatched[0]!.type).toBe('APPEND_TAB');
   });
   it('insertTab delegates to tilery.insertTab', () => {
-    const { handle, dispatched } = makeStore();
-    const panel = handle.getPanel('P1')!;
+    const { controller, dispatched } = makeStore();
+    const panel = controller.getPanel('P1')!;
     panel.insertTab({ id: 'NEW', data: {} }, 0);
     expect(dispatched[0]!.type).toBe('INSERT_TAB');
   });
   it('split delegates to tilery.splitPanel', () => {
-    const { handle, dispatched } = makeStore();
-    const panel = handle.getPanel('P1')!;
+    const { controller, dispatched } = makeStore();
+    const panel = controller.getPanel('P1')!;
     panel.split('left');
     expect(dispatched[0]!.type).toBe('SPLIT_PANEL');
   });
   it('remove delegates to tilery.removePanel', () => {
-    const { handle, dispatched } = makeStore();
-    const panel = handle.getPanel('P1')!;
+    const { controller, dispatched } = makeStore();
+    const panel = controller.getPanel('P1')!;
     panel.remove();
     expect(dispatched[0]).toEqual({ type: 'REMOVE_PANEL', panelId: 'P1' });
   });
-  it('fullscreen panel mode methods delegate to the root handle', () => {
-    const { handle, dispatched } = makeStore();
-    const panel = handle.getPanel('P1')!;
+  it('fullscreen panel mode methods delegate to the root controller', () => {
+    const { controller, dispatched } = makeStore();
+    const panel = controller.getPanel('P1')!;
     panel.maximize();
     panel.restore();
     expect(dispatched).toEqual([
@@ -1252,9 +1278,9 @@ describe('TileryPanelHandle', () => {
       { type: 'SET_PANEL_FULLSCREEN', panelId: 'P1', fullScreen: false },
     ]);
   });
-  it('floating and popout methods delegate to the root handle', () => {
-    const { handle, dispatched } = makeStore();
-    const panel = handle.getPanel('P1')!;
+  it('floating and popout methods delegate to the root controller', () => {
+    const { controller, dispatched } = makeStore();
+    const panel = controller.getPanel('P1')!;
     panel.setFloatingBounds({ x: 4, y: 5, width: 40, height: 42 });
     panel.popout({ windowBounds: { left: 1, top: 2 } });
     panel.returnToFloating({ x: 10 });
@@ -1281,54 +1307,54 @@ describe('TileryPanelHandle', () => {
     });
   });
   it('setActiveTab delegates to tilery.setActiveTab', () => {
-    const { handle, dispatched } = makeStore();
-    const panel = handle.getPanel('P1')!;
+    const { controller, dispatched } = makeStore();
+    const panel = controller.getPanel('P1')!;
     panel.setActiveTab('T2');
     expect(dispatched[0]).toEqual({ type: 'SET_ACTIVE_TAB', tabId: 'T2' });
   });
 });
 
-describe('TileryTabHandle', () => {
+describe('TileryTab', () => {
   it('reads panel, index, and data live from state', () => {
-    const { handle } = makeStore();
-    const tab = handle.getTab('T2')!;
+    const { controller } = makeStore();
+    const tab = controller.getTab('T2')!;
     expect(tab.id).toBe('T2');
     expect(tab.panel.id).toBe('P1');
     expect(tab.index).toBe(1);
     expect((tab.data as { title: string }).title).toBe('two');
   });
   it('closeable defaults to true and reflects state', () => {
-    const { handle } = makeStore();
-    const tab = handle.getTab('T1')!;
+    const { controller } = makeStore();
+    const tab = controller.getTab('T1')!;
     expect(tab.closeable).toBe(true);
   });
   it('draggable defaults to true and reflects state', () => {
-    const { handle } = makeStore();
-    const tab = handle.getTab('T1')!;
+    const { controller } = makeStore();
+    const tab = controller.getTab('T1')!;
     expect(tab.draggable).toBe(true);
   });
   it('closeable returns true when tab is missing from state', () => {
-    const { handle } = makeStore();
-    const tab = handle.getTab('T1')!;
-    handle.removeTab('T1');
+    const { controller } = makeStore();
+    const tab = controller.getTab('T1')!;
+    controller.removeTab('T1');
     expect(tab.closeable).toBe(true);
   });
   it('draggable returns true when tab is missing from state', () => {
-    const { handle } = makeStore();
-    const tab = handle.getTab('T1')!;
-    handle.removeTab('T1');
+    const { controller } = makeStore();
+    const tab = controller.getTab('T1')!;
+    controller.removeTab('T1');
     expect(tab.draggable).toBe(true);
   });
   it('panel getter throws when the tab no longer exists', () => {
-    const { handle } = makeStore();
-    const tab = handle.getTab('T1')!;
-    handle.removeTab('T1');
+    const { controller } = makeStore();
+    const tab = controller.getTab('T1')!;
+    controller.removeTab('T1');
     expect(() => tab.panel).toThrow(/no longer exists/);
   });
   it('index returns -1 if tab is missing', () => {
-    const { handle } = makeStore();
-    const tab = handle.getTab('T1')!;
-    handle.removeTab('T1');
+    const { controller } = makeStore();
+    const tab = controller.getTab('T1')!;
+    controller.removeTab('T1');
     expect(tab.index).toBe(-1);
   });
   it('index returns -1 if the panel back-ref is broken', () => {
@@ -1345,22 +1371,22 @@ describe('TileryTabHandle', () => {
       ...state,
       tabs: { ...state.tabs, T: { ...state.tabs.T!, panelId: 'phantom' } },
     };
-    const handle = makeTileryHandle(
+    const controller = makeTileryController(
       () => state,
       () => {},
     );
-    const tab = handle.getTab('T')!;
+    const tab = controller.getTab('T')!;
     expect(tab.index).toBe(-1);
   });
   it('data returns undefined when the tab is gone', () => {
-    const { handle } = makeStore();
-    const tab = handle.getTab('T1')!;
-    handle.removeTab('T1');
+    const { controller } = makeStore();
+    const tab = controller.getTab('T1')!;
+    controller.removeTab('T1');
     expect(tab.data).toBeUndefined();
   });
   it('setData dispatches SET_PANEL_DATA', () => {
-    const { handle, dispatched } = makeStore();
-    const tab = handle.getTab('T1')!;
+    const { controller, dispatched } = makeStore();
+    const tab = controller.getTab('T1')!;
     tab.setData({ title: 'renamed' });
     expect(dispatched[0]).toEqual({
       type: 'SET_PANEL_DATA',
@@ -1369,8 +1395,8 @@ describe('TileryTabHandle', () => {
     });
   });
   it('setBehavior delegates to tilery.setTabBehavior', () => {
-    const { handle, dispatched, getState } = makeStore();
-    const tab = handle.getTab('T1')!;
+    const { controller, dispatched, getState } = makeStore();
+    const tab = controller.getTab('T1')!;
     tab.setBehavior({ locked: true });
 
     expect(dispatched[0]).toEqual({
@@ -1386,14 +1412,14 @@ describe('TileryTabHandle', () => {
     expect(tab.draggable).toBe(false);
   });
   it('moveTo delegates to tilery.moveTab', () => {
-    const { handle, dispatched } = makeStore();
-    const tab = handle.getTab('T1')!;
+    const { controller, dispatched } = makeStore();
+    const tab = controller.getTab('T1')!;
     tab.moveTo({ panel: 'P2' });
     expect(dispatched[0]!.type).toBe('MOVE_TAB');
   });
   it('floating helpers delegate to root tab APIs', () => {
-    const { handle, dispatched } = makeStore();
-    const tab = handle.getTab('T2')!;
+    const { controller, dispatched } = makeStore();
+    const tab = controller.getTab('T2')!;
     const floated = tab.float({
       panelId: 'T2_FLOATING',
       bounds: { x: 12 },
@@ -1422,7 +1448,7 @@ describe('TileryTabHandle', () => {
     });
   });
   it('moveTo no-ops for a non-draggable tab after dispatch', () => {
-    const { handle, getState } = makeStore(
+    const { controller, getState } = makeStore(
       createStateFromPanels({
         panels: [
           {
@@ -1438,24 +1464,24 @@ describe('TileryTabHandle', () => {
         ],
       }),
     );
-    handle.getTab('T1')!.moveTo({ panel: 'P2' });
+    controller.getTab('T1')!.moveTo({ panel: 'P2' });
     expect(getState().panels.P1!.tabs).toEqual(['T1']);
     expect(getState().panels.P2!.tabs).toEqual(['T2']);
   });
   it('activate delegates to tilery.setActiveTab', () => {
-    const { handle, dispatched } = makeStore();
-    const tab = handle.getTab('T2')!;
+    const { controller, dispatched } = makeStore();
+    const tab = controller.getTab('T2')!;
     tab.activate();
     expect(dispatched[0]).toEqual({ type: 'SET_ACTIVE_TAB', tabId: 'T2' });
   });
   it('remove delegates to tilery.removeTab', () => {
-    const { handle, dispatched } = makeStore();
-    const tab = handle.getTab('T1')!;
+    const { controller, dispatched } = makeStore();
+    const tab = controller.getTab('T1')!;
     tab.remove();
     expect(dispatched[0]).toEqual({ type: 'REMOVE_TAB', tabId: 'T1' });
   });
   it('remove no-ops for a non-closeable tab after dispatch', () => {
-    const { handle, getState } = makeStore(
+    const { controller, getState } = makeStore(
       createStateFromPanels({
         panels: [
           {
@@ -1466,7 +1492,7 @@ describe('TileryTabHandle', () => {
         ],
       }),
     );
-    handle.getTab('T1')!.remove();
+    controller.getTab('T1')!.remove();
     expect(getState().tabs.T1).toBeDefined();
     expect(getState().panels.P1!.tabs).toEqual(['T1']);
   });

@@ -8,6 +8,7 @@ import { RiCloseLine, RiMenuLine } from 'react-icons/ri';
 export type SidebarItem = {
   href: string;
   label: string;
+  depth?: number;
 };
 
 export type SidebarGroup = {
@@ -51,7 +52,7 @@ export function Sidebar({ groups }: { groups: SidebarGroup[] }) {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`sidebar__link ${pathname === item.href ? 'sidebar__link--active' : ''}`}>
+                className={`sidebar__link ${item.depth ? 'sidebar__link--nested' : ''} ${pathname === item.href ? 'sidebar__link--active' : ''}`}>
                 {item.label}
               </Link>
             ))}

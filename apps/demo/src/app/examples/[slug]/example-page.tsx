@@ -77,8 +77,8 @@ const registry: Record<string, Record<string, React.ComponentType>> = {
   overflow: { default: OverflowExample, 'tab-overflow': TabOverflowExample },
   controlled: {
     default: ControlledExample,
-    'panel-handles': PanelApiExample,
-    'tab-handles': TabApiExample,
+    'panel-objects': PanelApiExample,
+    'tab-objects': TabApiExample,
     'tab-workflows': WorkflowApiExample,
   },
   floating: {

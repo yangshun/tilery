@@ -4,7 +4,10 @@ import { describe, expect, it } from 'vite-plus/test';
 import React, { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { useTileryDragController } from './use-drag-controller';
-import { makeTileryHandle, tileryCreateInitialState } from 'tilery/internal';
+import {
+  makeTileryController,
+  tileryCreateInitialState,
+} from 'tilery/internal';
 import { tileryReducer, type TileryReducerAction } from 'tilery/internal';
 import type { TileryLayoutState } from 'tilery/internal';
 import { createStateFromPanels } from './test-helpers';
@@ -32,8 +35,8 @@ function setupStore() {
   const dispatch = (a: TileryReducerAction) => {
     state = tileryReducer(state, a);
   };
-  const handle = makeTileryHandle(() => state, dispatch);
-  return { handle, getState: () => state };
+  const controller = makeTileryController(() => state, dispatch);
+  return { controller, getState: () => state };
 }
 
 function setBoundingClientRect(
@@ -114,8 +117,8 @@ function renderHook<T>(useHook: () => T): {
 
 describe('useTileryDragController — registration', () => {
   it('registers and deregisters panel/tabBar/tab elements', () => {
-    const { handle } = setupStore();
-    const hook = renderHook(() => useTileryDragController(() => handle));
+    const { controller } = setupStore();
+    const hook = renderHook(() => useTileryDragController(() => controller));
     const ctrl = hook.current();
     const panelEl = document.createElement('div');
     act(() => {
@@ -134,8 +137,8 @@ describe('useTileryDragController — registration', () => {
 
 describe('useTileryDragController — pointer flow', () => {
   it('ignores non-left buttons on pointerdown', () => {
-    const { handle } = setupStore();
-    const hook = renderHook(() => useTileryDragController(() => handle));
+    const { controller } = setupStore();
+    const hook = renderHook(() => useTileryDragController(() => controller));
     const tabEl = document.createElement('div');
     document.body.appendChild(tabEl);
     setBoundingClientRect(tabEl, {
@@ -165,8 +168,8 @@ describe('useTileryDragController — pointer flow', () => {
   });
 
   it('treats sub-threshold move + up as a click (calls onClick)', () => {
-    const { handle } = setupStore();
-    const hook = renderHook(() => useTileryDragController(() => handle));
+    const { controller } = setupStore();
+    const hook = renderHook(() => useTileryDragController(() => controller));
     const tabEl = document.createElement('div');
     document.body.appendChild(tabEl);
     let clicked = false;
@@ -216,8 +219,8 @@ describe('useTileryDragController — pointer flow', () => {
   });
 
   it('enters drag state when move exceeds threshold and commits on pointerup', () => {
-    const { handle, getState } = setupStore();
-    const hook = renderHook(() => useTileryDragController(() => handle));
+    const { controller, getState } = setupStore();
+    const hook = renderHook(() => useTileryDragController(() => controller));
     const tabEl = document.createElement('div');
     const panel2El = document.createElement('div');
     document.body.appendChild(tabEl);
@@ -296,7 +299,7 @@ describe('useTileryDragController — pointer flow', () => {
     panel2El.remove();
   });
 
-  it('computes hover state when the tilery handle is temporarily unavailable', () => {
+  it('computes hover state when the tilery controller is temporarily unavailable', () => {
     const hook = renderHook(() => useTileryDragController(() => null));
     const tabEl = document.createElement('div');
     const panelEl = document.createElement('div');
@@ -350,7 +353,7 @@ describe('useTileryDragController — pointer flow', () => {
     panelEl.remove();
   });
 
-  it('computes tab-bar hover when the tilery handle is temporarily unavailable', () => {
+  it('computes tab-bar hover when the tilery controller is temporarily unavailable', () => {
     const hook = renderHook(() => useTileryDragController(() => null));
     const tabEl = document.createElement('div');
     const tabBarEl = document.createElement('div');
@@ -407,8 +410,8 @@ describe('useTileryDragController — pointer flow', () => {
   });
 
   it('ignores pointermove with a different pointerId', () => {
-    const { handle } = setupStore();
-    const hook = renderHook(() => useTileryDragController(() => handle));
+    const { controller } = setupStore();
+    const hook = renderHook(() => useTileryDragController(() => controller));
     const tabEl = document.createElement('div');
     document.body.appendChild(tabEl);
     act(() => {
@@ -437,8 +440,8 @@ describe('useTileryDragController — pointer flow', () => {
   });
 
   it('pointer cancel clears pending and drag state', () => {
-    const { handle } = setupStore();
-    const hook = renderHook(() => useTileryDragController(() => handle));
+    const { controller } = setupStore();
+    const hook = renderHook(() => useTileryDragController(() => controller));
     const tabEl = document.createElement('div');
     document.body.appendChild(tabEl);
     setBoundingClientRect(tabEl, {
@@ -508,8 +511,8 @@ describe('useTileryDragController — pointer flow', () => {
   });
 
   it('pointerup with no pending nor drag state is a no-op (different pointer id)', () => {
-    const { handle } = setupStore();
-    const hook = renderHook(() => useTileryDragController(() => handle));
+    const { controller } = setupStore();
+    const hook = renderHook(() => useTileryDragController(() => controller));
     const tabEl = document.createElement('div');
     document.body.appendChild(tabEl);
     let clicked = false;
@@ -536,8 +539,8 @@ describe('useTileryDragController — pointer flow', () => {
 
 describe('useTileryDragController — hover detection', () => {
   it('detects tab-bar hovers with before/after/append based on tab rects', () => {
-    const { handle } = setupStore();
-    const hook = renderHook(() => useTileryDragController(() => handle));
+    const { controller } = setupStore();
+    const hook = renderHook(() => useTileryDragController(() => controller));
     const tabBarEl = document.createElement('div');
     const t1El = document.createElement('div');
     const t2El = document.createElement('div');
@@ -629,8 +632,8 @@ describe('useTileryDragController — hover detection', () => {
   });
 
   it('ignores tab-bar hover when the underlying panel is missing', () => {
-    const { handle } = setupStore();
-    const hook = renderHook(() => useTileryDragController(() => handle));
+    const { controller } = setupStore();
+    const hook = renderHook(() => useTileryDragController(() => controller));
     const tabBarEl = document.createElement('div');
     document.body.appendChild(tabBarEl);
     setBoundingClientRect(tabBarEl, {
@@ -702,8 +705,8 @@ describe('useTileryDragController — hover detection', () => {
     const dispatch = (a: TileryReducerAction) => {
       state = tileryReducer(state, a);
     };
-    const handle = makeTileryHandle(() => state, dispatch);
-    const hook = renderHook(() => useTileryDragController(() => handle));
+    const controller = makeTileryController(() => state, dispatch);
+    const hook = renderHook(() => useTileryDragController(() => controller));
     const tabEl = document.createElement('div');
     const panelEl = document.createElement('div');
     document.body.append(tabEl, panelEl);
@@ -775,8 +778,8 @@ describe('useTileryDragController — hover detection', () => {
     const dispatch = (a: TileryReducerAction) => {
       state = tileryReducer(state, a);
     };
-    const handle = makeTileryHandle(() => state, dispatch);
-    const hook = renderHook(() => useTileryDragController(() => handle));
+    const controller = makeTileryController(() => state, dispatch);
+    const hook = renderHook(() => useTileryDragController(() => controller));
     const tabEl = document.createElement('div');
     const tabBarEl = document.createElement('div');
     const targetTabEl = document.createElement('div');
@@ -870,8 +873,8 @@ describe('useTileryDragController — hover detection', () => {
     const dispatch = (a: TileryReducerAction) => {
       state = tileryReducer(state, a);
     };
-    const handle = makeTileryHandle(() => state, dispatch);
-    const hook = renderHook(() => useTileryDragController(() => handle));
+    const controller = makeTileryController(() => state, dispatch);
+    const hook = renderHook(() => useTileryDragController(() => controller));
     const tabEl = document.createElement('div');
     const panelEl = document.createElement('div');
     document.body.append(tabEl, panelEl);
@@ -935,8 +938,8 @@ describe('useTileryDragController — hover detection', () => {
     const dispatch = (a: TileryReducerAction) => {
       state = tileryReducer(state, a);
     };
-    const handle = makeTileryHandle(() => state, dispatch);
-    const hook = renderHook(() => useTileryDragController(() => handle));
+    const controller = makeTileryController(() => state, dispatch);
+    const hook = renderHook(() => useTileryDragController(() => controller));
     const sourceTabEl = document.createElement('div');
     const tabBarEl = document.createElement('div');
     const targetTabEl = document.createElement('div');
@@ -1019,8 +1022,8 @@ describe('useTileryDragController — hover detection', () => {
     const dispatch = (a: TileryReducerAction) => {
       state = tileryReducer(state, a);
     };
-    const handle = makeTileryHandle(() => state, dispatch);
-    const hook = renderHook(() => useTileryDragController(() => handle));
+    const controller = makeTileryController(() => state, dispatch);
+    const hook = renderHook(() => useTileryDragController(() => controller));
     const tabEl = document.createElement('div');
     const panelEl = document.createElement('div');
     document.body.append(tabEl, panelEl);
@@ -1091,8 +1094,8 @@ describe('useTileryDragController — hover detection', () => {
     const dispatch = (a: TileryReducerAction) => {
       state = tileryReducer(state, a);
     };
-    const handle = makeTileryHandle(() => state, dispatch);
-    const hook = renderHook(() => useTileryDragController(() => handle));
+    const controller = makeTileryController(() => state, dispatch);
+    const hook = renderHook(() => useTileryDragController(() => controller));
     const tabEl = document.createElement('div');
     document.body.append(tabEl);
     const down = pointerEvent('pointerdown', {
@@ -1144,9 +1147,12 @@ describe('useTileryDragController — hover detection', () => {
     const dispatch = (a: TileryReducerAction) => {
       state = tileryReducer(state, a);
     };
-    const handle = makeTileryHandle(() => state, dispatch);
-    let currentHandle: ReturnType<typeof makeTileryHandle> | null = null;
-    const hook = renderHook(() => useTileryDragController(() => currentHandle));
+    const controller = makeTileryController(() => state, dispatch);
+    let currentController: ReturnType<typeof makeTileryController> | null =
+      null;
+    const hook = renderHook(() =>
+      useTileryDragController(() => currentController),
+    );
     const tabEl = document.createElement('div');
     const panelEl = document.createElement('div');
     document.body.append(tabEl, panelEl);
@@ -1173,7 +1179,7 @@ describe('useTileryDragController — hover detection', () => {
     act(() => {
       hook.current().onTabPointerDown(asReact(down), 'T1');
     });
-    currentHandle = handle;
+    currentController = controller;
     act(() => {
       hook.current().onTabPointerMove(
         asReact(
@@ -1194,8 +1200,8 @@ describe('useTileryDragController — hover detection', () => {
   });
 
   it('skips tabs that have not been registered yet during tab-bar hover', () => {
-    const { handle } = setupStore();
-    const hook = renderHook(() => useTileryDragController(() => handle));
+    const { controller } = setupStore();
+    const hook = renderHook(() => useTileryDragController(() => controller));
     const tabBarEl = document.createElement('div');
     const t1El = document.createElement('div');
     // T2 deliberately not registered
@@ -1263,8 +1269,8 @@ describe('useTileryDragController — hover detection', () => {
   });
 
   it('iterates through multiple panels and returns null hover when cursor is outside every panel', () => {
-    const { handle } = setupStore();
-    const hook = renderHook(() => useTileryDragController(() => handle));
+    const { controller } = setupStore();
+    const hook = renderHook(() => useTileryDragController(() => controller));
     const p1El = document.createElement('div');
     const p2El = document.createElement('div');
     document.body.appendChild(p1El);
@@ -1339,8 +1345,8 @@ describe('useTileryDragController — hover detection', () => {
   });
 
   it('falls through tab-bars that the cursor is outside of', () => {
-    const { handle } = setupStore();
-    const hook = renderHook(() => useTileryDragController(() => handle));
+    const { controller } = setupStore();
+    const hook = renderHook(() => useTileryDragController(() => controller));
     const offBar = document.createElement('div');
     const panelEl = document.createElement('div');
     document.body.appendChild(offBar);
@@ -1426,8 +1432,8 @@ describe('useTileryDragController — hover detection', () => {
     const dispatch = (a: TileryReducerAction) => {
       state = tileryReducer(state, a);
     };
-    const handle = makeTileryHandle(() => state, dispatch);
-    const hook = renderHook(() => useTileryDragController(() => handle));
+    const controller = makeTileryController(() => state, dispatch);
+    const hook = renderHook(() => useTileryDragController(() => controller));
     const p1El = document.createElement('div');
     const bTabEl = document.createElement('div');
     document.body.appendChild(p1El);
@@ -1541,8 +1547,8 @@ describe('useTileryDragController — hover detection', () => {
     const dispatch = (a: TileryReducerAction) => {
       state = tileryReducer(state, a);
     };
-    const handle = makeTileryHandle(() => state, dispatch);
-    const hook = renderHook(() => useTileryDragController(() => handle));
+    const controller = makeTileryController(() => state, dispatch);
+    const hook = renderHook(() => useTileryDragController(() => controller));
     const p1El = document.createElement('div');
     const bTabEl = document.createElement('div');
     document.body.appendChild(p1El);
@@ -1646,8 +1652,8 @@ describe('useTileryDragController — hover detection', () => {
     const dispatch = (a: TileryReducerAction) => {
       state = tileryReducer(state, a);
     };
-    const handle = makeTileryHandle(() => state, dispatch);
-    const hook = renderHook(() => useTileryDragController(() => handle));
+    const controller = makeTileryController(() => state, dispatch);
+    const hook = renderHook(() => useTileryDragController(() => controller));
     const p1El = document.createElement('div');
     const cTabEl = document.createElement('div');
     document.body.appendChild(p1El);
@@ -1720,8 +1726,8 @@ describe('useTileryDragController — hover detection', () => {
     const dispatch = (a: TileryReducerAction) => {
       state = tileryReducer(state, a);
     };
-    const handle = makeTileryHandle(() => state, dispatch);
-    const hook = renderHook(() => useTileryDragController(() => handle));
+    const controller = makeTileryController(() => state, dispatch);
+    const hook = renderHook(() => useTileryDragController(() => controller));
     const p1El = document.createElement('div');
     const cTabEl = document.createElement('div');
     document.body.appendChild(p1El);
@@ -1798,8 +1804,8 @@ describe('useTileryDragController — hover detection', () => {
     const dispatch = (a: TileryReducerAction) => {
       state = tileryReducer(state, a);
     };
-    const handle = makeTileryHandle(() => state, dispatch);
-    const hook = renderHook(() => useTileryDragController(() => handle));
+    const controller = makeTileryController(() => state, dispatch);
+    const hook = renderHook(() => useTileryDragController(() => controller));
     const p2El = document.createElement('div');
     const cTabEl = document.createElement('div');
     document.body.appendChild(p2El);
@@ -1890,8 +1896,8 @@ describe('useTileryDragController — hover detection', () => {
     const dispatch = (a: TileryReducerAction) => {
       state = tileryReducer(state, a);
     };
-    const handle = makeTileryHandle(() => state, dispatch);
-    const hook = renderHook(() => useTileryDragController(() => handle));
+    const controller = makeTileryController(() => state, dispatch);
+    const hook = renderHook(() => useTileryDragController(() => controller));
     const panelEl = document.createElement('div');
     const aTabEl = document.createElement('div');
     document.body.appendChild(panelEl);
@@ -1973,8 +1979,8 @@ describe('useTileryDragController — hover detection', () => {
     const dispatch = (a: TileryReducerAction) => {
       state = tileryReducer(state, a);
     };
-    const handle = makeTileryHandle(() => state, dispatch);
-    const hook = renderHook(() => useTileryDragController(() => handle));
+    const controller = makeTileryController(() => state, dispatch);
+    const hook = renderHook(() => useTileryDragController(() => controller));
     const p1El = document.createElement('div');
     const bTabEl = document.createElement('div');
     document.body.appendChild(p1El);
@@ -2061,8 +2067,8 @@ describe('useTileryDragController — hover detection', () => {
     const dispatch = (a: TileryReducerAction) => {
       state = tileryReducer(state, a);
     };
-    const handle = makeTileryHandle(() => state, dispatch);
-    const hook = renderHook(() => useTileryDragController(() => handle));
+    const controller = makeTileryController(() => state, dispatch);
+    const hook = renderHook(() => useTileryDragController(() => controller));
     const explorerEl = document.createElement('div');
     const terminalTabEl = document.createElement('div');
     document.body.appendChild(explorerEl);
@@ -2129,8 +2135,8 @@ describe('useTileryDragController — hover detection', () => {
     const dispatch = (a: TileryReducerAction) => {
       state = tileryReducer(state, a);
     };
-    const handle = makeTileryHandle(() => state, dispatch);
-    const hook = renderHook(() => useTileryDragController(() => handle));
+    const controller = makeTileryController(() => state, dispatch);
+    const hook = renderHook(() => useTileryDragController(() => controller));
     const panelEl = document.createElement('div');
     const tabBarEl = document.createElement('div');
     const oneEl = document.createElement('div');
@@ -2222,7 +2228,7 @@ describe('useTileryDragController — hover detection', () => {
 });
 
 describe('useTileryDragController — panel drag from tab bar', () => {
-  it('onTabBarPointerDown ignores a missing tilery handle', () => {
+  it('onTabBarPointerDown ignores a missing tilery controller', () => {
     const hook = renderHook(() => useTileryDragController(() => null));
     const tabBarEl = document.createElement('div');
     document.body.appendChild(tabBarEl);
@@ -2262,8 +2268,8 @@ describe('useTileryDragController — panel drag from tab bar', () => {
     const dispatch = (a: TileryReducerAction) => {
       state = tileryReducer(state, a);
     };
-    const handle = makeTileryHandle(() => state, dispatch);
-    const hook = renderHook(() => useTileryDragController(() => handle));
+    const controller = makeTileryController(() => state, dispatch);
+    const hook = renderHook(() => useTileryDragController(() => controller));
     const tabBarEl = document.createElement('div');
     tabBarEl.setAttribute('data-panel-id', 'P1');
     document.body.appendChild(tabBarEl);
@@ -2295,8 +2301,8 @@ describe('useTileryDragController — panel drag from tab bar', () => {
   });
 
   it('onTabBarPointerDown initiates a panel drag from empty tab bar area', () => {
-    const { handle } = setupStore();
-    const hook = renderHook(() => useTileryDragController(() => handle));
+    const { controller } = setupStore();
+    const hook = renderHook(() => useTileryDragController(() => controller));
     const tabBarEl = document.createElement('div');
     tabBarEl.setAttribute('data-panel-id', 'P1');
     document.body.appendChild(tabBarEl);
@@ -2330,8 +2336,8 @@ describe('useTileryDragController — panel drag from tab bar', () => {
   });
 
   it('onTabBarPointerDown ignores clicks on tab elements', () => {
-    const { handle } = setupStore();
-    const hook = renderHook(() => useTileryDragController(() => handle));
+    const { controller } = setupStore();
+    const hook = renderHook(() => useTileryDragController(() => controller));
     const tabBarEl = document.createElement('div');
     tabBarEl.setAttribute('data-panel-id', 'P1');
     const tabEl = document.createElement('div');
@@ -2378,8 +2384,8 @@ describe('useTileryDragController — panel drag from tab bar', () => {
     const dispatch = (a: TileryReducerAction) => {
       state = tileryReducer(state, a);
     };
-    const handle = makeTileryHandle(() => state, dispatch);
-    const hook = renderHook(() => useTileryDragController(() => handle));
+    const controller = makeTileryController(() => state, dispatch);
+    const hook = renderHook(() => useTileryDragController(() => controller));
     const tabBarEl = document.createElement('div');
     tabBarEl.setAttribute('data-panel-id', 'P1');
     document.body.appendChild(tabBarEl);
@@ -2423,8 +2429,8 @@ describe('useTileryDragController — panel drag from tab bar', () => {
     const dispatch = (a: TileryReducerAction) => {
       state = tileryReducer(state, a);
     };
-    const handle = makeTileryHandle(() => state, dispatch);
-    const hook = renderHook(() => useTileryDragController(() => handle));
+    const controller = makeTileryController(() => state, dispatch);
+    const hook = renderHook(() => useTileryDragController(() => controller));
     const tabBarEl = document.createElement('div');
     tabBarEl.setAttribute('data-panel-id', 'P1');
     document.body.appendChild(tabBarEl);
@@ -2459,8 +2465,8 @@ describe('useTileryDragController — panel drag from tab bar', () => {
   });
 
   it('onTabBarPointerUp commits the panel drag', () => {
-    const { handle } = setupStore();
-    const hook = renderHook(() => useTileryDragController(() => handle));
+    const { controller } = setupStore();
+    const hook = renderHook(() => useTileryDragController(() => controller));
     const tabBarEl = document.createElement('div');
     tabBarEl.setAttribute('data-panel-id', 'P1');
     document.body.appendChild(tabBarEl);
@@ -2500,8 +2506,8 @@ describe('useTileryDragController — panel drag from tab bar', () => {
   });
 
   it('onTabBarPointerUp with no drag clears pending state', () => {
-    const { handle } = setupStore();
-    const hook = renderHook(() => useTileryDragController(() => handle));
+    const { controller } = setupStore();
+    const hook = renderHook(() => useTileryDragController(() => controller));
     const tabBarEl = document.createElement('div');
     tabBarEl.setAttribute('data-panel-id', 'P1');
     document.body.appendChild(tabBarEl);
@@ -2535,11 +2541,11 @@ describe('useTileryDragController — panel drag from tab bar', () => {
 
 describe('useTileryDragController — fullscreen mode', () => {
   it('suppresses hidden panel drop targets while keeping the fullscreen tab bar interactive', () => {
-    const { handle } = setupStore();
+    const { controller } = setupStore();
     act(() => {
-      handle.maximizePanel('P1');
+      controller.maximizePanel('P1');
     });
-    const hook = renderHook(() => useTileryDragController(() => handle));
+    const hook = renderHook(() => useTileryDragController(() => controller));
 
     const p2PanelEl = document.createElement('div');
     const p1TabBarEl = document.createElement('div');

@@ -3,9 +3,9 @@
 import { useRef, type CSSProperties } from 'react';
 import { Tilery } from '@tilery/react';
 import type {
-  TileryHandle,
+  TileryController,
   TileryInitialLayout,
-  TileryTabHandle,
+  TileryTab,
 } from '@tilery/react';
 import {
   ExampleButton,
@@ -224,7 +224,7 @@ export function InitialFloatingExample() {
 
 // source-region runtime-floating
 export function RuntimeFloatingExample() {
-  const tileryRef = useRef<TileryHandle | null>(null);
+  const tileryRef = useRef<TileryController | null>(null);
 
   const floatExplorer = () => {
     tileryRef.current?.floatPanel('explorer', {
@@ -266,7 +266,7 @@ export function RuntimeFloatingExample() {
         </>
       }>
       <Tilery<TabData>
-        ref={tileryRef as React.Ref<TileryHandle>}
+        ref={tileryRef as React.Ref<TileryController>}
         initialLayout={runtimeFloatingLayout}
         renderTabHeader={renderHeader}
         renderTabContent={renderContent}
@@ -279,7 +279,7 @@ export function RuntimeFloatingExample() {
 
 // source-region tab-floating
 export function TabFloatingExample() {
-  const tileryRef = useRef<TileryHandle | null>(null);
+  const tileryRef = useRef<TileryController | null>(null);
 
   const floatNotes = () => {
     tileryRef.current?.floatTab('notes-tab', {
@@ -321,7 +321,7 @@ export function TabFloatingExample() {
         </>
       }>
       <Tilery<TabData>
-        ref={tileryRef as React.Ref<TileryHandle>}
+        ref={tileryRef as React.Ref<TileryController>}
         initialLayout={tabFloatingLayout}
         renderTabHeader={renderHeader}
         renderTabContent={renderContent}
@@ -334,7 +334,7 @@ export function TabFloatingExample() {
 
 // source-region native-popout
 export function NativePopoutExample() {
-  const tileryRef = useRef<TileryHandle | null>(null);
+  const tileryRef = useRef<TileryController | null>(null);
 
   const popoutWorkspace = () => {
     tileryRef.current?.popoutPanel('workspace', {
@@ -373,7 +373,7 @@ export function NativePopoutExample() {
         </>
       }>
       <Tilery<TabData>
-        ref={tileryRef as React.Ref<TileryHandle>}
+        ref={tileryRef as React.Ref<TileryController>}
         initialLayout={runtimeFloatingLayout}
         renderTabHeader={renderHeader}
         renderTabContent={renderContent}
@@ -398,7 +398,7 @@ const popoutScopedThemeStyle = {
 } as CSSProperties;
 
 export function PopoutStylingExample() {
-  const tileryRef = useRef<TileryHandle | null>(null);
+  const tileryRef = useRef<TileryController | null>(null);
 
   const popoutWorkspace = () => {
     tileryRef.current?.popoutPanel('scoped-workspace', {
@@ -427,7 +427,7 @@ export function PopoutStylingExample() {
       }>
       <div style={popoutScopedThemeStyle}>
         <Tilery<TabData>
-          ref={tileryRef as React.Ref<TileryHandle>}
+          ref={tileryRef as React.Ref<TileryController>}
           initialLayout={popoutStylingLayout}
           renderTabHeader={renderHeader}
           renderTabContent={renderContent}
@@ -439,11 +439,11 @@ export function PopoutStylingExample() {
 }
 // end-source-region popout-styling
 
-function renderHeader(tab: TileryTabHandle<TabData>) {
+function renderHeader(tab: TileryTab<TabData>) {
   return <span>{tab.data.title}</span>;
 }
 
-function renderContent(tab: TileryTabHandle<TabData>) {
+function renderContent(tab: TileryTab<TabData>) {
   return (
     <TabContent meta={tab.data.meta}>
       <p>{tab.data.body}</p>

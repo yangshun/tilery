@@ -3,10 +3,10 @@
 import { useRef } from 'react';
 import { Tilery } from '@tilery/react';
 import type {
-  TileryHandle,
+  TileryController,
   TileryInitialLayout,
-  TileryPanelHandle,
-  TileryTabHandle,
+  TileryPanel,
+  TileryTab,
 } from '@tilery/react';
 import { ExampleSection, ExampleStack, TabContent } from '../example-ui';
 
@@ -153,17 +153,17 @@ export function PanelMenuExample() {
 // source-region new-tab
 export function NewTabExample() {
   const newTabCounterRef = useRef(0);
-  const tileryRef = useRef<TileryHandle | null>(null);
+  const tileryRef = useRef<TileryController | null>(null);
 
   return (
     <ExampleSection
       title="New-tab hook"
       description="Choose which panels expose the plus button and return the tab data from onNewTab.">
       <Tilery<TabData>
-        ref={tileryRef as React.Ref<TileryHandle>}
+        ref={tileryRef as React.Ref<TileryController>}
         initialLayout={newTabLayout}
         showNewTabButton={(panel) => panel.id === 'drafts'}
-        onNewTab={(panel: TileryPanelHandle) => {
+        onNewTab={(panel: TileryPanel) => {
           newTabCounterRef.current += 1;
           return {
             id: `${panel.id}-${newTabCounterRef.current}`,
@@ -181,11 +181,11 @@ export function NewTabExample() {
 }
 // end-source-region new-tab
 
-function renderHeader(tab: TileryTabHandle<TabData>) {
+function renderHeader(tab: TileryTab<TabData>) {
   return <span>{tab.data.title}</span>;
 }
 
-function renderContent(tab: TileryTabHandle<TabData>) {
+function renderContent(tab: TileryTab<TabData>) {
   return (
     <TabContent>
       <p style={{ margin: 0 }}>{tab.data.body}</p>

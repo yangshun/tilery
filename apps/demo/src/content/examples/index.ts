@@ -147,7 +147,7 @@ export const examples = [
       'Resize handles clamp against the nearest constrained panels in the active split.',
       'Container resizes preserve split proportions by default and adjust only the panels that would otherwise violate constraints.',
       'Impossible constraint combinations warn once in development; runtime resize still clamps or no-ops instead of throwing.',
-      'Handles expose data-resize-* attributes for active, disabled, and min/max clamp states; hover and focus styling use CSS pseudo-classes.',
+      'Resize handles expose data-resize-* attributes for active, disabled, and min/max clamp states; hover and focus styling use CSS pseudo-classes.',
     ],
   },
   {
@@ -186,15 +186,16 @@ export const examples = [
   {
     slug: 'controlled',
     title: 'Programmatic Control',
-    description: 'Use panel and tab handles for imperative workflows.',
+    description:
+      'Use the Tilery controller plus panel and tab objects for imperative workflows.',
     demos: [
-      { id: 'panel-handles', sourceRegion: 'panel-handles' },
-      { id: 'tab-handles', sourceRegion: 'tab-handles' },
+      { id: 'panel-objects', sourceRegion: 'panel-objects' },
+      { id: 'tab-objects', sourceRegion: 'tab-objects' },
       { id: 'tab-workflows', sourceRegion: 'tab-workflows' },
     ],
     notes: [
-      'Panel handles append tabs, create splits, and remove active tabs.',
-      'Tab handles update tab data, activate a known tab, and move a tab to another panel.',
+      'Panel objects append tabs, create splits, and remove active tabs.',
+      'Tab objects update tab data, activate a known tab, and move a tab to another panel.',
       'Workflow helpers activate an existing resource tab or open it once near a related tab.',
     ],
   },

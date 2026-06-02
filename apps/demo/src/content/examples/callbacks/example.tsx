@@ -4,10 +4,10 @@ import { useCallback, useRef, useState } from 'react';
 import { Tilery } from '@tilery/react';
 import type {
   TileryActiveTabChangeEvent,
-  TileryHandle,
+  TileryController,
   TileryInitialLayout,
   TileryResizeEvent,
-  TileryTabHandle,
+  TileryTab,
   TileryTabsMoveEvent,
 } from '@tilery/react';
 import {
@@ -114,7 +114,7 @@ export function Example() {
 
 // source-region structural
 export function StructuralCallbacksExample() {
-  const tileryRef = useRef<TileryHandle | null>(null);
+  const tileryRef = useRef<TileryController | null>(null);
   const eventIdRef = useRef(0);
   const tabCounterRef = useRef(0);
   const splitCounterRef = useRef(0);
@@ -209,7 +209,7 @@ export function StructuralCallbacksExample() {
       <div style={demoWithLogStyle}>
         <div style={tileryWrapStyle}>
           <Tilery<TabData>
-            ref={tileryRef as React.Ref<TileryHandle>}
+            ref={tileryRef as React.Ref<TileryController>}
             initialLayout={structuralLayout}
             onActiveTabChange={(event) =>
               log('onActiveTabChange', activeSummary(event))
@@ -312,11 +312,11 @@ function EventLog({ title, events }: { title: string; events: LogEntry[] }) {
   );
 }
 
-function renderHeader(tab: TileryTabHandle<TabData>) {
+function renderHeader(tab: TileryTab<TabData>) {
   return <span>{tab.data.title}</span>;
 }
 
-function renderContent(tab: TileryTabHandle<TabData>) {
+function renderContent(tab: TileryTab<TabData>) {
   return (
     <TabContent>
       <p style={{ margin: 0 }}>{tab.data.body}</p>

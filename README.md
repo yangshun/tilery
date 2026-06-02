@@ -28,7 +28,7 @@ npm install @tilery/react
 ```tsx
 import { Tilery } from '@tilery/react';
 import '@tilery/react/style.css';
-import type { TileryInitialLayout, TileryTabHandle } from '@tilery/react';
+import type { TileryInitialLayout, TileryTab } from '@tilery/react';
 
 type MyTabData = { title: string };
 
@@ -134,30 +134,30 @@ The main component. Renders a tiling panel layout.
 
 #### Props
 
-| Prop                      | Type                                                                     | Required | Description                                     |
-| ------------------------- | ------------------------------------------------------------------------ | -------- | ----------------------------------------------- |
-| `initialLayout`           | `TileryInitialLayout<TData>`                                             | Yes      | The initial panel and tab configuration         |
-| `renderTabHeader`         | `(tab: TileryTabHandle<TData>, ctx: { isActive: boolean }) => ReactNode` | Yes      | Renders the tab button content                  |
-| `renderTabContent`        | `(tab: TileryTabHandle<TData>) => ReactNode`                             | Yes      | Renders the tab panel content                   |
-| `onChange`                | `(state: TileryLayoutState) => void`                                     | No       | Called after every state change                 |
-| `onResize`                | `(event: TileryResizeEvent) => void`                                     | No       | Called for each divider or junction resize      |
-| `onResizeEnd`             | `(event: TileryResizeEvent) => void`                                     | No       | Called when a resize interaction commits        |
-| `onActiveTabChange`       | `(event: TileryActiveTabChangeEvent) => void`                            | No       | Called when a panel's active tab changes        |
-| `onTabsMove`              | `(event: TileryTabsMoveEvent<TData>) => void`                            | No       | Called when tabs move between panels or indexes |
-| `onPanelsOpen`            | `(event: TileryPanelsOpenEvent<TData>) => void`                          | No       | Called when panels are created                  |
-| `onPanelSplit`            | `(event: TileryPanelSplitEvent<TData>) => void`                          | No       | Called when a panel is split                    |
-| `onTabsOpen`              | `(event: TileryTabsOpenEvent<TData>) => void`                            | No       | Called when tabs are added                      |
-| `onTabsClose`             | `(event: TileryTabsCloseEvent<TData>) => void`                           | No       | Called when tabs are removed                    |
-| `onPanelsClose`           | `(event: TileryPanelsCloseEvent<TData>) => void`                         | No       | Called when panels are removed                  |
-| `minSize`                 | `number`                                                                 | No       | Default minimum panel size percentage           |
-| `resizable`               | `boolean`                                                                | No       | Enables or disables all resize handles          |
-| `resizeHandleHitSize`     | `number`                                                                 | No       | Pointer hit target size for resize handles      |
-| `showActionsButton`       | `boolean \| (panel: TileryPanelHandle) => boolean`                       | No       | Shows the built-in panel action menu            |
-| `showNewTabButton`        | `boolean \| (panel: TileryPanelHandle) => boolean`                       | No       | Shows the optional new-tab button               |
-| `onNewTab`                | `(panel, ctx) => TileryTabInit<TData> \| void`                           | No       | Handles the new-tab button                      |
-| `renderPanelActions`      | `(panel, ctx) => ReactNode`                                              | No       | Appends custom content to the panel action menu |
-| `renderActionsButtonIcon` | `(panel) => ReactNode`                                                   | No       | Customizes the action menu button icon          |
-| `ref`                     | `Ref<TileryHandle>`                                                      | No       | Imperative handle for programmatic control      |
+| Prop                      | Type                                                               | Required | Description                                     |
+| ------------------------- | ------------------------------------------------------------------ | -------- | ----------------------------------------------- |
+| `initialLayout`           | `TileryInitialLayout<TData>`                                       | Yes      | The initial panel and tab configuration         |
+| `renderTabHeader`         | `(tab: TileryTab<TData>, ctx: { isActive: boolean }) => ReactNode` | Yes      | Renders the tab button content                  |
+| `renderTabContent`        | `(tab: TileryTab<TData>) => ReactNode`                             | Yes      | Renders the tab panel content                   |
+| `onChange`                | `(state: TileryLayoutState) => void`                               | No       | Called after every state change                 |
+| `onResize`                | `(event: TileryResizeEvent) => void`                               | No       | Called for each divider or junction resize      |
+| `onResizeEnd`             | `(event: TileryResizeEvent) => void`                               | No       | Called when a resize interaction commits        |
+| `onActiveTabChange`       | `(event: TileryActiveTabChangeEvent) => void`                      | No       | Called when a panel's active tab changes        |
+| `onTabsMove`              | `(event: TileryTabsMoveEvent<TData>) => void`                      | No       | Called when tabs move between panels or indexes |
+| `onPanelsOpen`            | `(event: TileryPanelsOpenEvent<TData>) => void`                    | No       | Called when panels are created                  |
+| `onPanelSplit`            | `(event: TileryPanelSplitEvent<TData>) => void`                    | No       | Called when a panel is split                    |
+| `onTabsOpen`              | `(event: TileryTabsOpenEvent<TData>) => void`                      | No       | Called when tabs are added                      |
+| `onTabsClose`             | `(event: TileryTabsCloseEvent<TData>) => void`                     | No       | Called when tabs are removed                    |
+| `onPanelsClose`           | `(event: TileryPanelsCloseEvent<TData>) => void`                   | No       | Called when panels are removed                  |
+| `minSize`                 | `number`                                                           | No       | Default minimum panel size percentage           |
+| `resizable`               | `boolean`                                                          | No       | Enables or disables all resize handles          |
+| `resizeHandleHitSize`     | `number`                                                           | No       | Pointer hit target size for resize handles      |
+| `showActionsButton`       | `boolean \| (panel: TileryPanel) => boolean`                       | No       | Shows the built-in panel action menu            |
+| `showNewTabButton`        | `boolean \| (panel: TileryPanel) => boolean`                       | No       | Shows the optional new-tab button               |
+| `onNewTab`                | `(panel, ctx) => TileryTabInit<TData> \| void`                     | No       | Responds to the new-tab button                  |
+| `renderPanelActions`      | `(panel, ctx) => ReactNode`                                        | No       | Appends custom content to the panel action menu |
+| `renderActionsButtonIcon` | `(panel) => ReactNode`                                             | No       | Customizes the action menu button icon          |
+| `ref`                     | `Ref<TileryController>`                                            | No       | Controller ref for programmatic control         |
 
 ### `TileryInitialLayout<TData>`
 
@@ -464,41 +464,41 @@ type TileryPanelsCloseEvent<TData> = {
 A fullscreen panel renders over the full Tilery container, suppresses
 dividers and panel drop zones until it is restored.
 
-### `TileryHandle`
+### `TileryController`
 
-The imperative API exposed via `ref`. Use it for programmatic layout manipulation.
+The controller exposed via `ref`. Use it for programmatic layout manipulation.
 
-| Method                                  | Description                                         |
-| --------------------------------------- | --------------------------------------------------- |
-| `getPanel(id)`                          | Returns a `TileryPanelHandle` or `null`             |
-| `getTab(id)`                            | Returns a `TileryTabHandle` or `null`               |
-| `getPanels()`                           | Returns all `TileryPanelHandle[]`                   |
-| `getTabs()`                             | Returns all `TileryTabHandle[]`                     |
-| `splitPanel(panelId, direction, opts?)` | Splits a panel, returns the new `TileryPanelHandle` |
-| `removePanel(panelId)`                  | Removes a panel (redistributes space)               |
-| `maximizePanel(panelId)`                | Shows one panel fullscreen                          |
-| `restorePanel(panelId)`                 | Restores a fullscreen panel                         |
-| `appendTab(panelId, tab, opts?)`        | Appends a tab to a panel                            |
-| `insertTab(panelId, tab, index, opts?)` | Inserts a tab at a specific index                   |
-| `removeTab(tabId)`                      | Removes a tab (removes panel if last)               |
-| `moveTab(tabId, target)`                | Moves a tab to a target location                    |
-| `setTabBehavior(tabId, behavior)`       | Updates tab close and drag behavior                 |
-| `setActiveTab(tabId)`                   | Activates a tab                                     |
-| `swapPanels(panelA, panelB)`            | Swaps two panels' positions                         |
-| `getLayout()`                           | Returns a serializable `TileryLayoutSnapshot`       |
-| `setLayout(layout)`                     | Restores a `TileryLayoutSnapshot`                   |
-| `getState()`                            | Returns the current `TileryLayoutState`             |
+| Method                                  | Description                                   |
+| --------------------------------------- | --------------------------------------------- |
+| `getPanel(id)`                          | Returns a `TileryPanel` or `null`             |
+| `getTab(id)`                            | Returns a `TileryTab` or `null`               |
+| `getPanels()`                           | Returns all `TileryPanel[]`                   |
+| `getTabs()`                             | Returns all `TileryTab[]`                     |
+| `splitPanel(panelId, direction, opts?)` | Splits a panel, returns the new `TileryPanel` |
+| `removePanel(panelId)`                  | Removes a panel (redistributes space)         |
+| `maximizePanel(panelId)`                | Shows one panel fullscreen                    |
+| `restorePanel(panelId)`                 | Restores a fullscreen panel                   |
+| `appendTab(panelId, tab, opts?)`        | Appends a tab to a panel                      |
+| `insertTab(panelId, tab, index, opts?)` | Inserts a tab at a specific index             |
+| `removeTab(tabId)`                      | Removes a tab (removes panel if last)         |
+| `moveTab(tabId, target)`                | Moves a tab to a target location              |
+| `setTabBehavior(tabId, behavior)`       | Updates tab close and drag behavior           |
+| `setActiveTab(tabId)`                   | Activates a tab                               |
+| `swapPanels(panelA, panelB)`            | Swaps two panels' positions                   |
+| `getLayout()`                           | Returns a serializable `TileryLayoutSnapshot` |
+| `setLayout(layout)`                     | Restores a `TileryLayoutSnapshot`             |
+| `getState()`                            | Returns the current `TileryLayoutState`       |
 
-### `TileryPanelHandle`
+### `TileryPanel`
 
-Returned by `getPanel()`. Provides panel-scoped operations.
+Returned by `getPanel()` and `getPanels()`. Provides panel-scoped operations.
 
 | Property/Method                | Description                                        |
 | ------------------------------ | -------------------------------------------------- |
 | `id`                           | Panel identifier                                   |
 | `inset`                        | Current `{ top, right, bottom, left }` percentages |
-| `tabs`                         | Array of `TileryTabHandle` for this panel          |
-| `activeTab`                    | The active `TileryTabHandle` or `null`             |
+| `tabs`                         | Array of `TileryTab` for this panel                |
+| `activeTab`                    | The active `TileryTab` or `null`                   |
 | `fullScreen`                   | Whether this panel is currently fullscreen         |
 | `minSize`                      | Panel minimum size constraint, if set              |
 | `maxSize`                      | Panel maximum size constraint, if set              |
@@ -510,14 +510,14 @@ Returned by `getPanel()`. Provides panel-scoped operations.
 | `restore()`                    | Restore this panel from fullscreen                 |
 | `setActiveTab(tabId)`          | Set the active tab                                 |
 
-### `TileryTabHandle<TData>`
+### `TileryTab<TData>`
 
-Returned by `getTab()`. Provides tab-scoped operations.
+Returned by `getTab()`, `getTabs()`, and panel tab properties. Provides tab-scoped operations.
 
 | Property/Method         | Description                          |
 | ----------------------- | ------------------------------------ |
 | `id`                    | Tab identifier                       |
-| `panel`                 | The parent `TileryPanelHandle`       |
+| `panel`                 | The parent `TileryPanel`             |
 | `index`                 | Position within the panel's tab list |
 | `data`                  | The `TData` payload                  |
 | `closeable`             | Whether close actions are allowed    |
@@ -530,7 +530,7 @@ Returned by `getTab()`. Provides tab-scoped operations.
 
 ### `TileryMoveTarget`
 
-Used with `moveTab()` and `tabHandle.moveTo()`:
+Used with `moveTab()` and `tab.moveTo()`:
 
 ```ts
 type TileryMoveTarget =

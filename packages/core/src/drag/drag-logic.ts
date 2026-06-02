@@ -1,6 +1,6 @@
 import type {
   TileryDirection,
-  TileryHandle,
+  TileryController,
   TileryPanelId,
   TileryTabId,
 } from '../types';
@@ -26,7 +26,7 @@ export type TileryDragState = {
 };
 
 export function tileryCommitDrag(
-  tilery: TileryHandle | null,
+  tilery: TileryController | null,
   drag: TileryDragState,
   tabId: TileryTabId,
   panelDrag: boolean = false,
@@ -124,7 +124,7 @@ export function tileryCommitDrag(
 }
 
 function moveSiblingsPreservingOrder(
-  tilery: TileryHandle,
+  tilery: TileryController,
   tabsBefore: TileryTabId[],
   tabsAfter: TileryTabId[],
   leadTabId: TileryTabId,

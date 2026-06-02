@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { Tilery } from '@tilery/react';
-import type { TileryInitialLayout, TileryTabHandle } from '@tilery/react';
+import type { TileryInitialLayout, TileryTab } from '@tilery/react';
 import { ExampleSection, ExampleStack } from '../example-ui';
 import type { CSSProperties, ReactNode } from 'react';
 
@@ -423,7 +423,7 @@ function createThemeLayout(prefix: string): TileryInitialLayout<TabData> {
   };
 }
 
-function renderHeader(tab: TileryTabHandle<TabData>) {
+function renderHeader(tab: TileryTab<TabData>) {
   return (
     <>
       <span style={{ ...swatchStyle, background: tab.data.accent }} />
@@ -432,7 +432,7 @@ function renderHeader(tab: TileryTabHandle<TabData>) {
   );
 }
 
-function renderContent(tab: TileryTabHandle<TabData>) {
+function renderContent(tab: TileryTab<TabData>) {
   return (
     <div style={contentStyle}>
       {tab.data.kind === 'files' ? (

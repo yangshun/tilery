@@ -14,9 +14,6 @@
     "jsx": "react-jsx",
     "lib": ["ES2022", "DOM", "DOM.Iterable"]
   },
-  "references": [
-    { "path": "./packages/core" },
-    { "path": "./packages/react" },
-    { "path": "./apps/demo" }
-  ]
+  "files": [],
+  "references": [{ "path": "./packages/core" }, { "path": "./packages/react" }]
 }

@@ -1,17 +1,19 @@
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { docs } from '../../../content/docs';
 import { CodeBlock } from '../../../components/code-block';
 
 export function generateStaticParams() {
-  return docs.map((d) => ({ slug: d.slug }));
+  return docs.map((d) => ({ slug: d.slug.split('/') }));
 }
 
 export default async function DocPage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ slug: string[] }>;
 }) {
-  const { slug } = await params;
+  const { slug: slugParts } = await params;
+  const slug = slugParts.join('/');
   const page = docs.find((d) => d.slug === slug);
   if (!page) notFound();
 
@@ -25,6 +27,18 @@ export default async function DocPage({
           {section.body?.map((paragraph, j) => (
             <p key={j}>{paragraph}</p>
           ))}
+          {section.links && (
+            <ul className="doc-link-list">
+              {section.links.map((link) => (
+                <li key={link.href} className="doc-link-list__item">
+                  <Link href={link.href} className="doc-link-list__title">
+                    {link.title}
+                  </Link>
+                  <p>{link.description}</p>
+                </li>
+              ))}
+            </ul>
+          )}
           {section.code && (
             <CodeBlock code={section.code} language={section.language} />
           )}

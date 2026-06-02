@@ -3,30 +3,30 @@
 import { useCallback, useState } from 'react';
 import type {
   TileryDirection,
-  TileryHandle,
-  TileryPanelHandle,
+  TileryController,
+  TileryPanel,
   TileryTabInit,
 } from 'tilery/internal';
 
 export type TileryPanelActionsRenderContext = {
-  tilery: TileryHandle;
+  tilery: TileryController;
   closeMenu: () => void;
 };
 
 export type PanelActionsProps = {
-  panel: TileryPanelHandle;
-  tilery: TileryHandle;
+  panel: TileryPanel;
+  tilery: TileryController;
   showActionsButton: boolean;
   showNewTabButton: boolean;
   onNewTab?: (
-    panel: TileryPanelHandle,
-    ctx: { tilery: TileryHandle },
+    panel: TileryPanel,
+    ctx: { tilery: TileryController },
   ) => TileryTabInit | void;
   renderPanelActions?: (
-    panel: TileryPanelHandle,
+    panel: TileryPanel,
     ctx: TileryPanelActionsRenderContext,
   ) => React.ReactNode;
-  renderActionsButtonIcon?: (panel: TileryPanelHandle) => React.ReactNode;
+  renderActionsButtonIcon?: (panel: TileryPanel) => React.ReactNode;
 };
 
 const splitDirections: { direction: TileryDirection; label: string }[] = [

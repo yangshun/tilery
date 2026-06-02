@@ -3,10 +3,10 @@
 import { useCallback, useRef, useState } from 'react';
 import { Tilery } from '@tilery/react';
 import type {
-  TileryHandle,
+  TileryController,
   TileryInitialLayout,
   TileryLayoutSnapshot,
-  TileryTabHandle,
+  TileryTab,
 } from '@tilery/react';
 import {
   ExampleButton,
@@ -101,7 +101,7 @@ export function Example() {
 
 // source-region local-storage
 export function LocalStorageExample() {
-  const tileryRef = useRef<TileryHandle | null>(null);
+  const tileryRef = useRef<TileryController | null>(null);
   const initialLayoutRef = useRef(getInitialLayout());
 
   const handleChange = useCallback(() => {
@@ -125,7 +125,7 @@ export function LocalStorageExample() {
         </ExampleButton>
       }>
       <Tilery<TabData>
-        ref={tileryRef as React.Ref<TileryHandle>}
+        ref={tileryRef as React.Ref<TileryController>}
         initialLayout={initialLayoutRef.current}
         onChange={handleChange}
         renderTabHeader={renderHeader}
@@ -138,7 +138,7 @@ export function LocalStorageExample() {
 
 // source-region snapshot-controls
 export function SnapshotControlsExample() {
-  const tileryRef = useRef<TileryHandle | null>(null);
+  const tileryRef = useRef<TileryController | null>(null);
   const [snapshot, setSnapshot] =
     useState<TileryLayoutSnapshot<TabData> | null>(null);
 
@@ -180,7 +180,7 @@ export function SnapshotControlsExample() {
         </>
       }>
       <Tilery<TabData>
-        ref={tileryRef as React.Ref<TileryHandle>}
+        ref={tileryRef as React.Ref<TileryController>}
         initialLayout={snapshotLayout}
         showActionsButton={true}
         renderTabHeader={renderHeader}
@@ -203,11 +203,11 @@ function getInitialLayout(): TileryInitialLayout<TabData> {
   }
 }
 
-function renderHeader(tab: TileryTabHandle<TabData>) {
+function renderHeader(tab: TileryTab<TabData>) {
   return <span>{tab.data.title}</span>;
 }
 
-function renderContent(tab: TileryTabHandle<TabData>) {
+function renderContent(tab: TileryTab<TabData>) {
   return (
     <TabContent>
       <p style={{ margin: 0 }}>{tab.data.body}</p>

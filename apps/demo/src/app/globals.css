@@ -226,6 +226,10 @@ td code {
   margin-top: 2px;
 }
 
+.sidebar__link--nested {
+  padding-left: 18px;
+}
+
 .sidebar__link:hover {
   color: var(--site-fg);
   background: rgba(255, 255, 255, 0.06);
@@ -246,6 +250,39 @@ td code {
   font-size: 15px;
   color: var(--site-muted);
   margin-bottom: 24px;
+}
+
+.doc-link-list {
+  display: grid;
+  gap: 14px;
+  margin: 16px 0 24px;
+  list-style: none;
+}
+
+.doc-link-list__item {
+  padding: 0 0 14px;
+  border-bottom: 1px solid var(--site-border);
+}
+
+.doc-link-list__item:last-child {
+  border-bottom: 0;
+}
+
+.doc-link-list__title {
+  display: inline-flex;
+  margin-bottom: 4px;
+  color: var(--site-fg);
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.doc-link-list__title:hover {
+  color: #8fb9ff;
+  text-decoration: none;
+}
+
+.doc-link-list p {
+  margin: 0;
 }
 
 /* Example Preview */

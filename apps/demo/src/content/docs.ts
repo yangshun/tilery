@@ -3,6 +3,7 @@ export type DocSection = {
   body?: string[];
   code?: string;
   language?: string;
+  links?: { href: string; title: string; description: string }[];
   table?: { headers: string[]; rows: string[][] };
 };
 
@@ -43,7 +44,7 @@ export const docs: DocPage[] = [
         ],
         code: `import { Tilery } from '@tilery/react';
 import '@tilery/react/style.css';
-import type { TileryInitialLayout, TileryTabHandle } from '@tilery/react';
+import type { TileryInitialLayout, TileryTab } from '@tilery/react';
 
 type MyTab = { title: string };
 
@@ -187,13 +188,161 @@ function App() {
   {
     slug: 'styling',
     title: 'Styling',
-    description: 'Customize the look of Tilery with CSS variables.',
+    description:
+      'Customize Tilery with theme variables, scoped overrides, and popout-safe styles.',
     group: 'Guide',
+    sections: [
+      {
+        heading: 'Theme Scope',
+        body: [
+          'Theme Tilery by setting CSS custom properties on the .tilery root element or an ancestor that contains it.',
+          'For the full list of supported variables, selectors, and data attributes, use the Styling API reference.',
+        ],
+        links: [
+          {
+            href: '/docs/api/styling',
+            title: 'Styling API',
+            description:
+              'CSS variables, stable selectors, data attributes, and styling-related props.',
+          },
+        ],
+      },
+      {
+        heading: 'Light Theme Example',
+        body: ['Override the variables to create a light theme:'],
+        code: `.tilery {
+  --tilery-bg: #ffffff;
+  --tilery-fg: #1a1a1a;
+  --tilery-panel-bg: #f8f9fa;
+  --tilery-panel-border: #e0e0e0;
+  --tilery-tabbar-bg: #f0f1f3;
+  --tilery-tab-fg: #6b7280;
+  --tilery-tab-active-bg: #ffffff;
+  --tilery-tab-active-fg: #1a1a1a;
+  --tilery-tab-hover-bg: #e5e7eb;
+  --tilery-action-hover-bg: #e5e7eb;
+  --tilery-accent: #2563eb;
+  --tilery-drop-bg: rgba(37, 99, 235, 0.14);
+  --tilery-drop-border: rgba(37, 99, 235, 0.55);
+}`,
+        language: 'css',
+      },
+      {
+        heading: 'Native Popout Styling',
+        body: [
+          'Native popout panels render into a same-origin browser window through a React portal. React context is preserved, but the popup has its own document.',
+          'When a popup opens, Tilery copies style tags and stylesheet links from the main document head, then creates a .tilery.tilery__popout root in the popup document.',
+          'The popup does not copy html/body classes, wrapper elements, inline styles, or CSS variables inherited from page ancestors. If a theme is scoped to a wrapper around Tilery, the popped-out panel will not inherit that wrapper context.',
+          'Put popout-safe theme variables on selectors that match both the main Tilery root and the popup root, such as .tilery or .tilery__popout, in a stylesheet that is present in the document head.',
+        ],
+        code: `/* Copied stylesheet rules can match both the main root and popup root. */
+.tilery {
+  --tilery-bg: #101419;
+  --tilery-panel-bg: #171d24;
+  --tilery-tabbar-bg: #11161c;
+}
+
+/* This only works in-page if .app-shell is not present in the popup window. */
+.app-shell .tilery {
+  --tilery-panel-bg: #162b2a;
+}`,
+        language: 'css',
+      },
+      {
+        heading: 'Custom Panel Gap',
+        body: ['Adjust the gap between panels or remove it entirely:'],
+        code: `.tilery {
+  --tilery-panel-gap: 1px;   /* thin dividers */
+  --tilery-outer-gap: 0px;   /* flush edges */
+}`,
+        language: 'css',
+      },
+      {
+        heading: 'Class Overrides',
+        body: [
+          'Use CSS variables for ordinary theming. Reach for class overrides when changing the component shape, spacing, or interaction treatment in a way variables cannot express.',
+          'Keep overrides scoped to your Tilery instance so app-wide styles do not accidentally affect every dock.',
+        ],
+        code: `.pill-tabs .tilery__tab {
+  border-radius: 999px;
+  margin-inline: 2px;
+}
+
+.pill-tabs .tilery__tab[data-active='true'] {
+  box-shadow: inset 0 0 0 1px var(--tilery-accent);
+}`,
+        language: 'css',
+      },
+    ],
+  },
+  {
+    slug: 'api',
+    title: 'API Reference',
+    description: 'Start here for the Tilery public API.',
+    group: 'Reference',
+    sections: [
+      {
+        heading: 'Reference Pages',
+        body: [
+          'The API reference is split by the surface area you are working with. Keep layout and snapshot types near persistence code, programmatic control near runtime workflows, and events near callbacks.',
+        ],
+        links: [
+          {
+            href: '/docs/api/component',
+            title: 'Component Props',
+            description:
+              'Tilery props, render functions, top-level callbacks, and global behavior controls.',
+          },
+          {
+            href: '/docs/api/layout',
+            title: 'Layouts & Snapshots',
+            description:
+              'Initial layout shapes, persisted snapshots, size constraints, floating panels, and locking behavior.',
+          },
+          {
+            href: '/docs/api/styling',
+            title: 'Styling API',
+            description:
+              'CSS variables, stable selectors, resize state attributes, popout styling, and styling-related props.',
+          },
+          {
+            href: '/docs/api/control',
+            title: 'Programmatic Control',
+            description:
+              'TileryController, panel objects, tab objects, workflow helpers, movement targets, and floating/popout options.',
+          },
+          {
+            href: '/docs/api/events',
+            title: 'Events & Callbacks',
+            description:
+              'Resize events, lifecycle event payloads, tab movement, panel creation, and close events.',
+          },
+        ],
+      },
+      {
+        heading: 'Common Paths',
+        body: [
+          'Use Component Props when wiring a Tilery instance for the first time.',
+          'Use Layouts & Snapshots when building initial layouts, saving state, or applying min and max constraints.',
+          'Use Styling API when defining themes, class overrides, resize handle states, or popout-safe styles.',
+          'Use Programmatic Control when opening, moving, floating, popping out, or renaming tabs programmatically.',
+          'Use Events & Callbacks when integrating Tilery with app state, analytics, persistence, or resize telemetry.',
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'api/styling',
+    title: 'Styling API',
+    description:
+      'Stable CSS variables, selectors, data attributes, and styling-related props.',
+    group: 'Reference',
     sections: [
       {
         heading: 'CSS Variables',
         body: [
-          'All visual properties are customizable via CSS custom properties on the .tilery root element or any ancestor.',
+          'Tilery reads visual tokens from CSS custom properties on the .tilery root element. Variables can also be inherited from ancestors in the same document.',
+          'Native popout windows have a separate document, so inherited wrapper-scoped variables are not available there unless copied styles also target the popup root.',
         ],
         table: {
           headers: ['Variable', 'Default', 'Description'],
@@ -247,60 +396,133 @@ function App() {
         },
       },
       {
-        heading: 'Light Theme Example',
-        body: ['Override the variables to create a light theme:'],
-        code: `.tilery {
-  --tilery-bg: #ffffff;
-  --tilery-fg: #1a1a1a;
-  --tilery-panel-bg: #f8f9fa;
-  --tilery-panel-border: #e0e0e0;
-  --tilery-tabbar-bg: #f0f1f3;
-  --tilery-tab-fg: #6b7280;
-  --tilery-tab-active-bg: #ffffff;
-  --tilery-tab-active-fg: #1a1a1a;
-  --tilery-tab-hover-bg: #e5e7eb;
-  --tilery-action-hover-bg: #e5e7eb;
-  --tilery-accent: #2563eb;
-  --tilery-drop-bg: rgba(37, 99, 235, 0.14);
-  --tilery-drop-border: rgba(37, 99, 235, 0.55);
-}`,
-        language: 'css',
-      },
-      {
-        heading: 'Native Popout Styling',
+        heading: 'Stable Selectors',
         body: [
-          'Native popout panels render into a same-origin browser window through a React portal. React context is preserved, but the popup has its own document.',
-          'When a popup opens, Tilery copies style tags and stylesheet links from the main document head, then creates a .tilery.tilery__popout root in the popup document.',
-          'The popup does not copy html/body classes, wrapper elements, inline styles, or CSS variables inherited from page ancestors. If a theme is scoped to a wrapper around Tilery, the popped-out panel will not inherit that wrapper context.',
-          'Put popout-safe theme variables on selectors that match both the main Tilery root and the popup root, such as .tilery or .tilery__popout, in a stylesheet that is present in the document head.',
+          'These class names are part of the styling surface and can be used for scoped overrides.',
         ],
-        code: `/* Copied stylesheet rules can match both the main root and popup root. */
-.tilery {
-  --tilery-bg: #101419;
-  --tilery-panel-bg: #171d24;
-  --tilery-tabbar-bg: #11161c;
-}
-
-/* This only works in-page if .app-shell is not present in the popup window. */
-.app-shell .tilery {
-  --tilery-panel-bg: #162b2a;
-}`,
-        language: 'css',
+        table: {
+          headers: ['Selector', 'Description'],
+          rows: [
+            ['.tilery', 'Root element for one Tilery instance'],
+            ['.tilery__inner', 'Main tiled-panel viewport'],
+            ['.tilery__panel', 'Panel container'],
+            ['.tilery__tab-bar', 'Panel header containing tabs and actions'],
+            ['.tilery__tab-list', 'Scrollable tab row'],
+            ['.tilery__tab', 'Tab button'],
+            ['.tilery__tab-header', 'Tab label wrapper'],
+            ['.tilery__tab-close', 'Tab close button'],
+            ['.tilery__panel-content', 'Panel content host'],
+            ['.tilery__panel-actions', 'Panel action menu trigger'],
+            ['.tilery__panel-action-button', 'Panel action button'],
+            ['.tilery__panel-menu', 'Panel action menu'],
+            ['.tilery__panel-menu-item', 'Panel action menu item'],
+            ['.tilery__divider', 'One-dimensional resize divider'],
+            ['.tilery__junction', 'T-junction resize control'],
+            [
+              '.tilery__floating-resize-handle',
+              'Floating panel resize control',
+            ],
+            ['.tilery__drop-overlay', 'Panel drop preview'],
+            ['.tilery__drop-insertion', 'Tab-row insertion preview'],
+            ['.tilery__drag-ghost', 'Floating drag preview'],
+            ['.tilery__tab-host', 'Stable tab content portal host'],
+            ['.tilery__tab-content', 'Rendered tab panel content wrapper'],
+            [
+              '.tilery__popout',
+              'Root class added inside native popout windows',
+            ],
+          ],
+        },
       },
       {
-        heading: 'Custom Panel Gap',
-        body: ['Adjust the gap between panels or remove it entirely:'],
-        code: `.tilery {
-  --tilery-panel-gap: 1px;   /* thin dividers */
-  --tilery-outer-gap: 0px;   /* flush edges */
-}`,
-        language: 'css',
-      },
-      {
-        heading: 'Resize Handle States',
+        heading: 'Data Attributes',
         body: [
-          'Dividers and T-junction resize handles expose data attributes for semantic resize state. Use these for active, disabled, and clamped-edge styling.',
-          'Hover and keyboard focus are normal interaction states, so style them with :hover and :focus-visible instead of data attributes.',
+          'Use data attributes for component state that is not always expressible through pseudo-classes.',
+          'Hover and keyboard focus are normal interaction states, so style them with :hover and :focus-visible.',
+        ],
+        table: {
+          headers: ['Attribute', 'Elements', 'Description'],
+          rows: [
+            ['data-panel-id', '.tilery__panel', 'Panel id'],
+            ['data-tab-id', '.tilery__tab', 'Tab id'],
+            [
+              'data-active',
+              '.tilery__tab, .tilery__tab-content',
+              'Whether the tab or tab content is active',
+            ],
+            ['data-closeable', '.tilery__tab', 'Whether the tab can be closed'],
+            [
+              'data-draggable',
+              '.tilery__tab, .tilery__tab-bar, .tilery__panel',
+              'Whether the tab, tab bar, or panel can start drag interactions',
+            ],
+            [
+              'data-droppable',
+              '.tilery__tab-bar, .tilery__panel',
+              'Whether the panel area accepts drops',
+            ],
+            [
+              'data-floating',
+              '.tilery__panel',
+              'Whether the panel is detached as a floating panel',
+            ],
+            [
+              'data-popout',
+              '.tilery__panel',
+              'Whether the panel is in a native popout window',
+            ],
+            [
+              'data-full-screen',
+              '.tilery__panel',
+              'Whether the panel is maximized',
+            ],
+            [
+              'data-resizable',
+              '.tilery__panel',
+              'Whether the panel participates in resize interactions',
+            ],
+            [
+              'data-zone',
+              '.tilery__drop-overlay',
+              'Current panel drop preview zone',
+            ],
+            [
+              'data-orientation',
+              '.tilery__divider',
+              'Divider orientation: horizontal or vertical',
+            ],
+            [
+              'data-resize-active',
+              '.tilery__divider, .tilery__junction',
+              'Set while the resize control is being dragged',
+            ],
+            [
+              'data-resize-disabled',
+              '.tilery__divider, .tilery__junction',
+              'Set when the resize control cannot resize its adjacent panels',
+            ],
+            [
+              'data-resize-at-min',
+              '.tilery__divider, .tilery__junction',
+              'Set when a resize boundary is clamped at a minimum size',
+            ],
+            [
+              'data-resize-at-max',
+              '.tilery__divider, .tilery__junction',
+              'Set when a resize boundary is clamped at a maximum size',
+            ],
+            [
+              'data-floating-resize-edge',
+              '.tilery__floating-resize-handle',
+              'Floating panel resize edge or corner',
+            ],
+          ],
+        },
+      },
+      {
+        heading: 'Resize State Styling',
+        body: [
+          'Resize dividers and T-junction controls expose active, disabled, and min/max clamp states.',
         ],
         code: `.tilery__divider[data-resize-active],
 .tilery__junction[data-resize-active] {
@@ -329,12 +551,50 @@ function App() {
 }`,
         language: 'css',
       },
+      {
+        heading: 'Styling Props',
+        table: {
+          headers: ['Prop', 'Type', 'Description'],
+          rows: [
+            [
+              'resizeHandleHitSize',
+              'number',
+              'Pointer hit target size for dividers and T-junction resize controls',
+            ],
+            [
+              'showActionsButton',
+              'boolean | (panel: TileryPanel) => boolean',
+              'Controls whether built-in panel action buttons render',
+            ],
+            [
+              'showNewTabButton',
+              'boolean | (panel: TileryPanel) => boolean',
+              'Controls whether the new-tab button renders',
+            ],
+            [
+              'renderPanelActions',
+              '(ctx: TileryPanelActionsRenderContext<TData>) => ReactNode',
+              'Replaces or extends the panel action area',
+            ],
+          ],
+        },
+      },
+      {
+        heading: 'Popout Styling Contract',
+        body: [
+          'Native popout panels render into a same-origin browser window through a React portal. React context is preserved, but the popup has its own document.',
+          'Tilery copies style tags and stylesheet links from the main document head, then creates a .tilery.tilery__popout root in the popup document.',
+          'The popup does not copy html/body classes, wrapper elements, inline styles, or CSS variables inherited from page ancestors.',
+          'For popout-safe themes, place variables in copied stylesheets that match .tilery or .tilery__popout directly.',
+        ],
+      },
     ],
   },
   {
-    slug: 'api',
-    title: 'API Reference',
-    description: 'Complete API documentation for Tilery.',
+    slug: 'api/component',
+    title: 'Component Props',
+    description:
+      'Props accepted by the Tilery React component, including render hooks and callbacks.',
     group: 'Reference',
     sections: [
       {
@@ -350,13 +610,13 @@ function App() {
             ],
             [
               'renderTabHeader',
-              '(tab: TileryTabHandle<TData>, ctx: { isActive: boolean }) => ReactNode',
+              '(tab: TileryTab<TData>, ctx: { isActive: boolean }) => ReactNode',
               'Yes',
               'Renders tab button content',
             ],
             [
               'renderTabContent',
-              '(tab: TileryTabHandle<TData>) => ReactNode',
+              '(tab: TileryTab<TData>) => ReactNode',
               'Yes',
               'Renders tab panel content',
             ],
@@ -440,13 +700,13 @@ function App() {
             ],
             [
               'showActionsButton',
-              'boolean | (panel: TileryPanelHandle) => boolean',
+              'boolean | (panel: TileryPanel) => boolean',
               'No',
               'Shows the built-in panel action menu',
             ],
             [
               'showNewTabButton',
-              'boolean | (panel: TileryPanelHandle) => boolean',
+              'boolean | (panel: TileryPanel) => boolean',
               'No',
               'Shows the optional new-tab button',
             ],
@@ -454,7 +714,7 @@ function App() {
               'onNewTab',
               '(panel, ctx) => TileryTabInit<TData> | void',
               'No',
-              'Handles the new-tab button',
+              'Responds to the new-tab button',
             ],
             [
               'renderPanelActions',
@@ -470,18 +730,28 @@ function App() {
             ],
             [
               'ref',
-              'Ref<TileryHandle>',
+              'Ref<TileryController>',
               'No',
-              'Imperative handle for programmatic control',
+              'Controller ref for programmatic control',
             ],
           ],
         },
       },
+    ],
+  },
+  {
+    slug: 'api/layout',
+    title: 'Layouts & Snapshots',
+    description:
+      'Initial layout, snapshot, size, behavior, floating panel, and tab configuration types.',
+    group: 'Reference',
+    sections: [
       {
         heading: 'TileryInitialLayout and Snapshots',
         body: [
           'Initial layouts and persisted snapshots share the same serializable tree shape. A snapshot preserves the panel tree, tab order, active tabs, fullscreen panel, size constraints, and explicit behavior booleans.',
           'Initial layouts accept locked: true as shorthand for disabling resize, drag, and drop on a layout item. Tabs accept locked: true as shorthand for disabling close and drag. Snapshots store explicit booleans directly.',
+          'Use getLayout() to create a snapshot and pass that snapshot back to initialLayout or setLayout(layout) to restore it.',
         ],
         code: `type TilerySize = number | \`\${number}%\` | \`\${number}px\`;
 
@@ -618,6 +888,15 @@ type TileryFloatingPanelSnapshot<TData> = {
   maxSize?: TilerySize;
 } & TileryLayoutBehavior;`,
       },
+    ],
+  },
+  {
+    slug: 'api/events',
+    title: 'Events & Callbacks',
+    description:
+      'Resize event and lifecycle callback payloads emitted by the Tilery component.',
+    group: 'Reference',
+    sections: [
       {
         heading: 'TileryResizeEvent',
         body: [
@@ -764,21 +1043,30 @@ type TileryPanelsCloseEvent<TData> = {
   state: TileryLayoutState;
 };`,
       },
+    ],
+  },
+  {
+    slug: 'api/control',
+    title: 'Programmatic Control',
+    description:
+      'Imperative control exposed through the Tilery ref, panel objects, and tab objects.',
+    group: 'Reference',
+    sections: [
       {
-        heading: 'TileryHandle',
+        heading: 'Controller Ref',
         body: [
-          'The imperative API exposed via ref. Use it for programmatic layout manipulation.',
+          'The Tilery ref exposes a TileryController. Use it for programmatic layout manipulation.',
         ],
         table: {
           headers: ['Method', 'Description'],
           rows: [
-            ['getPanel(id)', 'Returns a PanelHandle or null'],
-            ['getTab(id)', 'Returns a TileryTabHandle or null'],
-            ['getPanels()', 'Returns all PanelHandle[]'],
-            ['getTabs()', 'Returns all TileryTabHandle[]'],
+            ['getPanel(id)', 'Returns a TileryPanel or null'],
+            ['getTab(id)', 'Returns a TileryTab or null'],
+            ['getPanels()', 'Returns all TileryPanel[]'],
+            ['getTabs()', 'Returns all TileryTab[]'],
             [
               'splitPanel(panelId, direction, opts?)',
-              'Splits a panel, returns new PanelHandle',
+              'Splits a panel and returns the new TileryPanel',
             ],
             ['removePanel(panelId)', 'Removes a panel and redistributes space'],
             ['maximizePanel(panelId)', 'Shows one panel fullscreen'],
@@ -819,7 +1107,7 @@ type TileryPanelsCloseEvent<TData> = {
             ],
             [
               'changeTabId(oldTabId, newTabId)',
-              'Renames a tab id and returns the new TileryTabHandle, or null if the rename cannot be applied',
+              'Renames a tab id and returns the renamed TileryTab, or null if the rename cannot be applied',
             ],
             ['removeTab(tabId)', 'Removes a tab and removes panel if last'],
             ['moveTab(tabId, target)', 'Moves a tab to a target location'],
@@ -860,8 +1148,10 @@ type TileryPanelsCloseEvent<TData> = {
 tilery.changeTabId('untitled-1', savedFilePath)?.activate();`,
       },
       {
-        heading: 'PanelHandle',
-        body: ['Returned by getPanel(). Provides panel-scoped operations.'],
+        heading: 'Panel Objects',
+        body: [
+          'TileryPanel objects are returned by getPanel() and getPanels().',
+        ],
         table: {
           headers: ['Property / Method', 'Description'],
           rows: [
@@ -879,8 +1169,8 @@ tilery.changeTabId('untitled-1', savedFilePath)?.activate();`,
               'popoutWindowBounds',
               'Native window { left, top, width, height } pixels, if popped out',
             ],
-            ['tabs', 'Array of TileryTabHandle for this panel'],
-            ['activeTab', 'The active TileryTabHandle or null'],
+            ['tabs', 'Array of TileryTab for this panel'],
+            ['activeTab', 'The active TileryTab or null'],
             ['fullScreen', 'Whether this panel is currently fullscreen'],
             ['minSize', 'Panel minimum size constraint, if set'],
             ['maxSize', 'Panel maximum size constraint, if set'],
@@ -911,13 +1201,15 @@ tilery.changeTabId('untitled-1', savedFilePath)?.activate();`,
         },
       },
       {
-        heading: 'TileryTabHandle<TData>',
-        body: ['Returned by getTab(). Provides tab-scoped operations.'],
+        heading: 'Tab Objects',
+        body: [
+          'TileryTab objects are returned by getTab(), getTabs(), and panel tab properties.',
+        ],
         table: {
           headers: ['Property / Method', 'Description'],
           rows: [
             ['id', 'Tab identifier'],
-            ['panel', 'The parent PanelHandle'],
+            ['panel', 'The parent TileryPanel'],
             ['index', 'Position within the panel tab list'],
             ['data', 'The TData payload'],
             ['closeable', 'Whether close actions are allowed'],
@@ -934,7 +1226,7 @@ tilery.changeTabId('untitled-1', savedFilePath)?.activate();`,
       },
       {
         heading: 'TileryMoveTarget',
-        body: ['Used with moveTab() and tabHandle.moveTo():'],
+        body: ['Used with moveTab() and tab.moveTo():'],
         code: `type TileryMoveTarget =
   | { panel: TileryPanelId; index?: number }
   | { beforeTab: TileryTabId }
@@ -957,14 +1249,14 @@ tilery.changeTabId('untitled-1', savedFilePath)?.activate();`,
       },
       {
         heading: 'TileryFloatPanelOptions',
-        body: ['Used with floatPanel() and panelHandle.float():'],
+        body: ['Used with floatPanel() and panel.float():'],
         code: `type TileryFloatPanelOptions =
   TileryFloatingPanelBoundsInit &
   TileryLayoutBehaviorConfig;`,
       },
       {
         heading: 'TileryPopoutPanelOptions',
-        body: ['Used with popoutPanel() and panelHandle.popout():'],
+        body: ['Used with popoutPanel() and panel.popout():'],
         code: `type TileryPopoutPanelOptions = {
   floatingBounds?: TileryFloatingPanelBoundsInit;
   windowBounds?: TileryPopoutWindowBoundsInit;
@@ -972,7 +1264,7 @@ tilery.changeTabId('untitled-1', savedFilePath)?.activate();`,
       },
       {
         heading: 'TileryFloatTabOptions',
-        body: ['Used with floatTab() and tabHandle.float():'],
+        body: ['Used with floatTab() and tab.float():'],
         code: `type TileryFloatTabOptions = {
   panelId?: TileryPanelId;
   bounds?: TileryFloatingPanelBoundsInit;
@@ -980,7 +1272,7 @@ tilery.changeTabId('untitled-1', savedFilePath)?.activate();`,
       },
       {
         heading: 'TileryPopoutTabOptions',
-        body: ['Used with popoutTab() and tabHandle.popout():'],
+        body: ['Used with popoutTab() and tab.popout():'],
         code: `type TileryPopoutTabOptions = {
   panelId?: TileryPanelId;
   floatingBounds?: TileryFloatingPanelBoundsInit;
@@ -989,7 +1281,7 @@ tilery.changeTabId('untitled-1', savedFilePath)?.activate();`,
       },
       {
         heading: 'TileryDockPanelTarget',
-        body: ['Used with dockPanel() and panelHandle.dock():'],
+        body: ['Used with dockPanel() and panel.dock():'],
         code: `type TileryDockPanelTarget = {
   splitPanel?: TileryPanelId;
   direction?: TileryDirection;
@@ -1001,78 +1293,6 @@ tilery.changeTabId('untitled-1', savedFilePath)?.activate();`,
       {
         heading: 'TileryDirection',
         code: `type TileryDirection = 'left' | 'right' | 'top' | 'bottom';`,
-      },
-      {
-        heading: 'TileryInitialLayout<TData>',
-        code: `type TilerySize = number | \`\${number}%\` | \`\${number}px\`;
-
-type TileryInitialLayout<TData> =
-  | TileryDockedLayoutInit<TData>
-  | {
-      type: 'root';
-      main: TileryDockedLayoutInit<TData>;
-      floating?: TileryFloatingPanelInit<TData>[];
-    };
-
-type TileryDockedLayoutInit<TData> =
-  | { type: 'empty' }
-  | ({
-      type: 'panel';
-      id?: string;
-      size?: number;
-      minSize?: TilerySize;
-      maxSize?: TilerySize;
-      tabs: TileryTabInit<TData>[];
-      activeTabId?: string;
-      fullScreen?: boolean;
-    } & TileryLayoutBehaviorConfig)
-  | ({
-      type: 'group';
-      id?: string;
-      direction: 'horizontal' | 'vertical';
-      size?: number;
-      children: TileryDockedLayoutInit<TData>[];
-    } & TileryLayoutBehaviorConfig);
-
-type TileryFloatingPanelInit<TData> = {
-  type: 'floatingPanel';
-  id?: string;
-  bounds?: Partial<{
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  }>;
-  zIndex?: number;
-  popout?:
-    | true
-    | {
-        windowBounds?: Partial<{
-          left: number;
-          top: number;
-          width: number;
-          height: number;
-        }>;
-      };
-  tabs: TileryTabInit<TData>[];
-  activeTabId?: string;
-  fullScreen?: boolean;
-  minSize?: TilerySize;
-  maxSize?: TilerySize;
-} & TileryLayoutBehaviorConfig;
-
-type TileryLayoutBehaviorConfig =
-  | { locked: true; resizable?: never; draggable?: never; droppable?: never }
-  | { locked?: false; resizable?: boolean; draggable?: boolean; droppable?: boolean };
-
-type TileryTabBehaviorConfig =
-  | { locked: true; closeable?: never; draggable?: never }
-  | { locked?: false; closeable?: boolean; draggable?: boolean };
-
-type TileryTabInit<TData> = {
-  id?: string;
-  data: TData;
-} & TileryTabBehaviorConfig;`,
       },
     ],
   },

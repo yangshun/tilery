@@ -1,22 +1,15 @@
 'use client';
 
 import { useCallback, useLayoutEffect, useRef } from 'react';
-import type {
-  TileryHandle,
-  TileryPanelHandle,
-  TileryTabHandle,
-} from 'tilery/internal';
+import type { TileryController, TileryPanel, TileryTab } from 'tilery/internal';
 import { tileryPanelBehaviorFromState } from 'tilery/internal';
 import { PanelActions, type PanelActionsProps } from './panel-actions';
 import { Tab } from './tab';
 
 export type TabBarProps = {
-  panel: TileryPanelHandle;
-  tilery: TileryHandle;
-  renderHeader: (
-    tab: TileryTabHandle,
-    ctx: { isActive: boolean },
-  ) => React.ReactNode;
+  panel: TileryPanel;
+  tilery: TileryController;
+  renderHeader: (tab: TileryTab, ctx: { isActive: boolean }) => React.ReactNode;
   registerTabBar: (el: HTMLElement | null) => void;
   registerTab: (tabId: string, el: HTMLElement | null) => void;
   onTabPointerDown: (e: React.PointerEvent, tabId: string) => void;
@@ -56,7 +49,7 @@ function TabRow({
   onTabClick,
   onTabClose,
 }: {
-  tab: TileryTabHandle;
+  tab: TileryTab;
   isActive: boolean;
 } & Pick<
   TabBarProps,
@@ -181,7 +174,7 @@ export function TabBar({
     const activeTab = tabList.querySelector<HTMLElement>(
       `[data-tab-id="${cssEscape(activeTabId)}"]`,
     );
-    /* v8 ignore next -- panel handles only expose active tabs present in the row. */
+    /* v8 ignore next -- panel objects only expose active tabs present in the row. */
     if (!activeTab) return;
     scrollTabIntoView(tabList, activeTab);
   }, [activeTabId, panel.tabs]);

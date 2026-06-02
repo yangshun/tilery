@@ -1,15 +1,12 @@
 'use client';
 
 import { useCallback } from 'react';
-import type { TileryTabHandle } from 'tilery/internal';
+import type { TileryTab } from 'tilery/internal';
 
 export type TabProps = {
-  tab: TileryTabHandle;
+  tab: TileryTab;
   isActive: boolean;
-  renderHeader: (
-    tab: TileryTabHandle,
-    ctx: { isActive: boolean },
-  ) => React.ReactNode;
+  renderHeader: (tab: TileryTab, ctx: { isActive: boolean }) => React.ReactNode;
   onPointerDown: (e: React.PointerEvent) => void;
   onPointerMove: (e: React.PointerEvent) => void;
   onPointerUp: (e: React.PointerEvent) => void;
