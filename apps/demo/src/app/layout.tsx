@@ -35,6 +35,13 @@ const sidebarGroups: SidebarGroup[] = [
       .map((d) => ({ href: `/docs/${d.slug}`, label: d.title })),
   },
   {
+    title: 'Examples',
+    items: examples.map((e) => ({
+      href: `/examples/${e.slug}`,
+      label: e.title,
+    })),
+  },
+  {
     title: 'Reference',
     items: docs
       .filter((d) => d.group === 'Reference')
@@ -46,13 +53,6 @@ const sidebarGroups: SidebarGroup[] = [
         label: d.title,
         depth: d.slug.includes('/') ? 1 : 0,
       })),
-  },
-  {
-    title: 'Examples',
-    items: examples.map((e) => ({
-      href: `/examples/${e.slug}`,
-      label: e.title,
-    })),
   },
 ];
 
