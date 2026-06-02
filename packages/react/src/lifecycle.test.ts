@@ -9,7 +9,7 @@ import { makeLifecycleEvents } from './lifecycle';
 type Data = { title: string };
 
 function layout() {
-  return tileryCreateInitialState<Data>({
+  return tileryCreateInitialState({
     type: 'group',
     direction: 'horizontal',
     children: [
@@ -67,6 +67,30 @@ describe('makeLifecycleEvents', () => {
       state: next,
     });
     expect(events.tabsMove).toBeNull();
+  });
+
+  it('treats tab id changes as renames instead of close/open pairs', () => {
+    const state = layout();
+    const action: TileryReducerAction = {
+      type: 'CHANGE_TAB_ID',
+      oldTabId: 'a',
+      newTabId: 'a-renamed',
+    };
+    const next = tileryReducer(state, action);
+    const events = makeLifecycleEvents<Data>(state, next, action);
+
+    expect(events.activeTabChange).toMatchObject({
+      source: 'CHANGE_TAB_ID',
+      changes: [
+        {
+          panelId: 'left',
+          previousTabId: 'a',
+          tabId: 'a-renamed',
+        },
+      ],
+    });
+    expect(events.tabsOpen).toBeNull();
+    expect(events.tabsClose).toBeNull();
   });
 
   it('derives tab move changes when a tab index changes', () => {

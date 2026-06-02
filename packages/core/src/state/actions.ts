@@ -109,6 +109,11 @@ export type TileryReducerAction =
       index: number;
       activate: boolean;
     }
+  | {
+      type: 'CHANGE_TAB_ID';
+      oldTabId: TileryTabId;
+      newTabId: TileryTabId;
+    }
   | { type: 'REMOVE_TAB'; tabId: TileryTabId }
   | {
       type: 'MOVE_TAB';

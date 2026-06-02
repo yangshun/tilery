@@ -9,6 +9,7 @@ import type {
   TileryLayoutState,
   TileryHandle,
   TileryMoveTarget,
+  TileryOpenTabTarget,
   TileryPanelHandle,
   TileryPanelId,
   TileryPopoutPanelOptions,
@@ -162,6 +163,37 @@ export function makeTileryHandle(
       });
       return tileryMakeTabHandle(t.id, getState, dispatch, handle);
     },
+    openOrActivateTab(tab, target) {
+      if (tab.id && getState().tabs[tab.id]) {
+        dispatch({ type: 'SET_ACTIVE_TAB', tabId: tab.id });
+        return tileryMakeTabHandle(tab.id, getState, dispatch, handle);
+      }
+      const resolved = resolveOpenTabTarget(getState(), target);
+      if (!resolved) return null;
+      const t = tileryTabInitToReducerInit(tab);
+      dispatch({
+        type: 'INSERT_TAB',
+        panelId: resolved.panelId,
+        tab: t,
+        index: resolved.index,
+        activate: true,
+      });
+      return tileryMakeTabHandle(t.id, getState, dispatch, handle);
+    },
+    changeTabId(oldTabId, newTabId) {
+      const state = getState();
+      const tab = state.tabs[oldTabId];
+      if (oldTabId === newTabId) {
+        return tab && state.panels[tab.panelId]
+          ? tileryMakeTabHandle(oldTabId, getState, dispatch, handle)
+          : null;
+      }
+      if (!tab || !state.panels[tab.panelId] || state.tabs[newTabId]) {
+        return null;
+      }
+      dispatch({ type: 'CHANGE_TAB_ID', oldTabId, newTabId });
+      return tileryMakeTabHandle(newTabId, getState, dispatch, handle);
+    },
     removeTab(tabId) {
       dispatch({ type: 'REMOVE_TAB', tabId });
     },
@@ -224,6 +256,32 @@ export function makeTileryHandle(
     },
   };
   return handle;
+}
+
+function resolveOpenTabTarget(
+  state: TileryLayoutState,
+  target: TileryOpenTabTarget,
+): { panelId: TileryPanelId; index: number } | null {
+  if ('beforeTab' in target || 'afterTab' in target) {
+    const refTabId = 'beforeTab' in target ? target.beforeTab : target.afterTab;
+    const refTab = state.tabs[refTabId];
+    if (!refTab) return null;
+    const panel = state.panels[refTab.panelId];
+    if (!panel) return null;
+    const refIndex = panel.tabs.indexOf(refTabId);
+    if (refIndex === -1) return null;
+    return {
+      panelId: panel.id,
+      index: 'beforeTab' in target ? refIndex : refIndex + 1,
+    };
+  }
+
+  const panel = state.panels[target.panel];
+  if (!panel) return null;
+  return {
+    panelId: panel.id,
+    index: target.index ?? panel.tabs.length,
+  };
 }
 
 function normalizeMoveTarget(

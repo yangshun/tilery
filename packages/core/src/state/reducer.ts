@@ -33,6 +33,7 @@ import {
 } from './panels';
 import {
   tileryAppendTab,
+  tileryChangeTabId,
   tileryInsertTab,
   tileryMoveTab,
   tileryRemoveTab,
@@ -142,6 +143,9 @@ export function tileryReducer(
     }
     case 'INSERT_TAB': {
       return tileryInsertTab(current, action);
+    }
+    case 'CHANGE_TAB_ID': {
+      return tileryChangeTabId(current, action);
     }
     case 'REMOVE_TAB': {
       return tileryRemoveTab(current, action.tabId);

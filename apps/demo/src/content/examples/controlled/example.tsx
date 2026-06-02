@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, type Ref } from 'react';
 import { Tilery } from '@tilery/react';
 import type {
   TileryHandle,
@@ -72,11 +72,56 @@ const tabApiLayout: TileryInitialLayout<TabData> = {
   ],
 };
 
+const workflowApiLayout: TileryInitialLayout<TabData> = {
+  type: 'group',
+  direction: 'horizontal',
+  children: [
+    {
+      type: 'panel',
+      id: 'workspace',
+      size: 64,
+      activeTabId: 'readme',
+      tabs: [
+        {
+          id: 'readme',
+          data: {
+            title: 'README.md',
+            body: 'openOrActivateTab() opens a missing tab once, then activates it on later calls.',
+          },
+        },
+        {
+          id: 'scratch',
+          data: {
+            title: 'Scratch',
+            body: 'changeTabId() can replace a temporary tab id with an app-level id.',
+          },
+        },
+      ],
+    },
+    {
+      type: 'panel',
+      id: 'inspector',
+      size: 36,
+      tabs: [
+        {
+          id: 'outline',
+          closeable: false,
+          data: {
+            title: 'Outline',
+            body: 'New workflow tabs are inserted near related tabs instead of appended blindly.',
+          },
+        },
+      ],
+    },
+  ],
+};
+
 export function Example() {
   return (
-    <ExampleStack rows="minmax(0, 1fr) minmax(0, 1fr)">
+    <ExampleStack rows="minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)">
       <PanelApiExample />
       <TabApiExample />
+      <WorkflowApiExample />
     </ExampleStack>
   );
 }
@@ -141,7 +186,7 @@ export function PanelApiExample() {
         </>
       }>
       <Tilery<TabData>
-        ref={tileryRef as React.Ref<TileryHandle>}
+        ref={tileryRef as Ref<TileryHandle>}
         initialLayout={panelApiLayout}
         renderTabHeader={renderHeader}
         renderTabContent={renderContent}
@@ -202,7 +247,7 @@ export function TabApiExample() {
         </>
       }>
       <Tilery<TabData>
-        ref={tileryRef as React.Ref<TileryHandle>}
+        ref={tileryRef as Ref<TileryHandle>}
         initialLayout={tabApiLayout}
         renderTabHeader={renderHeader}
         renderTabContent={renderContent}
@@ -211,6 +256,72 @@ export function TabApiExample() {
   );
 }
 // end-source-region tab-handles
+
+// source-region tab-workflows
+export function WorkflowApiExample() {
+  const tileryRef = useRef<TileryHandle | null>(null);
+
+  const openOrActivateSettings = () => {
+    tileryRef.current?.openOrActivateTab(
+      {
+        id: 'settings',
+        data: {
+          title: 'Settings',
+          body: 'This tab is created only once. Press the button again and Tilery activates the existing tab.',
+        },
+      },
+      { afterTab: 'readme' },
+    );
+  };
+
+  const openOrActivatePreview = () => {
+    tileryRef.current?.openOrActivateTab(
+      {
+        id: 'preview',
+        data: {
+          title: 'Preview',
+          body: 'A stable id lets the app avoid duplicate tabs for the same resource.',
+        },
+      },
+      { panel: 'workspace', index: 1 },
+    );
+  };
+
+  const toggleScratchId = () => {
+    const tilery = tileryRef.current;
+    if (!tilery) return;
+    const oldId = tilery.getTab('scratch') ? 'scratch' : 'scratch-renamed';
+    const newId = oldId === 'scratch' ? 'scratch-renamed' : 'scratch';
+    tilery.changeTabId(oldId, newId)?.activate();
+  };
+
+  return (
+    <ExampleSection
+      title="Tab workflows"
+      description="Use stable tab ids to open-or-activate resources and promote temporary ids when the app learns the final id."
+      actions={
+        <>
+          <ExampleButton type="button" onClick={openOrActivateSettings}>
+            Settings
+          </ExampleButton>
+          <ExampleButton type="button" onClick={openOrActivatePreview}>
+            Preview
+          </ExampleButton>
+          <ExampleButton type="button" onClick={toggleScratchId}>
+            Toggle Scratch ID
+          </ExampleButton>
+        </>
+      }>
+      <Tilery<TabData>
+        ref={tileryRef as Ref<TileryHandle>}
+        initialLayout={workflowApiLayout}
+        renderTabHeader={renderHeader}
+        renderTabContent={renderContent}
+      />
+    </ExampleSection>
+  );
+}
+// end-source-region tab-workflows
 
 function renderHeader(tab: TileryTabHandle<TabData>) {
   return <span>{tab.data.title}</span>;

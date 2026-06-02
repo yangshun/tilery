@@ -599,6 +599,168 @@ describe('TileryHandle mutations', () => {
     if (action.type !== 'INSERT_TAB') throw new Error('expected INSERT_TAB');
     expect(action.activate).toBe(true);
   });
+  it('openOrActivateTab activates an existing tab without adding another one', () => {
+    const { handle, dispatched, getState } = makeStore();
+    const tab = handle.openOrActivateTab(
+      { id: 'T2', data: { title: 'updated' } },
+      { panel: 'P2' },
+    );
+
+    expect(tab?.id).toBe('T2');
+    expect(dispatched).toEqual([{ type: 'SET_ACTIVE_TAB', tabId: 'T2' }]);
+    expect(getState().panels.P1!.tabs).toEqual(['T1', 'T2']);
+    expect(getState().tabs.T2!.data).toEqual({ title: 'two' });
+    expect(getState().panels.P1!.activeTabId).toBe('T2');
+  });
+  it('openOrActivateTab opens a missing tab at a panel target', () => {
+    const { handle, dispatched, getState } = makeStore();
+    const tab = handle.openOrActivateTab(
+      { id: 'NEW', data: { title: 'new' } },
+      { panel: 'P1', index: 1 },
+    );
+
+    expect(tab?.id).toBe('NEW');
+    expect(dispatched[0]).toEqual({
+      type: 'INSERT_TAB',
+      panelId: 'P1',
+      tab: {
+        id: 'NEW',
+        data: { title: 'new' },
+        closeable: true,
+        draggable: true,
+      },
+      index: 1,
+      activate: true,
+    });
+    expect(getState().panels.P1!.tabs).toEqual(['T1', 'NEW', 'T2']);
+    expect(getState().panels.P1!.activeTabId).toBe('NEW');
+  });
+  it('openOrActivateTab appends to a panel when no index is provided', () => {
+    const { handle, dispatched, getState } = makeStore();
+    const tab = handle.openOrActivateTab(
+      { id: 'APPENDED', data: { title: 'appended' } },
+      { panel: 'P1' },
+    );
+
+    expect(tab?.id).toBe('APPENDED');
+    expect(dispatched[0]).toMatchObject({
+      type: 'INSERT_TAB',
+      panelId: 'P1',
+      index: 2,
+    });
+    expect(getState().panels.P1!.tabs).toEqual(['T1', 'T2', 'APPENDED']);
+  });
+  it('openOrActivateTab opens around beforeTab and afterTab targets', () => {
+    const { handle, getState } = makeStore();
+
+    handle.openOrActivateTab({ id: 'BEFORE', data: {} }, { beforeTab: 'T2' });
+    handle.openOrActivateTab({ id: 'AFTER', data: {} }, { afterTab: 'T2' });
+
+    expect(getState().panels.P1!.tabs).toEqual(['T1', 'BEFORE', 'T2', 'AFTER']);
+  });
+  it('openOrActivateTab returns null when the open target cannot be resolved', () => {
+    const { handle, dispatched } = makeStore();
+
+    expect(
+      handle.openOrActivateTab(
+        { id: 'MISSING_PANEL', data: {} },
+        { panel: 'X' },
+      ),
+    ).toBeNull();
+    expect(
+      handle.openOrActivateTab(
+        { id: 'MISSING_TAB', data: {} },
+        { beforeTab: 'X' },
+      ),
+    ).toBeNull();
+
+    expect(dispatched).toEqual([]);
+  });
+  it('openOrActivateTab returns null when a tab back-reference is stale', () => {
+    const state = createStateFromPanels({
+      panels: [
+        {
+          id: 'P',
+          inset: { top: 0, right: 0, bottom: 0, left: 0 },
+          tabs: [{ id: 'T', data: {} }],
+        },
+      ],
+    });
+    const broken = {
+      ...state,
+      panels: {
+        ...state.panels,
+        P: { ...state.panels.P!, tabs: [] },
+      },
+    };
+    const { handle, dispatched } = makeStore(broken);
+
+    expect(
+      handle.openOrActivateTab({ id: 'NEW', data: {} }, { afterTab: 'T' }),
+    ).toBeNull();
+    expect(dispatched).toEqual([]);
+
+    const missingPanel = {
+      ...state,
+      tabs: { ...state.tabs, T: { ...state.tabs.T!, panelId: 'missing' } },
+    };
+    const stale = makeStore(missingPanel);
+
+    expect(
+      stale.handle.openOrActivateTab(
+        { id: 'NEW_FROM_MISSING_PANEL', data: {} },
+        { afterTab: 'T' },
+      ),
+    ).toBeNull();
+    expect(stale.dispatched).toEqual([]);
+  });
+  it('changeTabId renames the tab, panel references, and active tab id', () => {
+    const { handle, dispatched, getState } = makeStore();
+    const tab = handle.changeTabId('T1', 'T1_RENAMED');
+
+    expect(tab?.id).toBe('T1_RENAMED');
+    expect(dispatched[0]).toEqual({
+      type: 'CHANGE_TAB_ID',
+      oldTabId: 'T1',
+      newTabId: 'T1_RENAMED',
+    });
+    expect(handle.getTab('T1')).toBeNull();
+    expect(handle.getTab('T1_RENAMED')?.data).toEqual({ title: 'one' });
+    expect(getState().panels.P1!.tabs).toEqual(['T1_RENAMED', 'T2']);
+    expect(getState().panels.P1!.activeTabId).toBe('T1_RENAMED');
+  });
+  it('changeTabId returns an existing handle when the id is unchanged', () => {
+    const { handle, dispatched } = makeStore();
+
+    expect(handle.changeTabId('T1', 'T1')?.id).toBe('T1');
+    expect(handle.changeTabId('missing', 'missing')).toBeNull();
+    expect(dispatched).toEqual([]);
+  });
+  it('changeTabId returns null for missing tabs, duplicate ids, and stale panel refs', () => {
+    const { handle, dispatched } = makeStore();
+
+    expect(handle.changeTabId('missing', 'NEW')).toBeNull();
+    expect(handle.changeTabId('T1', 'T2')).toBeNull();
+    expect(dispatched).toEqual([]);
+
+    const state = createStateFromPanels({
+      panels: [
+        {
+          id: 'P',
+          inset: { top: 0, right: 0, bottom: 0, left: 0 },
+          tabs: [{ id: 'T', data: {} }],
+        },
+      ],
+    });
+    const broken = {
+      ...state,
+      tabs: { ...state.tabs, T: { ...state.tabs.T!, panelId: 'missing' } },
+    };
+    const stale = makeStore(broken);
+
+    expect(stale.handle.changeTabId('T', 'NEW')).toBeNull();
+    expect(stale.dispatched).toEqual([]);
+  });
   it('removeTab dispatches REMOVE_TAB', () => {
     const { handle, dispatched } = makeStore();
     handle.removeTab('T1');

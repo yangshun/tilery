@@ -309,6 +309,11 @@ export type TileryMoveTarget =
   | { afterTab: TileryTabId }
   | TilerySplitMoveTarget;
 
+export type TileryOpenTabTarget =
+  | { panel: TileryPanelId; index?: number }
+  | { beforeTab: TileryTabId }
+  | { afterTab: TileryTabId };
+
 export type TileryDockPanelTarget = {
   splitPanel?: TileryPanelId;
   direction?: TileryDirection;
@@ -387,6 +392,14 @@ export type TileryHandle = {
     index: number,
     opts?: { activate?: boolean },
   ): TileryTabHandle;
+  openOrActivateTab(
+    tab: TileryTabInit,
+    target: TileryOpenTabTarget,
+  ): TileryTabHandle | null;
+  changeTabId(
+    oldTabId: TileryTabId,
+    newTabId: TileryTabId,
+  ): TileryTabHandle | null;
   removeTab(tabId: TileryTabId): void;
   moveTab(tabId: TileryTabId, target: TileryMoveTarget): void;
   floatTab(

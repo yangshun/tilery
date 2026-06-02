@@ -28,6 +28,7 @@ import {
   ControlledExample,
   PanelApiExample,
   TabApiExample,
+  WorkflowApiExample,
   FloatingExample,
   InitialFloatingExample,
   NativePopoutExample,
@@ -78,6 +79,7 @@ const registry: Record<string, Record<string, React.ComponentType>> = {
     default: ControlledExample,
     'panel-handles': PanelApiExample,
     'tab-handles': TabApiExample,
+    'tab-workflows': WorkflowApiExample,
   },
   floating: {
     default: FloatingExample,

@@ -1790,6 +1790,74 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.panels.R!.activeTabId).toBe('X');
   });
 
+  it('CHANGE_TAB_ID updates tabs, panel order, and active tab references', () => {
+    const state = twoSideBySide();
+    const next = tileryReducer(state, {
+      type: 'CHANGE_TAB_ID',
+      oldTabId: 'L1',
+      newTabId: 'L1_RENAMED',
+    });
+
+    expect(next.tabs.L1).toBeUndefined();
+    expect(next.tabs.L1_RENAMED).toMatchObject({
+      id: 'L1_RENAMED',
+      data: { title: 'l1' },
+      panelId: 'L',
+    });
+    expect(next.panels.L!.tabs).toEqual(['L1_RENAMED', 'L2']);
+    expect(next.panels.L!.activeTabId).toBe('L1_RENAMED');
+  });
+
+  it('CHANGE_TAB_ID keeps active tab references when renaming a non-active tab', () => {
+    const state = twoSideBySide();
+    const next = tileryReducer(state, {
+      type: 'CHANGE_TAB_ID',
+      oldTabId: 'L2',
+      newTabId: 'L2_RENAMED',
+    });
+
+    expect(next.panels.L!.tabs).toEqual(['L1', 'L2_RENAMED']);
+    expect(next.panels.L!.activeTabId).toBe('L1');
+  });
+
+  it('CHANGE_TAB_ID is a no-op for unchanged, missing, duplicate, or stale ids', () => {
+    const state = twoSideBySide();
+
+    expect(
+      tileryReducer(state, {
+        type: 'CHANGE_TAB_ID',
+        oldTabId: 'L1',
+        newTabId: 'L1',
+      }),
+    ).toBe(state);
+    expect(
+      tileryReducer(state, {
+        type: 'CHANGE_TAB_ID',
+        oldTabId: 'missing',
+        newTabId: 'NEW',
+      }),
+    ).toBe(state);
+    expect(
+      tileryReducer(state, {
+        type: 'CHANGE_TAB_ID',
+        oldTabId: 'L1',
+        newTabId: 'L2',
+      }),
+    ).toBe(state);
+
+    const broken = {
+      ...state,
+      tabs: { ...state.tabs, L1: { ...state.tabs.L1!, panelId: 'missing' } },
+    };
+    expect(
+      tileryReducer(broken, {
+        type: 'CHANGE_TAB_ID',
+        oldTabId: 'L1',
+        newTabId: 'NEW',
+      }),
+    ).toBe(broken);
+  });
+
   it('REMOVE_TAB is a no-op if tab missing', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, { type: 'REMOVE_TAB', tabId: 'phantom' });

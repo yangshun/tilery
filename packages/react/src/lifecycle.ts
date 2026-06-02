@@ -12,6 +12,7 @@ export type TileryLifecycleSource =
   | 'REMOVE_PANEL'
   | 'APPEND_TAB'
   | 'INSERT_TAB'
+  | 'CHANGE_TAB_ID'
   | 'REMOVE_TAB'
   | 'MOVE_TAB'
   | 'FLOAT_TAB'
@@ -136,12 +137,18 @@ export function makeLifecycleEvents<TData>(
     ),
   );
   const panelSplit = makePanelSplitEvent<TData>(previousState, state, action);
-  const openedTabs = Object.values(state.tabs)
-    .filter((tab) => !previousState.tabs[tab.id])
-    .map(makeTabLifecycleChange<TData>);
-  const closedTabs = Object.values(previousState.tabs)
-    .filter((tab) => !state.tabs[tab.id])
-    .map(makeTabLifecycleChange<TData>);
+  const openedTabs =
+    action.type === 'CHANGE_TAB_ID'
+      ? []
+      : Object.values(state.tabs)
+          .filter((tab) => !previousState.tabs[tab.id])
+          .map(makeTabLifecycleChange<TData>);
+  const closedTabs =
+    action.type === 'CHANGE_TAB_ID'
+      ? []
+      : Object.values(previousState.tabs)
+          .filter((tab) => !state.tabs[tab.id])
+          .map(makeTabLifecycleChange<TData>);
   const closedPanels = tileryAllPanelOrderFromState(previousState)
     .filter((panelId) => !state.panels[panelId])
     .map((panelId) => makePanelLifecycleChange(previousState.panels[panelId]!));

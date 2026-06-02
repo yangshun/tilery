@@ -667,6 +667,7 @@ type TileryFloatingPanelSnapshot<TData> = {
   | 'REMOVE_PANEL'
   | 'APPEND_TAB'
   | 'INSERT_TAB'
+  | 'CHANGE_TAB_ID'
   | 'REMOVE_TAB'
   | 'MOVE_TAB'
   | 'FLOAT_TAB'
@@ -812,6 +813,14 @@ type TileryPanelsCloseEvent<TData> = {
               'insertTab(panelId, tab, index, opts?)',
               'Inserts a tab at a specific index',
             ],
+            [
+              'openOrActivateTab(tab, target)',
+              'Activates an existing tab by id, or opens it once at a tab-row target',
+            ],
+            [
+              'changeTabId(oldTabId, newTabId)',
+              'Renames a tab id and returns the new TileryTabHandle, or null if the rename cannot be applied',
+            ],
             ['removeTab(tabId)', 'Removes a tab and removes panel if last'],
             ['moveTab(tabId, target)', 'Moves a tab to a target location'],
             [
@@ -833,6 +842,22 @@ type TileryPanelsCloseEvent<TData> = {
             ['getState()', 'Returns the current TileryLayoutState'],
           ],
         },
+      },
+      {
+        heading: 'Tab Workflow APIs',
+        body: [
+          'Use openOrActivateTab() when app resources have stable ids, such as file paths, issue ids, or routes. If the id already exists, Tilery activates that tab and does not update its data or create a duplicate. If the id is missing, Tilery inserts the tab at the supplied target and activates it.',
+          'Use changeTabId() when a temporary tab receives a durable id later, for example after saving a draft file. The rename updates panel tab order and active tab references; it returns null when the old id is missing or the new id is already in use.',
+        ],
+        code: `tilery.openOrActivateTab(
+  {
+    id: filePath,
+    data: { title: basename(filePath), filePath },
+  },
+  { afterTab: relatedTabId },
+);
+
+tilery.changeTabId('untitled-1', savedFilePath)?.activate();`,
       },
       {
         heading: 'PanelHandle',
@@ -921,6 +946,14 @@ type TileryPanelsCloseEvent<TData> = {
       minSize?: TilerySize;
       maxSize?: TilerySize;
     } & TileryLayoutBehaviorConfig);`,
+      },
+      {
+        heading: 'TileryOpenTabTarget',
+        body: ['Used with openOrActivateTab() for the insertion path:'],
+        code: `type TileryOpenTabTarget =
+  | { panel: TileryPanelId; index?: number }
+  | { beforeTab: TileryTabId }
+  | { afterTab: TileryTabId };`,
       },
       {
         heading: 'TileryFloatPanelOptions',

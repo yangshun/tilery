@@ -35,6 +35,7 @@ export {
   Example as ControlledExample,
   PanelApiExample,
   TabApiExample,
+  WorkflowApiExample,
 } from './controlled/example';
 export {
   Example as FloatingExample,
@@ -189,10 +190,12 @@ export const examples = [
     demos: [
       { id: 'panel-handles', sourceRegion: 'panel-handles' },
       { id: 'tab-handles', sourceRegion: 'tab-handles' },
+      { id: 'tab-workflows', sourceRegion: 'tab-workflows' },
     ],
     notes: [
       'Panel handles append tabs, create splits, and remove active tabs.',
       'Tab handles update tab data, activate a known tab, and move a tab to another panel.',
+      'Workflow helpers activate an existing resource tab or open it once near a related tab.',
     ],
   },
   {

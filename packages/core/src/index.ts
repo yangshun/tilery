@@ -25,6 +25,7 @@ export type {
   TileryLayoutTree,
   TileryHandle,
   TileryMoveTarget,
+  TileryOpenTabTarget,
   TileryPanelHandle,
   TileryPanelId,
   TileryPanelInit,

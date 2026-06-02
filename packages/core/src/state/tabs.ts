@@ -25,6 +25,10 @@ import {
 
 type AppendTabAction = Extract<TileryReducerAction, { type: 'APPEND_TAB' }>;
 type InsertTabAction = Extract<TileryReducerAction, { type: 'INSERT_TAB' }>;
+type ChangeTabIdAction = Extract<
+  TileryReducerAction,
+  { type: 'CHANGE_TAB_ID' }
+>;
 type MoveTabAction = Extract<TileryReducerAction, { type: 'MOVE_TAB' }>;
 type MoveTabToSplitAction = MoveTabAction & {
   to: Extract<MoveTabAction['to'], { splitPanelId: TileryPanelId }>;
@@ -119,6 +123,39 @@ export function tileryRemoveTab(
       [tab.panelId]: { ...panel, tabs: nextTabs, activeTabId: nextActive },
     },
     tabs: restTabs,
+  };
+}
+
+export function tileryChangeTabId(
+  current: TileryLayoutState,
+  action: ChangeTabIdAction,
+): TileryLayoutState {
+  if (action.oldTabId === action.newTabId) return current;
+  const tab = current.tabs[action.oldTabId];
+  if (!tab) return current;
+  if (current.tabs[action.newTabId]) return current;
+  const panel = current.panels[tab.panelId];
+  if (!panel) return current;
+  const { [action.oldTabId]: _drop, ...restTabs } = current.tabs;
+  return {
+    ...current,
+    panels: {
+      ...current.panels,
+      [panel.id]: {
+        ...panel,
+        tabs: panel.tabs.map((id) =>
+          id === action.oldTabId ? action.newTabId : id,
+        ),
+        activeTabId:
+          panel.activeTabId === action.oldTabId
+            ? action.newTabId
+            : panel.activeTabId,
+      },
+    },
+    tabs: {
+      ...restTabs,
+      [action.newTabId]: { ...tab, id: action.newTabId },
+    },
   };
 }
 
