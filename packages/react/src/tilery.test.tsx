@@ -100,6 +100,20 @@ function singlePanelLayout(): TileryInitialLayout<Data> {
   };
 }
 
+function overflowTabsLayout(): TileryInitialLayout<Data> {
+  return {
+    type: 'panel',
+    id: 'overflow',
+    tabs: Array.from({ length: 8 }, (_, index) => {
+      const n = index + 1;
+      return {
+        id: `tab-${n}`,
+        data: { title: `Very long tab title ${n}` },
+      };
+    }),
+  };
+}
+
 function floatingLayout(): TileryInitialLayout<Data> {
   return {
     type: 'root',
@@ -288,6 +302,34 @@ function stubContainerRect(el: HTMLElement) {
     }) as DOMRect;
 }
 
+function stubElementRect(
+  el: HTMLElement,
+  rect: { left: number; top: number; width: number; height: number },
+) {
+  el.getBoundingClientRect = () =>
+    ({
+      left: rect.left,
+      top: rect.top,
+      right: rect.left + rect.width,
+      bottom: rect.top + rect.height,
+      width: rect.width,
+      height: rect.height,
+      x: rect.left,
+      y: rect.top,
+      toJSON: () => ({}),
+    }) as DOMRect;
+}
+
+function stubScrollMetrics(
+  el: HTMLElement,
+  metrics: { clientWidth: number; scrollWidth: number },
+) {
+  Object.defineProperties(el, {
+    clientWidth: { configurable: true, value: metrics.clientWidth },
+    scrollWidth: { configurable: true, value: metrics.scrollWidth },
+  });
+}
+
 function mount(
   initialLayout: TileryInitialLayout<Data>,
   onChange?: (s: unknown) => void,
@@ -433,6 +475,103 @@ describe('Tilery — rendering', () => {
       'bar.ts×',
       'bash×',
     ]);
+    t.cleanup();
+  });
+
+  it('keeps the active tab visible in overflowing tab rows', () => {
+    const t = mount(overflowTabsLayout());
+    const tabList = t.host.querySelector<HTMLElement>('.tilery__tab-list')!;
+    const firstTab = t.host.querySelector<HTMLElement>(
+      '.tilery__tab[data-tab-id="tab-1"]',
+    )!;
+    const farTab = t.host.querySelector<HTMLElement>(
+      '.tilery__tab[data-tab-id="tab-6"]',
+    )!;
+
+    stubElementRect(tabList, { left: 0, top: 0, width: 120, height: 32 });
+    stubElementRect(farTab, { left: 240, top: 0, width: 80, height: 32 });
+    tabList.scrollLeft = 0;
+
+    act(() => {
+      t.handle().setActiveTab('tab-6');
+    });
+
+    expect(tabList.scrollLeft).toBe(200);
+
+    stubElementRect(firstTab, { left: -40, top: 0, width: 80, height: 32 });
+    act(() => {
+      t.handle().setActiveTab('tab-1');
+    });
+
+    expect(tabList.scrollLeft).toBe(160);
+    t.cleanup();
+  });
+
+  it('scrolls overflowing tab rows with wheel input', () => {
+    const t = mount(overflowTabsLayout());
+    const tabList = t.host.querySelector<HTMLElement>('.tilery__tab-list')!;
+    const props = reactProps(tabList);
+    let preventDefaultCalls = 0;
+    stubScrollMetrics(tabList, { clientWidth: 100, scrollWidth: 400 });
+    tabList.scrollLeft = 20;
+
+    act(() => {
+      props.onWheel({
+        deltaX: 0,
+        deltaY: 30,
+        preventDefault() {
+          preventDefaultCalls++;
+        },
+      });
+    });
+    expect(tabList.scrollLeft).toBe(50);
+
+    act(() => {
+      props.onWheel({
+        deltaX: 40,
+        deltaY: 10,
+        preventDefault() {
+          preventDefaultCalls++;
+        },
+      });
+    });
+    expect(tabList.scrollLeft).toBe(90);
+    expect(preventDefaultCalls).toBe(2);
+    t.cleanup();
+  });
+
+  it('leaves wheel scrolling alone when the tab row cannot move', () => {
+    const t = mount(overflowTabsLayout());
+    const tabList = t.host.querySelector<HTMLElement>('.tilery__tab-list')!;
+    const props = reactProps(tabList);
+    let preventDefaultCalls = 0;
+    stubScrollMetrics(tabList, { clientWidth: 100, scrollWidth: 100 });
+    tabList.scrollLeft = 0;
+
+    act(() => {
+      props.onWheel({
+        deltaX: 0,
+        deltaY: 30,
+        preventDefault() {
+          preventDefaultCalls++;
+        },
+      });
+    });
+
+    stubScrollMetrics(tabList, { clientWidth: 100, scrollWidth: 400 });
+    tabList.scrollLeft = 300;
+    act(() => {
+      props.onWheel({
+        deltaX: 0,
+        deltaY: 30,
+        preventDefault() {
+          preventDefaultCalls++;
+        },
+      });
+    });
+
+    expect(tabList.scrollLeft).toBe(300);
+    expect(preventDefaultCalls).toBe(0);
     t.cleanup();
   });
 

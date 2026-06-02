@@ -23,6 +23,8 @@ import {
   TabLockingExample,
   InitialTabLocksExample,
   RuntimeTabBehaviorExample,
+  OverflowExample,
+  TabOverflowExample,
   ControlledExample,
   PanelApiExample,
   TabApiExample,
@@ -71,6 +73,7 @@ const registry: Record<string, Record<string, React.ComponentType>> = {
     'initial-locks': InitialTabLocksExample,
     'runtime-behavior': RuntimeTabBehaviorExample,
   },
+  overflow: { default: OverflowExample, 'tab-overflow': TabOverflowExample },
   controlled: {
     default: ControlledExample,
     'panel-handles': PanelApiExample,

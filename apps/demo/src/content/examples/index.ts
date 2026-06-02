@@ -28,6 +28,10 @@ export {
   RuntimeTabBehaviorExample,
 } from './tab-locking/example';
 export {
+  Example as OverflowExample,
+  TabOverflowExample,
+} from './overflow/example';
+export {
   Example as ControlledExample,
   PanelApiExample,
   TabApiExample,
@@ -60,6 +64,7 @@ export { metadata as panelActionsMeta } from './collapse/metadata';
 export { metadata as constraintsMeta } from './constraints/metadata';
 export { metadata as panelLockingMeta } from './panel-locking/metadata';
 export { metadata as tabLockingMeta } from './tab-locking/metadata';
+export { metadata as overflowMeta } from './overflow/metadata';
 export { metadata as controlledMeta } from './controlled/metadata';
 export { metadata as floatingMeta } from './floating/metadata';
 export { metadata as persistenceMeta } from './persistence/metadata';
@@ -164,6 +169,17 @@ export const examples = [
     notes: [
       'The first demo shows locked, closeable, and draggable values declared in initialLayout.',
       'The second demo uses tab.setBehavior() to update closeable and draggable at runtime.',
+    ],
+  },
+  {
+    slug: 'overflow',
+    title: 'Tab Overflow',
+    description: 'Many tabs in one panel with horizontal scrolling.',
+    demos: [{ id: 'tab-overflow', sourceRegion: 'tab-overflow' }],
+    notes: [
+      'Tabs keep their natural width and the tab row scrolls horizontally when there is not enough space.',
+      'Wheel input over the tab row scrolls horizontally without taking over page scrolling at the row boundaries.',
+      'When a tab becomes active through the API or by clicking, Tilery scrolls it into view automatically.',
     ],
   },
   {

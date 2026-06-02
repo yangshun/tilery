@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useLayoutEffect, useRef } from 'react';
 import type {
   TileryHandle,
   TileryPanelHandle,
@@ -117,6 +117,8 @@ export function TabBar({
   renderActionsButtonIcon,
 }: TabBarProps) {
   const panelId = panel.id;
+  const activeTabId = panel.activeTab?.id ?? null;
+  const tabListRef = useRef<HTMLDivElement | null>(null);
   const behavior = tileryPanelBehaviorFromState(tilery.getState(), panelId);
   const canDragPanel =
     behavior.draggable &&
@@ -145,6 +147,45 @@ export function TabBar({
       panelId,
     ],
   );
+  const handleTabListRef = useCallback(
+    (el: HTMLDivElement | null) => {
+      tabListRef.current = el;
+      registerTabBar(el);
+    },
+    [registerTabBar],
+  );
+  const handleTabListWheel = useCallback((e: React.WheelEvent) => {
+    const tabList = tabListRef.current;
+    /* v8 ignore next -- the handler is detached before this is reachable. */
+    if (!tabList) return;
+    const maxScrollLeft = tabList.scrollWidth - tabList.clientWidth;
+    if (maxScrollLeft <= 0) return;
+
+    const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+    const next = Math.max(
+      0,
+      Math.min(maxScrollLeft, tabList.scrollLeft + delta),
+    );
+    if (next === tabList.scrollLeft) return;
+
+    e.preventDefault();
+    tabList.scrollLeft = next;
+  }, []);
+
+  useLayoutEffect(() => {
+    const tabList = tabListRef.current;
+    /* v8 ignore next -- React always calls the ref before this effect runs. */
+    if (!tabList) return;
+    /* v8 ignore next -- empty panels render no active tab to reveal. */
+    if (!activeTabId) return;
+    const activeTab = tabList.querySelector<HTMLElement>(
+      `[data-tab-id="${cssEscape(activeTabId)}"]`,
+    );
+    /* v8 ignore next -- panel handles only expose active tabs present in the row. */
+    if (!activeTab) return;
+    scrollTabIntoView(tabList, activeTab);
+  }, [activeTabId, panel.tabs]);
+
   return (
     <div
       className="tilery__tab-bar"
@@ -155,12 +196,16 @@ export function TabBar({
       onPointerMove={onTabPointerMove}
       onPointerUp={onTabBarPointerUp}
       onPointerCancel={onTabPointerCancel}>
-      <div ref={registerTabBar} className="tilery__tab-list" role="tablist">
+      <div
+        ref={handleTabListRef}
+        className="tilery__tab-list"
+        role="tablist"
+        onWheel={handleTabListWheel}>
         {panel.tabs.map((tab) => (
           <TabRow
             key={tab.id}
             tab={tab}
-            isActive={panel.activeTab?.id === tab.id}
+            isActive={activeTabId === tab.id}
             renderHeader={renderHeader}
             registerTab={registerTab}
             onTabPointerDown={onTabPointerDown}
@@ -183,4 +228,23 @@ export function TabBar({
       />
     </div>
   );
+}
+
+function scrollTabIntoView(tabList: HTMLElement, tab: HTMLElement) {
+  const listRect = tabList.getBoundingClientRect();
+  const tabRect = tab.getBoundingClientRect();
+
+  if (tabRect.left < listRect.left) {
+    tabList.scrollLeft -= listRect.left - tabRect.left;
+  } else if (tabRect.right > listRect.right) {
+    tabList.scrollLeft += tabRect.right - listRect.right;
+  }
+}
+
+function cssEscape(value: string): string {
+  /* v8 ignore next 3 */
+  if (typeof CSS !== 'undefined' && typeof CSS.escape === 'function') {
+    return CSS.escape(value);
+  }
+  return value.replace(/[^a-zA-Z0-9_-]/g, '\\$&');
 }

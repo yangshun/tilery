@@ -148,10 +148,16 @@
   scrollbar-width: none;
 }
 
+.tilery__tab-list::-webkit-scrollbar {
+  display: none;
+}
+
 .tilery__tab {
+  flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  max-width: var(--tilery-tab-max-width, 180px);
   padding: 0 6px 0 12px;
   height: 100%;
   font-size: var(--tilery-tab-font-size, 12px);
@@ -186,9 +192,12 @@
 }
 
 .tilery__tab-header {
+  min-width: 0;
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
   pointer-events: none;
 }
 
