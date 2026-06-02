@@ -314,10 +314,10 @@ describe('tileryReducer — split, move-tab, auto-remove', () => {
       ],
     });
 
-  it('SPLIT_PANEL shrinks source and creates new panel with correct inset', () => {
+  it('PANEL_SPLIT shrinks source and creates new panel with correct inset', () => {
     const state = baseLayout();
     const next = tileryReducer(state, {
-      type: 'SPLIT_PANEL',
+      type: 'PANEL_SPLIT',
       panelId: 'sidebar',
       direction: 'right',
       sizePercent: 50,
@@ -342,10 +342,10 @@ describe('tileryReducer — split, move-tab, auto-remove', () => {
     expect(next.tabs['t-new']!.panelId).toBe('sidebar-2');
   });
 
-  it('MOVE_TAB into another panel preserves source if it still has tabs', () => {
+  it('TAB_MOVE into another panel preserves source if it still has tabs', () => {
     const state = baseLayout();
     const next = tileryReducer(state, {
-      type: 'MOVE_TAB',
+      type: 'TAB_MOVE',
       tabId: 'te1',
       to: { panelId: 'terminal', index: 1 },
     });
@@ -354,10 +354,10 @@ describe('tileryReducer — split, move-tab, auto-remove', () => {
     expect(next.tabs.te1!.panelId).toBe('terminal');
   });
 
-  it('REMOVE_TAB removes a panel when last tab is removed (vertical neighbor reflows)', () => {
+  it('TAB_REMOVE removes a panel when last tab is removed (vertical neighbor reflows)', () => {
     const state = baseLayout();
     // Remove sidebar's only tab; editor + terminal both extend left.
-    const next = tileryReducer(state, { type: 'REMOVE_TAB', tabId: 'ts' });
+    const next = tileryReducer(state, { type: 'TAB_REMOVE', tabId: 'ts' });
     expect(next.panels.sidebar).toBeUndefined();
     expect(next.panelOrder).not.toContain('sidebar');
     expect(next.panels.editor!.inset).toEqual({
@@ -375,9 +375,9 @@ describe('tileryReducer — split, move-tab, auto-remove', () => {
     expect(next.tabs.ts).toBeUndefined();
   });
 
-  it('REMOVE_TAB removes an empty panel with horizontal neighbor reflow', () => {
+  it('TAB_REMOVE removes an empty panel with horizontal neighbor reflow', () => {
     const state = baseLayout();
-    const next = tileryReducer(state, { type: 'REMOVE_TAB', tabId: 'tt' });
+    const next = tileryReducer(state, { type: 'TAB_REMOVE', tabId: 'tt' });
     // Terminal is removed; editor extends down to fill the bottom half.
     expect(next.panels.terminal).toBeUndefined();
     expect(next.panels.editor!.inset).toEqual({
@@ -388,14 +388,14 @@ describe('tileryReducer — split, move-tab, auto-remove', () => {
     });
   });
 
-  it('REMOVE_TAB without panel removal selects a neighbor as active when the active is removed', () => {
+  it('TAB_REMOVE without panel removal selects a neighbor as active when the active is removed', () => {
     const state = baseLayout();
-    const next = tileryReducer(state, { type: 'REMOVE_TAB', tabId: 'te1' });
+    const next = tileryReducer(state, { type: 'TAB_REMOVE', tabId: 'te1' });
     expect(next.panels.editor!.tabs).toEqual(['te2']);
     expect(next.panels.editor!.activeTabId).toBe('te2');
   });
 
-  it('MOVE_TAB out of last-tab panel removes the source panel', () => {
+  it('TAB_MOVE out of last-tab panel removes the source panel', () => {
     const state: TileryLayoutState = createStateFromPanels({
       panels: [
         {
@@ -411,7 +411,7 @@ describe('tileryReducer — split, move-tab, auto-remove', () => {
       ],
     });
     const next = tileryReducer(state, {
-      type: 'MOVE_TAB',
+      type: 'TAB_MOVE',
       tabId: 'ta',
       to: { panelId: 'B', index: 0 },
     });
@@ -1246,7 +1246,7 @@ describe('tileryClampDividerPosition — multi-panel side (workspace shape)', ()
 describe('tileryClampDividerPosition — over-determined constraints', () => {
   it('returns the divider’s current position when min > max (no legal move)', () => {
     // Both panels are 5% tall — well below the 10% min. Could only have
-    // been produced by an out-of-band setup like REPLACE_STATE; we still
+    // been produced by an out-of-band setup like STATE_REPLACE; we still
     // must not crash on it. The two panels share the edge at y=10, so
     // tileryDeriveDividers returns one horizontal divider with both T and B as
     // its only constraint sources.
@@ -1459,7 +1459,7 @@ describe('constraint diagnostics', () => {
   });
 });
 
-// Split-fit checks refuse SPLIT_PANEL actions that would shrink either half
+// Split-fit checks refuse PANEL_SPLIT actions that would shrink either half
 // below the minimum. Without this, repeated splits of a small panel produced
 // sub-min panels, which in turn broke divider math (see fuzz regression test
 // above).
@@ -1636,7 +1636,7 @@ describe('layout invariants — deterministic random fuzz', () => {
         const dir = dirs[Math.floor(rand() * dirs.length)]!;
         const size = 20 + Math.floor(rand() * 60); // 20–79%
         state = tileryReducer(state, {
-          type: 'SPLIT_PANEL',
+          type: 'PANEL_SPLIT',
           panelId: sourceId,
           direction: dir,
           sizePercent: size,
@@ -1651,7 +1651,7 @@ describe('layout invariants — deterministic random fuzz', () => {
         const div = dividers[Math.floor(rand() * dividers.length)]!;
         const target = 5 + rand() * 90; // 5–95, will be clamped by tileryReducer
         state = tileryReducer(state, {
-          type: 'RESIZE_DIVIDER',
+          type: 'DIVIDER_RESIZE',
           dividerId: div.id,
           newPosition: target,
         });
@@ -1663,7 +1663,7 @@ describe('layout invariants — deterministic random fuzz', () => {
       expect(pairwiseNoOverlap(state)).toBe(true);
       expect(totalArea(state)).toBeCloseTo(10000, 4);
       // No panel ever inverts (negative width/height) — the new min-size
-      // guards in SPLIT_PANEL and tileryClampDividerPosition prevent it.
+      // guards in PANEL_SPLIT and tileryClampDividerPosition prevent it.
       for (const p of Object.values(state.panels)) {
         expect(tileryPanelWidth(p)).toBeGreaterThanOrEqual(-0.001);
         expect(tileryPanelHeight(p)).toBeGreaterThanOrEqual(-0.001);

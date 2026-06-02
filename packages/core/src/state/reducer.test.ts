@@ -511,20 +511,20 @@ describe('tileryCreateInitialState', () => {
 });
 
 describe('tileryReducer dispatch matrix', () => {
-  it('REPLACE_STATE swaps state wholesale', () => {
+  it('STATE_REPLACE swaps state wholesale', () => {
     const a = twoSideBySide();
     const b = createStateFromPanels({
       panels: [
         { id: 'X', inset: { top: 0, right: 0, bottom: 0, left: 0 }, tabs: [] },
       ],
     });
-    expect(tileryReducer(a, { type: 'REPLACE_STATE', state: b })).toBe(b);
+    expect(tileryReducer(a, { type: 'STATE_REPLACE', state: b })).toBe(b);
   });
 
-  it('SPLIT_PANEL is a no-op if the source panel is missing', () => {
+  it('PANEL_SPLIT is a no-op if the source panel is missing', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, {
-      type: 'SPLIT_PANEL',
+      type: 'PANEL_SPLIT',
       panelId: 'phantom',
       direction: 'right',
       sizePercent: 50,
@@ -534,10 +534,10 @@ describe('tileryReducer dispatch matrix', () => {
     });
     expect(next).toBe(state);
   });
-  it('SPLIT_PANEL with no tabs creates an empty new panel', () => {
+  it('PANEL_SPLIT with no tabs creates an empty new panel', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, {
-      type: 'SPLIT_PANEL',
+      type: 'PANEL_SPLIT',
       panelId: 'L',
       direction: 'right',
       sizePercent: 50,
@@ -553,10 +553,10 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.panels.NEW!.maxSize).toBe(55);
     expect(next.panelOrder).toEqual(['L', 'NEW', 'R']);
   });
-  it('SPLIT_PANEL falls back to flat insets when no layout tree exists', () => {
+  it('PANEL_SPLIT falls back to flat insets when no layout tree exists', () => {
     const state = nonTilingSideBySide();
     const next = tileryReducer(state, {
-      type: 'SPLIT_PANEL',
+      type: 'PANEL_SPLIT',
       panelId: 'L',
       direction: 'right',
       sizePercent: 50,
@@ -578,13 +578,13 @@ describe('tileryReducer dispatch matrix', () => {
       left: 20,
     });
   });
-  it('SPLIT_PANEL keeps flat fallback behavior when the layout tree misses the source', () => {
+  it('PANEL_SPLIT keeps flat fallback behavior when the layout tree misses the source', () => {
     const state: TileryLayoutState = {
       ...twoSideBySide(),
       layout: { kind: 'panel', panelId: 'R' },
     };
     const next = tileryReducer(state, {
-      type: 'SPLIT_PANEL',
+      type: 'PANEL_SPLIT',
       panelId: 'L',
       direction: 'right',
       sizePercent: 50,
@@ -596,14 +596,14 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.panels.L!.inset.right).toBe(75);
     expect(next.panels.NEW!.inset.left).toBe(25);
   });
-  it('SPLIT_PANEL repairs panelOrder from the canonical layout tree', () => {
+  it('PANEL_SPLIT repairs panelOrder from the canonical layout tree', () => {
     const state: TileryLayoutState = twoSideBySide();
     const broken: TileryLayoutState = {
       ...state,
       panelOrder: state.panelOrder.filter((p) => p !== 'L'),
     };
     const next = tileryReducer(broken, {
-      type: 'SPLIT_PANEL',
+      type: 'PANEL_SPLIT',
       panelId: 'L',
       direction: 'right',
       sizePercent: 50,
@@ -614,7 +614,7 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.panelOrder).toEqual(['L', 'NEW', 'R']);
   });
 
-  it('SPLIT_PANEL is a no-op when the target panel is not droppable', () => {
+  it('PANEL_SPLIT is a no-op when the target panel is not droppable', () => {
     const state = tileryCreateInitialState({
       type: 'group',
       direction: 'horizontal',
@@ -633,7 +633,7 @@ describe('tileryReducer dispatch matrix', () => {
       ],
     });
     const next = tileryReducer(state, {
-      type: 'SPLIT_PANEL',
+      type: 'PANEL_SPLIT',
       panelId: 'L',
       direction: 'right',
       sizePercent: 50,
@@ -645,14 +645,14 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next).toBe(state);
   });
 
-  it('SPLIT_PANEL is a no-op when the target panel is floating', () => {
+  it('PANEL_SPLIT is a no-op when the target panel is floating', () => {
     const state = tileryReducer(twoSideBySide(), {
-      type: 'FLOAT_PANEL',
+      type: 'PANEL_FLOAT',
       panelId: 'L',
     });
 
     const next = tileryReducer(state, {
-      type: 'SPLIT_PANEL',
+      type: 'PANEL_SPLIT',
       panelId: 'L',
       direction: 'right',
       sizePercent: 50,
@@ -664,18 +664,18 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next).toBe(state);
   });
 
-  it('REMOVE_PANEL is a no-op if the panel is missing', () => {
+  it('PANEL_REMOVE is a no-op if the panel is missing', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, {
-      type: 'REMOVE_PANEL',
+      type: 'PANEL_REMOVE',
       panelId: 'phantom',
     });
     expect(next).toBe(state);
   });
-  it('FLOAT_PANEL detaches a tiled panel without deleting its tabs', () => {
+  it('PANEL_FLOAT detaches a tiled panel without deleting its tabs', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, {
-      type: 'FLOAT_PANEL',
+      type: 'PANEL_FLOAT',
       panelId: 'L',
       bounds: { x: 8, y: 10, width: 40, height: 42 },
     });
@@ -695,9 +695,9 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.tabs.L2).toMatchObject({ panelId: 'L' });
   });
 
-  it('FLOAT_PANEL applies runtime behavior options', () => {
+  it('PANEL_FLOAT applies runtime behavior options', () => {
     const next = tileryReducer(twoSideBySide(), {
-      type: 'FLOAT_PANEL',
+      type: 'PANEL_FLOAT',
       panelId: 'L',
       bounds: { x: 8, y: 10, width: 40, height: 42 },
       behavior: { resizable: false },
@@ -710,7 +710,7 @@ describe('tileryReducer dispatch matrix', () => {
     });
   });
 
-  it('FLOAT_PANEL merges partial behavior options with the source panel behavior', () => {
+  it('PANEL_FLOAT merges partial behavior options with the source panel behavior', () => {
     const state = tileryCreateInitialState({
       type: 'group',
       direction: 'horizontal',
@@ -731,7 +731,7 @@ describe('tileryReducer dispatch matrix', () => {
     });
 
     const next = tileryReducer(state, {
-      type: 'FLOAT_PANEL',
+      type: 'PANEL_FLOAT',
       panelId: 'L',
       behavior: { resizable: false },
     });
@@ -742,41 +742,41 @@ describe('tileryReducer dispatch matrix', () => {
     });
   });
 
-  it('FLOAT_PANEL is a no-op if the panel is missing', () => {
+  it('PANEL_FLOAT is a no-op if the panel is missing', () => {
     const state = twoSideBySide();
 
     expect(
       tileryReducer(state, {
-        type: 'FLOAT_PANEL',
+        type: 'PANEL_FLOAT',
         panelId: 'missing',
       }),
     ).toBe(state);
   });
 
-  it('FLOAT_PANEL focuses an already-floating panel without changing bounds', () => {
+  it('PANEL_FLOAT focuses an already-floating panel without changing bounds', () => {
     const state = tileryReducer(twoSideBySide(), {
-      type: 'FLOAT_PANEL',
+      type: 'PANEL_FLOAT',
       panelId: 'L',
       bounds: { x: 8, y: 10, width: 40, height: 42 },
     });
 
     const next = tileryReducer(state, {
-      type: 'FLOAT_PANEL',
+      type: 'PANEL_FLOAT',
       panelId: 'L',
     });
 
     expect(next).toBe(state);
   });
 
-  it('FLOAT_PANEL updates existing floating bounds and clears popout metadata', () => {
+  it('PANEL_FLOAT updates existing floating bounds and clears popout metadata', () => {
     const popped = tileryReducer(twoSideBySide(), {
-      type: 'POPOUT_PANEL',
+      type: 'PANEL_POPOUT',
       panelId: 'L',
       opts: { floatingBounds: { x: 8, y: 10, width: 40, height: 42 } },
     });
 
     const next = tileryReducer(popped, {
-      type: 'FLOAT_PANEL',
+      type: 'PANEL_FLOAT',
       panelId: 'L',
       bounds: { x: 20 },
     });
@@ -790,15 +790,15 @@ describe('tileryReducer dispatch matrix', () => {
     ).toBeUndefined();
   });
 
-  it('FLOAT_PANEL updates existing floating behavior', () => {
+  it('PANEL_FLOAT updates existing floating behavior', () => {
     const state = tileryReducer(twoSideBySide(), {
-      type: 'FLOAT_PANEL',
+      type: 'PANEL_FLOAT',
       panelId: 'L',
       bounds: { x: 8, y: 10, width: 40, height: 42 },
     });
 
     const next = tileryReducer(state, {
-      type: 'FLOAT_PANEL',
+      type: 'PANEL_FLOAT',
       panelId: 'L',
       behavior: { locked: true },
     });
@@ -810,12 +810,12 @@ describe('tileryReducer dispatch matrix', () => {
     });
   });
 
-  it('FLOAT_PANEL detaches a tiled panel from legacy flat state', () => {
+  it('PANEL_FLOAT detaches a tiled panel from legacy flat state', () => {
     const state = nonTilingSideBySide();
     expect(state.layout).toBeNull();
 
     const next = tileryReducer(state, {
-      type: 'FLOAT_PANEL',
+      type: 'PANEL_FLOAT',
       panelId: 'L',
       bounds: { x: 5, y: 6, width: 30, height: 40 },
     });
@@ -829,9 +829,9 @@ describe('tileryReducer dispatch matrix', () => {
     });
   });
 
-  it('POPOUT_PANEL detaches a panel into a native window placement', () => {
+  it('PANEL_POPOUT detaches a panel into a native window placement', () => {
     const next = tileryReducer(twoSideBySide(), {
-      type: 'POPOUT_PANEL',
+      type: 'PANEL_POPOUT',
       panelId: 'L',
       opts: {
         floatingBounds: { x: 8, y: 10, width: 40, height: 42 },
@@ -854,20 +854,20 @@ describe('tileryReducer dispatch matrix', () => {
     });
   });
 
-  it('POPOUT_PANEL returns the floated state when the panel cannot be floated', () => {
+  it('PANEL_POPOUT returns the floated state when the panel cannot be floated', () => {
     const state = twoSideBySide();
 
     expect(
       tileryReducer(state, {
-        type: 'POPOUT_PANEL',
+        type: 'PANEL_POPOUT',
         panelId: 'missing',
       }),
     ).toBe(state);
   });
 
-  it('FLOAT_TAB extracts one tab into a new floating panel', () => {
+  it('TAB_FLOAT extracts one tab into a new floating panel', () => {
     const next = tileryReducer(twoSideBySide(), {
-      type: 'FLOAT_TAB',
+      type: 'TAB_FLOAT',
       tabId: 'L2',
       newPanelId: 'FLOATED',
       bounds: { x: 12, y: 14, width: 34, height: 36 },
@@ -894,9 +894,9 @@ describe('tileryReducer dispatch matrix', () => {
     });
   });
 
-  it('FLOAT_TAB applies behavior options to the created floating panel', () => {
+  it('TAB_FLOAT applies behavior options to the created floating panel', () => {
     const next = tileryReducer(twoSideBySide(), {
-      type: 'FLOAT_TAB',
+      type: 'TAB_FLOAT',
       tabId: 'L2',
       newPanelId: 'FLOATED',
       behavior: { resizable: false },
@@ -908,7 +908,7 @@ describe('tileryReducer dispatch matrix', () => {
     });
   });
 
-  it('FLOAT_TAB removes the source panel when extracting its last tab', () => {
+  it('TAB_FLOAT removes the source panel when extracting its last tab', () => {
     const state = createStateFromPanels({
       panels: [
         {
@@ -924,7 +924,7 @@ describe('tileryReducer dispatch matrix', () => {
       ],
     });
     const next = tileryReducer(state, {
-      type: 'FLOAT_TAB',
+      type: 'TAB_FLOAT',
       tabId: 'L1',
       newPanelId: 'FLOATED',
       bounds: { x: 20, y: 22, width: 30, height: 32 },
@@ -941,9 +941,9 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.layout).toMatchObject({ kind: 'panel', panelId: 'R' });
   });
 
-  it('FLOAT_TAB selects the next source tab when floating the active tab', () => {
+  it('TAB_FLOAT selects the next source tab when floating the active tab', () => {
     const next = tileryReducer(sideBySideWithThreeLeftTabs('L2'), {
-      type: 'FLOAT_TAB',
+      type: 'TAB_FLOAT',
       tabId: 'L2',
       newPanelId: 'FLOATED',
     });
@@ -952,7 +952,7 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.panels.L!.activeTabId).toBe('L3');
   });
 
-  it('FLOAT_TAB defensively clears active source tab when source tabs omit it', () => {
+  it('TAB_FLOAT defensively clears active source tab when source tabs omit it', () => {
     const state: TileryLayoutState = {
       panels: {
         L: {
@@ -983,7 +983,7 @@ describe('tileryReducer dispatch matrix', () => {
       layout: null,
     };
     const next = tileryReducer(state, {
-      type: 'FLOAT_TAB',
+      type: 'TAB_FLOAT',
       tabId: 'L1',
       newPanelId: 'FLOATED',
     });
@@ -991,14 +991,14 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.panels.L!.activeTabId).toBeNull();
   });
 
-  it('FLOAT_TAB defaults to the source bounds when extracting from a floating panel', () => {
+  it('TAB_FLOAT defaults to the source bounds when extracting from a floating panel', () => {
     const floating = tileryReducer(twoSideBySide(), {
-      type: 'FLOAT_PANEL',
+      type: 'PANEL_FLOAT',
       panelId: 'L',
       bounds: { x: 9, y: 11, width: 35, height: 37 },
     });
     const next = tileryReducer(floating, {
-      type: 'FLOAT_TAB',
+      type: 'TAB_FLOAT',
       tabId: 'L2',
       newPanelId: 'FLOATED',
     });
@@ -1016,7 +1016,7 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.floatingPanelOrder).toEqual(['L', 'FLOATED']);
   });
 
-  it('FLOAT_TAB is a no-op when the tab is not draggable', () => {
+  it('TAB_FLOAT is a no-op when the tab is not draggable', () => {
     const state = createStateFromPanels({
       panels: [
         {
@@ -1028,7 +1028,7 @@ describe('tileryReducer dispatch matrix', () => {
     });
 
     const next = tileryReducer(state, {
-      type: 'FLOAT_TAB',
+      type: 'TAB_FLOAT',
       tabId: 'L1',
       newPanelId: 'FLOATED',
     });
@@ -1036,10 +1036,10 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next).toBe(state);
   });
 
-  it('FLOAT_TAB is a no-op when the tab is missing', () => {
+  it('TAB_FLOAT is a no-op when the tab is missing', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, {
-      type: 'FLOAT_TAB',
+      type: 'TAB_FLOAT',
       tabId: 'missing',
       newPanelId: 'FLOATED',
     });
@@ -1047,10 +1047,10 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next).toBe(state);
   });
 
-  it('FLOAT_TAB is a no-op when the new panel id already exists', () => {
+  it('TAB_FLOAT is a no-op when the new panel id already exists', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, {
-      type: 'FLOAT_TAB',
+      type: 'TAB_FLOAT',
       tabId: 'L2',
       newPanelId: 'R',
     });
@@ -1058,7 +1058,7 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next).toBe(state);
   });
 
-  it('FLOAT_TAB is a no-op when the tab source panel is missing', () => {
+  it('TAB_FLOAT is a no-op when the tab source panel is missing', () => {
     const state = twoSideBySide();
     const broken = {
       ...state,
@@ -1068,7 +1068,7 @@ describe('tileryReducer dispatch matrix', () => {
       },
     };
     const next = tileryReducer(broken, {
-      type: 'FLOAT_TAB',
+      type: 'TAB_FLOAT',
       tabId: 'L2',
       newPanelId: 'FLOATED',
     });
@@ -1076,7 +1076,7 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next).toBe(broken);
   });
 
-  it('FLOAT_TAB is a no-op when the source panel is not draggable', () => {
+  it('TAB_FLOAT is a no-op when the source panel is not draggable', () => {
     const state = tileryCreateInitialState({
       type: 'group',
       direction: 'horizontal',
@@ -1096,7 +1096,7 @@ describe('tileryReducer dispatch matrix', () => {
     });
 
     const next = tileryReducer(state, {
-      type: 'FLOAT_TAB',
+      type: 'TAB_FLOAT',
       tabId: 'L1',
       newPanelId: 'FLOATED',
     });
@@ -1104,9 +1104,9 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next).toBe(state);
   });
 
-  it('POPOUT_TAB extracts one tab into a native window placement', () => {
+  it('TAB_POPOUT extracts one tab into a native window placement', () => {
     const next = tileryReducer(twoSideBySide(), {
-      type: 'POPOUT_TAB',
+      type: 'TAB_POPOUT',
       tabId: 'L2',
       newPanelId: 'FLOATED',
       opts: {
@@ -1129,7 +1129,7 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.tabs.L2).toMatchObject({ panelId: 'FLOATED' });
   });
 
-  it('POPOUT_TAB is a no-op when the tab cannot be floated', () => {
+  it('TAB_POPOUT is a no-op when the tab cannot be floated', () => {
     const state = createStateFromPanels({
       panels: [
         {
@@ -1141,7 +1141,7 @@ describe('tileryReducer dispatch matrix', () => {
     });
 
     const next = tileryReducer(state, {
-      type: 'POPOUT_TAB',
+      type: 'TAB_POPOUT',
       tabId: 'L1',
       newPanelId: 'FLOATED',
     });
@@ -1149,16 +1149,16 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next).toBe(state);
   });
 
-  it('RETURN_PANEL_TO_FLOATING removes native window metadata', () => {
+  it('PANEL_RETURN_TO_FLOATING removes native window metadata', () => {
     const poppedOut = tileryReducer(twoSideBySide(), {
-      type: 'POPOUT_PANEL',
+      type: 'PANEL_POPOUT',
       panelId: 'L',
       opts: {
         floatingBounds: { x: 8, y: 10, width: 40, height: 42 },
       },
     });
     const next = tileryReducer(poppedOut, {
-      type: 'RETURN_PANEL_TO_FLOATING',
+      type: 'PANEL_RETURN_TO_FLOATING',
       panelId: 'L',
       bounds: { x: 20 },
     });
@@ -1175,34 +1175,34 @@ describe('tileryReducer dispatch matrix', () => {
     ).toBeUndefined();
   });
 
-  it('RETURN_PANEL_TO_FLOATING is a no-op for missing or ordinary floating panels', () => {
+  it('PANEL_RETURN_TO_FLOATING is a no-op for missing or ordinary floating panels', () => {
     const state = tileryReducer(twoSideBySide(), {
-      type: 'FLOAT_PANEL',
+      type: 'PANEL_FLOAT',
       panelId: 'L',
     });
 
     expect(
       tileryReducer(state, {
-        type: 'RETURN_PANEL_TO_FLOATING',
+        type: 'PANEL_RETURN_TO_FLOATING',
         panelId: 'missing',
       }),
     ).toBe(state);
     expect(
       tileryReducer(state, {
-        type: 'RETURN_PANEL_TO_FLOATING',
+        type: 'PANEL_RETURN_TO_FLOATING',
         panelId: 'L',
       }),
     ).toBe(state);
   });
 
-  it('DOCK_PANEL moves a floating panel back into the tiled tree', () => {
+  it('PANEL_DOCK moves a floating panel back into the tiled tree', () => {
     const floating = tileryReducer(twoSideBySide(), {
-      type: 'FLOAT_PANEL',
+      type: 'PANEL_FLOAT',
       panelId: 'L',
       bounds: { width: 30 },
     });
     const next = tileryReducer(floating, {
-      type: 'DOCK_PANEL',
+      type: 'PANEL_DOCK',
       panelId: 'L',
       target: { splitPanel: 'R', direction: 'left', size: 30 },
     });
@@ -1223,13 +1223,13 @@ describe('tileryReducer dispatch matrix', () => {
     });
   });
 
-  it('DOCK_PANEL applies explicit layout behavior from the dock target', () => {
+  it('PANEL_DOCK applies explicit layout behavior from the dock target', () => {
     const floating = tileryReducer(twoSideBySide(), {
-      type: 'FLOAT_PANEL',
+      type: 'PANEL_FLOAT',
       panelId: 'L',
     });
     const next = tileryReducer(floating, {
-      type: 'DOCK_PANEL',
+      type: 'PANEL_DOCK',
       panelId: 'L',
       target: { splitPanel: 'R', direction: 'left', locked: true },
     });
@@ -1249,7 +1249,7 @@ describe('tileryReducer dispatch matrix', () => {
     });
   });
 
-  it('DOCK_PANEL creates the tiled root when no tiled panels remain', () => {
+  it('PANEL_DOCK creates the tiled root when no tiled panels remain', () => {
     const floating = tileryReducer(
       createStateFromPanels({
         panels: [
@@ -1260,11 +1260,11 @@ describe('tileryReducer dispatch matrix', () => {
           },
         ],
       }),
-      { type: 'FLOAT_PANEL', panelId: 'L' },
+      { type: 'PANEL_FLOAT', panelId: 'L' },
     );
 
     const next = tileryReducer(floating, {
-      type: 'DOCK_PANEL',
+      type: 'PANEL_DOCK',
       panelId: 'L',
     });
 
@@ -1274,7 +1274,7 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.layout).toMatchObject({ kind: 'panel', panelId: 'L' });
   });
 
-  it('DOCK_PANEL is a no-op for missing, tiled, and locked floating panels', () => {
+  it('PANEL_DOCK is a no-op for missing, tiled, and locked floating panels', () => {
     const state = twoSideBySide();
     const floating = tileryCreateInitialState({
       type: 'root',
@@ -1294,17 +1294,17 @@ describe('tileryReducer dispatch matrix', () => {
     });
 
     expect(
-      tileryReducer(state, { type: 'DOCK_PANEL', panelId: 'missing' }),
+      tileryReducer(state, { type: 'PANEL_DOCK', panelId: 'missing' }),
     ).toBe(state);
-    expect(tileryReducer(state, { type: 'DOCK_PANEL', panelId: 'L' })).toBe(
+    expect(tileryReducer(state, { type: 'PANEL_DOCK', panelId: 'L' })).toBe(
       state,
     );
     expect(
-      tileryReducer(floating, { type: 'DOCK_PANEL', panelId: 'locked' }),
+      tileryReducer(floating, { type: 'PANEL_DOCK', panelId: 'locked' }),
     ).toBe(floating);
   });
 
-  it('DOCK_PANEL is a no-op when the target cannot receive the docked panel', () => {
+  it('PANEL_DOCK is a no-op when the target cannot receive the docked panel', () => {
     const base = tileryCreateInitialState({
       type: 'root',
       main: {
@@ -1336,35 +1336,35 @@ describe('tileryReducer dispatch matrix', () => {
 
     expect(
       tileryReducer(base, {
-        type: 'DOCK_PANEL',
+        type: 'PANEL_DOCK',
         panelId: 'floating',
         target: { splitPanel: 'target' },
       }),
     ).toBe(base);
     expect(
       tileryReducer(base, {
-        type: 'DOCK_PANEL',
+        type: 'PANEL_DOCK',
         panelId: 'floating',
         target: { splitPanel: 'fullscreen-target' },
       }),
     ).toBe(base);
     expect(
       tileryReducer(base, {
-        type: 'DOCK_PANEL',
+        type: 'PANEL_DOCK',
         panelId: 'floating',
         target: { splitPanel: 'missing' },
       }),
     ).toBe(base);
   });
 
-  it('DOCK_PANEL is a no-op when the split would violate constraints', () => {
+  it('PANEL_DOCK is a no-op when the split would violate constraints', () => {
     const floating = tileryReducer(twoSideBySide(), {
-      type: 'FLOAT_PANEL',
+      type: 'PANEL_FLOAT',
       panelId: 'L',
     });
 
     const next = tileryReducer(floating, {
-      type: 'DOCK_PANEL',
+      type: 'PANEL_DOCK',
       panelId: 'L',
       target: { splitPanel: 'R', minSize: '90%', size: 50 },
       sizeContext: { width: 1000, height: 800 },
@@ -1373,14 +1373,14 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next).toBe(floating);
   });
 
-  it('DOCK_PANEL falls back to flat state when no layout tree exists', () => {
+  it('PANEL_DOCK falls back to flat state when no layout tree exists', () => {
     const floating = tileryReducer(nonTilingSideBySide(), {
-      type: 'FLOAT_PANEL',
+      type: 'PANEL_FLOAT',
       panelId: 'L',
     });
 
     const next = tileryReducer(floating, {
-      type: 'DOCK_PANEL',
+      type: 'PANEL_DOCK',
       panelId: 'L',
       target: { splitPanel: 'R', direction: 'right', size: 30 },
     });
@@ -1391,17 +1391,17 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.panels.L).toMatchObject({ kind: 'tiled' });
   });
 
-  it('FOCUS_PANEL raises a floating panel above other floating panels', () => {
+  it('PANEL_FOCUS raises a floating panel above other floating panels', () => {
     const withLeft = tileryReducer(twoSideBySide(), {
-      type: 'FLOAT_PANEL',
+      type: 'PANEL_FLOAT',
       panelId: 'L',
     });
     const withBoth = tileryReducer(withLeft, {
-      type: 'FLOAT_PANEL',
+      type: 'PANEL_FLOAT',
       panelId: 'R',
     });
     const next = tileryReducer(withBoth, {
-      type: 'FOCUS_PANEL',
+      type: 'PANEL_FOCUS',
       panelId: 'L',
     });
 
@@ -1414,38 +1414,38 @@ describe('tileryReducer dispatch matrix', () => {
     ).toBe(21);
   });
 
-  it('FOCUS_PANEL is a no-op for missing or tiled panels', () => {
+  it('PANEL_FOCUS is a no-op for missing or tiled panels', () => {
     const state = twoSideBySide();
 
     expect(
-      tileryReducer(state, { type: 'FOCUS_PANEL', panelId: 'missing' }),
+      tileryReducer(state, { type: 'PANEL_FOCUS', panelId: 'missing' }),
     ).toBe(state);
-    expect(tileryReducer(state, { type: 'FOCUS_PANEL', panelId: 'L' })).toBe(
+    expect(tileryReducer(state, { type: 'PANEL_FOCUS', panelId: 'L' })).toBe(
       state,
     );
   });
 
-  it('FOCUS_PANEL derives floating order when the state has no explicit order', () => {
+  it('PANEL_FOCUS derives floating order when the state has no explicit order', () => {
     const floating = tileryReducer(twoSideBySide(), {
-      type: 'FLOAT_PANEL',
+      type: 'PANEL_FLOAT',
       panelId: 'L',
     });
     const { floatingPanelOrder: _drop, ...withoutOrder } = floating;
     const next = tileryReducer(withoutOrder, {
-      type: 'FOCUS_PANEL',
+      type: 'PANEL_FOCUS',
       panelId: 'L',
     });
 
     expect(next.floatingPanelOrder).toEqual(['L']);
   });
 
-  it('SET_FLOATING_PANEL_BOUNDS clamps detached panel bounds', () => {
+  it('PANEL_FLOATING_BOUNDS_SET clamps detached panel bounds', () => {
     const floating = tileryReducer(twoSideBySide(), {
-      type: 'FLOAT_PANEL',
+      type: 'PANEL_FLOAT',
       panelId: 'L',
     });
     const next = tileryReducer(floating, {
-      type: 'SET_FLOATING_PANEL_BOUNDS',
+      type: 'PANEL_FLOATING_BOUNDS_SET',
       panelId: 'L',
       bounds: { x: 90, y: 95, width: 30, height: 20 },
     });
@@ -1458,45 +1458,45 @@ describe('tileryReducer dispatch matrix', () => {
     });
   });
 
-  it('SET_FLOATING_PANEL_BOUNDS is a no-op for missing, tiled, or unchanged panels', () => {
+  it('PANEL_FLOATING_BOUNDS_SET is a no-op for missing, tiled, or unchanged panels', () => {
     const state = twoSideBySide();
     const floating = tileryReducer(state, {
-      type: 'FLOAT_PANEL',
+      type: 'PANEL_FLOAT',
       panelId: 'L',
       bounds: { x: 18, y: 12, width: 46, height: 48 },
     });
 
     expect(
       tileryReducer(state, {
-        type: 'SET_FLOATING_PANEL_BOUNDS',
+        type: 'PANEL_FLOATING_BOUNDS_SET',
         panelId: 'missing',
         bounds: { x: 1, y: 2, width: 30, height: 40 },
       }),
     ).toBe(state);
     expect(
       tileryReducer(state, {
-        type: 'SET_FLOATING_PANEL_BOUNDS',
+        type: 'PANEL_FLOATING_BOUNDS_SET',
         panelId: 'L',
         bounds: { x: 1, y: 2, width: 30, height: 40 },
       }),
     ).toBe(state);
     expect(
       tileryReducer(floating, {
-        type: 'SET_FLOATING_PANEL_BOUNDS',
+        type: 'PANEL_FLOATING_BOUNDS_SET',
         panelId: 'L',
         bounds: { x: 18, y: 12, width: 46, height: 48 },
       }),
     ).toBe(floating);
   });
 
-  it('SET_FLOATING_PANEL_BOUNDS clamps non-finite values to the minimum range', () => {
+  it('PANEL_FLOATING_BOUNDS_SET clamps non-finite values to the minimum range', () => {
     const floating = tileryReducer(twoSideBySide(), {
-      type: 'FLOAT_PANEL',
+      type: 'PANEL_FLOAT',
       panelId: 'L',
     });
 
     const next = tileryReducer(floating, {
-      type: 'SET_FLOATING_PANEL_BOUNDS',
+      type: 'PANEL_FLOATING_BOUNDS_SET',
       panelId: 'L',
       bounds: {
         x: Number.NaN,
@@ -1514,13 +1514,13 @@ describe('tileryReducer dispatch matrix', () => {
     });
   });
 
-  it('SET_POPOUT_WINDOW_BOUNDS stores normalized native window bounds', () => {
+  it('PANEL_POPOUT_WINDOW_BOUNDS_SET stores normalized native window bounds', () => {
     const poppedOut = tileryReducer(twoSideBySide(), {
-      type: 'POPOUT_PANEL',
+      type: 'PANEL_POPOUT',
       panelId: 'L',
     });
     const next = tileryReducer(poppedOut, {
-      type: 'SET_POPOUT_WINDOW_BOUNDS',
+      type: 'PANEL_POPOUT_WINDOW_BOUNDS_SET',
       panelId: 'L',
       bounds: { left: 30.4, top: 40.6, width: 100, height: 80 },
     });
@@ -1535,51 +1535,51 @@ describe('tileryReducer dispatch matrix', () => {
     });
   });
 
-  it('SET_POPOUT_WINDOW_BOUNDS is a no-op without popout metadata or changes', () => {
+  it('PANEL_POPOUT_WINDOW_BOUNDS_SET is a no-op without popout metadata or changes', () => {
     const floating = tileryReducer(twoSideBySide(), {
-      type: 'FLOAT_PANEL',
+      type: 'PANEL_FLOAT',
       panelId: 'L',
     });
     const poppedOut = tileryReducer(twoSideBySide(), {
-      type: 'POPOUT_PANEL',
+      type: 'PANEL_POPOUT',
       panelId: 'L',
       opts: { windowBounds: { left: 80, top: 80, width: 720, height: 520 } },
     });
 
     expect(
       tileryReducer(floating, {
-        type: 'SET_POPOUT_WINDOW_BOUNDS',
+        type: 'PANEL_POPOUT_WINDOW_BOUNDS_SET',
         panelId: 'L',
         bounds: { left: 80, top: 80, width: 720, height: 520 },
       }),
     ).toBe(floating);
     expect(
       tileryReducer(poppedOut, {
-        type: 'SET_POPOUT_WINDOW_BOUNDS',
+        type: 'PANEL_POPOUT_WINDOW_BOUNDS_SET',
         panelId: 'L',
         bounds: { left: 80, top: 80, width: 720, height: 520 },
       }),
     ).toBe(poppedOut);
   });
 
-  it('SET_POPOUT_WINDOW_BOUNDS detects top, width, and height-only changes', () => {
+  it('PANEL_POPOUT_WINDOW_BOUNDS_SET detects top, width, and height-only changes', () => {
     const base = tileryReducer(twoSideBySide(), {
-      type: 'POPOUT_PANEL',
+      type: 'PANEL_POPOUT',
       panelId: 'L',
       opts: { windowBounds: { left: 80, top: 80, width: 720, height: 520 } },
     });
     const topChanged = tileryReducer(base, {
-      type: 'SET_POPOUT_WINDOW_BOUNDS',
+      type: 'PANEL_POPOUT_WINDOW_BOUNDS_SET',
       panelId: 'L',
       bounds: { left: 80, top: 90, width: 720, height: 520 },
     });
     const widthChanged = tileryReducer(base, {
-      type: 'SET_POPOUT_WINDOW_BOUNDS',
+      type: 'PANEL_POPOUT_WINDOW_BOUNDS_SET',
       panelId: 'L',
       bounds: { left: 80, top: 80, width: 740, height: 520 },
     });
     const heightChanged = tileryReducer(base, {
-      type: 'SET_POPOUT_WINDOW_BOUNDS',
+      type: 'PANEL_POPOUT_WINDOW_BOUNDS_SET',
       panelId: 'L',
       bounds: { left: 80, top: 80, width: 720, height: 540 },
     });
@@ -1589,13 +1589,13 @@ describe('tileryReducer dispatch matrix', () => {
     expect(heightChanged).not.toBe(base);
   });
 
-  it('REMOVE_PANEL removes floating panels and their tabs', () => {
+  it('PANEL_REMOVE removes floating panels and their tabs', () => {
     const floating = tileryReducer(twoSideBySide(), {
-      type: 'FLOAT_PANEL',
+      type: 'PANEL_FLOAT',
       panelId: 'L',
     });
     const next = tileryReducer(floating, {
-      type: 'REMOVE_PANEL',
+      type: 'PANEL_REMOVE',
       panelId: 'L',
     });
 
@@ -1605,7 +1605,7 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.tabs.L2).toBeUndefined();
     expect(next.panels.R).toBeDefined();
   });
-  it('REMOVE_PANEL with only one panel left drops both panel and its tabs', () => {
+  it('PANEL_REMOVE with only one panel left drops both panel and its tabs', () => {
     const state = createStateFromPanels({
       panels: [
         {
@@ -1616,17 +1616,17 @@ describe('tileryReducer dispatch matrix', () => {
       ],
     });
     const next = tileryReducer(state, {
-      type: 'REMOVE_PANEL',
+      type: 'PANEL_REMOVE',
       panelId: 'only',
     });
     expect(next.panels.only).toBeUndefined();
     expect(next.tabs.T).toBeUndefined();
     expect(next.panelOrder).toEqual([]);
   });
-  it('REMOVE_PANEL uses the flat fallback when no layout tree exists', () => {
+  it('PANEL_REMOVE uses the flat fallback when no layout tree exists', () => {
     const state = nonTilingSideBySide();
     const next = tileryReducer(state, {
-      type: 'REMOVE_PANEL',
+      type: 'PANEL_REMOVE',
       panelId: 'R',
     });
     expect(next.layout).toBeNull();
@@ -1640,7 +1640,7 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.tabs.R1).toBeUndefined();
   });
 
-  it('REMOVE_PANEL flat fallback expands matching fillers', () => {
+  it('PANEL_REMOVE flat fallback expands matching fillers', () => {
     const state = createStateFromPanels({
       panels: [
         {
@@ -1661,7 +1661,7 @@ describe('tileryReducer dispatch matrix', () => {
       ],
     });
     const next = tileryReducer(state, {
-      type: 'REMOVE_PANEL',
+      type: 'PANEL_REMOVE',
       panelId: 'R',
     });
     expect(next.layout).toBeNull();
@@ -1674,7 +1674,7 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.panels.overlap).toBeDefined();
   });
 
-  it('REMOVE_PANEL flat fallback handles the final remaining panel', () => {
+  it('PANEL_REMOVE flat fallback handles the final remaining panel', () => {
     const state = createStateFromPanels({
       panels: [
         {
@@ -1685,7 +1685,7 @@ describe('tileryReducer dispatch matrix', () => {
       ],
     });
     const next = tileryReducer(state, {
-      type: 'REMOVE_PANEL',
+      type: 'PANEL_REMOVE',
       panelId: 'only',
     });
     expect(next.panels.only).toBeUndefined();
@@ -1694,20 +1694,20 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.layout).toBeNull();
   });
 
-  it('APPEND_TAB is a no-op if the panel is missing', () => {
+  it('TAB_APPEND is a no-op if the panel is missing', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, {
-      type: 'APPEND_TAB',
+      type: 'TAB_APPEND',
       panelId: 'phantom',
       tab: { id: 'X', data: {} },
       activate: true,
     });
     expect(next).toBe(state);
   });
-  it('APPEND_TAB with activate=false keeps existing active tab', () => {
+  it('TAB_APPEND with activate=false keeps existing active tab', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, {
-      type: 'APPEND_TAB',
+      type: 'TAB_APPEND',
       panelId: 'L',
       tab: { id: 'NEW', data: {} },
       activate: false,
@@ -1715,14 +1715,14 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.panels.L!.tabs).toEqual(['L1', 'L2', 'NEW']);
     expect(next.panels.L!.activeTabId).toBe('L1');
   });
-  it('APPEND_TAB activates the new tab when panel had no active', () => {
+  it('TAB_APPEND activates the new tab when panel had no active', () => {
     let state = twoSideBySide();
     state = {
       ...state,
       panels: { ...state.panels, R: { ...state.panels.R!, activeTabId: null } },
     };
     const next = tileryReducer(state, {
-      type: 'APPEND_TAB',
+      type: 'TAB_APPEND',
       panelId: 'R',
       tab: { id: 'NEW', data: {} },
       activate: false,
@@ -1730,10 +1730,10 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.panels.R!.activeTabId).toBe('NEW');
   });
 
-  it('INSERT_TAB is a no-op if panel missing', () => {
+  it('TAB_INSERT is a no-op if panel missing', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, {
-      type: 'INSERT_TAB',
+      type: 'TAB_INSERT',
       panelId: 'phantom',
       tab: { id: 'X', data: {} },
       index: 0,
@@ -1741,10 +1741,10 @@ describe('tileryReducer dispatch matrix', () => {
     });
     expect(next).toBe(state);
   });
-  it('INSERT_TAB clamps index above tabs length to end', () => {
+  it('TAB_INSERT clamps index above tabs length to end', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, {
-      type: 'INSERT_TAB',
+      type: 'TAB_INSERT',
       panelId: 'L',
       tab: { id: 'X', data: {} },
       index: 999,
@@ -1752,10 +1752,10 @@ describe('tileryReducer dispatch matrix', () => {
     });
     expect(next.panels.L!.tabs).toEqual(['L1', 'L2', 'X']);
   });
-  it('INSERT_TAB clamps negative index to 0', () => {
+  it('TAB_INSERT clamps negative index to 0', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, {
-      type: 'INSERT_TAB',
+      type: 'TAB_INSERT',
       panelId: 'L',
       tab: { id: 'X', data: {} },
       index: -10,
@@ -1763,10 +1763,10 @@ describe('tileryReducer dispatch matrix', () => {
     });
     expect(next.panels.L!.tabs).toEqual(['X', 'L1', 'L2']);
   });
-  it('INSERT_TAB activate=false keeps current activeTabId', () => {
+  it('TAB_INSERT activate=false keeps current activeTabId', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, {
-      type: 'INSERT_TAB',
+      type: 'TAB_INSERT',
       panelId: 'L',
       tab: { id: 'X', data: {} },
       index: 0,
@@ -1774,14 +1774,14 @@ describe('tileryReducer dispatch matrix', () => {
     });
     expect(next.panels.L!.activeTabId).toBe('L1');
   });
-  it('INSERT_TAB activates new tab when panel had no active', () => {
+  it('TAB_INSERT activates new tab when panel had no active', () => {
     let state = twoSideBySide();
     state = {
       ...state,
       panels: { ...state.panels, R: { ...state.panels.R!, activeTabId: null } },
     };
     const next = tileryReducer(state, {
-      type: 'INSERT_TAB',
+      type: 'TAB_INSERT',
       panelId: 'R',
       tab: { id: 'X', data: {} },
       index: 0,
@@ -1790,10 +1790,10 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.panels.R!.activeTabId).toBe('X');
   });
 
-  it('CHANGE_TAB_ID updates tabs, panel order, and active tab references', () => {
+  it('TAB_ID_CHANGE updates tabs, panel order, and active tab references', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, {
-      type: 'CHANGE_TAB_ID',
+      type: 'TAB_ID_CHANGE',
       oldTabId: 'L1',
       newTabId: 'L1_RENAMED',
     });
@@ -1808,10 +1808,10 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.panels.L!.activeTabId).toBe('L1_RENAMED');
   });
 
-  it('CHANGE_TAB_ID keeps active tab references when renaming a non-active tab', () => {
+  it('TAB_ID_CHANGE keeps active tab references when renaming a non-active tab', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, {
-      type: 'CHANGE_TAB_ID',
+      type: 'TAB_ID_CHANGE',
       oldTabId: 'L2',
       newTabId: 'L2_RENAMED',
     });
@@ -1820,26 +1820,26 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.panels.L!.activeTabId).toBe('L1');
   });
 
-  it('CHANGE_TAB_ID is a no-op for unchanged, missing, duplicate, or stale ids', () => {
+  it('TAB_ID_CHANGE is a no-op for unchanged, missing, duplicate, or stale ids', () => {
     const state = twoSideBySide();
 
     expect(
       tileryReducer(state, {
-        type: 'CHANGE_TAB_ID',
+        type: 'TAB_ID_CHANGE',
         oldTabId: 'L1',
         newTabId: 'L1',
       }),
     ).toBe(state);
     expect(
       tileryReducer(state, {
-        type: 'CHANGE_TAB_ID',
+        type: 'TAB_ID_CHANGE',
         oldTabId: 'missing',
         newTabId: 'NEW',
       }),
     ).toBe(state);
     expect(
       tileryReducer(state, {
-        type: 'CHANGE_TAB_ID',
+        type: 'TAB_ID_CHANGE',
         oldTabId: 'L1',
         newTabId: 'L2',
       }),
@@ -1851,19 +1851,19 @@ describe('tileryReducer dispatch matrix', () => {
     };
     expect(
       tileryReducer(broken, {
-        type: 'CHANGE_TAB_ID',
+        type: 'TAB_ID_CHANGE',
         oldTabId: 'L1',
         newTabId: 'NEW',
       }),
     ).toBe(broken);
   });
 
-  it('REMOVE_TAB is a no-op if tab missing', () => {
+  it('TAB_REMOVE is a no-op if tab missing', () => {
     const state = twoSideBySide();
-    const next = tileryReducer(state, { type: 'REMOVE_TAB', tabId: 'phantom' });
+    const next = tileryReducer(state, { type: 'TAB_REMOVE', tabId: 'phantom' });
     expect(next).toBe(state);
   });
-  it('REMOVE_TAB is a no-op when the tab is not closeable', () => {
+  it('TAB_REMOVE is a no-op when the tab is not closeable', () => {
     const state = createStateFromPanels({
       panels: [
         {
@@ -1874,39 +1874,39 @@ describe('tileryReducer dispatch matrix', () => {
       ],
     });
 
-    const next = tileryReducer(state, { type: 'REMOVE_TAB', tabId: 'T1' });
+    const next = tileryReducer(state, { type: 'TAB_REMOVE', tabId: 'T1' });
 
     expect(next).toBe(state);
   });
-  it('REMOVE_TAB is a no-op if the back-reference panel is missing', () => {
+  it('TAB_REMOVE is a no-op if the back-reference panel is missing', () => {
     let state = twoSideBySide();
     state = {
       ...state,
       tabs: { ...state.tabs, L1: { ...state.tabs.L1!, panelId: 'phantom' } },
     };
-    const next = tileryReducer(state, { type: 'REMOVE_TAB', tabId: 'L1' });
+    const next = tileryReducer(state, { type: 'TAB_REMOVE', tabId: 'L1' });
     expect(next).toBe(state);
   });
-  it('REMOVE_TAB picks the next tab as active when active was removed', () => {
+  it('TAB_REMOVE picks the next tab as active when active was removed', () => {
     const state = twoSideBySide();
-    const next = tileryReducer(state, { type: 'REMOVE_TAB', tabId: 'L1' });
+    const next = tileryReducer(state, { type: 'TAB_REMOVE', tabId: 'L1' });
     expect(next.panels.L!.tabs).toEqual(['L2']);
     expect(next.panels.L!.activeTabId).toBe('L2');
   });
-  it('REMOVE_TAB keeps existing active when removing a non-active tab', () => {
+  it('TAB_REMOVE keeps existing active when removing a non-active tab', () => {
     const state = twoSideBySide();
-    const next = tileryReducer(state, { type: 'REMOVE_TAB', tabId: 'L2' });
+    const next = tileryReducer(state, { type: 'TAB_REMOVE', tabId: 'L2' });
     expect(next.panels.L!.activeTabId).toBe('L1');
   });
 
-  it('REMOVE_TAB picks the previous tab when the active last tab is removed', () => {
+  it('TAB_REMOVE picks the previous tab when the active last tab is removed', () => {
     const state = sideBySideWithThreeLeftTabs('L3');
-    const next = tileryReducer(state, { type: 'REMOVE_TAB', tabId: 'L3' });
+    const next = tileryReducer(state, { type: 'TAB_REMOVE', tabId: 'L3' });
     expect(next.panels.L!.tabs).toEqual(['L1', 'L2']);
     expect(next.panels.L!.activeTabId).toBe('L2');
   });
 
-  it('REMOVE_TAB prunes a last-tab panel and collapses the remaining layout branch', () => {
+  it('TAB_REMOVE prunes a last-tab panel and collapses the remaining layout branch', () => {
     const state = createStateFromPanels({
       panels: [
         {
@@ -1922,7 +1922,7 @@ describe('tileryReducer dispatch matrix', () => {
       ],
     });
 
-    const next = tileryReducer(state, { type: 'REMOVE_TAB', tabId: 'R1' });
+    const next = tileryReducer(state, { type: 'TAB_REMOVE', tabId: 'R1' });
     expect(next.panels.R).toBeUndefined();
     expect(next.panels.L!.inset).toEqual({
       top: 0,
@@ -1939,7 +1939,7 @@ describe('tileryReducer dispatch matrix', () => {
       droppable: true,
     });
   });
-  it('REMOVE_PANEL is a no-op when the panel contains a non-closeable tab', () => {
+  it('PANEL_REMOVE is a no-op when the panel contains a non-closeable tab', () => {
     const state = createStateFromPanels({
       panels: [
         {
@@ -1955,21 +1955,21 @@ describe('tileryReducer dispatch matrix', () => {
       ],
     });
 
-    const next = tileryReducer(state, { type: 'REMOVE_PANEL', panelId: 'L' });
+    const next = tileryReducer(state, { type: 'PANEL_REMOVE', panelId: 'L' });
 
     expect(next).toBe(state);
   });
 
-  it('MOVE_TAB is a no-op if the tab does not exist', () => {
+  it('TAB_MOVE is a no-op if the tab does not exist', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, {
-      type: 'MOVE_TAB',
+      type: 'TAB_MOVE',
       tabId: 'phantom',
       to: { panelId: 'R', index: 0 },
     });
     expect(next).toBe(state);
   });
-  it('MOVE_TAB is a no-op when the tab is not draggable', () => {
+  it('TAB_MOVE is a no-op when the tab is not draggable', () => {
     const state = createStateFromPanels({
       panels: [
         {
@@ -1986,76 +1986,76 @@ describe('tileryReducer dispatch matrix', () => {
     });
 
     const next = tileryReducer(state, {
-      type: 'MOVE_TAB',
+      type: 'TAB_MOVE',
       tabId: 'L1',
       to: { panelId: 'R', index: 0 },
     });
 
     expect(next).toBe(state);
   });
-  it('MOVE_TAB is a no-op if the source panel is broken', () => {
+  it('TAB_MOVE is a no-op if the source panel is broken', () => {
     let state = twoSideBySide();
     state = {
       ...state,
       tabs: { ...state.tabs, L1: { ...state.tabs.L1!, panelId: 'phantom' } },
     };
     const next = tileryReducer(state, {
-      type: 'MOVE_TAB',
+      type: 'TAB_MOVE',
       tabId: 'L1',
       to: { panelId: 'R', index: 0 },
     });
     expect(next).toBe(state);
   });
-  it('MOVE_TAB beforeTab is a no-op if ref tab is missing', () => {
+  it('TAB_MOVE beforeTab is a no-op if ref tab is missing', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, {
-      type: 'MOVE_TAB',
+      type: 'TAB_MOVE',
       tabId: 'L1',
       to: { beforeTabId: 'phantom' },
     });
     expect(next).toBe(state);
   });
-  it('MOVE_TAB beforeTab is a no-op if ref equals the tab being moved', () => {
+  it('TAB_MOVE beforeTab is a no-op if ref equals the tab being moved', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, {
-      type: 'MOVE_TAB',
+      type: 'TAB_MOVE',
       tabId: 'L1',
       to: { beforeTabId: 'L1' },
     });
     expect(next).toBe(state);
   });
-  it('MOVE_TAB beforeTab returns state when the ref tab panel is missing', () => {
+  it('TAB_MOVE beforeTab returns state when the ref tab panel is missing', () => {
     let state = twoSideBySide();
     state = {
       ...state,
       tabs: { ...state.tabs, R1: { ...state.tabs.R1!, panelId: 'phantom' } },
     };
     const next = tileryReducer(state, {
-      type: 'MOVE_TAB',
+      type: 'TAB_MOVE',
       tabId: 'L1',
       to: { beforeTabId: 'R1' },
     });
     expect(next).toBe(state);
   });
-  it('MOVE_TAB beforeTab within the same panel reorders', () => {
+  it('TAB_MOVE beforeTab within the same panel reorders', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, {
-      type: 'MOVE_TAB',
+      type: 'TAB_MOVE',
       tabId: 'L2',
       to: { beforeTabId: 'L1' },
     });
     expect(next.panels.L!.tabs).toEqual(['L2', 'L1']);
   });
-  it('MOVE_TAB afterTab inserts after the ref', () => {
+  it('TAB_MOVE afterTab inserts after the ref', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, {
-      type: 'MOVE_TAB',
+      type: 'TAB_MOVE',
       tabId: 'L1',
       to: { afterTabId: 'R1' },
     });
     expect(next.panels.R!.tabs).toEqual(['R1', 'L1']);
   });
-  it('MOVE_TAB beforeTab is a no-op when same-panel drops are disabled', () => {
+  it('TAB_MOVE beforeTab is a no-op when same-panel drops are disabled', () => {
     const state = tileryCreateInitialState({
       type: 'panel',
       id: 'L',
@@ -2066,50 +2066,50 @@ describe('tileryReducer dispatch matrix', () => {
       ],
     });
     const next = tileryReducer(state, {
-      type: 'MOVE_TAB',
+      type: 'TAB_MOVE',
       tabId: 'L2',
       to: { beforeTabId: 'L1' },
     });
 
     expect(next).toBe(state);
   });
-  it('MOVE_TAB target by panel index defaults to append when index too large', () => {
+  it('TAB_MOVE target by panel index defaults to append when index too large', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, {
-      type: 'MOVE_TAB',
+      type: 'TAB_MOVE',
       tabId: 'L1',
       to: { panelId: 'R', index: 999 },
     });
     expect(next.panels.R!.tabs).toEqual(['R1', 'L1']);
   });
-  it('MOVE_TAB target by panel index with negative clamps to 0', () => {
+  it('TAB_MOVE target by panel index with negative clamps to 0', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, {
-      type: 'MOVE_TAB',
+      type: 'TAB_MOVE',
       tabId: 'L1',
       to: { panelId: 'R', index: -5 },
     });
     expect(next.panels.R!.tabs).toEqual(['L1', 'R1']);
   });
-  it('MOVE_TAB target by panel reorders within same panel', () => {
+  it('TAB_MOVE target by panel reorders within same panel', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, {
-      type: 'MOVE_TAB',
+      type: 'TAB_MOVE',
       tabId: 'L1',
       to: { panelId: 'L', index: 2 },
     });
     expect(next.panels.L!.tabs).toEqual(['L2', 'L1']);
   });
-  it('MOVE_TAB target panel missing → no-op', () => {
+  it('TAB_MOVE target panel missing → no-op', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, {
-      type: 'MOVE_TAB',
+      type: 'TAB_MOVE',
       tabId: 'L1',
       to: { panelId: 'phantom', index: 0 },
     });
     expect(next).toBe(state);
   });
-  it('MOVE_TAB is a no-op when the source panel is not draggable', () => {
+  it('TAB_MOVE is a no-op when the source panel is not draggable', () => {
     const state = tileryCreateInitialState({
       type: 'group',
       direction: 'horizontal',
@@ -2128,14 +2128,14 @@ describe('tileryReducer dispatch matrix', () => {
       ],
     });
     const next = tileryReducer(state, {
-      type: 'MOVE_TAB',
+      type: 'TAB_MOVE',
       tabId: 'L1',
       to: { panelId: 'R', index: 0 },
     });
 
     expect(next).toBe(state);
   });
-  it('MOVE_TAB is a no-op when the target panel is not droppable', () => {
+  it('TAB_MOVE is a no-op when the target panel is not droppable', () => {
     const state = tileryCreateInitialState({
       type: 'group',
       direction: 'horizontal',
@@ -2154,18 +2154,18 @@ describe('tileryReducer dispatch matrix', () => {
       ],
     });
     const next = tileryReducer(state, {
-      type: 'MOVE_TAB',
+      type: 'TAB_MOVE',
       tabId: 'L1',
       to: { panelId: 'R', index: 0 },
     });
 
     expect(next).toBe(state);
   });
-  it('MOVE_TAB splitPanel: wasActive=false branch (moving a non-active tab keeps source active)', () => {
+  it('TAB_MOVE splitPanel: wasActive=false branch (moving a non-active tab keeps source active)', () => {
     // Source has two tabs and the moved one is NOT active.
     const state = twoSideBySide();
     const next = tileryReducer(state, {
-      type: 'MOVE_TAB',
+      type: 'TAB_MOVE',
       tabId: 'L2', // L's active is L1; L2 is not active
       to: {
         splitPanelId: 'R',
@@ -2179,11 +2179,11 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.panels.L!.tabs).toEqual(['L1']);
   });
 
-  it('MOVE_TAB to another panel with non-active source tab keeps the original active', () => {
+  it('TAB_MOVE to another panel with non-active source tab keeps the original active', () => {
     const state = twoSideBySide();
     // L's tabs: [L1, L2], active = L1. Move L2 (non-active) to R.
     const next = tileryReducer(state, {
-      type: 'MOVE_TAB',
+      type: 'TAB_MOVE',
       tabId: 'L2',
       to: { panelId: 'R', index: 0 },
     });
@@ -2192,10 +2192,10 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.panels.R!.tabs).toEqual(['L2', 'R1']);
   });
 
-  it('MOVE_TAB splitPanel target adds a new panel and moves the tab there', () => {
+  it('TAB_MOVE splitPanel target adds a new panel and moves the tab there', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, {
-      type: 'MOVE_TAB',
+      type: 'TAB_MOVE',
       tabId: 'L1',
       to: {
         splitPanelId: 'L',
@@ -2213,10 +2213,10 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.panels.NEWP!.maxSize).toBe(45);
   });
 
-  it('MOVE_TAB splitPanel uses flat fallback when no layout tree exists', () => {
+  it('TAB_MOVE splitPanel uses flat fallback when no layout tree exists', () => {
     const state = nonTilingSideBySide();
     const next = tileryReducer(state, {
-      type: 'MOVE_TAB',
+      type: 'TAB_MOVE',
       tabId: 'L1',
       to: {
         splitPanelId: 'R',
@@ -2231,13 +2231,13 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.tabs.L1!.panelId).toBe('NEWP');
   });
 
-  it('MOVE_TAB splitPanel keeps flat fallback behavior when the layout tree misses the target', () => {
+  it('TAB_MOVE splitPanel keeps flat fallback behavior when the layout tree misses the target', () => {
     const state: TileryLayoutState = {
       ...twoSideBySide(),
       layout: { kind: 'panel', panelId: 'phantom' },
     };
     const next = tileryReducer(state, {
-      type: 'MOVE_TAB',
+      type: 'TAB_MOVE',
       tabId: 'L1',
       to: {
         splitPanelId: 'R',
@@ -2252,7 +2252,7 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.tabs.L1!.panelId).toBe('NEWP');
   });
 
-  it('MOVE_TAB splitPanel is a no-op when source is the same panel and has only this tab', () => {
+  it('TAB_MOVE splitPanel is a no-op when source is the same panel and has only this tab', () => {
     // A single-tab panel cannot be split by its own only tab — there would
     // be nothing to leave behind, and the result would be empty space.
     const state = createStateFromPanels({
@@ -2265,7 +2265,7 @@ describe('tileryReducer dispatch matrix', () => {
       ],
     });
     const next = tileryReducer(state, {
-      type: 'MOVE_TAB',
+      type: 'TAB_MOVE',
       tabId: 'A',
       to: {
         splitPanelId: 'P',
@@ -2277,7 +2277,7 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next).toBe(state);
   });
 
-  it('MOVE_TAB splitPanel where source IS the split target shrinks the source inset', () => {
+  it('TAB_MOVE splitPanel where source IS the split target shrinks the source inset', () => {
     // Single panel covering the full area, with two tabs.
     // Dragging one tab to the right zone of the SAME panel should:
     //   - shrink the source to the left half
@@ -2295,7 +2295,7 @@ describe('tileryReducer dispatch matrix', () => {
       ],
     });
     const next = tileryReducer(state, {
-      type: 'MOVE_TAB',
+      type: 'TAB_MOVE',
       tabId: 'B',
       to: {
         splitPanelId: 'P',
@@ -2319,10 +2319,10 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.panels.P!.tabs).toEqual(['A']);
     expect(next.panels.NEW!.tabs).toEqual(['B']);
   });
-  it('MOVE_TAB splitPanel with active source picks next active', () => {
+  it('TAB_MOVE splitPanel with active source picks next active', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, {
-      type: 'MOVE_TAB',
+      type: 'TAB_MOVE',
       tabId: 'L1',
       to: {
         splitPanelId: 'L',
@@ -2333,7 +2333,7 @@ describe('tileryReducer dispatch matrix', () => {
     });
     expect(next.panels.L!.activeTabId).toBe('L2');
   });
-  it('MOVE_TAB splitPanel removes source when source loses its last tab', () => {
+  it('TAB_MOVE splitPanel removes source when source loses its last tab', () => {
     const state = createStateFromPanels({
       panels: [
         {
@@ -2349,7 +2349,7 @@ describe('tileryReducer dispatch matrix', () => {
       ],
     });
     const next = tileryReducer(state, {
-      type: 'MOVE_TAB',
+      type: 'TAB_MOVE',
       tabId: 'TA',
       to: {
         splitPanelId: 'B',
@@ -2360,10 +2360,10 @@ describe('tileryReducer dispatch matrix', () => {
     });
     expect(next.panels.A).toBeUndefined();
   });
-  it('MOVE_TAB splitPanel missing target → no-op', () => {
+  it('TAB_MOVE splitPanel missing target → no-op', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, {
-      type: 'MOVE_TAB',
+      type: 'TAB_MOVE',
       tabId: 'L1',
       to: {
         splitPanelId: 'phantom',
@@ -2375,13 +2375,13 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next).toBe(state);
   });
 
-  it('MOVE_TAB splitPanel is a no-op when the split target is floating', () => {
+  it('TAB_MOVE splitPanel is a no-op when the split target is floating', () => {
     const state = tileryReducer(twoSideBySide(), {
-      type: 'FLOAT_PANEL',
+      type: 'PANEL_FLOAT',
       panelId: 'R',
     });
     const next = tileryReducer(state, {
-      type: 'MOVE_TAB',
+      type: 'TAB_MOVE',
       tabId: 'L1',
       to: {
         splitPanelId: 'R',
@@ -2394,7 +2394,7 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next).toBe(state);
   });
 
-  it('MOVE_TAB splitPanel is a no-op when the split target is not droppable', () => {
+  it('TAB_MOVE splitPanel is a no-op when the split target is not droppable', () => {
     const state = tileryCreateInitialState({
       type: 'group',
       direction: 'horizontal',
@@ -2413,7 +2413,7 @@ describe('tileryReducer dispatch matrix', () => {
       ],
     });
     const next = tileryReducer(state, {
-      type: 'MOVE_TAB',
+      type: 'TAB_MOVE',
       tabId: 'L1',
       to: {
         splitPanelId: 'R',
@@ -2426,11 +2426,11 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next).toBe(state);
   });
 
-  it('MOVE_TAB splitPanel target no-ops when split would violate min size', () => {
+  it('TAB_MOVE splitPanel target no-ops when split would violate min size', () => {
     // Target panel is only 18% wide. A 50% split would leave each half
     // at 9% — below the 10% default min — so tilerySplitFitsMin refuses the
     // action and the tileryReducer returns the original state. (This is the
-    // counterpart guard to the one on plain SPLIT_PANEL.)
+    // counterpart guard to the one on plain PANEL_SPLIT.)
     const state = createStateFromPanels({
       panels: [
         {
@@ -2446,7 +2446,7 @@ describe('tileryReducer dispatch matrix', () => {
       ],
     });
     const next = tileryReducer(state, {
-      type: 'MOVE_TAB',
+      type: 'TAB_MOVE',
       tabId: 'l1',
       to: {
         splitPanelId: 'R',
@@ -2458,37 +2458,37 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next).toBe(state);
   });
 
-  it('SET_ACTIVE_TAB is a no-op when tab missing', () => {
+  it('TAB_ACTIVE_SET is a no-op when tab missing', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, {
-      type: 'SET_ACTIVE_TAB',
+      type: 'TAB_ACTIVE_SET',
       tabId: 'phantom',
     });
     expect(next).toBe(state);
   });
-  it('SET_ACTIVE_TAB is a no-op when panel back-ref is broken', () => {
+  it('TAB_ACTIVE_SET is a no-op when panel back-ref is broken', () => {
     let state = twoSideBySide();
     state = {
       ...state,
       tabs: { ...state.tabs, L1: { ...state.tabs.L1!, panelId: 'phantom' } },
     };
-    const next = tileryReducer(state, { type: 'SET_ACTIVE_TAB', tabId: 'L1' });
+    const next = tileryReducer(state, { type: 'TAB_ACTIVE_SET', tabId: 'L1' });
     expect(next).toBe(state);
   });
-  it('SET_ACTIVE_TAB is a no-op when the tab is already active', () => {
+  it('TAB_ACTIVE_SET is a no-op when the tab is already active', () => {
     const state = twoSideBySide();
-    const next = tileryReducer(state, { type: 'SET_ACTIVE_TAB', tabId: 'L1' });
+    const next = tileryReducer(state, { type: 'TAB_ACTIVE_SET', tabId: 'L1' });
     expect(next).toBe(state);
   });
-  it('SET_ACTIVE_TAB updates active tab', () => {
+  it('TAB_ACTIVE_SET updates active tab', () => {
     const state = twoSideBySide();
-    const next = tileryReducer(state, { type: 'SET_ACTIVE_TAB', tabId: 'L2' });
+    const next = tileryReducer(state, { type: 'TAB_ACTIVE_SET', tabId: 'L2' });
     expect(next.panels.L!.activeTabId).toBe('L2');
   });
 
-  it('APPEND_TAB and INSERT_TAB open tabs at the requested location and activate them', () => {
+  it('TAB_APPEND and TAB_INSERT open tabs at the requested location and activate them', () => {
     const appended = tileryReducer(sideBySideWithThreeLeftTabs(), {
-      type: 'APPEND_TAB',
+      type: 'TAB_APPEND',
       panelId: 'L',
       tab: { id: 'L4', data: { title: 'left 4' } },
       activate: true,
@@ -2499,7 +2499,7 @@ describe('tileryReducer dispatch matrix', () => {
     expect(appended.panels.R!.activeTabId).toBe('R1');
 
     const insertedAtStart = tileryReducer(appended, {
-      type: 'INSERT_TAB',
+      type: 'TAB_INSERT',
       panelId: 'L',
       tab: { id: 'L0', data: { title: 'left 0' } },
       index: 0,
@@ -2515,7 +2515,7 @@ describe('tileryReducer dispatch matrix', () => {
     expect(insertedAtStart.panels.L!.activeTabId).toBe('L0');
 
     const insertedInMiddle = tileryReducer(insertedAtStart, {
-      type: 'INSERT_TAB',
+      type: 'TAB_INSERT',
       panelId: 'L',
       tab: { id: 'LM', data: { title: 'left middle' } },
       index: 2,
@@ -2532,9 +2532,9 @@ describe('tileryReducer dispatch matrix', () => {
     expect(insertedInMiddle.panels.L!.activeTabId).toBe('LM');
   });
 
-  it('SPLIT_PANEL inserts before and after the target in a same-axis layout', () => {
+  it('PANEL_SPLIT inserts before and after the target in a same-axis layout', () => {
     const after = tileryReducer(sideBySideWithThreeLeftTabs(), {
-      type: 'SPLIT_PANEL',
+      type: 'PANEL_SPLIT',
       panelId: 'L',
       direction: 'right',
       sizePercent: 50,
@@ -2557,7 +2557,7 @@ describe('tileryReducer dispatch matrix', () => {
     });
 
     const before = tileryReducer(sideBySideWithThreeLeftTabs(), {
-      type: 'SPLIT_PANEL',
+      type: 'PANEL_SPLIT',
       panelId: 'L',
       direction: 'left',
       sizePercent: 50,
@@ -2580,9 +2580,9 @@ describe('tileryReducer dispatch matrix', () => {
     });
   });
 
-  it('SPLIT_PANEL inserts before and after the target on an orthogonal axis without moving siblings', () => {
+  it('PANEL_SPLIT inserts before and after the target on an orthogonal axis without moving siblings', () => {
     const below = tileryReducer(sideBySideWithThreeLeftTabs(), {
-      type: 'SPLIT_PANEL',
+      type: 'PANEL_SPLIT',
       panelId: 'L',
       direction: 'bottom',
       sizePercent: 50,
@@ -2611,7 +2611,7 @@ describe('tileryReducer dispatch matrix', () => {
     });
 
     const above = tileryReducer(sideBySideWithThreeLeftTabs(), {
-      type: 'SPLIT_PANEL',
+      type: 'PANEL_SPLIT',
       panelId: 'L',
       direction: 'top',
       sizePercent: 50,
@@ -2634,39 +2634,39 @@ describe('tileryReducer dispatch matrix', () => {
     });
   });
 
-  it('SET_PANEL_DATA is a no-op when tab missing', () => {
+  it('TAB_DATA_SET is a no-op when tab missing', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, {
-      type: 'SET_PANEL_DATA',
+      type: 'TAB_DATA_SET',
       tabId: 'phantom',
       data: { x: 1 },
     });
     expect(next).toBe(state);
   });
-  it('SET_PANEL_DATA updates the tab data', () => {
+  it('TAB_DATA_SET updates the tab data', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, {
-      type: 'SET_PANEL_DATA',
+      type: 'TAB_DATA_SET',
       tabId: 'L1',
       data: { renamed: true },
     });
     expect(next.tabs.L1!.data).toEqual({ renamed: true });
   });
 
-  it('SET_TAB_BEHAVIOR is a no-op when tab missing', () => {
+  it('TAB_BEHAVIOR_SET is a no-op when tab missing', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, {
-      type: 'SET_TAB_BEHAVIOR',
+      type: 'TAB_BEHAVIOR_SET',
       tabId: 'phantom',
       behavior: { closeable: false },
     });
     expect(next).toBe(state);
   });
 
-  it('SET_TAB_BEHAVIOR updates one behavior field without changing the other', () => {
+  it('TAB_BEHAVIOR_SET updates one behavior field without changing the other', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, {
-      type: 'SET_TAB_BEHAVIOR',
+      type: 'TAB_BEHAVIOR_SET',
       tabId: 'L1',
       behavior: { closeable: false },
     });
@@ -2677,10 +2677,10 @@ describe('tileryReducer dispatch matrix', () => {
     });
   });
 
-  it('SET_TAB_BEHAVIOR normalizes locked shorthand', () => {
+  it('TAB_BEHAVIOR_SET normalizes locked shorthand', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, {
-      type: 'SET_TAB_BEHAVIOR',
+      type: 'TAB_BEHAVIOR_SET',
       tabId: 'L1',
       behavior: { locked: true },
     });
@@ -2691,10 +2691,10 @@ describe('tileryReducer dispatch matrix', () => {
     });
   });
 
-  it('SET_TAB_BEHAVIOR is a no-op when behavior does not change', () => {
+  it('TAB_BEHAVIOR_SET is a no-op when behavior does not change', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, {
-      type: 'SET_TAB_BEHAVIOR',
+      type: 'TAB_BEHAVIOR_SET',
       tabId: 'L1',
       behavior: { closeable: true },
     });
@@ -2702,43 +2702,43 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next).toBe(state);
   });
 
-  it('RESIZE_DIVIDER updates panel insets', () => {
+  it('DIVIDER_RESIZE updates panel insets', () => {
     const state = twoSideBySide();
     const div = tileryDeriveDividers(state)[0]!;
     const next = tileryReducer(state, {
-      type: 'RESIZE_DIVIDER',
+      type: 'DIVIDER_RESIZE',
       dividerId: div.id,
       newPosition: 70,
     });
     expect(next.panels.L!.inset.right).toBe(30);
     expect(next.panels.R!.inset.left).toBe(70);
   });
-  it('RESIZE_DIVIDER honors min size (defaults to TILERY_DEFAULT_MIN_SIZE = 10)', () => {
+  it('DIVIDER_RESIZE honors min size (defaults to TILERY_DEFAULT_MIN_SIZE = 10)', () => {
     const state = twoSideBySide();
     const div = tileryDeriveDividers(state)[0]!;
     const next = tileryReducer(state, {
-      type: 'RESIZE_DIVIDER',
+      type: 'DIVIDER_RESIZE',
       dividerId: div.id,
       newPosition: 2,
     });
     expect(next.panels.L!.inset.right).toBe(90);
   });
-  it('RESIZE_DIVIDER honors caller-provided minSize', () => {
+  it('DIVIDER_RESIZE honors caller-provided minSize', () => {
     const state = twoSideBySide();
     const div = tileryDeriveDividers(state)[0]!;
     const next = tileryReducer(state, {
-      type: 'RESIZE_DIVIDER',
+      type: 'DIVIDER_RESIZE',
       dividerId: div.id,
       newPosition: 2,
       minSize: 25,
     });
     expect(next.panels.L!.inset.right).toBe(75);
   });
-  it('RESIZE_DIVIDER resolves caller-provided pixel minSize', () => {
+  it('DIVIDER_RESIZE resolves caller-provided pixel minSize', () => {
     const state = twoSideBySide();
     const div = tileryDeriveDividers(state)[0]!;
     const next = tileryReducer(state, {
-      type: 'RESIZE_DIVIDER',
+      type: 'DIVIDER_RESIZE',
       dividerId: div.id,
       newPosition: 2,
       minSize: '250px',
@@ -2746,7 +2746,7 @@ describe('tileryReducer dispatch matrix', () => {
     });
     expect(next.panels.L!.inset.right).toBe(75);
   });
-  it('RESIZE_DIVIDER resolves per-panel pixel minSize', () => {
+  it('DIVIDER_RESIZE resolves per-panel pixel minSize', () => {
     const state = tileryCreateInitialState({
       type: 'group',
       direction: 'horizontal',
@@ -2768,23 +2768,23 @@ describe('tileryReducer dispatch matrix', () => {
     });
     const div = tileryDeriveDividers(state)[0]!;
     const next = tileryReducer(state, {
-      type: 'RESIZE_DIVIDER',
+      type: 'DIVIDER_RESIZE',
       dividerId: div.id,
       newPosition: 5,
       sizeContext: { width: 1000 },
     });
     expect(100 - next.panels.L!.inset.right).toBe(20);
   });
-  it('RESIZE_DIVIDER is a no-op for an unknown divider id', () => {
+  it('DIVIDER_RESIZE is a no-op for an unknown divider id', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, {
-      type: 'RESIZE_DIVIDER',
+      type: 'DIVIDER_RESIZE',
       dividerId: 'phantom',
       newPosition: 50,
     });
     expect(next).toBe(state);
   });
-  it('RESIZE_DIVIDER is a no-op for a disabled divider', () => {
+  it('DIVIDER_RESIZE is a no-op for a disabled divider', () => {
     const state = tileryCreateInitialState({
       type: 'group',
       direction: 'horizontal',
@@ -2806,14 +2806,14 @@ describe('tileryReducer dispatch matrix', () => {
     expect(div.disabled).toBe(true);
 
     const next = tileryReducer(state, {
-      type: 'RESIZE_DIVIDER',
+      type: 'DIVIDER_RESIZE',
       dividerId: div.id,
       newPosition: 70,
     });
     expect(next).toBe(state);
   });
 
-  it('NORMALIZE_CONTAINER_SIZE adjusts layout for measured pixel constraints', () => {
+  it('CONTAINER_SIZE_NORMALIZE adjusts layout for measured pixel constraints', () => {
     const state = tileryCreateInitialState({
       type: 'group',
       direction: 'horizontal',
@@ -2835,7 +2835,7 @@ describe('tileryReducer dispatch matrix', () => {
     });
 
     const next = tileryReducer(state, {
-      type: 'NORMALIZE_CONTAINER_SIZE',
+      type: 'CONTAINER_SIZE_NORMALIZE',
       sizeContext: { width: 1000 },
     });
 
@@ -2843,7 +2843,7 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.panels.R!.inset.left).toBe(40);
   });
 
-  it('NORMALIZE_CONTAINER_SIZE no-ops when constraints already fit', () => {
+  it('CONTAINER_SIZE_NORMALIZE no-ops when constraints already fit', () => {
     const state = tileryCreateInitialState({
       type: 'group',
       direction: 'horizontal',
@@ -2866,13 +2866,13 @@ describe('tileryReducer dispatch matrix', () => {
 
     expect(
       tileryReducer(state, {
-        type: 'NORMALIZE_CONTAINER_SIZE',
+        type: 'CONTAINER_SIZE_NORMALIZE',
         sizeContext: { width: 1000 },
       }),
     ).toBe(state);
   });
 
-  it('NORMALIZE_CONTAINER_SIZE no-ops without a layout tree', () => {
+  it('CONTAINER_SIZE_NORMALIZE no-ops without a layout tree', () => {
     const state = {
       ...twoSideBySide(),
       layout: null,
@@ -2889,7 +2889,7 @@ describe('tileryReducer dispatch matrix', () => {
     };
 
     const next = tileryReducer(state, {
-      type: 'NORMALIZE_CONTAINER_SIZE',
+      type: 'CONTAINER_SIZE_NORMALIZE',
       sizeContext: { width: 1000 },
     });
 
@@ -2897,11 +2897,11 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.panelOrder).toEqual(['L', 'R']);
   });
 
-  it('NORMALIZE_CONTAINER_SIZE normalizes legacy tiling state first', () => {
+  it('CONTAINER_SIZE_NORMALIZE normalizes legacy tiling state first', () => {
     const state = { ...twoSideBySide(), layout: null };
 
     const next = tileryReducer(state, {
-      type: 'NORMALIZE_CONTAINER_SIZE',
+      type: 'CONTAINER_SIZE_NORMALIZE',
       sizeContext: { width: 1000 },
     });
 
@@ -2912,11 +2912,11 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.panelOrder).toEqual(['L', 'R']);
   });
 
-  it('RESIZE_JUNCTION updates both divider axes for a T-junction', () => {
+  it('JUNCTION_RESIZE updates both divider axes for a T-junction', () => {
     const state = tJunctionLayout();
     const junction = tileryDeriveJunctions(state)[0]!;
     const next = tileryReducer(state, {
-      type: 'RESIZE_JUNCTION',
+      type: 'JUNCTION_RESIZE',
       junctionId: junction.id,
       x: 30,
       y: 70,
@@ -2931,10 +2931,10 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.panels.terminal!.inset.top).toBe(70);
   });
 
-  it('RESIZE_JUNCTION is a no-op for an unknown junction id', () => {
+  it('JUNCTION_RESIZE is a no-op for an unknown junction id', () => {
     const state = tJunctionLayout();
     const next = tileryReducer(state, {
-      type: 'RESIZE_JUNCTION',
+      type: 'JUNCTION_RESIZE',
       junctionId: 'phantom',
       x: 30,
       y: 70,
@@ -2942,7 +2942,7 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next).toBe(state);
   });
 
-  it('RESIZE_JUNCTION is a no-op for a disabled junction', () => {
+  it('JUNCTION_RESIZE is a no-op for a disabled junction', () => {
     const state = tileryCreateInitialState({
       type: 'group',
       direction: 'horizontal',
@@ -2977,7 +2977,7 @@ describe('tileryReducer dispatch matrix', () => {
     expect(junction.disabled).toBe(true);
 
     const next = tileryReducer(state, {
-      type: 'RESIZE_JUNCTION',
+      type: 'JUNCTION_RESIZE',
       junctionId: junction.id,
       x: 30,
       y: 70,
@@ -2985,12 +2985,12 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next).toBe(state);
   });
 
-  it('SWAP_PANELS swaps the insets of two existing panels (content stays put)', () => {
+  it('PANEL_SWAP swaps the insets of two existing panels (content stays put)', () => {
     const state = twoSideBySide();
     const beforeL = state.panels.L!.inset;
     const beforeR = state.panels.R!.inset;
     const next = tileryReducer(state, {
-      type: 'SWAP_PANELS',
+      type: 'PANEL_SWAP',
       panelA: 'L',
       panelB: 'R',
     });
@@ -3000,12 +3000,12 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.panels.L!.tabs).toEqual(state.panels.L!.tabs);
     expect(next.panels.R!.tabs).toEqual(state.panels.R!.tabs);
   });
-  it('SWAP_PANELS swaps flat insets when no layout tree exists', () => {
+  it('PANEL_SWAP swaps flat insets when no layout tree exists', () => {
     const state = nonTilingSideBySide();
     const beforeL = state.panels.L!.inset;
     const beforeR = state.panels.R!.inset;
     const next = tileryReducer(state, {
-      type: 'SWAP_PANELS',
+      type: 'PANEL_SWAP',
       panelA: 'L',
       panelB: 'R',
     });
@@ -3013,43 +3013,43 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.panels.L!.inset).toEqual(beforeR);
     expect(next.panels.R!.inset).toEqual(beforeL);
   });
-  it('SWAP_PANELS is a no-op when either panel is missing', () => {
+  it('PANEL_SWAP is a no-op when either panel is missing', () => {
     const state = twoSideBySide();
     expect(
       tileryReducer(state, {
-        type: 'SWAP_PANELS',
+        type: 'PANEL_SWAP',
         panelA: 'phantom',
         panelB: 'R',
       }),
     ).toBe(state);
     expect(
       tileryReducer(state, {
-        type: 'SWAP_PANELS',
+        type: 'PANEL_SWAP',
         panelA: 'L',
         panelB: 'phantom',
       }),
     ).toBe(state);
   });
 
-  it('SWAP_PANELS is a no-op when either panel is floating', () => {
+  it('PANEL_SWAP is a no-op when either panel is floating', () => {
     const state = tileryReducer(twoSideBySide(), {
-      type: 'FLOAT_PANEL',
+      type: 'PANEL_FLOAT',
       panelId: 'L',
     });
 
     expect(
-      tileryReducer(state, { type: 'SWAP_PANELS', panelA: 'L', panelB: 'R' }),
+      tileryReducer(state, { type: 'PANEL_SWAP', panelA: 'L', panelB: 'R' }),
     ).toBe(state);
   });
 
-  it('SWAP_PANELS is a no-op when given the same panel twice', () => {
+  it('PANEL_SWAP is a no-op when given the same panel twice', () => {
     const state = twoSideBySide();
     expect(
-      tileryReducer(state, { type: 'SWAP_PANELS', panelA: 'L', panelB: 'L' }),
+      tileryReducer(state, { type: 'PANEL_SWAP', panelA: 'L', panelB: 'L' }),
     ).toBe(state);
   });
 
-  it('SWAP_PANELS is a no-op when either panel is locked against movement', () => {
+  it('PANEL_SWAP is a no-op when either panel is locked against movement', () => {
     const state = tileryCreateInitialState({
       type: 'group',
       direction: 'horizontal',
@@ -3069,7 +3069,7 @@ describe('tileryReducer dispatch matrix', () => {
     });
 
     expect(
-      tileryReducer(state, { type: 'SWAP_PANELS', panelA: 'L', panelB: 'R' }),
+      tileryReducer(state, { type: 'PANEL_SWAP', panelA: 'L', panelB: 'R' }),
     ).toBe(state);
   });
 
@@ -3080,7 +3080,7 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next).toBe(state);
   });
 
-  it('MOVE_TAB splitPanel: defensive fallback to null when active tab is missing from source.tabs', () => {
+  it('TAB_MOVE splitPanel: defensive fallback to null when active tab is missing from source.tabs', () => {
     // Construct a malformed state: tab T1 points to panel A, but A.tabs does NOT contain T1.
     // This violates the invariant; the tileryReducer should still survive and pick null activeTabId
     // for the source via the `?? null` fallback path.
@@ -3127,7 +3127,7 @@ describe('tileryReducer dispatch matrix', () => {
       },
     };
     const next = tileryReducer(state, {
-      type: 'MOVE_TAB',
+      type: 'TAB_MOVE',
       tabId: 'T1',
       to: {
         splitPanelId: 'B',
@@ -3140,7 +3140,7 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.panels.A!.tabs).toEqual(['T_DUMMY']);
   });
 
-  it('REMOVE_TAB: defensive ?? null when active tab is not in panel.tabs', () => {
+  it('TAB_REMOVE: defensive ?? null when active tab is not in panel.tabs', () => {
     const state: TileryLayoutState = {
       panels: {
         P: {
@@ -3169,7 +3169,7 @@ describe('tileryReducer dispatch matrix', () => {
         },
       },
     };
-    const next = tileryReducer(state, { type: 'REMOVE_TAB', tabId: 'T1' });
+    const next = tileryReducer(state, { type: 'TAB_REMOVE', tabId: 'T1' });
     // The fallback returned null for activeTabId; nextTabs filter leaves T_OTHER
     expect(next.panels.P!.tabs).toEqual(['T_OTHER']);
     expect(next.panels.P!.activeTabId).toBeNull();
@@ -3221,7 +3221,7 @@ describe('tileryReducer dispatch matrix', () => {
       },
     };
     const next = tileryReducer(state, {
-      type: 'MOVE_TAB',
+      type: 'TAB_MOVE',
       tabId: 'T1',
       to: { panelId: 'B', index: 0 },
     });
@@ -3231,7 +3231,7 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.panels.A!.activeTabId).toBeNull();
   });
 
-  it('MOVE_TAB panel target: defensive fallback when active tab missing from source.tabs', () => {
+  it('TAB_MOVE panel target: defensive fallback when active tab missing from source.tabs', () => {
     const state: TileryLayoutState = {
       panels: {
         A: {
@@ -3275,7 +3275,7 @@ describe('tileryReducer dispatch matrix', () => {
       },
     };
     const next = tileryReducer(state, {
-      type: 'MOVE_TAB',
+      type: 'TAB_MOVE',
       tabId: 'T1',
       to: { panelId: 'B', index: 0 },
     });
@@ -3338,7 +3338,7 @@ describe('helpers', () => {
 // covered above; this pins the cross-panel behavior — the tab must land in
 // the ref tab's panel, the source panel must be updated, and active-tab
 // selection in the source must fall over to a sibling.
-describe('MOVE_TAB — cross-panel beforeTab / afterTab', () => {
+describe('TAB_MOVE — cross-panel beforeTab / afterTab', () => {
   const twoPanels = (): TileryLayoutState =>
     createStateFromPanels({
       panels: [
@@ -3365,7 +3365,7 @@ describe('MOVE_TAB — cross-panel beforeTab / afterTab', () => {
 
   it('moves the tab to the ref-tab’s panel and inserts BEFORE the ref', () => {
     const next = tileryReducer(twoPanels(), {
-      type: 'MOVE_TAB',
+      type: 'TAB_MOVE',
       tabId: 'L1',
       to: { beforeTabId: 'R2' },
     });
@@ -3376,7 +3376,7 @@ describe('MOVE_TAB — cross-panel beforeTab / afterTab', () => {
 
   it('moves the tab to the ref-tab’s panel and inserts AFTER the ref', () => {
     const next = tileryReducer(twoPanels(), {
-      type: 'MOVE_TAB',
+      type: 'TAB_MOVE',
       tabId: 'L1',
       to: { afterTabId: 'R1' },
     });
@@ -3387,7 +3387,7 @@ describe('MOVE_TAB — cross-panel beforeTab / afterTab', () => {
 
   it('picks a sibling as the source panel’s new active when active is moved', () => {
     const next = tileryReducer(twoPanels(), {
-      type: 'MOVE_TAB',
+      type: 'TAB_MOVE',
       tabId: 'L1', // active in L
       to: { beforeTabId: 'R1' },
     });
@@ -3396,7 +3396,7 @@ describe('MOVE_TAB — cross-panel beforeTab / afterTab', () => {
 
   it('activates the moved tab in the destination panel (drag-to-foreground)', () => {
     const next = tileryReducer(twoPanels(), {
-      type: 'MOVE_TAB',
+      type: 'TAB_MOVE',
       tabId: 'L2', // not active in L
       to: { beforeTabId: 'R2' },
     });
@@ -3422,7 +3422,7 @@ describe('MOVE_TAB — cross-panel beforeTab / afterTab', () => {
       ],
     });
     const next = tileryReducer(state, {
-      type: 'MOVE_TAB',
+      type: 'TAB_MOVE',
       tabId: 'only',
       to: { beforeTabId: 'R1' },
     });
@@ -3434,25 +3434,25 @@ describe('MOVE_TAB — cross-panel beforeTab / afterTab', () => {
 });
 
 describe('tileryReducer — panel mode state', () => {
-  it('SET_PANEL_FULLSCREEN is a no-op for missing or already-restored panels', () => {
+  it('PANEL_FULLSCREEN_SET is a no-op for missing or already-restored panels', () => {
     const state = twoSideBySide();
     expect(
       tileryReducer(state, {
-        type: 'SET_PANEL_FULLSCREEN',
+        type: 'PANEL_FULLSCREEN_SET',
         panelId: 'phantom',
         fullScreen: true,
       }),
     ).toBe(state);
     expect(
       tileryReducer(state, {
-        type: 'SET_PANEL_FULLSCREEN',
+        type: 'PANEL_FULLSCREEN_SET',
         panelId: 'L',
         fullScreen: false,
       }),
     ).toBe(state);
   });
 
-  it('SET_PANEL_FULLSCREEN makes one panel fullscreen at a time', () => {
+  it('PANEL_FULLSCREEN_SET makes one panel fullscreen at a time', () => {
     const base = twoSideBySide();
     const state: TileryLayoutState = {
       ...base,
@@ -3462,7 +3462,7 @@ describe('tileryReducer — panel mode state', () => {
       },
     };
     const next = tileryReducer(state, {
-      type: 'SET_PANEL_FULLSCREEN',
+      type: 'PANEL_FULLSCREEN_SET',
       panelId: 'L',
       fullScreen: true,
     });
@@ -3470,29 +3470,29 @@ describe('tileryReducer — panel mode state', () => {
     expect(next.panels.R!.fullScreen).toBe(false);
   });
 
-  it('SET_PANEL_FULLSCREEN true is a no-op when the panel is already fullscreen', () => {
+  it('PANEL_FULLSCREEN_SET true is a no-op when the panel is already fullscreen', () => {
     const state = tileryReducer(twoSideBySide(), {
-      type: 'SET_PANEL_FULLSCREEN',
+      type: 'PANEL_FULLSCREEN_SET',
       panelId: 'L',
       fullScreen: true,
     });
     expect(
       tileryReducer(state, {
-        type: 'SET_PANEL_FULLSCREEN',
+        type: 'PANEL_FULLSCREEN_SET',
         panelId: 'L',
         fullScreen: true,
       }),
     ).toBe(state);
   });
 
-  it('SET_PANEL_FULLSCREEN false restores a fullscreen panel', () => {
+  it('PANEL_FULLSCREEN_SET false restores a fullscreen panel', () => {
     const state = tileryReducer(twoSideBySide(), {
-      type: 'SET_PANEL_FULLSCREEN',
+      type: 'PANEL_FULLSCREEN_SET',
       panelId: 'L',
       fullScreen: true,
     });
     const next = tileryReducer(state, {
-      type: 'SET_PANEL_FULLSCREEN',
+      type: 'PANEL_FULLSCREEN_SET',
       panelId: 'L',
       fullScreen: false,
     });
@@ -3501,14 +3501,14 @@ describe('tileryReducer — panel mode state', () => {
 
   it('suppresses dividers and fullscreen-target splits while a panel is fullscreen', () => {
     const state = tileryReducer(twoSideBySide(), {
-      type: 'SET_PANEL_FULLSCREEN',
+      type: 'PANEL_FULLSCREEN_SET',
       panelId: 'L',
       fullScreen: true,
     });
     expect(tileryDeriveDividers(state)).toEqual([]);
     expect(
       tileryReducer(state, {
-        type: 'SPLIT_PANEL',
+        type: 'PANEL_SPLIT',
         panelId: 'L',
         direction: 'right',
         sizePercent: 50,
@@ -3519,7 +3519,7 @@ describe('tileryReducer — panel mode state', () => {
     ).toBe(state);
     expect(
       tileryReducer(state, {
-        type: 'MOVE_TAB',
+        type: 'TAB_MOVE',
         tabId: 'R1',
         to: {
           splitPanelId: 'L',

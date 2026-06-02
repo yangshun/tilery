@@ -23,13 +23,13 @@ import {
   tileryReducerTabActionToState,
 } from './tab-state';
 
-type AppendTabAction = Extract<TileryReducerAction, { type: 'APPEND_TAB' }>;
-type InsertTabAction = Extract<TileryReducerAction, { type: 'INSERT_TAB' }>;
+type AppendTabAction = Extract<TileryReducerAction, { type: 'TAB_APPEND' }>;
+type InsertTabAction = Extract<TileryReducerAction, { type: 'TAB_INSERT' }>;
 type ChangeTabIdAction = Extract<
   TileryReducerAction,
-  { type: 'CHANGE_TAB_ID' }
+  { type: 'TAB_ID_CHANGE' }
 >;
-type MoveTabAction = Extract<TileryReducerAction, { type: 'MOVE_TAB' }>;
+type MoveTabAction = Extract<TileryReducerAction, { type: 'TAB_MOVE' }>;
 type MoveTabToSplitAction = MoveTabAction & {
   to: Extract<MoveTabAction['to'], { splitPanelId: TileryPanelId }>;
 };
@@ -279,7 +279,7 @@ export function tilerySetTabBehavior(
   tabId: TileryTabId,
   behaviorUpdate: Extract<
     TileryReducerAction,
-    { type: 'SET_TAB_BEHAVIOR' }
+    { type: 'TAB_BEHAVIOR_SET' }
   >['behavior'],
 ): TileryLayoutState {
   const tab = current.tabs[tabId];

@@ -83,7 +83,7 @@ export function makeTileryController(
       const tabs = (opts?.tabs ?? []).map(tileryTabInitToReducerInit);
       const behavior = tileryNormalizeLayoutBehavior(opts);
       dispatch({
-        type: 'SPLIT_PANEL',
+        type: 'PANEL_SPLIT',
         panelId,
         direction,
         sizePercent: opts?.size ?? 50,
@@ -98,19 +98,19 @@ export function makeTileryController(
       return tileryMakePanel(newPanelId, getState, dispatch, controller);
     },
     removePanel(panelId) {
-      dispatch({ type: 'REMOVE_PANEL', panelId });
+      dispatch({ type: 'PANEL_REMOVE', panelId });
     },
     maximizePanel(panelId) {
-      dispatch({ type: 'SET_PANEL_FULLSCREEN', panelId, fullScreen: true });
+      dispatch({ type: 'PANEL_FULLSCREEN_SET', panelId, fullScreen: true });
     },
     restorePanel(panelId) {
-      dispatch({ type: 'SET_PANEL_FULLSCREEN', panelId, fullScreen: false });
+      dispatch({ type: 'PANEL_FULLSCREEN_SET', panelId, fullScreen: false });
     },
     floatPanel(panelId, opts) {
       const behavior = layoutBehaviorConfigFromOptions(opts);
       const bounds = floatingBoundsFromOptions(opts);
       dispatch({
-        type: 'FLOAT_PANEL',
+        type: 'PANEL_FLOAT',
         panelId,
         ...(bounds ? { bounds } : {}),
         ...(behavior ? { behavior } : {}),
@@ -119,33 +119,33 @@ export function makeTileryController(
     popoutPanel(panelId, opts) {
       if (!getState().panels[panelId]) return;
       if (options?.requestPopoutPanel?.(panelId, opts) === false) return;
-      dispatch({ type: 'POPOUT_PANEL', panelId, opts });
+      dispatch({ type: 'PANEL_POPOUT', panelId, opts });
     },
     returnPanelToFloating(panelId, bounds) {
       options?.onReturnPanelToFloating?.(panelId);
-      dispatch({ type: 'RETURN_PANEL_TO_FLOATING', panelId, bounds });
+      dispatch({ type: 'PANEL_RETURN_TO_FLOATING', panelId, bounds });
     },
     dockPanel(panelId, target) {
       dispatch({
-        type: 'DOCK_PANEL',
+        type: 'PANEL_DOCK',
         panelId,
         target,
         sizeContext: getSizeContext?.(),
       });
     },
     focusPanel(panelId) {
-      dispatch({ type: 'FOCUS_PANEL', panelId });
+      dispatch({ type: 'PANEL_FOCUS', panelId });
     },
     setFloatingPanelBounds(panelId, bounds) {
-      dispatch({ type: 'SET_FLOATING_PANEL_BOUNDS', panelId, bounds });
+      dispatch({ type: 'PANEL_FLOATING_BOUNDS_SET', panelId, bounds });
     },
     setPopoutWindowBounds(panelId, bounds) {
-      dispatch({ type: 'SET_POPOUT_WINDOW_BOUNDS', panelId, bounds });
+      dispatch({ type: 'PANEL_POPOUT_WINDOW_BOUNDS_SET', panelId, bounds });
     },
     appendTab(panelId, tab, opts) {
       const t = tileryTabInitToReducerInit(tab);
       dispatch({
-        type: 'APPEND_TAB',
+        type: 'TAB_APPEND',
         panelId,
         tab: t,
         activate: opts?.activate ?? true,
@@ -155,7 +155,7 @@ export function makeTileryController(
     insertTab(panelId, tab, index, opts) {
       const t = tileryTabInitToReducerInit(tab);
       dispatch({
-        type: 'INSERT_TAB',
+        type: 'TAB_INSERT',
         panelId,
         tab: t,
         index,
@@ -165,14 +165,14 @@ export function makeTileryController(
     },
     openOrActivateTab(tab, target) {
       if (tab.id && getState().tabs[tab.id]) {
-        dispatch({ type: 'SET_ACTIVE_TAB', tabId: tab.id });
+        dispatch({ type: 'TAB_ACTIVE_SET', tabId: tab.id });
         return tileryMakeTab(tab.id, getState, dispatch, controller);
       }
       const resolved = resolveOpenTabTarget(getState(), target);
       if (!resolved) return null;
       const t = tileryTabInitToReducerInit(tab);
       dispatch({
-        type: 'INSERT_TAB',
+        type: 'TAB_INSERT',
         panelId: resolved.panelId,
         tab: t,
         index: resolved.index,
@@ -191,15 +191,15 @@ export function makeTileryController(
       if (!tab || !state.panels[tab.panelId] || state.tabs[newTabId]) {
         return null;
       }
-      dispatch({ type: 'CHANGE_TAB_ID', oldTabId, newTabId });
+      dispatch({ type: 'TAB_ID_CHANGE', oldTabId, newTabId });
       return tileryMakeTab(newTabId, getState, dispatch, controller);
     },
     removeTab(tabId) {
-      dispatch({ type: 'REMOVE_TAB', tabId });
+      dispatch({ type: 'TAB_REMOVE', tabId });
     },
     moveTab(tabId, target) {
       dispatch({
-        type: 'MOVE_TAB',
+        type: 'TAB_MOVE',
         tabId,
         to: normalizeMoveTarget(target, getSizeContext?.()),
       });
@@ -211,7 +211,7 @@ export function makeTileryController(
       }
       const behavior = layoutBehaviorConfigFromOptions(opts);
       dispatch({
-        type: 'FLOAT_TAB',
+        type: 'TAB_FLOAT',
         tabId,
         newPanelId,
         bounds: opts?.bounds,
@@ -229,7 +229,7 @@ export function makeTileryController(
         return null;
       }
       dispatch({
-        type: 'POPOUT_TAB',
+        type: 'TAB_POPOUT',
         tabId,
         newPanelId,
         opts: popoutOpts,
@@ -237,20 +237,20 @@ export function makeTileryController(
       return tileryMakePanel(newPanelId, getState, dispatch, controller);
     },
     setTabBehavior(tabId, behavior) {
-      dispatch({ type: 'SET_TAB_BEHAVIOR', tabId, behavior });
+      dispatch({ type: 'TAB_BEHAVIOR_SET', tabId, behavior });
     },
     swapPanels(panelA, panelB) {
-      dispatch({ type: 'SWAP_PANELS', panelA, panelB });
+      dispatch({ type: 'PANEL_SWAP', panelA, panelB });
     },
     setActiveTab(tabId) {
-      dispatch({ type: 'SET_ACTIVE_TAB', tabId });
+      dispatch({ type: 'TAB_ACTIVE_SET', tabId });
     },
     getLayout() {
       return tileryCreateLayoutSnapshot(getState());
     },
     setLayout(layout) {
       dispatch({
-        type: 'REPLACE_STATE',
+        type: 'STATE_REPLACE',
         state: tileryCreateInitialState(layout),
       });
     },
@@ -448,7 +448,7 @@ export function tileryMakeTab<TData = unknown>(
       return getState().tabs[id]?.draggable ?? true;
     },
     setData(data) {
-      dispatch({ type: 'SET_PANEL_DATA', tabId: id, data });
+      dispatch({ type: 'TAB_DATA_SET', tabId: id, data });
     },
     setBehavior(behavior: TileryTabBehaviorUpdate) {
       tilery.setTabBehavior(id, behavior);

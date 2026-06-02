@@ -8,17 +8,17 @@ import {
 } from 'tilery/internal';
 
 export type TileryLifecycleSource =
-  | 'SPLIT_PANEL'
-  | 'REMOVE_PANEL'
-  | 'APPEND_TAB'
-  | 'INSERT_TAB'
-  | 'CHANGE_TAB_ID'
-  | 'REMOVE_TAB'
-  | 'MOVE_TAB'
-  | 'FLOAT_TAB'
-  | 'POPOUT_TAB'
-  | 'SET_ACTIVE_TAB'
-  | 'REPLACE_STATE';
+  | 'PANEL_SPLIT'
+  | 'PANEL_REMOVE'
+  | 'TAB_APPEND'
+  | 'TAB_INSERT'
+  | 'TAB_ID_CHANGE'
+  | 'TAB_REMOVE'
+  | 'TAB_MOVE'
+  | 'TAB_FLOAT'
+  | 'TAB_POPOUT'
+  | 'TAB_ACTIVE_SET'
+  | 'STATE_REPLACE';
 
 export type TileryTabLifecycleChange<TData = unknown> = {
   id: TileryTabId;
@@ -74,7 +74,7 @@ export type TileryPanelsOpenEvent<TData = unknown> = {
 };
 
 export type TileryPanelSplitEvent<TData = unknown> = {
-  source: 'SPLIT_PANEL' | 'MOVE_TAB';
+  source: 'PANEL_SPLIT' | 'TAB_MOVE';
   splitPanelId: TileryPanelId;
   createdPanelId: TileryPanelId;
   direction: TileryDirection;
@@ -138,13 +138,13 @@ export function makeLifecycleEvents<TData>(
   );
   const panelSplit = makePanelSplitEvent<TData>(previousState, state, action);
   const openedTabs =
-    action.type === 'CHANGE_TAB_ID'
+    action.type === 'TAB_ID_CHANGE'
       ? []
       : Object.values(state.tabs)
           .filter((tab) => !previousState.tabs[tab.id])
           .map(makeTabLifecycleChange<TData>);
   const closedTabs =
-    action.type === 'CHANGE_TAB_ID'
+    action.type === 'TAB_ID_CHANGE'
       ? []
       : Object.values(previousState.tabs)
           .filter((tab) => !state.tabs[tab.id])
@@ -245,9 +245,9 @@ function makeTabMoveChanges<TData>(
   action: TileryReducerAction,
 ): TileryTabMoveChange<TData>[] {
   const tabId =
-    action.type === 'MOVE_TAB' ||
-    action.type === 'FLOAT_TAB' ||
-    action.type === 'POPOUT_TAB'
+    action.type === 'TAB_MOVE' ||
+    action.type === 'TAB_FLOAT' ||
+    action.type === 'TAB_POPOUT'
       ? action.tabId
       : null;
   if (!tabId) return [];
@@ -278,22 +278,22 @@ function makePanelSplitEvent<TData>(
   state: TileryLayoutState,
   action: TileryReducerAction,
 ): TileryPanelSplitEvent<TData> | null {
-  if (action.type === 'SPLIT_PANEL') {
+  if (action.type === 'PANEL_SPLIT') {
     return makePanelSplitEventFromParts(
       previousState,
       state,
-      'SPLIT_PANEL',
+      'PANEL_SPLIT',
       action.panelId,
       action.newPanelId,
       action.direction,
       action.sizePercent,
     );
   }
-  if (action.type === 'MOVE_TAB' && 'splitPanelId' in action.to) {
+  if (action.type === 'TAB_MOVE' && 'splitPanelId' in action.to) {
     return makePanelSplitEventFromParts(
       previousState,
       state,
-      'MOVE_TAB',
+      'TAB_MOVE',
       action.to.splitPanelId,
       action.to.newPanelId,
       action.to.direction,

@@ -112,7 +112,7 @@ export type TileryResizeEvent = {
 
 type TileryResizeAction = Extract<
   TileryReducerAction,
-  { type: 'RESIZE_DIVIDER' | 'RESIZE_JUNCTION' }
+  { type: 'DIVIDER_RESIZE' | 'JUNCTION_RESIZE' }
 >;
 
 export type TileryProps<TData = unknown> = {
@@ -226,7 +226,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
   const normalizeContainerSize = useCallback(
     (nextSizeContext: TilerySizeResolutionContext) => {
       const action: TileryReducerAction = {
-        type: 'NORMALIZE_CONTAINER_SIZE',
+        type: 'CONTAINER_SIZE_NORMALIZE',
         minSize,
         sizeContext: nextSizeContext,
       };
@@ -521,7 +521,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
     ) => {
       return dispatchResize(
         {
-          type: 'RESIZE_DIVIDER',
+          type: 'DIVIDER_RESIZE',
           dividerId,
           newPosition,
           minSize,
@@ -542,7 +542,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
     ) => {
       return dispatchResize(
         {
-          type: 'RESIZE_JUNCTION',
+          type: 'JUNCTION_RESIZE',
           junctionId,
           x,
           y,
@@ -777,7 +777,7 @@ function makeResizeSource(
   state: TileryLayoutState,
   action: TileryResizeAction,
 ): TileryResizeSource | null {
-  if (action.type === 'RESIZE_DIVIDER') {
+  if (action.type === 'DIVIDER_RESIZE') {
     const previousDivider = tileryDeriveDividers(previousState).find(
       (divider) => divider.id === action.dividerId,
     );

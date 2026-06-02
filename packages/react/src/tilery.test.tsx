@@ -1649,7 +1649,7 @@ describe('Tilery — open and close lifecycle callbacks', () => {
 
     expect(opens).toHaveLength(3);
     expect(opens[0]).toMatchObject({
-      source: 'APPEND_TAB',
+      source: 'TAB_APPEND',
       tabs: [
         {
           id: 'side-2',
@@ -1664,21 +1664,21 @@ describe('Tilery — open and close lifecycle callbacks', () => {
       panelId: 'sidebar',
     });
     expect(opens[1]).toMatchObject({
-      source: 'INSERT_TAB',
+      source: 'TAB_INSERT',
       tabs: [{ id: 'readme', panelId: 'editor', closeable: true }],
     });
-    expect(opens[2].source).toBe('SPLIT_PANEL');
+    expect(opens[2].source).toBe('PANEL_SPLIT');
     expect(opens[2].tabs.map((tab) => tab.id)).toEqual(['logs', 'problems']);
     expect(new Set(opens[2].tabs.map((tab) => tab.panelId)).size).toBe(1);
     expect(panelOpens).toHaveLength(1);
-    expect(panelOpens[0].source).toBe('SPLIT_PANEL');
+    expect(panelOpens[0].source).toBe('PANEL_SPLIT');
     expect(panelOpens[0].tabs.map((tab) => tab.id)).toEqual([
       'logs',
       'problems',
     ]);
     expect(panelSplits).toHaveLength(1);
     expect(panelSplits[0]).toMatchObject({
-      source: 'SPLIT_PANEL',
+      source: 'PANEL_SPLIT',
       splitPanelId: 'term',
       direction: 'right',
       size: 50,
@@ -1704,7 +1704,7 @@ describe('Tilery — open and close lifecycle callbacks', () => {
 
     expect(activeChanges).toHaveLength(2);
     expect(activeChanges[0]).toMatchObject({
-      source: 'SET_ACTIVE_TAB',
+      source: 'TAB_ACTIVE_SET',
       changes: [{ panelId: 'editor', previousTabId: 'foo', tabId: 'bar' }],
     });
     expect(activeChanges[0].previousState.panels.editor!.activeTabId).toBe(
@@ -1712,7 +1712,7 @@ describe('Tilery — open and close lifecycle callbacks', () => {
     );
     expect(activeChanges[0].state.panels.editor!.activeTabId).toBe('bar');
     expect(activeChanges[1]).toMatchObject({
-      source: 'APPEND_TAB',
+      source: 'TAB_APPEND',
       changes: [{ panelId: 'editor', previousTabId: 'bar', tabId: 'baz' }],
     });
     t.cleanup();
@@ -1730,7 +1730,7 @@ describe('Tilery — open and close lifecycle callbacks', () => {
 
     expect(moves).toHaveLength(1);
     expect(moves[0]).toMatchObject({
-      source: 'MOVE_TAB',
+      source: 'TAB_MOVE',
       tabs: [
         {
           id: 'bar',
@@ -1769,7 +1769,7 @@ describe('Tilery — open and close lifecycle callbacks', () => {
     expect(panelSplits).toHaveLength(1);
     const createdPanelId = panelOpens[0].panels[0].id;
     expect(moves[0]).toMatchObject({
-      source: 'MOVE_TAB',
+      source: 'TAB_MOVE',
       tabs: [
         {
           id: 'bar',
@@ -1781,12 +1781,12 @@ describe('Tilery — open and close lifecycle callbacks', () => {
       ],
     });
     expect(panelOpens[0]).toMatchObject({
-      source: 'MOVE_TAB',
+      source: 'TAB_MOVE',
       panels: [{ id: createdPanelId, tabIds: ['bar'], activeTabId: 'bar' }],
       tabs: [{ id: 'bar', panelId: createdPanelId }],
     });
     expect(panelSplits[0]).toMatchObject({
-      source: 'MOVE_TAB',
+      source: 'TAB_MOVE',
       splitPanelId: 'term',
       createdPanelId,
       direction: 'left',
@@ -1815,7 +1815,7 @@ describe('Tilery — open and close lifecycle callbacks', () => {
     expect(moves).toHaveLength(1);
     expect(panelOpens).toHaveLength(1);
     expect(moves[0]).toMatchObject({
-      source: 'FLOAT_TAB',
+      source: 'TAB_FLOAT',
       tabs: [
         {
           id: 'bar',
@@ -1827,7 +1827,7 @@ describe('Tilery — open and close lifecycle callbacks', () => {
       ],
     });
     expect(panelOpens[0]).toMatchObject({
-      source: 'FLOAT_TAB',
+      source: 'TAB_FLOAT',
       panels: [{ id: 'bar-floating', tabIds: ['bar'], activeTabId: 'bar' }],
       tabs: [{ id: 'bar', panelId: 'bar-floating' }],
     });
@@ -1849,7 +1849,7 @@ describe('Tilery — open and close lifecycle callbacks', () => {
     expect(closes).toEqual([]);
     expect(panelCloses).toHaveLength(1);
     expect(panelCloses[0]).toMatchObject({
-      source: 'FLOAT_TAB',
+      source: 'TAB_FLOAT',
       panels: [{ id: 'sidebar', tabIds: ['side'], activeTabId: 'side' }],
       tabs: [{ id: 'side', panelId: 'sidebar' }],
     });
@@ -1872,12 +1872,12 @@ describe('Tilery — open and close lifecycle callbacks', () => {
 
     expect(closes).toHaveLength(2);
     expect(closes[0]).toMatchObject({
-      source: 'REMOVE_TAB',
+      source: 'TAB_REMOVE',
       tabs: [{ id: 'bar', panelId: 'editor', data: { title: 'bar.ts' } }],
       panels: [],
     });
     expect(closes[1]).toMatchObject({
-      source: 'REMOVE_TAB',
+      source: 'TAB_REMOVE',
       tabs: [{ id: 'side', panelId: 'sidebar', data: { title: 'Side' } }],
       panels: [
         {
@@ -1889,7 +1889,7 @@ describe('Tilery — open and close lifecycle callbacks', () => {
     });
     expect(panelCloses).toHaveLength(1);
     expect(panelCloses[0]).toMatchObject({
-      source: 'REMOVE_TAB',
+      source: 'TAB_REMOVE',
       panels: [{ id: 'sidebar', tabIds: ['side'], activeTabId: 'side' }],
       tabs: [{ id: 'side', panelId: 'sidebar' }],
     });
@@ -1911,13 +1911,13 @@ describe('Tilery — open and close lifecycle callbacks', () => {
     });
 
     expect(closes).toHaveLength(1);
-    expect(closes[0].source).toBe('REMOVE_PANEL');
+    expect(closes[0].source).toBe('PANEL_REMOVE');
     expect(closes[0].tabs.map((tab) => tab.id)).toEqual(['foo', 'bar']);
     expect(closes[0].panels).toEqual([
       { id: 'editor', tabIds: ['foo', 'bar'], activeTabId: 'foo' },
     ]);
     expect(panelCloses).toHaveLength(1);
-    expect(panelCloses[0].source).toBe('REMOVE_PANEL');
+    expect(panelCloses[0].source).toBe('PANEL_REMOVE');
     expect(panelCloses[0].tabs.map((tab) => tab.id)).toEqual(['foo', 'bar']);
     expect(panelCloses[0].panels).toEqual([
       { id: 'editor', tabIds: ['foo', 'bar'], activeTabId: 'foo' },
@@ -1940,7 +1940,7 @@ describe('Tilery — open and close lifecycle callbacks', () => {
     expect(closes).toEqual([]);
     expect(panelCloses).toHaveLength(1);
     expect(panelCloses[0]).toMatchObject({
-      source: 'MOVE_TAB',
+      source: 'TAB_MOVE',
       panels: [{ id: 'sidebar', tabIds: ['side'], activeTabId: 'side' }],
       tabs: [{ id: 'side', panelId: 'sidebar' }],
     });
@@ -3052,7 +3052,7 @@ describe('Tilery — API object cache invalidation', () => {
 });
 
 describe('Tilery — min panel size honored by controller', () => {
-  it('forwards minSize to RESIZE_DIVIDER clamps', () => {
+  it('forwards minSize to DIVIDER_RESIZE clamps', () => {
     const t = mount(lShapeLayout());
     const divider = Array.from(
       t.host.querySelectorAll<HTMLElement>('.tilery__divider'),

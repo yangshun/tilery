@@ -25,7 +25,7 @@ import {
 } from './layout-tree';
 import { tileryReducerTabActionToState } from './tab-state';
 
-type SplitPanelAction = Extract<TileryReducerAction, { type: 'SPLIT_PANEL' }>;
+type SplitPanelAction = Extract<TileryReducerAction, { type: 'PANEL_SPLIT' }>;
 
 export function tilerySplitPanel(
   current: TileryLayoutState,

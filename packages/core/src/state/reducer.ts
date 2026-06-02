@@ -60,25 +60,20 @@ export function tileryReducer(
 ): TileryLayoutState {
   const current = tileryNormalizeLayoutState(state);
   switch (action.type) {
-    case 'REPLACE_STATE': {
-      const next = tileryNormalizeLayoutState(action.state);
-      tileryWarnForConstraintDiagnostics(next);
-      return next;
-    }
-    case 'SPLIT_PANEL': {
+    case 'PANEL_SPLIT': {
       return tilerySplitPanel(current, action);
     }
-    case 'REMOVE_PANEL': {
+    case 'PANEL_REMOVE': {
       return tileryRemovePanel(current, action.panelId);
     }
-    case 'SET_PANEL_FULLSCREEN': {
+    case 'PANEL_FULLSCREEN_SET': {
       return tilerySetPanelFullScreen(
         current,
         action.panelId,
         action.fullScreen,
       );
     }
-    case 'FLOAT_PANEL': {
+    case 'PANEL_FLOAT': {
       return tileryFloatPanel(
         current,
         action.panelId,
@@ -86,17 +81,69 @@ export function tileryReducer(
         action.behavior,
       );
     }
-    case 'POPOUT_PANEL': {
+    case 'PANEL_POPOUT': {
       return tileryPopoutPanel(current, action.panelId, action.opts);
     }
-    case 'RETURN_PANEL_TO_FLOATING': {
+    case 'PANEL_RETURN_TO_FLOATING': {
       return tileryReturnPanelToFloating(
         current,
         action.panelId,
         action.bounds,
       );
     }
-    case 'FLOAT_TAB': {
+    case 'PANEL_DOCK': {
+      return tileryDockPanel(
+        current,
+        action.panelId,
+        action.target,
+        action.sizeContext,
+      );
+    }
+    case 'PANEL_FOCUS': {
+      return tileryFocusFloatingPanel(current, action.panelId);
+    }
+    case 'PANEL_FLOATING_BOUNDS_SET': {
+      return tilerySetFloatingPanelBounds(
+        current,
+        action.panelId,
+        action.bounds,
+      );
+    }
+    case 'PANEL_POPOUT_WINDOW_BOUNDS_SET': {
+      return tilerySetPopoutWindowBounds(
+        current,
+        action.panelId,
+        action.bounds,
+      );
+    }
+    case 'PANEL_SWAP': {
+      return tilerySwapPanels(current, action.panelA, action.panelB);
+    }
+    case 'TAB_APPEND': {
+      return tileryAppendTab(current, action);
+    }
+    case 'TAB_INSERT': {
+      return tileryInsertTab(current, action);
+    }
+    case 'TAB_ID_CHANGE': {
+      return tileryChangeTabId(current, action);
+    }
+    case 'TAB_REMOVE': {
+      return tileryRemoveTab(current, action.tabId);
+    }
+    case 'TAB_MOVE': {
+      return tileryMoveTab(current, action);
+    }
+    case 'TAB_ACTIVE_SET': {
+      return tilerySetActiveTab(current, action.tabId);
+    }
+    case 'TAB_DATA_SET': {
+      return tilerySetPanelData(current, action.tabId, action.data);
+    }
+    case 'TAB_BEHAVIOR_SET': {
+      return tilerySetTabBehavior(current, action.tabId, action.behavior);
+    }
+    case 'TAB_FLOAT': {
       return tileryFloatTab(
         current,
         action.tabId,
@@ -105,7 +152,7 @@ export function tileryReducer(
         action.behavior,
       );
     }
-    case 'POPOUT_TAB': {
+    case 'TAB_POPOUT': {
       return tileryPopoutTab(
         current,
         action.tabId,
@@ -113,56 +160,7 @@ export function tileryReducer(
         action.opts,
       );
     }
-    case 'DOCK_PANEL': {
-      return tileryDockPanel(
-        current,
-        action.panelId,
-        action.target,
-        action.sizeContext,
-      );
-    }
-    case 'FOCUS_PANEL': {
-      return tileryFocusFloatingPanel(current, action.panelId);
-    }
-    case 'SET_FLOATING_PANEL_BOUNDS': {
-      return tilerySetFloatingPanelBounds(
-        current,
-        action.panelId,
-        action.bounds,
-      );
-    }
-    case 'SET_POPOUT_WINDOW_BOUNDS': {
-      return tilerySetPopoutWindowBounds(
-        current,
-        action.panelId,
-        action.bounds,
-      );
-    }
-    case 'APPEND_TAB': {
-      return tileryAppendTab(current, action);
-    }
-    case 'INSERT_TAB': {
-      return tileryInsertTab(current, action);
-    }
-    case 'CHANGE_TAB_ID': {
-      return tileryChangeTabId(current, action);
-    }
-    case 'REMOVE_TAB': {
-      return tileryRemoveTab(current, action.tabId);
-    }
-    case 'MOVE_TAB': {
-      return tileryMoveTab(current, action);
-    }
-    case 'SET_ACTIVE_TAB': {
-      return tilerySetActiveTab(current, action.tabId);
-    }
-    case 'SET_PANEL_DATA': {
-      return tilerySetPanelData(current, action.tabId, action.data);
-    }
-    case 'SET_TAB_BEHAVIOR': {
-      return tilerySetTabBehavior(current, action.tabId, action.behavior);
-    }
-    case 'RESIZE_DIVIDER': {
+    case 'DIVIDER_RESIZE': {
       const dividers = tileryDeriveDividers(current);
       const target = dividers.find((d) => d.id === action.dividerId);
       if (!target) return current;
@@ -176,7 +174,7 @@ export function tileryReducer(
       );
       return tileryApplyDividerResize(current, target, clamped);
     }
-    case 'RESIZE_JUNCTION': {
+    case 'JUNCTION_RESIZE': {
       const junction = tileryDeriveJunctions(current).find(
         (j) => j.id === action.junctionId,
       );
@@ -189,7 +187,7 @@ export function tileryReducer(
         action.sizeContext,
       );
     }
-    case 'NORMALIZE_CONTAINER_SIZE': {
+    case 'CONTAINER_SIZE_NORMALIZE': {
       if (!current.layout) return current;
       tileryWarnForConstraintDiagnostics(current, {
         minSize: action.minSize,
@@ -204,8 +202,10 @@ export function tileryReducer(
       if (layout === current.layout) return current;
       return tilerySyncLayoutPanels({ ...current, layout }, layout);
     }
-    case 'SWAP_PANELS': {
-      return tilerySwapPanels(current, action.panelA, action.panelB);
+    case 'STATE_REPLACE': {
+      const next = tileryNormalizeLayoutState(action.state);
+      tileryWarnForConstraintDiagnostics(next);
+      return next;
     }
     default:
       return current;

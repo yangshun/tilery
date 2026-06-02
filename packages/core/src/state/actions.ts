@@ -30,7 +30,7 @@ export type TileryReducerTabAction = {
 
 export type TileryReducerAction =
   | {
-      type: 'SPLIT_PANEL';
+      type: 'PANEL_SPLIT';
       panelId: TileryPanelId;
       direction: TileryDirection;
       sizePercent: number;
@@ -44,79 +44,67 @@ export type TileryReducerAction =
       tabs: TileryReducerTabAction[];
       activate: boolean;
     }
-  | { type: 'REMOVE_PANEL'; panelId: TileryPanelId }
+  | { type: 'PANEL_REMOVE'; panelId: TileryPanelId }
   | {
-      type: 'SET_PANEL_FULLSCREEN';
+      type: 'PANEL_FULLSCREEN_SET';
       panelId: TileryPanelId;
       fullScreen: boolean;
     }
   | {
-      type: 'FLOAT_PANEL';
+      type: 'PANEL_FLOAT';
       panelId: TileryPanelId;
       bounds?: TileryFloatingPanelBoundsInit;
       behavior?: TileryLayoutBehaviorConfig;
     }
   | {
-      type: 'POPOUT_PANEL';
+      type: 'PANEL_POPOUT';
       panelId: TileryPanelId;
       opts?: TileryPopoutPanelOptions;
     }
   | {
-      type: 'RETURN_PANEL_TO_FLOATING';
+      type: 'PANEL_RETURN_TO_FLOATING';
       panelId: TileryPanelId;
       bounds?: TileryFloatingPanelBoundsInit;
     }
   | {
-      type: 'FLOAT_TAB';
-      tabId: TileryTabId;
-      newPanelId: TileryPanelId;
-      bounds?: TileryFloatingPanelBoundsInit;
-      behavior?: TileryLayoutBehaviorConfig;
-    }
-  | {
-      type: 'POPOUT_TAB';
-      tabId: TileryTabId;
-      newPanelId: TileryPanelId;
-      opts?: TileryPopoutPanelOptions;
-    }
-  | {
-      type: 'DOCK_PANEL';
+      type: 'PANEL_DOCK';
       panelId: TileryPanelId;
       target?: TileryDockPanelTarget;
       sizeContext?: TilerySizeResolutionContext;
     }
-  | { type: 'FOCUS_PANEL'; panelId: TileryPanelId }
+  | { type: 'PANEL_FOCUS'; panelId: TileryPanelId }
   | {
-      type: 'SET_FLOATING_PANEL_BOUNDS';
+      type: 'PANEL_FLOATING_BOUNDS_SET';
       panelId: TileryPanelId;
       bounds: TileryFloatingPanelBounds;
     }
   | {
-      type: 'SET_POPOUT_WINDOW_BOUNDS';
+      type: 'PANEL_POPOUT_WINDOW_BOUNDS_SET';
       panelId: TileryPanelId;
       bounds: TileryPopoutWindowBounds;
     }
+  | { type: 'PANEL_SWAP'; panelA: TileryPanelId; panelB: TileryPanelId }
   | {
-      type: 'APPEND_TAB';
+      type: 'TAB_APPEND';
       panelId: TileryPanelId;
       tab: TileryReducerTabAction;
       activate: boolean;
     }
   | {
-      type: 'INSERT_TAB';
+      type: 'TAB_INSERT';
       panelId: TileryPanelId;
       tab: TileryReducerTabAction;
       index: number;
       activate: boolean;
     }
   | {
-      type: 'CHANGE_TAB_ID';
+      type: 'TAB_ID_CHANGE';
       oldTabId: TileryTabId;
       newTabId: TileryTabId;
     }
-  | { type: 'REMOVE_TAB'; tabId: TileryTabId }
+  | { type: 'TAB_REMOVE'; tabId: TileryTabId }
   | {
-      type: 'MOVE_TAB';
+      type: 'TAB_MOVE';
       tabId: TileryTabId;
       to:
         | { panelId: TileryPanelId; index: number }
@@ -135,22 +123,35 @@ export type TileryReducerAction =
             droppable?: boolean;
           };
     }
-  | { type: 'SET_ACTIVE_TAB'; tabId: TileryTabId }
-  | { type: 'SET_PANEL_DATA'; tabId: TileryTabId; data: unknown }
+  | { type: 'TAB_ACTIVE_SET'; tabId: TileryTabId }
+  | { type: 'TAB_DATA_SET'; tabId: TileryTabId; data: unknown }
   | {
-      type: 'SET_TAB_BEHAVIOR';
+      type: 'TAB_BEHAVIOR_SET';
       tabId: TileryTabId;
       behavior: TileryTabBehaviorUpdate;
     }
   | {
-      type: 'RESIZE_DIVIDER';
+      type: 'TAB_FLOAT';
+      tabId: TileryTabId;
+      newPanelId: TileryPanelId;
+      bounds?: TileryFloatingPanelBoundsInit;
+      behavior?: TileryLayoutBehaviorConfig;
+    }
+  | {
+      type: 'TAB_POPOUT';
+      tabId: TileryTabId;
+      newPanelId: TileryPanelId;
+      opts?: TileryPopoutPanelOptions;
+    }
+  | {
+      type: 'DIVIDER_RESIZE';
       dividerId: string;
       newPosition: number;
       minSize?: TilerySize;
       sizeContext?: TilerySizeResolutionContext;
     }
   | {
-      type: 'RESIZE_JUNCTION';
+      type: 'JUNCTION_RESIZE';
       junctionId: string;
       x: number;
       y: number;
@@ -158,9 +159,8 @@ export type TileryReducerAction =
       sizeContext?: TilerySizeResolutionContext;
     }
   | {
-      type: 'NORMALIZE_CONTAINER_SIZE';
+      type: 'CONTAINER_SIZE_NORMALIZE';
       minSize?: TilerySize;
       sizeContext?: TilerySizeResolutionContext;
     }
-  | { type: 'SWAP_PANELS'; panelA: TileryPanelId; panelB: TileryPanelId }
-  | { type: 'REPLACE_STATE'; state: TileryLayoutState };
+  | { type: 'STATE_REPLACE'; state: TileryLayoutState };

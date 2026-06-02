@@ -34,7 +34,7 @@ describe('makeLifecycleEvents', () => {
   it('returns null events for no-op state transitions', () => {
     const state = layout();
     const action: TileryReducerAction = {
-      type: 'SET_ACTIVE_TAB',
+      type: 'TAB_ACTIVE_SET',
       tabId: 'missing',
     };
 
@@ -54,14 +54,14 @@ describe('makeLifecycleEvents', () => {
   it('derives active tab changes from panel state', () => {
     const state = layout();
     const action: TileryReducerAction = {
-      type: 'SET_ACTIVE_TAB',
+      type: 'TAB_ACTIVE_SET',
       tabId: 'b',
     };
     const next = tileryReducer(state, action);
     const events = makeLifecycleEvents<Data>(state, next, action);
 
     expect(events.activeTabChange).toMatchObject({
-      source: 'SET_ACTIVE_TAB',
+      source: 'TAB_ACTIVE_SET',
       changes: [{ panelId: 'left', previousTabId: 'a', tabId: 'b' }],
       previousState: state,
       state: next,
@@ -72,7 +72,7 @@ describe('makeLifecycleEvents', () => {
   it('treats tab id changes as renames instead of close/open pairs', () => {
     const state = layout();
     const action: TileryReducerAction = {
-      type: 'CHANGE_TAB_ID',
+      type: 'TAB_ID_CHANGE',
       oldTabId: 'a',
       newTabId: 'a-renamed',
     };
@@ -80,7 +80,7 @@ describe('makeLifecycleEvents', () => {
     const events = makeLifecycleEvents<Data>(state, next, action);
 
     expect(events.activeTabChange).toMatchObject({
-      source: 'CHANGE_TAB_ID',
+      source: 'TAB_ID_CHANGE',
       changes: [
         {
           panelId: 'left',
@@ -96,7 +96,7 @@ describe('makeLifecycleEvents', () => {
   it('derives tab move changes when a tab index changes', () => {
     const state = layout();
     const action: TileryReducerAction = {
-      type: 'MOVE_TAB',
+      type: 'TAB_MOVE',
       tabId: 'b',
       to: { panelId: 'left', index: 0 },
     };
@@ -104,7 +104,7 @@ describe('makeLifecycleEvents', () => {
     const events = makeLifecycleEvents<Data>(state, next, action);
 
     expect(events.tabsMove).toMatchObject({
-      source: 'MOVE_TAB',
+      source: 'TAB_MOVE',
       tabs: [
         {
           id: 'b',
@@ -124,7 +124,7 @@ describe('makeLifecycleEvents', () => {
   it('derives panel open, tab open, and split events for panel splits', () => {
     const state = layout();
     const action: TileryReducerAction = {
-      type: 'SPLIT_PANEL',
+      type: 'PANEL_SPLIT',
       panelId: 'right',
       direction: 'bottom',
       sizePercent: 35,
@@ -136,7 +136,7 @@ describe('makeLifecycleEvents', () => {
     const events = makeLifecycleEvents<Data>(state, next, action);
 
     expect(events.panelsOpen).toMatchObject({
-      source: 'SPLIT_PANEL',
+      source: 'PANEL_SPLIT',
       panels: [{ id: 'bottom', tabIds: ['logs'], activeTabId: 'logs' }],
       tabs: [
         {
@@ -149,11 +149,11 @@ describe('makeLifecycleEvents', () => {
       ],
     });
     expect(events.tabsOpen).toMatchObject({
-      source: 'SPLIT_PANEL',
+      source: 'PANEL_SPLIT',
       tabs: [{ id: 'logs', panelId: 'bottom' }],
     });
     expect(events.panelSplit).toMatchObject({
-      source: 'SPLIT_PANEL',
+      source: 'PANEL_SPLIT',
       splitPanelId: 'right',
       createdPanelId: 'bottom',
       direction: 'bottom',
@@ -166,14 +166,14 @@ describe('makeLifecycleEvents', () => {
   it('derives close events for removed panels and their tabs', () => {
     const state = layout();
     const action: TileryReducerAction = {
-      type: 'REMOVE_PANEL',
+      type: 'PANEL_REMOVE',
       panelId: 'right',
     };
     const next = tileryReducer(state, action);
     const events = makeLifecycleEvents<Data>(state, next, action);
 
     expect(events.tabsClose).toMatchObject({
-      source: 'REMOVE_PANEL',
+      source: 'PANEL_REMOVE',
       tabs: [
         {
           id: 'c',
@@ -186,7 +186,7 @@ describe('makeLifecycleEvents', () => {
       panels: [{ id: 'right', tabIds: ['c'], activeTabId: 'c' }],
     });
     expect(events.panelsClose).toMatchObject({
-      source: 'REMOVE_PANEL',
+      source: 'PANEL_REMOVE',
       panels: [{ id: 'right', tabIds: ['c'], activeTabId: 'c' }],
       tabs: [{ id: 'c', panelId: 'right' }],
     });

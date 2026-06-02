@@ -71,7 +71,7 @@ export function useTileryPopoutWindows({
       if (!record || record.win.closed) return;
       const bounds = readPopoutWindowBounds(record.win);
       dispatchWithLifecycle({
-        type: 'SET_POPOUT_WINDOW_BOUNDS',
+        type: 'PANEL_POPOUT_WINDOW_BOUNDS_SET',
         panelId,
         bounds,
       });
@@ -131,14 +131,14 @@ export function useTileryPopoutWindows({
         /* v8 ignore next -- close cleanup removes this listener first. */
         if (!record.closing) {
           dispatchWithLifecycle({
-            type: 'RETURN_PANEL_TO_FLOATING',
+            type: 'PANEL_RETURN_TO_FLOATING',
             panelId,
           });
         }
       };
       const handleResize = () => syncPopoutWindowBounds(panelId);
       const handleFocus = () => {
-        dispatchWithLifecycle({ type: 'FOCUS_PANEL', panelId });
+        dispatchWithLifecycle({ type: 'PANEL_FOCUS', panelId });
       };
       win.addEventListener('beforeunload', handleBeforeUnload);
       win.addEventListener('resize', handleResize);
@@ -185,7 +185,7 @@ export function useTileryPopoutWindows({
           });
           if (!ok) {
             dispatchWithLifecycle({
-              type: 'RETURN_PANEL_TO_FLOATING',
+              type: 'PANEL_RETURN_TO_FLOATING',
               panelId,
             });
           }

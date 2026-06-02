@@ -942,17 +942,17 @@ type TileryFloatingPanelSnapshot<TData> = {
           'When a panel closes because its last tab moved out, onPanelsClose reports that moved tab even though onTabsClose does not fire.',
         ],
         code: `type TileryLifecycleSource =
-  | 'SPLIT_PANEL'
-  | 'REMOVE_PANEL'
-  | 'APPEND_TAB'
-  | 'INSERT_TAB'
-  | 'CHANGE_TAB_ID'
-  | 'REMOVE_TAB'
-  | 'MOVE_TAB'
-  | 'FLOAT_TAB'
-  | 'POPOUT_TAB'
-  | 'SET_ACTIVE_TAB'
-  | 'REPLACE_STATE';
+  | 'PANEL_SPLIT'
+  | 'PANEL_REMOVE'
+  | 'TAB_APPEND'
+  | 'TAB_INSERT'
+  | 'TAB_ID_CHANGE'
+  | 'TAB_REMOVE'
+  | 'TAB_MOVE'
+  | 'TAB_FLOAT'
+  | 'TAB_POPOUT'
+  | 'TAB_ACTIVE_SET'
+  | 'STATE_REPLACE';
 
 type TileryTabLifecycleChange<TData> = {
   id: string;
@@ -1008,7 +1008,7 @@ type TileryPanelsOpenEvent<TData> = {
 };
 
 type TileryPanelSplitEvent<TData> = {
-  source: 'SPLIT_PANEL' | 'MOVE_TAB';
+  source: 'PANEL_SPLIT' | 'TAB_MOVE';
   splitPanelId: string;
   createdPanelId: string;
   direction: 'left' | 'right' | 'top' | 'bottom';
