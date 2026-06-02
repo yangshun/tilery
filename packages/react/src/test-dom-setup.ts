@@ -1,3 +1,5 @@
+/* v8 ignore start -- test-only jsdom setup */
+
 function enableReactActEnvironment(globalScope: unknown) {
   if (!globalScope || typeof globalScope !== 'object') return;
   (
@@ -11,7 +13,10 @@ enableReactActEnvironment(globalThis);
 enableReactActEnvironment(globalThis.window);
 enableReactActEnvironment(globalThis.self);
 
-if (typeof globalThis.PointerEvent === 'undefined') {
+if (
+  typeof globalThis.PointerEvent === 'undefined' &&
+  typeof globalThis.MouseEvent !== 'undefined'
+) {
   class PointerEvent extends MouseEvent {
     readonly pointerId: number;
     readonly pointerType: string;
@@ -41,7 +46,10 @@ if (typeof globalThis.PointerEvent === 'undefined') {
     PointerEvent as unknown as typeof globalThis.PointerEvent;
 }
 
-if (typeof Element.prototype.setPointerCapture === 'undefined') {
+if (
+  typeof globalThis.Element !== 'undefined' &&
+  typeof Element.prototype.setPointerCapture === 'undefined'
+) {
   Element.prototype.setPointerCapture = function () {};
   Element.prototype.releasePointerCapture = function () {};
 }

@@ -1597,22 +1597,33 @@ describe('layout invariants — deterministic random fuzz', () => {
     };
   }
 
-  function pairwiseNoOverlap(state: TileryLayoutState): boolean {
+  function layoutInvariantErrors(state: TileryLayoutState): string[] {
     const panels = Object.values(state.panels);
+    const errors: string[] = [];
+    let area = 0;
+
     for (let i = 0; i < panels.length; i++) {
+      const panel = panels[i]!;
+      const width = tileryPanelWidth(panel);
+      const height = tileryPanelHeight(panel);
+      area += width * height;
+
+      if (width < -0.001) errors.push(`${panel.id} width inverted`);
+      if (height < -0.001) errors.push(`${panel.id} height inverted`);
+
       for (let j = i + 1; j < panels.length; j++) {
-        if (tileryRectsOverlap(panels[i]!.inset, panels[j]!.inset))
-          return false;
+        const other = panels[j]!;
+        if (tileryRectsOverlap(panel.inset, other.inset)) {
+          errors.push(`${panel.id} overlaps ${other.id}`);
+        }
       }
     }
-    return true;
-  }
 
-  function totalArea(state: TileryLayoutState): number {
-    return Object.values(state.panels).reduce(
-      (sum, p) => sum + tileryPanelWidth(p) * tileryPanelHeight(p),
-      0,
-    );
+    if (Math.abs(area - 10000) > 0.0001) {
+      errors.push(`area was ${area}`);
+    }
+
+    return errors;
   }
 
   it('200 random splits + resizes preserve no-overlap AND full coverage', () => {
@@ -1628,6 +1639,7 @@ describe('layout invariants — deterministic random fuzz', () => {
     });
     let nextSeq = 1;
     for (let i = 0; i < 200; i++) {
+      const prevState = state;
       const op = rand() < 0.5 ? 'split' : 'resize';
       if (op === 'split') {
         const ids = state.panelOrder;
@@ -1660,14 +1672,9 @@ describe('layout invariants — deterministic random fuzz', () => {
       // tile [0,100]² exactly. Coverage holds here because we only split
       // and resize — never remove. Removal can intentionally leave a hole
       // if neighbours can't fill the freed rect; that's tested separately.
-      expect(pairwiseNoOverlap(state)).toBe(true);
-      expect(totalArea(state)).toBeCloseTo(10000, 4);
       // No panel ever inverts (negative width/height) — the new min-size
       // guards in PANEL_SPLIT and tileryClampDividerPosition prevent it.
-      for (const p of Object.values(state.panels)) {
-        expect(tileryPanelWidth(p)).toBeGreaterThanOrEqual(-0.001);
-        expect(tileryPanelHeight(p)).toBeGreaterThanOrEqual(-0.001);
-      }
+      if (state !== prevState) expect(layoutInvariantErrors(state)).toEqual([]);
     }
   });
 });

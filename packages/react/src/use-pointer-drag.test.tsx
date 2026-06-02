@@ -1,5 +1,7 @@
 // @vitest-environment jsdom
 
+import './test-dom-setup';
+
 import { describe, expect, it } from 'vite-plus/test';
 import React, { act } from 'react';
 import { createRoot } from 'react-dom/client';

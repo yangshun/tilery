@@ -1,5 +1,7 @@
 // @vitest-environment jsdom
 
+import './test-dom-setup';
+
 import { readFileSync } from 'node:fs';
 import { afterEach, describe, expect, it, vi } from 'vite-plus/test';
 import React, { act, createRef } from 'react';
