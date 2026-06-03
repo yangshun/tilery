@@ -35,7 +35,7 @@ export default async function DocPage({ params }: DocPageProps) {
   const Content = page.Content;
 
   return (
-    <article>
+    <article className="doc-page">
       <h1>{page.title}</h1>
       <p className="doc-description">{page.description}</p>
       <Content />

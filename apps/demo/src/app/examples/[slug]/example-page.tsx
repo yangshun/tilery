@@ -1,9 +1,11 @@
 'use client';
 
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 import { CodeBlockFrame } from '../../../components/code-block-frame';
 import { PageNavigation } from '../../../components/page-navigation';
+import type { ExampleDemoSurface as ExampleDemoSurfaceMode } from '../../../content/examples';
 import type { SiteNavigationItem } from '../../../content/navigation';
 import {
   BasicExample,
@@ -132,7 +134,11 @@ export function ExamplePage({
       description: string;
     }>;
   };
-  demos: Array<{ id: string; sourceHtml: string }>;
+  demos: Array<{
+    id: string;
+    sourceHtml: string;
+    surface: ExampleDemoSurfaceMode;
+  }>;
   navigation: {
     previous: SiteNavigationItem | null;
     next: SiteNavigationItem | null;
@@ -162,9 +168,9 @@ export function ExamplePage({
 
           return (
             <section key={demo.id} className="example-preview__case">
-              <div className="example-preview__demo-surface example-preview__demo-surface--boxed">
+              <ExampleDemoSurface surface={demo.surface}>
                 {mounted ? <Component /> : null}
-              </div>
+              </ExampleDemoSurface>
               <div className="example-preview__source">
                 <CodeBlockFrame html={demo.sourceHtml} />
               </div>
@@ -183,6 +189,25 @@ export function ExamplePage({
         </ul>
       </section>
       <PageNavigation previous={navigation.previous} next={navigation.next} />
+    </div>
+  );
+}
+
+function ExampleDemoSurface({
+  surface,
+  children,
+}: {
+  surface: ExampleDemoSurfaceMode;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      className={
+        surface === 'boxed'
+          ? 'example-preview__demo-surface example-preview__demo-surface--boxed'
+          : 'example-preview__demo-surface'
+      }>
+      {children}
     </div>
   );
 }

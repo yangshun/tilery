@@ -89,6 +89,8 @@ export const exampleCategoryOrder = [
 
 export type ExampleCategory = (typeof exampleCategoryOrder)[number];
 
+export type ExampleDemoSurface = 'boxed' | 'plain';
+
 type ExampleSlug =
   | 'basic'
   | 'ide'
@@ -107,12 +109,17 @@ type ExampleSlug =
   | 'floating'
   | 'themes';
 
-type ExampleMetadata = {
+export type ExampleMetadata = {
   slug: ExampleSlug;
   title: string;
   description: string;
   category: ExampleCategory;
-  demos?: Array<{ id: string; sourceRegion?: string }>;
+  surface?: ExampleDemoSurface;
+  demos?: Array<{
+    id: string;
+    sourceRegion?: string;
+    surface?: ExampleDemoSurface;
+  }>;
   guide: {
     paragraphs: string[];
     readNext: Array<{
@@ -249,6 +256,7 @@ const exampleDefinitions = [
     title: 'Themes',
     description: 'A gallery of Tilery workspaces styled with CSS variables.',
     category: 'Advanced UI',
+    surface: 'plain',
     demos: [
       { id: 'abyss', sourceRegion: 'abyss' },
       { id: 'visual-studio', sourceRegion: 'visual-studio' },
@@ -284,6 +292,7 @@ const exampleDefinitions = [
     description:
       'Built-in panel actions, custom menu items, and new-tab hooks.',
     category: 'Panel & Tab Behavior',
+    surface: 'plain',
     demos: [
       { id: 'panel-menu', sourceRegion: 'panel-menu' },
       { id: 'new-tab', sourceRegion: 'new-tab' },
@@ -312,6 +321,7 @@ const exampleDefinitions = [
     title: 'Size Constraints',
     description: 'Panels with percentage and pixel minSize/maxSize limits.',
     category: 'Panel & Tab Behavior',
+    surface: 'plain',
     demos: [
       { id: 'panel-constraints', sourceRegion: 'panel-constraints' },
       { id: 'container-resize', sourceRegion: 'container-resize' },
@@ -366,6 +376,7 @@ const exampleDefinitions = [
     title: 'Tab Locking',
     description: 'Lock tabs or toggle whether they can be closed and dragged.',
     category: 'Panel & Tab Behavior',
+    surface: 'plain',
     demos: [
       { id: 'initial-locks', sourceRegion: 'initial-locks' },
       { id: 'runtime-behavior', sourceRegion: 'runtime-behavior' },
@@ -394,6 +405,7 @@ const exampleDefinitions = [
     title: 'Tab Overflow',
     description: 'Many tabs in one panel with scrolling and a hidden-tab menu.',
     category: 'Panel & Tab Behavior',
+    surface: 'plain',
     demos: [{ id: 'tab-overflow', sourceRegion: 'tab-overflow' }],
     guide: {
       paragraphs: [
@@ -420,6 +432,7 @@ const exampleDefinitions = [
     description:
       'Use the Tilery controller plus panel and tab objects for imperative workflows.',
     category: 'App Integration',
+    surface: 'plain',
     demos: [
       { id: 'panel-objects', sourceRegion: 'panel-objects' },
       { id: 'tab-objects', sourceRegion: 'tab-objects' },
@@ -449,6 +462,7 @@ const exampleDefinitions = [
     title: 'Link Tabs',
     description: 'Render tab triggers as anchors or router links.',
     category: 'App Integration',
+    surface: 'plain',
     demos: [{ id: 'link-tabs', sourceRegion: 'link-tabs' }],
     guide: {
       paragraphs: [
@@ -474,6 +488,7 @@ const exampleDefinitions = [
     title: 'Floating Panels',
     description: 'Detach panels into movable overlays and dock them back.',
     category: 'Advanced UI',
+    surface: 'plain',
     demos: [
       { id: 'initial-floating', sourceRegion: 'initial-floating' },
       { id: 'runtime-floating', sourceRegion: 'runtime-floating' },
@@ -506,6 +521,7 @@ const exampleDefinitions = [
     title: 'Layout Persistence',
     description: 'Save, restore, and replace layout snapshots.',
     category: 'App Integration',
+    surface: 'plain',
     demos: [
       { id: 'local-storage', sourceRegion: 'local-storage' },
       { id: 'snapshot-controls', sourceRegion: 'snapshot-controls' },
@@ -534,6 +550,7 @@ const exampleDefinitions = [
     title: 'Lifecycle Callbacks',
     description: 'Track structural and resize lifecycle events.',
     category: 'App Integration',
+    surface: 'plain',
     demos: [
       { id: 'structural', sourceRegion: 'structural' },
       { id: 'resize', sourceRegion: 'resize' },
@@ -596,4 +613,4 @@ function getOrderedExample(slug: ExampleSlug) {
   return example;
 }
 
-export const examples = exampleOrder.map(getOrderedExample);
+export const examples: ExampleMetadata[] = exampleOrder.map(getOrderedExample);

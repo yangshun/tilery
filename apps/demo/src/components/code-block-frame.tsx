@@ -14,7 +14,12 @@ export function CodeBlockFrame({ html }: { html: string }) {
     if (!content) return;
 
     const updateCanExpand = () => {
-      setCanExpand(content.scrollHeight > MAX_CODE_BLOCK_HEIGHT + 1);
+      const nextCanExpand = content.scrollHeight > MAX_CODE_BLOCK_HEIGHT + 1;
+      setCanExpand(nextCanExpand);
+
+      if (!nextCanExpand) {
+        setExpanded(false);
+      }
     };
 
     updateCanExpand();
@@ -35,7 +40,9 @@ export function CodeBlockFrame({ html }: { html: string }) {
       className={
         expanded
           ? 'code-block code-block--expanded'
-          : 'code-block code-block--collapsed'
+          : canExpand
+            ? 'code-block code-block--collapsed code-block--can-expand'
+            : 'code-block code-block--collapsed'
       }>
       <div
         ref={contentRef}

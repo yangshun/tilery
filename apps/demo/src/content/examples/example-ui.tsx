@@ -104,7 +104,6 @@ export const stackStyle: CSSProperties = {
   minHeight: 0,
   display: 'grid',
   gap: 12,
-  padding: 12,
   background: '#0e0f12',
 };
 

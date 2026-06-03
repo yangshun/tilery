@@ -41,10 +41,11 @@ export default async function Page({ params }: ExampleRouteProps) {
   const source = readFileSync(filePath, 'utf-8');
   const demos = await Promise.all(
     (meta.demos ?? [{ id: 'default' }]).map(async (demo) => {
-      const sourceRegion = 'sourceRegion' in demo ? demo.sourceRegion : demo.id;
+      const sourceRegion = demo.sourceRegion ?? demo.id;
 
       return {
         id: demo.id,
+        surface: demo.surface ?? meta.surface ?? 'boxed',
         sourceHtml: await codeToHtml(
           extractSourceRegion(source, sourceRegion) ?? source.trim(),
           {

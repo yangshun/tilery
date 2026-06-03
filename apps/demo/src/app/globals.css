@@ -105,7 +105,7 @@ pre code {
   overflow: hidden;
 }
 
-.code-block--collapsed::after {
+.code-block--collapsed.code-block--can-expand::after {
   content: '';
   position: absolute;
   right: 1px;
@@ -369,6 +369,10 @@ td code {
 
 .doc-link-list p {
   margin: 0;
+}
+
+.doc-page .code-block {
+  margin: 18px 0 22px;
 }
 
 /* Page Navigation */
