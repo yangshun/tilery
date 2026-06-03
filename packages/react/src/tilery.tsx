@@ -82,7 +82,7 @@ export type TileryTabTriggerProps = React.HTMLAttributes<HTMLElement> & {
   role: 'tab';
   'aria-selected': boolean;
   'data-active': boolean;
-  'data-closeable': boolean;
+  'data-closable': boolean;
   'data-draggable': boolean;
   'data-tab-id': TileryTabId;
 };

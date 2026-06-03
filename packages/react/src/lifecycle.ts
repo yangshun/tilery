@@ -24,7 +24,7 @@ export type TileryTabLifecycleChange<TData = unknown> = {
   id: TileryTabId;
   panelId: TileryPanelId;
   data: TData;
-  closeable: boolean;
+  closable: boolean;
   draggable: boolean;
 };
 
@@ -47,7 +47,7 @@ export type TileryTabMoveChange<TData = unknown> = {
   previousIndex: number;
   index: number;
   data: TData;
-  closeable: boolean;
+  closable: boolean;
   draggable: boolean;
 };
 
@@ -267,7 +267,7 @@ function makeTabMoveChanges<TData>(
       previousIndex,
       index,
       data: tab.data as TData,
-      closeable: tab.closeable,
+      closable: tab.closable,
       draggable: tab.draggable,
     },
   ];
@@ -340,7 +340,7 @@ function makeTabLifecycleChange<TData>(
     id: tab.id,
     panelId: tab.panelId,
     data: tab.data as TData,
-    closeable: tab.closeable,
+    closable: tab.closable,
     draggable: tab.draggable,
   };
 }

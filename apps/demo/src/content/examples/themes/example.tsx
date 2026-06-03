@@ -315,7 +315,7 @@ const pillTabsCss = `
   box-shadow: none;
 }
 
-.tilery-theme-pill-tabs .tilery__tab[data-closeable='false'] {
+.tilery-theme-pill-tabs .tilery__tab[data-closable='false'] {
   padding: 0 10px;
 }
 
@@ -377,7 +377,7 @@ function createThemeLayout(prefix: string): TileryInitialLayout<TabData> {
           {
             id: `${prefix}-files-tab`,
             data: { title: 'Files', kind: 'files', accent: '#3aaf6f' },
-            closeable: false,
+            closable: false,
           },
         ],
       },
@@ -413,7 +413,7 @@ function createThemeLayout(prefix: string): TileryInitialLayout<TabData> {
                   kind: 'terminal',
                   accent: '#d28e2a',
                 },
-                closeable: false,
+                closable: false,
               },
             ],
           },

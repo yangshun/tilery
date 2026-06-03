@@ -22,7 +22,7 @@ const layout: TileryInitialLayout<TabData> = {
         {
           id: 'explorer',
           data: { title: 'Explorer', kind: 'explorer' },
-          closeable: false,
+          closable: false,
         },
       ],
     },
@@ -48,7 +48,7 @@ const layout: TileryInitialLayout<TabData> = {
             {
               id: 'bash',
               data: { title: 'Terminal', kind: 'terminal' },
-              closeable: false,
+              closable: false,
             },
           ],
         },
@@ -84,7 +84,7 @@ const rootBottomRowLayout: TileryInitialLayout<TabData> = {
         {
           id: 'bash',
           data: { title: 'Terminal', kind: 'terminal' },
-          closeable: false,
+          closable: false,
         },
       ],
     },
@@ -96,7 +96,7 @@ const rootBottomRowLayout: TileryInitialLayout<TabData> = {
         {
           id: 'explorer',
           data: { title: 'Explorer', kind: 'explorer' },
-          closeable: false,
+          closable: false,
         },
       ],
     },

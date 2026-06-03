@@ -96,7 +96,7 @@ function layoutToSnapshot<TData>(
       return {
         id: tab.id,
         data: tab.data as TData,
-        closeable: tab.closeable,
+        closable: tab.closable,
         draggable: tab.draggable,
       };
     }),
@@ -132,7 +132,7 @@ function floatingPanelToSnapshot<TData>(
       return {
         id: tab.id,
         data: tab.data as TData,
-        closeable: tab.closeable,
+        closable: tab.closable,
         draggable: tab.draggable,
       };
     }),
@@ -164,7 +164,7 @@ function edgePanelsToSnapshot<TData>(
         return {
           id: tab.id,
           data: tab.data as TData,
-          closeable: tab.closeable,
+          closable: tab.closable,
           draggable: tab.draggable,
         };
       }),

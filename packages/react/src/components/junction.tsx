@@ -5,6 +5,7 @@ import type {
   TileryJunction as JunctionType,
   TilerySizeResolutionContext,
 } from 'tilery/internal';
+import { tileryRectEdgePercent } from 'tilery/internal';
 import { useTileryPointerDrag } from '../use-pointer-drag';
 
 export type JunctionProps = {
@@ -43,8 +44,8 @@ export function TileryJunction({
       const rect = container.getBoundingClientRect();
       onDrag(
         junction.id,
-        ((e.clientX - rect.left) / rect.width) * 100,
-        ((e.clientY - rect.top) / rect.height) * 100,
+        tileryRectEdgePercent(rect, e.clientX, e.clientY, 'left'),
+        tileryRectEdgePercent(rect, e.clientX, e.clientY, 'top'),
         'pointer',
         { width: rect.width, height: rect.height },
       );

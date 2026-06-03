@@ -57,9 +57,9 @@ const initialLocksLayout: TileryInitialLayout<TabData> = {
           id: 'terminal-tab',
           data: {
             title: 'Terminal',
-            note: 'closeable: false',
+            note: 'closable: false',
           },
-          closeable: false,
+          closable: false,
         },
       ],
     },
@@ -113,7 +113,7 @@ export function InitialTabLocksExample() {
   return (
     <ExampleSection
       title="Initial tab locks"
-      description="Use locked, closeable, and draggable on individual tabs.">
+      description="Use locked, closable, and draggable on individual tabs.">
       <Tilery<TabData>
         initialLayout={initialLocksLayout}
         renderTabHeader={renderHeader}
@@ -157,7 +157,7 @@ function renderStatusContent(tab: TileryTab<TabData>) {
 }
 
 function TabBehaviorControls({ tab }: { tab: TileryTab<TabData> }) {
-  const locked = !tab.closeable && !tab.draggable;
+  const locked = !tab.closable && !tab.draggable;
 
   return (
     <div style={controlsStyle}>
@@ -166,16 +166,16 @@ function TabBehaviorControls({ tab }: { tab: TileryTab<TabData> }) {
         active={locked}
         onClick={() =>
           tab.setBehavior(
-            locked ? { closeable: true, draggable: true } : { locked: true },
+            locked ? { closable: true, draggable: true } : { locked: true },
           )
         }>
         {locked ? 'Unlock tab' : 'Lock tab'}
       </ExampleButton>
       <ExampleButton
         type="button"
-        active={!tab.closeable}
-        onClick={() => tab.setBehavior({ closeable: !tab.closeable })}>
-        {tab.closeable ? 'Disable close' : 'Enable close'}
+        active={!tab.closable}
+        onClick={() => tab.setBehavior({ closable: !tab.closable })}>
+        {tab.closable ? 'Disable close' : 'Enable close'}
       </ExampleButton>
       <ExampleButton
         type="button"
@@ -192,8 +192,8 @@ function StatusGrid({ tab }: { tab: TileryTab<TabData> }) {
   return (
     <dl style={statusGridStyle}>
       <div>
-        <dt style={statusLabelStyle}>closeable</dt>
-        <dd style={statusValueStyle}>{String(tab.closeable)}</dd>
+        <dt style={statusLabelStyle}>closable</dt>
+        <dd style={statusValueStyle}>{String(tab.closable)}</dd>
       </div>
       <div>
         <dt style={statusLabelStyle}>draggable</dt>

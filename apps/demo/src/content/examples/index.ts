@@ -187,7 +187,7 @@ const exampleDefinitions = [
       paragraphs: [
         'Use this layout for an editor-style shell with a sidebar, main editor, and terminal. Resize the sidebar and terminal, then move editor tabs to see which parts of the workspace are structural and which are document-like.',
         'The first demo keeps the terminal inside the right-hand editor column. Drag the empty space in the Explorer tab bar to move the whole sidebar; dropping it on the bottom edge of the workspace creates the full-width bottom row shown in the second demo.',
-        'Explorer is modeled as non-closeable app chrome, while the editor and terminal are ordinary tabbed panels inside nested groups.',
+        'Explorer is modeled as non-closable app chrome, while the editor and terminal are ordinary tabbed panels inside nested groups.',
       ],
       readNext: [
         {
@@ -384,7 +384,7 @@ const exampleDefinitions = [
     guide: {
       paragraphs: [
         'Tab locking is for tabs that represent protected resources or app-owned surfaces. Try closing and dragging the locked tabs, then use the runtime controls to change behavior without remounting tab content.',
-        '`locked: true` maps to non-closeable and non-draggable; `tab.setBehavior()` applies the same behavior after the workspace is already running.',
+        '`locked: true` maps to non-closable and non-draggable; `tab.setBehavior()` applies the same behavior after the workspace is already running.',
       ],
       readNext: [
         {
@@ -473,7 +473,8 @@ const exampleDefinitions = [
         {
           href: '/docs/api/component',
           label: 'Component Props',
-          description: 'See the `renderTabTrigger` API and related render props.',
+          description:
+            'See the `renderTabTrigger` API and related render props.',
         },
         {
           href: '/docs/api/control',

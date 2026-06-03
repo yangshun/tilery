@@ -43,7 +43,7 @@ const layout: TileryInitialLayout<TabData> = {
         {
           id: 'explorer',
           data: { title: 'Explorer', kind: 'explorer' },
-          closeable: false,
+          closable: false,
         },
         { id: 'search', data: { title: 'Search', kind: 'search' } },
       ],
@@ -66,7 +66,7 @@ const layout: TileryInitialLayout<TabData> = {
         {
           id: 'terminal',
           data: { title: 'Terminal', kind: 'terminal' },
-          closeable: false,
+          closable: false,
         },
         { id: 'problems', data: { title: 'Problems', kind: 'problems' } },
       ],

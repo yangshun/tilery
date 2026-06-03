@@ -115,7 +115,7 @@ export function tileryRemovePanel(
 ): TileryLayoutState {
   const target = current.panels[panelId];
   if (!target) return current;
-  if (tileryPanelHasNonCloseableTab(current, target)) return current;
+  if (tileryPanelHasNonClosableTab(current, target)) return current;
   return tileryRemovePanelAndFill(current, target);
 }
 
@@ -262,11 +262,11 @@ export function tileryRemovePanelAndFill(
   };
 }
 
-export function tileryPanelHasNonCloseableTab(
+export function tileryPanelHasNonClosableTab(
   state: TileryLayoutState,
   panel: TileryPanelState,
 ): boolean {
-  return panel.tabs.some((tabId) => state.tabs[tabId]?.closeable === false);
+  return panel.tabs.some((tabId) => state.tabs[tabId]?.closable === false);
 }
 
 export type TileryPanelSplitAction = SplitPanelAction;

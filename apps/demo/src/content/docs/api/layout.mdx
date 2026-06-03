@@ -118,12 +118,12 @@ type TileryLayoutBehavior = {
 };
 
 type TileryTabBehaviorConfig =
-  | { locked: true; closeable?: never; draggable?: never }
-  | { locked?: false; closeable?: boolean; draggable?: boolean };
+  | { locked: true; closable?: never; draggable?: never }
+  | { locked?: false; closable?: boolean; draggable?: boolean };
 
 type TileryTabBehaviorUpdate =
-  | { locked: true; closeable?: never; draggable?: never }
-  | { locked?: false; closeable?: boolean; draggable?: boolean };
+  | { locked: true; closable?: never; draggable?: never }
+  | { locked?: false; closable?: boolean; draggable?: boolean };
 
 type TileryTabInit<TData> = {
   id?: string;
@@ -131,13 +131,13 @@ type TileryTabInit<TData> = {
 } & TileryTabBehaviorConfig;
 
 type TileryTabBehavior = {
-  closeable: boolean;
+  closable: boolean;
   draggable: boolean;
 };
 
 type TileryTabBehaviorUpdate =
-  | { locked: true; closeable?: never; draggable?: never }
-  | { locked?: false; closeable?: boolean; draggable?: boolean };
+  | { locked: true; closable?: never; draggable?: never }
+  | { locked?: false; closable?: boolean; draggable?: boolean };
 
 type TileryTabSnapshot<TData> = {
   id?: string;

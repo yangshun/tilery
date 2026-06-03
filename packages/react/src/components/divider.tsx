@@ -5,6 +5,7 @@ import type {
   TileryDivider as DividerType,
   TilerySizeResolutionContext,
 } from 'tilery/internal';
+import { tileryRectEdgePercent } from 'tilery/internal';
 import { useTileryPointerDrag } from '../use-pointer-drag';
 
 export type DividerProps = {
@@ -63,10 +64,12 @@ export function TileryDivider({
       const container = containerRef.current;
       if (!container) return;
       const rect = container.getBoundingClientRect();
-      const pct =
-        divider.orientation === 'vertical'
-          ? ((e.clientX - rect.left) / rect.width) * 100
-          : ((e.clientY - rect.top) / rect.height) * 100;
+      const pct = tileryRectEdgePercent(
+        rect,
+        e.clientX,
+        e.clientY,
+        divider.orientation === 'vertical' ? 'left' : 'top',
+      );
       onDrag(divider.id, pct, 'pointer', {
         width: rect.width,
         height: rect.height,

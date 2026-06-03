@@ -107,7 +107,7 @@ export function tileryRemoveTab(
 ): TileryLayoutState {
   const tab = current.tabs[tabId];
   if (!tab) return current;
-  if (!tab.closeable) return current;
+  if (!tab.closable) return current;
   const panel = current.panels[tab.panelId];
   if (!panel) return current;
   const nextTabs = panel.tabs.filter((id) => id !== tabId);
@@ -303,7 +303,7 @@ export function tilerySetTabBehavior(
   if (!tab) return current;
   const behavior = tileryApplyTabBehaviorUpdate(tab, behaviorUpdate);
   if (
-    behavior.closeable === tab.closeable &&
+    behavior.closable === tab.closable &&
     behavior.draggable === tab.draggable
   ) {
     return current;

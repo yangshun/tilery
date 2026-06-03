@@ -67,7 +67,7 @@ const snapshotLayout: TileryInitialLayout<TabData> = {
             title: 'Inbox',
             body: 'Save a snapshot, mutate the layout, then restore the saved tree.',
           },
-          closeable: false,
+          closable: false,
         },
       ],
     },
@@ -254,7 +254,7 @@ function isTabSnapshot(value: unknown) {
   return (
     isRecord(value) &&
     isOptionalString(value.id) &&
-    typeof value.closeable === 'boolean' &&
+    typeof value.closable === 'boolean' &&
     typeof value.draggable === 'boolean' &&
     isTabData(value.data)
   );

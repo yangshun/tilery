@@ -6,6 +6,7 @@ import type {
   TileryPanelId,
   TilerySizeResolutionContext,
 } from 'tilery/internal';
+import { tileryRectEdgePercent } from 'tilery/internal';
 import { useTileryPointerDrag } from '../use-pointer-drag';
 
 export type EdgeResizeHandleProps = {
@@ -45,14 +46,7 @@ export function EdgeResizeHandle({
       const container = containerRef.current;
       if (!container) return;
       const rect = container.getBoundingClientRect();
-      const size =
-        side === 'left'
-          ? ((e.clientX - rect.left) / rect.width) * 100
-          : side === 'right'
-            ? ((rect.right - e.clientX) / rect.width) * 100
-            : side === 'top'
-              ? ((e.clientY - rect.top) / rect.height) * 100
-              : ((rect.bottom - e.clientY) / rect.height) * 100;
+      const size = tileryRectEdgePercent(rect, e.clientX, e.clientY, side);
       onDrag(panelId, size, 'pointer', {
         width: rect.width,
         height: rect.height,

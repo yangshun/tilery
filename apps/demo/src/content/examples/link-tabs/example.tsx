@@ -17,7 +17,7 @@ const layout: TileryInitialLayout<TabData> = {
   tabs: [
     {
       id: 'overview',
-      closeable: false,
+      closable: false,
       data: {
         title: 'Overview',
         href: '/workspace/overview',

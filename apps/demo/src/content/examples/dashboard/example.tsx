@@ -23,7 +23,7 @@ const layout: TileryInitialLayout<TabData> = {
             {
               id: 'chart',
               data: { title: 'Revenue Chart', color: '#3aaf6f' },
-              closeable: false,
+              closable: false,
             },
           ],
         },
@@ -35,7 +35,7 @@ const layout: TileryInitialLayout<TabData> = {
             {
               id: 'metrics',
               data: { title: 'Key Metrics', color: '#3884ff' },
-              closeable: false,
+              closable: false,
             },
           ],
         },
@@ -54,7 +54,7 @@ const layout: TileryInitialLayout<TabData> = {
             {
               id: 'table',
               data: { title: 'Data Table', color: '#d28e2a' },
-              closeable: false,
+              closable: false,
             },
           ],
         },

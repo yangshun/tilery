@@ -10,6 +10,7 @@ import type {
 } from 'tilery/internal';
 import {
   tileryAdjacencySide,
+  tileryCanMoveTabBetweenPanels,
   tileryEdgeZoneAt,
   tileryTabBarDropAt,
   tileryZoneAt,
@@ -134,17 +135,14 @@ export function useTileryDragController(
       const target = m.getPanel(panelId);
       const draggedTab = m.getTab(draggedTabId);
       if (!target || !draggedTab) return false;
+      // Tab-level draggability is a tab-state flag the core helper doesn't cover;
+      // the source/target panel droppable rule lives in core.
       if (!draggedTab.draggable) return false;
-      const state = m.getState();
-      const sourceBehavior = tileryPanelBehaviorFromState(
-        state,
+      return tileryCanMoveTabBetweenPanels(
+        m.getState(),
         draggedTab.panel.id,
+        target.id,
       );
-      if (!sourceBehavior.draggable) return false;
-      const targetBehavior = tileryPanelBehaviorFromState(state, target.id);
-      return draggedTab.panel.id === target.id
-        ? sourceBehavior.droppable
-        : targetBehavior.droppable;
     },
     [tilery],
   );

@@ -136,7 +136,7 @@ describe('tileryCreateInitialState', () => {
     expect(state.tabs.A).toMatchObject({
       id: 'A',
       panelId: 'P',
-      closeable: false,
+      closable: false,
       draggable: false,
     });
   });
@@ -176,7 +176,7 @@ describe('tileryCreateInitialState', () => {
     });
     expect(state.tabs['palette-tab']).toMatchObject({
       panelId: 'palette',
-      closeable: false,
+      closable: false,
       draggable: false,
     });
   });
@@ -224,7 +224,7 @@ describe('tileryCreateInitialState', () => {
     });
     expect(state.tabs.files).toMatchObject({
       panelId: 'explorer',
-      closeable: false,
+      closable: false,
       draggable: false,
     });
     expect(state.panels.terminal).toMatchObject({
@@ -1125,7 +1125,7 @@ describe('tileryReducer dispatch matrix', () => {
     });
     expect(next.tabs.L2).toMatchObject({ panelId: 'FLOATED' });
     expect(next.tabs.L2).toMatchObject({
-      closeable: true,
+      closable: true,
       draggable: true,
     });
   });
@@ -1205,14 +1205,14 @@ describe('tileryReducer dispatch matrix', () => {
           id: 'L1',
           panelId: 'L',
           data: {},
-          closeable: true,
+          closable: true,
           draggable: true,
         },
         DUMMY: {
           id: 'DUMMY',
           panelId: 'L',
           data: {},
-          closeable: true,
+          closable: true,
           draggable: true,
         },
       },
@@ -2099,13 +2099,13 @@ describe('tileryReducer dispatch matrix', () => {
     const next = tileryReducer(state, { type: 'TAB_REMOVE', tabId: 'phantom' });
     expect(next).toBe(state);
   });
-  it('TAB_REMOVE is a no-op when the tab is not closeable', () => {
+  it('TAB_REMOVE is a no-op when the tab is not closable', () => {
     const state = createStateFromPanels({
       panels: [
         {
           id: 'P',
           inset: { top: 0, right: 0, bottom: 0, left: 0 },
-          tabs: [{ id: 'T1', data: {}, closeable: false }],
+          tabs: [{ id: 'T1', data: {}, closable: false }],
         },
       ],
     });
@@ -2175,13 +2175,13 @@ describe('tileryReducer dispatch matrix', () => {
       droppable: true,
     });
   });
-  it('PANEL_REMOVE is a no-op when the panel contains a non-closeable tab', () => {
+  it('PANEL_REMOVE is a no-op when the panel contains a non-closable tab', () => {
     const state = createStateFromPanels({
       panels: [
         {
           id: 'L',
           inset: { top: 0, right: 50, bottom: 0, left: 0 },
-          tabs: [{ id: 'L1', data: {}, closeable: false }],
+          tabs: [{ id: 'L1', data: {}, closable: false }],
         },
         {
           id: 'R',
@@ -3041,7 +3041,7 @@ describe('tileryReducer dispatch matrix', () => {
     const next = tileryReducer(state, {
       type: 'TAB_BEHAVIOR_SET',
       tabId: 'phantom',
-      behavior: { closeable: false },
+      behavior: { closable: false },
     });
     expect(next).toBe(state);
   });
@@ -3051,11 +3051,11 @@ describe('tileryReducer dispatch matrix', () => {
     const next = tileryReducer(state, {
       type: 'TAB_BEHAVIOR_SET',
       tabId: 'L1',
-      behavior: { closeable: false },
+      behavior: { closable: false },
     });
 
     expect(next.tabs.L1).toMatchObject({
-      closeable: false,
+      closable: false,
       draggable: true,
     });
   });
@@ -3069,7 +3069,7 @@ describe('tileryReducer dispatch matrix', () => {
     });
 
     expect(next.tabs.L1).toMatchObject({
-      closeable: false,
+      closable: false,
       draggable: false,
     });
   });
@@ -3079,7 +3079,7 @@ describe('tileryReducer dispatch matrix', () => {
     const next = tileryReducer(state, {
       type: 'TAB_BEHAVIOR_SET',
       tabId: 'L1',
-      behavior: { closeable: true },
+      behavior: { closable: true },
     });
 
     expect(next).toBe(state);
@@ -3566,21 +3566,21 @@ describe('tileryReducer dispatch matrix', () => {
           id: 'T1',
           panelId: 'A',
           data: {},
-          closeable: true,
+          closable: true,
           draggable: true,
         },
         T_DUMMY: {
           id: 'T_DUMMY',
           panelId: 'A',
           data: {},
-          closeable: true,
+          closable: true,
           draggable: true,
         },
         TB: {
           id: 'TB',
           panelId: 'B',
           data: {},
-          closeable: true,
+          closable: true,
           draggable: true,
         },
       },
@@ -3616,14 +3616,14 @@ describe('tileryReducer dispatch matrix', () => {
           id: 'T1',
           panelId: 'P',
           data: {},
-          closeable: true,
+          closable: true,
           draggable: true,
         },
         T_OTHER: {
           id: 'T_OTHER',
           panelId: 'P',
           data: {},
-          closeable: true,
+          closable: true,
           draggable: true,
         },
       },
@@ -3660,21 +3660,21 @@ describe('tileryReducer dispatch matrix', () => {
           id: 'T1',
           panelId: 'A',
           data: {},
-          closeable: true,
+          closable: true,
           draggable: true,
         },
         T_DUMMY: {
           id: 'T_DUMMY',
           panelId: 'A',
           data: {},
-          closeable: true,
+          closable: true,
           draggable: true,
         },
         TB: {
           id: 'TB',
           panelId: 'B',
           data: {},
-          closeable: true,
+          closable: true,
           draggable: true,
         },
       },
@@ -3714,21 +3714,21 @@ describe('tileryReducer dispatch matrix', () => {
           id: 'T1',
           panelId: 'A',
           data: {},
-          closeable: true,
+          closable: true,
           draggable: true,
         },
         T_DUMMY: {
           id: 'T_DUMMY',
           panelId: 'A',
           data: {},
-          closeable: true,
+          closable: true,
           draggable: true,
         },
         TB: {
           id: 'TB',
           panelId: 'B',
           data: {},
-          closeable: true,
+          closable: true,
           draggable: true,
         },
       },
@@ -3757,7 +3757,7 @@ describe('helpers', () => {
     });
     expect(r.id).toMatch(/^p_/);
     expect(r.tabs[0]!.id).toMatch(/^t_/);
-    expect(r.tabs[0]).toMatchObject({ closeable: true, draggable: true });
+    expect(r.tabs[0]).toMatchObject({ closable: true, draggable: true });
   });
   it('tileryPanelInitToReducerInit preserves provided ids', () => {
     const r = tileryPanelInitToReducerInit({
@@ -3767,13 +3767,13 @@ describe('helpers', () => {
     });
     expect(r.id).toBe('mine');
     expect(r.tabs[0]!.id).toBe('tt');
-    expect(r.tabs[0]).toMatchObject({ closeable: true, draggable: true });
+    expect(r.tabs[0]).toMatchObject({ closable: true, draggable: true });
   });
   it('tileryTabInitToReducerInit auto-assigns missing id', () => {
     const r = tileryTabInitToReducerInit({ data: { x: 1 } });
     expect(r.id).toMatch(/^t_/);
     expect(r.data).toEqual({ x: 1 });
-    expect(r.closeable).toBe(true);
+    expect(r.closable).toBe(true);
     expect(r.draggable).toBe(true);
   });
   it('tileryTabInitToReducerInit preserves provided id', () => {
@@ -3786,7 +3786,7 @@ describe('helpers', () => {
       tileryTabInitToReducerInit({ id: 'mine', data: {}, locked: true }),
     ).toMatchObject({
       id: 'mine',
-      closeable: false,
+      closable: false,
       draggable: false,
     });
   });

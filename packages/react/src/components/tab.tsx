@@ -46,7 +46,7 @@ export function Tab({
     ref: handleTriggerRef,
     className: 'tilery__tab-trigger',
     'data-active': isActive,
-    'data-closeable': tab.closeable,
+    'data-closable': tab.closable,
     'data-draggable': tab.draggable,
     'data-tab-id': tab.id,
     onPointerDown,
@@ -87,12 +87,12 @@ export function Tab({
       ref={handleRef}
       className="tilery__tab"
       data-active={isActive}
-      data-closeable={tab.closeable}
+      data-closable={tab.closable}
       data-draggable={tab.draggable}
       data-tab-id={tab.id}
       {...tabInteractionProps}>
       {trigger}
-      {tab.closeable && (
+      {tab.closable && (
         <button
           type="button"
           className="tilery__tab-close"

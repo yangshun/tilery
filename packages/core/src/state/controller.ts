@@ -466,8 +466,8 @@ export function tileryMakeTab<TData = unknown>(
     get data() {
       return (getState().tabs[id]?.data as TData) ?? (undefined as TData);
     },
-    get closeable() {
-      return getState().tabs[id]?.closeable ?? true;
+    get closable() {
+      return getState().tabs[id]?.closable ?? true;
     },
     get draggable() {
       return getState().tabs[id]?.draggable ?? true;

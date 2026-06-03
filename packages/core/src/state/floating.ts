@@ -31,6 +31,7 @@ import {
   tilerySyncLayoutPanels,
 } from './layout-tree';
 import {
+  tileryLockedLayoutBehavior,
   tileryNormalizeLayoutBehavior,
   tileryPanelBehaviorFromState,
 } from './layout-behavior';
@@ -666,7 +667,7 @@ export function tileryMergeFloatingBehavior(
   config: TileryLayoutBehaviorConfig | undefined,
 ): TileryLayoutBehavior {
   if (config?.locked === true) {
-    return { resizable: false, draggable: false, droppable: false };
+    return tileryLockedLayoutBehavior();
   }
   return {
     resizable: config?.resizable ?? base.resizable,

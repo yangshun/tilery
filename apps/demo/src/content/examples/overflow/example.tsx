@@ -36,7 +36,7 @@ const layout: TileryInitialLayout<TabData> = {
       tabs: [
         {
           id: 'tree',
-          closeable: false,
+          closable: false,
           data: { title: 'Navigator', section: 'Project' },
         },
       ],

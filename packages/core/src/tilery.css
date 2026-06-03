@@ -184,7 +184,7 @@
   cursor: default;
 }
 
-.tilery__tab[data-closeable='false'] {
+.tilery__tab[data-closable='false'] {
   gap: 0;
   padding: 0;
 }
@@ -209,7 +209,7 @@
   touch-action: none;
 }
 
-.tilery__tab[data-closeable='false'] .tilery__tab-trigger {
+.tilery__tab[data-closable='false'] .tilery__tab-trigger {
   padding: 0 12px;
 }
 

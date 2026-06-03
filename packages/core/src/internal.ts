@@ -37,7 +37,11 @@ export {
   type TileryControllerOptions,
 } from './state/controller';
 
-export { tileryPanelBehaviorFromState } from './state/layout-behavior';
+export {
+  tileryCanMoveTabBetweenPanels,
+  tileryCanSwapPanels,
+  tileryPanelBehaviorFromState,
+} from './state/layout-behavior';
 
 export {
   tileryClampEdgePanelSize,
@@ -60,6 +64,7 @@ export {
   tileryDeriveDividers,
   tileryDeriveJunctions,
   tileryGetFullScreenPanelId,
+  tileryRectEdgePercent,
 } from './state/layout-math';
 
 export {

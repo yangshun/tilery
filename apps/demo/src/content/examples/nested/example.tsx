@@ -33,7 +33,7 @@ const outerLayout: TileryInitialLayout<TabData> = {
       type: 'panel',
       id: 'sidebar',
       size: 30,
-      tabs: [{ id: 'nav', data: { title: 'Navigation' }, closeable: false }],
+      tabs: [{ id: 'nav', data: { title: 'Navigation' }, closable: false }],
     },
     {
       type: 'panel',

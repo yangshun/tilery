@@ -9,7 +9,7 @@ export function tileryReducerTabActionToState(
     id: tab.id,
     panelId,
     data: tab.data,
-    closeable: tab.closeable ?? true,
+    closable: tab.closable ?? true,
     draggable: tab.draggable ?? true,
   };
 }

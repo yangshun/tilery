@@ -124,36 +124,36 @@ export type TileryTabState<TData = unknown> = {
   id: TileryTabId;
   panelId: TileryPanelId;
   data: TData;
-  closeable: boolean;
+  closable: boolean;
   draggable: boolean;
 };
 
 export type TileryTabBehavior = {
-  closeable: boolean;
+  closable: boolean;
   draggable: boolean;
 };
 
 export type TileryTabBehaviorConfig =
   | {
       locked: true;
-      closeable?: never;
+      closable?: never;
       draggable?: never;
     }
   | {
       locked?: false;
-      closeable?: boolean;
+      closable?: boolean;
       draggable?: boolean;
     };
 
 export type TileryTabBehaviorUpdate =
   | {
       locked: true;
-      closeable?: never;
+      closable?: never;
       draggable?: never;
     }
   | {
       locked?: false;
-      closeable?: boolean;
+      closable?: boolean;
       draggable?: boolean;
     };
 
@@ -526,7 +526,7 @@ export type TileryTab<TData = unknown> = {
   readonly panel: TileryPanel;
   readonly index: number;
   readonly data: TData;
-  readonly closeable: boolean;
+  readonly closable: boolean;
   readonly draggable: boolean;
   setData(data: TData): void;
   setBehavior(behavior: TileryTabBehaviorUpdate): void;

@@ -50,6 +50,39 @@ export function tileryPanelHeight(p: TileryPanelState): number {
   return 100 - p.inset.top - p.inset.bottom;
 }
 
+export type TileryRectLike = {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+  width: number;
+  height: number;
+};
+
+/**
+ * Convert a client/pointer coordinate into a 0–100 percentage offset measured
+ * from one edge of a rect. Shared by the divider, junction, and edge-resize
+ * pointer handlers so the pixel→percent conversion lives in exactly one place.
+ * Accepts any DOMRect-shaped value.
+ */
+export function tileryRectEdgePercent(
+  rect: TileryRectLike,
+  clientX: number,
+  clientY: number,
+  side: 'left' | 'right' | 'top' | 'bottom',
+): number {
+  switch (side) {
+    case 'left':
+      return ((clientX - rect.left) / rect.width) * 100;
+    case 'right':
+      return ((rect.right - clientX) / rect.width) * 100;
+    case 'top':
+      return ((clientY - rect.top) / rect.height) * 100;
+    case 'bottom':
+      return ((rect.bottom - clientY) / rect.height) * 100;
+  }
+}
+
 export function tileryGetFullScreenPanelId(
   state: TileryLayoutState,
 ): TileryPanelId | null {

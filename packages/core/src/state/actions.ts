@@ -17,14 +17,14 @@ import type {
 export type TileryReducerTabInit = {
   id: TileryTabId;
   data: unknown;
-  closeable: boolean;
+  closable: boolean;
   draggable: boolean;
 };
 
 export type TileryReducerTabAction = {
   id: TileryTabId;
   data: unknown;
-  closeable?: boolean;
+  closable?: boolean;
   draggable?: boolean;
 };
 

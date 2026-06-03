@@ -12,11 +12,20 @@ export const TILERY_DEFAULT_LAYOUT_BEHAVIOR: TileryLayoutBehavior = {
   droppable: true,
 };
 
+/**
+ * The single definition of what `locked: true` means for a panel: every
+ * interaction is disabled. Returns a fresh object so callers may treat the
+ * result as owned/mutable. Shared by layout and floating behavior normalizers.
+ */
+export function tileryLockedLayoutBehavior(): TileryLayoutBehavior {
+  return { resizable: false, draggable: false, droppable: false };
+}
+
 export function tileryNormalizeLayoutBehavior(
   config: TileryLayoutBehaviorConfig | undefined,
 ): TileryLayoutBehavior {
   if (config?.locked === true) {
-    return { resizable: false, draggable: false, droppable: false };
+    return tileryLockedLayoutBehavior();
   }
   return {
     resizable: config?.resizable ?? true,

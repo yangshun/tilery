@@ -12,7 +12,7 @@ describe('tab state helpers', () => {
       id: 'tab',
       panelId: 'p',
       data: { title: 'Tab' },
-      closeable: true,
+      closable: true,
       draggable: true,
     });
     expect(
@@ -20,7 +20,7 @@ describe('tab state helpers', () => {
         {
           id: 'locked-tab',
           data: null,
-          closeable: false,
+          closable: false,
           draggable: false,
         },
         'p',
@@ -29,7 +29,7 @@ describe('tab state helpers', () => {
       id: 'locked-tab',
       panelId: 'p',
       data: null,
-      closeable: false,
+      closable: false,
       draggable: false,
     });
   });

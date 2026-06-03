@@ -1540,7 +1540,7 @@ describe('Tilery — rendering', () => {
           {
             id: 'restored-tab',
             data: { title: 'Restored' },
-            closeable: false,
+            closable: false,
           },
         ],
       });
@@ -1559,7 +1559,7 @@ describe('Tilery — rendering', () => {
     expect(t.controller().getLayout()).toMatchObject({
       type: 'panel',
       id: 'restored',
-      tabs: [{ id: 'restored-tab', closeable: false }],
+      tabs: [{ id: 'restored-tab', closable: false }],
     });
     t.cleanup();
   });
@@ -1568,7 +1568,7 @@ describe('Tilery — rendering', () => {
     const t = mount(singlePanelLayout(), undefined, {
       renderTabContent: (tab) => (
         <div data-content-of={tab.id}>
-          {tab.closeable ? 'close:on' : 'close:off'}{' '}
+          {tab.closable ? 'close:on' : 'close:off'}{' '}
           {tab.draggable ? 'drag:on' : 'drag:off'}
         </div>
       ),
@@ -1579,7 +1579,7 @@ describe('Tilery — rendering', () => {
     );
 
     act(() => {
-      t.controller().setTabBehavior('only', { closeable: false });
+      t.controller().setTabBehavior('only', { closable: false });
     });
     expect(t.host.querySelector('[data-content-of="only"]')?.textContent).toBe(
       'close:off drag:on',
@@ -2153,7 +2153,7 @@ describe('Tilery — open and close lifecycle callbacks', () => {
     act(() => {
       t.controller().appendTab(
         'sidebar',
-        { id: 'side-2', data: { title: 'Side 2' }, closeable: false },
+        { id: 'side-2', data: { title: 'Side 2' }, closable: false },
         { activate: false },
       );
       t.controller().insertTab(
@@ -2177,7 +2177,7 @@ describe('Tilery — open and close lifecycle callbacks', () => {
           id: 'side-2',
           panelId: 'sidebar',
           data: { title: 'Side 2' },
-          closeable: false,
+          closable: false,
         },
       ],
     });
@@ -2187,7 +2187,7 @@ describe('Tilery — open and close lifecycle callbacks', () => {
     });
     expect(opens[1]).toMatchObject({
       source: 'TAB_INSERT',
-      tabs: [{ id: 'readme', panelId: 'editor', closeable: true }],
+      tabs: [{ id: 'readme', panelId: 'editor', closable: true }],
     });
     expect(opens[2].source).toBe('PANEL_SPLIT');
     expect(opens[2].tabs.map((tab) => tab.id)).toEqual(['logs', 'problems']);
@@ -2261,7 +2261,7 @@ describe('Tilery — open and close lifecycle callbacks', () => {
           previousIndex: 1,
           index: 0,
           data: { title: 'bar.ts' },
-          closeable: true,
+          closable: true,
         },
       ],
     });

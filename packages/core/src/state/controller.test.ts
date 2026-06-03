@@ -116,7 +116,7 @@ describe('TileryController lookups', () => {
             id: 'P1',
             inset: { top: 0, right: 50, bottom: 0, left: 0 },
             tabs: [
-              { id: 'T1', data: { title: 'one' }, closeable: false },
+              { id: 'T1', data: { title: 'one' }, closable: false },
               { id: 'T2', data: { title: 'two' } },
             ],
             activeTabId: 'T2',
@@ -149,13 +149,13 @@ describe('TileryController lookups', () => {
             {
               id: 'T1',
               data: { title: 'one' },
-              closeable: false,
+              closable: false,
               draggable: true,
             },
             {
               id: 'T2',
               data: { title: 'two' },
-              closeable: true,
+              closable: true,
               draggable: true,
             },
           ],
@@ -168,7 +168,7 @@ describe('TileryController lookups', () => {
             {
               id: 'T3',
               data: { title: 'three' },
-              closeable: true,
+              closable: true,
               draggable: true,
             },
           ],
@@ -196,7 +196,7 @@ describe('TileryController lookups', () => {
               {
                 id: 'T',
                 data: { title: 'locked' },
-                closeable: false,
+                closable: false,
                 draggable: false,
               },
             ],
@@ -212,7 +212,7 @@ describe('TileryController lookups', () => {
         {
           id: 'T',
           data: { title: 'locked' },
-          closeable: false,
+          closable: false,
           draggable: false,
         },
       ],
@@ -221,7 +221,7 @@ describe('TileryController lookups', () => {
     controller.setLayout(snapshot);
 
     expect(getState().tabs.T).toMatchObject({
-      closeable: false,
+      closable: false,
       draggable: false,
     });
   });
@@ -291,13 +291,13 @@ describe('TileryController lookups', () => {
             {
               id: 'T1',
               data: { title: 'one' },
-              closeable: true,
+              closable: true,
               draggable: true,
             },
             {
               id: 'T2',
               data: { title: 'two' },
-              closeable: true,
+              closable: true,
               draggable: true,
             },
           ],
@@ -364,7 +364,7 @@ describe('TileryController lookups', () => {
             {
               id: 'files',
               data: { title: 'files' },
-              closeable: true,
+              closable: true,
               draggable: true,
             },
           ],
@@ -527,7 +527,7 @@ describe('TileryController lookups', () => {
         {
           id: 'T1',
           data: { title: 'one' },
-          closeable: true,
+          closable: true,
           draggable: true,
         },
       ],
@@ -551,7 +551,7 @@ describe('TileryController lookups', () => {
           id: 'T',
           panelId: 'P',
           data: { title: 'one' },
-          closeable: true,
+          closable: true,
           draggable: true,
         },
       },
@@ -574,7 +574,7 @@ describe('TileryController lookups', () => {
         {
           id: 'T',
           data: { title: 'one' },
-          closeable: true,
+          closable: true,
           draggable: true,
         },
       ],
@@ -599,7 +599,7 @@ describe('TileryController lookups', () => {
           id: 'T',
           panelId: 'P',
           data: { title: 'one' },
-          closeable: true,
+          closable: true,
           draggable: true,
         },
       },
@@ -653,7 +653,7 @@ describe('TileryController mutations', () => {
     expect(action.resizable).toBe(false);
     expect(action.activate).toBe(false);
     expect(action.tabs).toEqual([
-      { id: 'NEW', data: { title: 'new' }, closeable: true, draggable: true },
+      { id: 'NEW', data: { title: 'new' }, closable: true, draggable: true },
     ]);
   });
   it('splitPanel forwards measured size context for unit constraints', () => {
@@ -679,7 +679,7 @@ describe('TileryController mutations', () => {
     const action = dispatched[0]!;
     if (action.type !== 'PANEL_SPLIT') throw new Error('expected PANEL_SPLIT');
     expect(action.tabs).toEqual([
-      { id: 'LOCKED', data: {}, closeable: false, draggable: false },
+      { id: 'LOCKED', data: {}, closable: false, draggable: false },
     ]);
   });
   it('splitPanel normalizes locked options to explicit behavior booleans', () => {
@@ -725,7 +725,7 @@ describe('TileryController mutations', () => {
     expect(dispatched[0]).toEqual({
       type: 'TAB_APPEND',
       panelId: 'P1',
-      tab: { id: 'TX', data: { title: 'x' }, closeable: true, draggable: true },
+      tab: { id: 'TX', data: { title: 'x' }, closable: true, draggable: true },
       activate: true,
     });
   });
@@ -736,11 +736,11 @@ describe('TileryController mutations', () => {
       data: {},
       locked: true,
     });
-    expect(tab.closeable).toBe(false);
+    expect(tab.closable).toBe(false);
     expect(tab.draggable).toBe(false);
     expect(dispatched[0]).toMatchObject({
       type: 'TAB_APPEND',
-      tab: { id: 'LOCKED', data: {}, closeable: false, draggable: false },
+      tab: { id: 'LOCKED', data: {}, closable: false, draggable: false },
     });
   });
   it('appendTab honors activate=false and auto-id when none provided', () => {
@@ -761,7 +761,7 @@ describe('TileryController mutations', () => {
     expect(dispatched[0]).toEqual({
       type: 'TAB_INSERT',
       panelId: 'P1',
-      tab: { id: 'TI', data: {}, closeable: true, draggable: true },
+      tab: { id: 'TI', data: {}, closable: true, draggable: true },
       index: 1,
       activate: false,
     });
@@ -800,7 +800,7 @@ describe('TileryController mutations', () => {
       tab: {
         id: 'NEW',
         data: { title: 'new' },
-        closeable: true,
+        closable: true,
         draggable: true,
       },
       index: 1,
@@ -952,7 +952,7 @@ describe('TileryController mutations', () => {
       behavior: { draggable: false },
     });
     expect(getState().tabs.T1).toMatchObject({
-      closeable: true,
+      closable: true,
       draggable: false,
     });
   });
@@ -1033,7 +1033,7 @@ describe('TileryController mutations', () => {
             id: 'P',
             inset: { top: 0, right: 0, bottom: 0, left: 0 },
             tabs: [
-              { id: 'LOCKED', data: {}, closeable: false, draggable: false },
+              { id: 'LOCKED', data: {}, closable: false, draggable: false },
             ],
           },
         ],
@@ -1048,7 +1048,7 @@ describe('TileryController mutations', () => {
 
     expect(getState().tabs.LOCKED).toBeUndefined();
     expect(getState().tabs.OPEN).toMatchObject({
-      closeable: true,
+      closable: true,
       draggable: true,
     });
   });
@@ -1528,21 +1528,21 @@ describe('TileryTab', () => {
     expect(tab.index).toBe(1);
     expect((tab.data as { title: string }).title).toBe('two');
   });
-  it('closeable defaults to true and reflects state', () => {
+  it('closable defaults to true and reflects state', () => {
     const { controller } = makeStore();
     const tab = controller.getTab('T1')!;
-    expect(tab.closeable).toBe(true);
+    expect(tab.closable).toBe(true);
   });
   it('draggable defaults to true and reflects state', () => {
     const { controller } = makeStore();
     const tab = controller.getTab('T1')!;
     expect(tab.draggable).toBe(true);
   });
-  it('closeable returns true when tab is missing from state', () => {
+  it('closable returns true when tab is missing from state', () => {
     const { controller } = makeStore();
     const tab = controller.getTab('T1')!;
     controller.removeTab('T1');
-    expect(tab.closeable).toBe(true);
+    expect(tab.closable).toBe(true);
   });
   it('draggable returns true when tab is missing from state', () => {
     const { controller } = makeStore();
@@ -1610,10 +1610,10 @@ describe('TileryTab', () => {
       behavior: { locked: true },
     });
     expect(getState().tabs.T1).toMatchObject({
-      closeable: false,
+      closable: false,
       draggable: false,
     });
-    expect(tab.closeable).toBe(false);
+    expect(tab.closable).toBe(false);
     expect(tab.draggable).toBe(false);
   });
   it('moveTo delegates to tilery.moveTab', () => {
@@ -1685,14 +1685,14 @@ describe('TileryTab', () => {
     tab.remove();
     expect(dispatched[0]).toEqual({ type: 'TAB_REMOVE', tabId: 'T1' });
   });
-  it('remove no-ops for a non-closeable tab after dispatch', () => {
+  it('remove no-ops for a non-closable tab after dispatch', () => {
     const { controller, getState } = makeStore(
       createStateFromPanels({
         panels: [
           {
             id: 'P1',
             inset: { top: 0, right: 0, bottom: 0, left: 0 },
-            tabs: [{ id: 'T1', data: {}, closeable: false }],
+            tabs: [{ id: 'T1', data: {}, closable: false }],
           },
         ],
       }),

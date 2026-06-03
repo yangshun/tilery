@@ -105,7 +105,7 @@ const workflowApiLayout: TileryInitialLayout<TabData> = {
       tabs: [
         {
           id: 'outline',
-          closeable: false,
+          closable: false,
           data: {
             title: 'Outline',
             body: 'New workflow tabs are inserted near related tabs instead of appended blindly.',

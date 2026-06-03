@@ -18,7 +18,7 @@ type FlatPanelInit = {
   tabs: {
     id?: string;
     data: unknown;
-    closeable?: boolean;
+    closable?: boolean;
     draggable?: boolean;
   }[];
   activeTabId?: string;
@@ -46,7 +46,7 @@ export function createStateFromPanels(initial: {
         id: tabId,
         panelId,
         data: tabInit.data,
-        closeable: tabInit.closeable ?? true,
+        closable: tabInit.closable ?? true,
         draggable: tabInit.draggable ?? true,
       };
       tabs.push(tabId);

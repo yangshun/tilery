@@ -27,7 +27,7 @@ const layout: TileryInitialLayout<TabData> = {
             behavior: 'locked: true',
             body: 'This panel cannot be resized, dragged from, or used as a drop target.',
           },
-          closeable: false,
+          closable: false,
         },
       ],
     },
