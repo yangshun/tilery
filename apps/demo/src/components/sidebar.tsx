@@ -13,7 +13,11 @@ export type SidebarItem = {
 
 export type SidebarGroup = {
   title: string;
-  items: SidebarItem[];
+  items?: SidebarItem[];
+  sections?: Array<{
+    title: string;
+    items: SidebarItem[];
+  }>;
 };
 
 export function Sidebar({ groups }: { groups: SidebarGroup[] }) {
@@ -23,6 +27,17 @@ export function Sidebar({ groups }: { groups: SidebarGroup[] }) {
   useEffect(() => {
     setIsOpen(false);
   }, [pathname]);
+
+  function renderLink(item: SidebarItem) {
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        className={`sidebar__link ${item.depth ? 'sidebar__link--nested' : ''} ${pathname === item.href ? 'sidebar__link--active' : ''}`}>
+        {item.label}
+      </Link>
+    );
+  }
 
   return (
     <aside className={`sidebar ${isOpen ? 'sidebar--open' : ''}`}>
@@ -48,13 +63,12 @@ export function Sidebar({ groups }: { groups: SidebarGroup[] }) {
         {groups.map((group) => (
           <div key={group.title} className="sidebar__group">
             <div className="sidebar__group-title">{group.title}</div>
-            {group.items.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`sidebar__link ${item.depth ? 'sidebar__link--nested' : ''} ${pathname === item.href ? 'sidebar__link--active' : ''}`}>
-                {item.label}
-              </Link>
+            {group.items?.map(renderLink)}
+            {group.sections?.map((section) => (
+              <div key={section.title} className="sidebar__subgroup">
+                <div className="sidebar__subgroup-title">{section.title}</div>
+                {section.items.map(renderLink)}
+              </div>
             ))}
           </div>
         ))}

@@ -146,21 +146,6 @@ export function ExamplePage({
             <p key={paragraph}>{paragraph}</p>
           ))}
         </div>
-        <nav
-          aria-label="Related documentation"
-          className="example-preview__read-next">
-          <span>Read next:</span>
-          <ul className="example-preview__links">
-            {guide.readNext.map((link, index) => (
-              <li key={link.href}>
-                <Link href={link.href}>{link.label}</Link>
-                {index < guide.readNext.length - 1 ? (
-                  <span aria-hidden="true">,</span>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-        </nav>
       </div>
       <div className="example-preview__demos">
         {demos.map((demo) => {
@@ -186,6 +171,16 @@ export function ExamplePage({
           );
         })}
       </div>
+      <section className="example-preview__related">
+        <h2>Related</h2>
+        <ul className="example-preview__links">
+          {guide.readNext.map((link) => (
+            <li key={link.href}>
+              <Link href={link.href}>{link.label}</Link>
+            </li>
+          ))}
+        </ul>
+      </section>
       <PageNavigation previous={navigation.previous} next={navigation.next} />
     </div>
   );

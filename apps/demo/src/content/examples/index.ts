@@ -72,11 +72,70 @@ export { metadata as persistenceMeta } from './persistence/metadata';
 export { metadata as callbacksMeta } from './callbacks/metadata';
 export { metadata as nestedMeta } from './nested/metadata';
 
-export const examples = [
+export const exampleCategoryOrder = [
+  'Layout Patterns',
+  'Panel & Tab Behavior',
+  'App Integration',
+  'Advanced UI',
+] as const;
+
+export type ExampleCategory = (typeof exampleCategoryOrder)[number];
+
+type ExampleSlug =
+  | 'basic'
+  | 'ide'
+  | 'dashboard'
+  | 'nested'
+  | 'constraints'
+  | 'collapse'
+  | 'overflow'
+  | 'panel-locking'
+  | 'tab-locking'
+  | 'controlled'
+  | 'persistence'
+  | 'callbacks'
+  | 'floating'
+  | 'themes';
+
+type ExampleMetadata = {
+  slug: ExampleSlug;
+  title: string;
+  description: string;
+  category: ExampleCategory;
+  demos?: Array<{ id: string; sourceRegion?: string }>;
+  guide: {
+    paragraphs: string[];
+    readNext: Array<{
+      href: string;
+      label: string;
+      description: string;
+    }>;
+  };
+};
+
+const exampleOrder = [
+  'basic',
+  'ide',
+  'dashboard',
+  'nested',
+  'constraints',
+  'collapse',
+  'overflow',
+  'panel-locking',
+  'tab-locking',
+  'controlled',
+  'persistence',
+  'callbacks',
+  'floating',
+  'themes',
+] as const satisfies readonly ExampleSlug[];
+
+const exampleDefinitions = [
   {
     slug: 'basic',
     title: 'Basic Layout',
     description: 'Two side-by-side panels with one tab each.',
+    category: 'Layout Patterns',
     guide: {
       paragraphs: [
         'Start here if you want the smallest useful Tilery layout: two panels in a horizontal group, each with one tab. Drag the divider to see how the group distributes space between its children.',
@@ -100,6 +159,7 @@ export const examples = [
     slug: 'ide',
     title: 'IDE Layout',
     description: 'VS Code-like layout with sidebar, editor, and terminal.',
+    category: 'Layout Patterns',
     guide: {
       paragraphs: [
         'Use this layout for an editor-style shell with a sidebar, main editor, and terminal. Resize the sidebar and terminal, then move editor tabs to see which parts of the workspace are structural and which are document-like.',
@@ -123,6 +183,7 @@ export const examples = [
     slug: 'dashboard',
     title: 'Dashboard',
     description: '2x2 grid of panels like an analytics dashboard.',
+    category: 'Layout Patterns',
     guide: {
       paragraphs: [
         'This is a dashboard built from nested horizontal and vertical groups rather than a separate grid primitive. Resize a row, then resize a panel inside that row to see how each group owns one dimension.',
@@ -146,6 +207,7 @@ export const examples = [
     slug: 'themes',
     title: 'Themes',
     description: 'A gallery of Tilery workspaces styled with CSS variables.',
+    category: 'Advanced UI',
     demos: [
       { id: 'abyss', sourceRegion: 'abyss' },
       { id: 'visual-studio', sourceRegion: 'visual-studio' },
@@ -180,6 +242,7 @@ export const examples = [
     title: 'Panel Actions',
     description:
       'Built-in panel actions, custom menu items, and new-tab hooks.',
+    category: 'Panel & Tab Behavior',
     demos: [
       { id: 'panel-menu', sourceRegion: 'panel-menu' },
       { id: 'new-tab', sourceRegion: 'new-tab' },
@@ -207,6 +270,7 @@ export const examples = [
     slug: 'constraints',
     title: 'Size Constraints',
     description: 'Panels with percentage and pixel minSize/maxSize limits.',
+    category: 'Panel & Tab Behavior',
     demos: [
       { id: 'panel-constraints', sourceRegion: 'panel-constraints' },
       { id: 'container-resize', sourceRegion: 'container-resize' },
@@ -234,6 +298,7 @@ export const examples = [
     slug: 'panel-locking',
     title: 'Panel Locking',
     description: 'Lock panel resizing, dragging, and drop targets.',
+    category: 'Panel & Tab Behavior',
     guide: {
       paragraphs: [
         'Panel locking separates resize, drag, and drop behavior so app chrome can stay fixed while other regions remain flexible. Try resizing, dragging from, and dropping into locked panels.',
@@ -257,6 +322,7 @@ export const examples = [
     slug: 'tab-locking',
     title: 'Tab Locking',
     description: 'Lock tabs or toggle whether they can be closed and dragged.',
+    category: 'Panel & Tab Behavior',
     demos: [
       { id: 'initial-locks', sourceRegion: 'initial-locks' },
       { id: 'runtime-behavior', sourceRegion: 'runtime-behavior' },
@@ -284,6 +350,7 @@ export const examples = [
     slug: 'overflow',
     title: 'Tab Overflow',
     description: 'Many tabs in one panel with scrolling and a hidden-tab menu.',
+    category: 'Panel & Tab Behavior',
     demos: [{ id: 'tab-overflow', sourceRegion: 'tab-overflow' }],
     guide: {
       paragraphs: [
@@ -309,6 +376,7 @@ export const examples = [
     title: 'Programmatic Control',
     description:
       'Use the Tilery controller plus panel and tab objects for imperative workflows.',
+    category: 'App Integration',
     demos: [
       { id: 'panel-objects', sourceRegion: 'panel-objects' },
       { id: 'tab-objects', sourceRegion: 'tab-objects' },
@@ -337,6 +405,7 @@ export const examples = [
     slug: 'floating',
     title: 'Floating Panels',
     description: 'Detach panels into movable overlays and dock them back.',
+    category: 'Advanced UI',
     demos: [
       { id: 'initial-floating', sourceRegion: 'initial-floating' },
       { id: 'runtime-floating', sourceRegion: 'runtime-floating' },
@@ -368,6 +437,7 @@ export const examples = [
     slug: 'persistence',
     title: 'Layout Persistence',
     description: 'Save, restore, and replace layout snapshots.',
+    category: 'App Integration',
     demos: [
       { id: 'local-storage', sourceRegion: 'local-storage' },
       { id: 'snapshot-controls', sourceRegion: 'snapshot-controls' },
@@ -395,6 +465,7 @@ export const examples = [
     slug: 'callbacks',
     title: 'Lifecycle Callbacks',
     description: 'Track structural and resize lifecycle events.',
+    category: 'App Integration',
     demos: [
       { id: 'structural', sourceRegion: 'structural' },
       { id: 'resize', sourceRegion: 'resize' },
@@ -423,6 +494,7 @@ export const examples = [
     slug: 'nested',
     title: 'Nested Instances',
     description: 'A Tilery instance rendered inside a tab of another Tilery.',
+    category: 'Layout Patterns',
     guide: {
       paragraphs: [
         'Nested instances are useful when a tab contains a self-contained tool with its own workspace. Resize the inner layout, then resize the outer panel to see that each Tilery root manages its own state.',
@@ -442,4 +514,18 @@ export const examples = [
       ],
     },
   },
-];
+] satisfies ExampleMetadata[];
+
+const examplesBySlug = new Map(
+  exampleDefinitions.map((example) => [example.slug, example]),
+);
+
+function getOrderedExample(slug: ExampleSlug) {
+  const example = examplesBySlug.get(slug);
+  if (!example) {
+    throw new Error(`Missing example metadata for ${slug}`);
+  }
+  return example;
+}
+
+export const examples = exampleOrder.map(getOrderedExample);
