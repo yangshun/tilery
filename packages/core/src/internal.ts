@@ -1,26 +1,9 @@
-export type {
-  TileryDirection,
-  TileryDivider,
-  TileryDividerOrientation,
-  TileryEdge,
-  TileryFloatingPanelBounds,
-  TileryFloatingResizeEdge,
-  TileryController,
-  TileryInitialLayout,
-  TileryInset,
-  TileryJunction,
-  TileryLayoutState,
-  TileryPanel,
-  TileryPanelId,
-  TileryPanelState,
-  TileryPopoutPanelOptions,
-  TileryPopoutWindowBounds,
-  TilerySize,
-  TilerySizeResolutionContext,
-  TileryTab,
-  TileryTabId,
-  TileryTabInit,
-} from './types';
+// `internal.ts` is the adapter-facing entry point. It re-exports the ENTIRE
+// public type surface plus the implementation functions (below) and impl-only
+// types (dividers, junctions, …) that end users don't need. `index.ts` is the
+// curated public type surface. Using `export type *` keeps the adapter's view of
+// the public types drift-free instead of hand-maintaining a subset here.
+export type * from './types';
 
 export {
   tileryCreateInitialState,

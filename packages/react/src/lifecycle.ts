@@ -119,13 +119,63 @@ export type TileryLifecycleEvents<TData = unknown> = {
   panelsClose: TileryPanelsCloseEvent<TData> | null;
 };
 
+// Exhaustive classification of every reducer action: the lifecycle source it
+// reports, or null when it can never change panel/tab membership or the active
+// tab (sizes, bounds, focus, data, and in-place panel transitions that keep the
+// panel id). The explicit Record makes adding a new reducer action a compile
+// error here until it is classified, replacing the previous unchecked cast.
+const LIFECYCLE_SOURCE_BY_ACTION: Record<
+  TileryReducerAction['type'],
+  TileryLifecycleSource | null
+> = {
+  PANEL_SPLIT: 'PANEL_SPLIT',
+  PANEL_REMOVE: 'PANEL_REMOVE',
+  TAB_APPEND: 'TAB_APPEND',
+  TAB_INSERT: 'TAB_INSERT',
+  TAB_ID_CHANGE: 'TAB_ID_CHANGE',
+  TAB_REMOVE: 'TAB_REMOVE',
+  TAB_MOVE: 'TAB_MOVE',
+  TAB_FLOAT: 'TAB_FLOAT',
+  TAB_POPOUT: 'TAB_POPOUT',
+  TAB_ACTIVE_SET: 'TAB_ACTIVE_SET',
+  STATE_REPLACE: 'STATE_REPLACE',
+  PANEL_FULLSCREEN_SET: null,
+  PANEL_FLOAT: null,
+  PANEL_POPOUT: null,
+  PANEL_RETURN_TO_FLOATING: null,
+  PANEL_DOCK: null,
+  PANEL_FOCUS: null,
+  PANEL_FLOATING_BOUNDS_SET: null,
+  PANEL_POPOUT_WINDOW_BOUNDS_SET: null,
+  PANEL_SWAP: null,
+  EDGE_PANEL_SIZE_SET: null,
+  TAB_DATA_SET: null,
+  TAB_BEHAVIOR_SET: null,
+  DIVIDER_RESIZE: null,
+  DIVIDER_RESET: null,
+  JUNCTION_RESIZE: null,
+  CONTAINER_SIZE_NORMALIZE: null,
+};
+
 export function makeLifecycleEvents<TData>(
   previousState: TileryLayoutState,
   state: TileryLayoutState,
   action: TileryReducerAction,
 ): TileryLifecycleEvents<TData> {
-  const source = action.type;
-  const lifecycleSource = source as TileryLifecycleSource;
+  const lifecycleSource = LIFECYCLE_SOURCE_BY_ACTION[action.type];
+  // Actions classified as null never produce membership/active-tab diffs, so no
+  // lifecycle events fire — return early rather than asserting a bogus source.
+  if (lifecycleSource === null) {
+    return {
+      activeTabChange: null,
+      tabsMove: null,
+      panelsOpen: null,
+      panelSplit: null,
+      tabsOpen: null,
+      tabsClose: null,
+      panelsClose: null,
+    };
+  }
   const activeTabChanges = makeActiveTabChanges(previousState, state);
   const movedTabs = makeTabMoveChanges<TData>(previousState, state, action);
   const openedPanels = tileryAllPanelOrderFromState(state)

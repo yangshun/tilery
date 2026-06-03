@@ -350,6 +350,20 @@ export function tileryDeriveLayoutDividers(
   return dividers;
 }
 
+/**
+ * Clamp a target divider position into a constraint range. When the range is
+ * inverted (min > max — constraints leave no slack) the divider stays at its
+ * current position. Shared by the layout-tree clamp here and the derived-divider
+ * clamp in layout-math so the rule lives in one place.
+ */
+export function tileryClampToConstraintRange(
+  range: { current: number; min: number; max: number },
+  target: number,
+): number {
+  if (range.min > range.max) return range.current;
+  return Math.max(range.min, Math.min(range.max, target));
+}
+
 export function tileryClampLayoutDividerPosition(
   layout: TileryLayoutTree | null | undefined,
   splitId: string,
@@ -366,8 +380,7 @@ export function tileryClampLayoutDividerPosition(
     sizeContext,
   );
   if (!range) return null;
-  if (range.min > range.max) return range.current;
-  return Math.max(range.min, Math.min(range.max, targetPosition));
+  return tileryClampToConstraintRange(range, targetPosition);
 }
 
 export function tileryGetLayoutDividerConstraintRange(

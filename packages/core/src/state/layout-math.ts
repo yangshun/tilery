@@ -12,6 +12,7 @@ import type {
 } from '../types';
 import {
   tileryAllPanelOrderFromState,
+  tileryClampToConstraintRange,
   tileryGetLayoutDividerConstraintRange,
   tileryDeriveLayoutDividers,
   tileryResizeLayoutDivider,
@@ -426,8 +427,7 @@ export function tileryClampDividerPosition(
     sizeContext,
   );
   if (!range) return divider.position;
-  if (range.min > range.max) return range.current;
-  return Math.max(range.min, Math.min(range.max, targetPosition));
+  return tileryClampToConstraintRange(range, targetPosition);
 }
 
 export function tileryGetDividerConstraintRange(
