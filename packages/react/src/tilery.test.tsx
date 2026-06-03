@@ -577,6 +577,25 @@ describe('Tilery — rendering', () => {
     t.cleanup();
   });
 
+  it('does not snap wheel-scrolled tab rows back to the active tab', () => {
+    const t = mount(overflowTabsLayout());
+    const tabList = t.host.querySelector<HTMLElement>('.tilery__tab-list')!;
+    stubOverflowTabRow(t.host, tabList, { clientWidth: 160 });
+    tabList.scrollLeft = 0;
+
+    act(() => {
+      reactProps(tabList).onWheel({
+        deltaX: 0,
+        deltaY: 200,
+        preventDefault() {},
+      });
+    });
+
+    expect(t.controller().getPanel('overflow')!.activeTab?.id).toBe('tab-1');
+    expect(tabList.scrollLeft).toBe(200);
+    t.cleanup();
+  });
+
   it('leaves wheel scrolling alone when the tab row cannot move', () => {
     const t = mount(overflowTabsLayout());
     const tabList = t.host.querySelector<HTMLElement>('.tilery__tab-list')!;

@@ -131,6 +131,7 @@ export function TabBar({
 }: TabBarProps) {
   const panelId = panel.id;
   const activeTabId = panel.activeTab?.id ?? null;
+  const tabIdsKey = panel.tabs.map((tab) => tab.id).join('\u001f');
   const tabListRef = useRef<HTMLDivElement | null>(null);
   const [hiddenTabIds, setHiddenTabIds] = useState<string[]>([]);
   const [isOverflowMenuOpen, setIsOverflowMenuOpen] = useState(false);
@@ -184,7 +185,7 @@ export function TabBar({
       areStringArraysEqual(previous, next) ? previous : next,
     );
     if (next.length === 0) setIsOverflowMenuOpen(false);
-  }, [panel.tabs]);
+  }, [tabIdsKey]);
   const handleTabListWheel = useCallback(
     (e: React.WheelEvent) => {
       const tabList = tabListRef.current;
@@ -243,7 +244,7 @@ export function TabBar({
     if (!activeTab) return;
     scrollTabIntoView(tabList, activeTab);
     updateHiddenTabs();
-  }, [activeTabId, panel.tabs, updateHiddenTabs]);
+  }, [activeTabId, tabIdsKey, updateHiddenTabs]);
 
   useLayoutEffect(() => {
     updateHiddenTabs();
