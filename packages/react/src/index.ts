@@ -1,3 +1,7 @@
+/**
+ * Public entry point for `@tilery/react`: the Tilery component, props,
+ * events, and re-exported core types.
+ */
 export {
   Tilery,
   type TileryNewTabHandler,

@@ -1,7 +1,20 @@
+/**
+ * Hit-test pointer position to panel/edge/tab-bar drop zones.
+ * Pure geometry helpers that map raw pixel coordinates to zone descriptors
+ * consumed by the drag commit logic.
+ */
 import type { TileryDirection } from '../types';
 
+/** A directional split zone or the center (tab-merge) zone within a panel. */
 export type TileryPanelZone = TileryDirection | 'center';
 
+/**
+ * Map a pointer position inside a panel rect to its drop zone. Edge zones are
+ * determined by an angular threshold within `edgeFraction` of each side;
+ * corner regions resolve to `top` or `bottom` rather than the nearest edge.
+ *
+ * @returns The zone, or `null` when the pointer is outside the rect.
+ */
 export function tileryZoneAt(
   rect: { left: number; top: number; width: number; height: number },
   x: number,
@@ -31,6 +44,13 @@ export function tileryZoneAt(
   return 'center';
 }
 
+/**
+ * Test whether a pointer is within the outer `edgeSize` pixels of a rect on
+ * any side, returning that direction.
+ *
+ * @returns The edge direction, or `null` when the pointer is in the interior
+ *   or outside the rect entirely.
+ */
 export function tileryEdgeZoneAt(
   rect: { left: number; top: number; width: number; height: number },
   x: number,
@@ -50,11 +70,20 @@ export function tileryEdgeZoneAt(
   return null;
 }
 
+/**
+ * Resolved drop position within a tab bar: insert before or after a specific
+ * tab, or append to the end.
+ */
 export type TileryTabBarHit =
   | { kind: 'before'; tabId: string }
   | { kind: 'after'; tabId: string }
   | { kind: 'append' };
 
+/**
+ * Determine where a dragged tab should be inserted in a tab bar given the
+ * current horizontal tab rects and pointer position. The midpoint of each tab
+ * splits the before/after regions; positions past all tabs resolve to append.
+ */
 export function tileryTabBarDropAt(
   tabRects: { tabId: string; left: number; right: number }[],
   x: number,
@@ -71,6 +100,11 @@ export function tileryTabBarDropAt(
   return { kind: 'append' };
 }
 
+/**
+ * Compute the pixel rect of the visual split-preview half that would be
+ * created by dropping into `zone` on `panelRect`. Returns the half of the
+ * panel the new split would occupy.
+ */
 export function tileryZoneToSplitInset(
   zone: TileryDirection,
   panelRect: { left: number; top: number; width: number; height: number },

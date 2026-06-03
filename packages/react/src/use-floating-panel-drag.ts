@@ -1,5 +1,13 @@
 'use client';
 
+/**
+ * Drag and resize controller for floating panels.
+ *
+ * Handles pointer-capture gestures that move or edge-resize a floating panel
+ * within its container, delegating non-floating pointer events to the tab-drag
+ * controller.
+ */
+
 import { useCallback, useRef, type PointerEvent, type RefObject } from 'react';
 import {
   tileryPanelBehaviorFromState,
@@ -21,18 +29,31 @@ type TileryFloatingPanelDragState = {
   containerHeight: number;
 };
 
+/**
+ * Pointer event handlers returned by {@link useTileryFloatingPanelDrag} that
+ * drive both move and resize interactions for floating panels.
+ */
 export type TileryFloatingPanelDragController = {
+  /** Initiates a floating-panel move when the user drags its tab bar. */
   onFloatingTabBarPointerDown: (e: PointerEvent, panelId: string) => void;
+  /** Initiates a floating-panel resize from the given edge handle. */
   onFloatingResizePointerDown: (
     e: PointerEvent,
     panelId: string,
     edge: TileryFloatingResizeEdge,
   ) => void;
+  /** Dispatches move deltas for the active floating drag or resize. */
   onPointerMove: (e: PointerEvent) => void;
+  /** Commits or cancels the current floating drag/resize on pointer-up. */
   onTabBarPointerUp: (e: PointerEvent) => void;
+  /** Cancels any in-flight floating drag or resize. */
   onPointerCancel: (e: PointerEvent) => void;
 };
 
+/**
+ * Manages drag-to-move and edge-resize interactions for floating panels,
+ * updating panel bounds live via the Tilery controller on every pointer-move.
+ */
 export function useTileryFloatingPanelDrag({
   tilery,
   containerRef,

@@ -1,3 +1,7 @@
+/**
+ * Panel-level state operations: split, remove, full-screen toggle, swap,
+ * and the shared removal-with-fill helper used by tab operations.
+ */
 import type {
   TileryLayoutState,
   TileryPanelId,
@@ -28,6 +32,13 @@ import { tileryReducerTabActionToState } from './tab-state';
 
 type SplitPanelAction = Extract<TileryReducerAction, { type: 'PANEL_SPLIT' }>;
 
+/**
+ * Splits an existing tiled panel in the given direction, inserting a new
+ * sibling panel at `action.newPanelId` populated with `action.tabs`.
+ * @returns The input state unchanged when the source panel is missing,
+ *   non-tiled, full-screen, non-droppable, or the split violates size
+ *   constraints.
+ */
 export function tilerySplitPanel(
   current: TileryLayoutState,
   action: SplitPanelAction,
@@ -109,6 +120,12 @@ export function tilerySplitPanel(
   return nextState;
 }
 
+/**
+ * Removes the panel identified by `panelId` and redistributes its space to
+ * neighbouring panels.
+ * @returns The input state unchanged when the panel is missing or contains a
+ *   non-closable tab.
+ */
 export function tileryRemovePanel(
   current: TileryLayoutState,
   panelId: TileryPanelId,
@@ -119,6 +136,12 @@ export function tileryRemovePanel(
   return tileryRemovePanelAndFill(current, target);
 }
 
+/**
+ * Sets or clears the full-screen flag for a panel, ensuring at most one
+ * panel is full-screen at any time by clearing the flag on all others.
+ * @returns The input state unchanged when the panel is missing or the flag
+ *   is already at the requested value.
+ */
 export function tilerySetPanelFullScreen(
   current: TileryLayoutState,
   panelId: TileryPanelId,
@@ -151,6 +174,12 @@ export function tilerySetPanelFullScreen(
   return { ...current, panels: nextPanels };
 }
 
+/**
+ * Exchanges the positions of two tiled panels by swapping their insets (or
+ * their positions in the layout tree when a tree is present).
+ * @returns The input state unchanged when either panel is missing,
+ *   non-tiled, the same panel, or the swap is disallowed by behavior rules.
+ */
 export function tilerySwapPanels(
   current: TileryLayoutState,
   panelA: TileryPanelId,
@@ -176,6 +205,12 @@ export function tilerySwapPanels(
   };
 }
 
+/**
+ * Removes `removed` from state and fills the vacated space. For edge and
+ * floating panels the panel is simply deleted; for tiled panels the space is
+ * redistributed to neighbouring panels (or the layout tree is updated when
+ * present). All tabs belonging to the removed panel are also deleted.
+ */
 export function tileryRemovePanelAndFill(
   state: TileryLayoutState,
   removed: TileryPanelState,
@@ -262,6 +297,10 @@ export function tileryRemovePanelAndFill(
   };
 }
 
+/**
+ * Returns `true` when at least one tab in the panel has `closable: false`,
+ * which prevents the panel from being removed.
+ */
 export function tileryPanelHasNonClosableTab(
   state: TileryLayoutState,
   panel: TileryPanelState,
@@ -269,4 +308,5 @@ export function tileryPanelHasNonClosableTab(
   return panel.tabs.some((tabId) => state.tabs[tabId]?.closable === false);
 }
 
+/** Re-export of the internal PANEL_SPLIT action shape for use in sibling modules. */
 export type TileryPanelSplitAction = SplitPanelAction;

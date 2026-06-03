@@ -1,5 +1,13 @@
 'use client';
 
+/**
+ * Popout-window lifecycle manager for floating panels.
+ *
+ * Opens, tracks, and tears down browser popout windows for panels whose
+ * `floating.popout` flag is set, keeping window state in sync with the
+ * Tilery layout reducer.
+ */
+
 import {
   useCallback,
   useEffect,
@@ -25,15 +33,34 @@ type TileryPopoutWindowRecord = {
   cleanup: () => void;
 };
 
+/**
+ * Controller returned by {@link useTileryPopoutWindows} for managing panel
+ * popout windows.
+ */
 export type TileryPopoutWindowController = {
+  /**
+   * Map of panel IDs to the root `<div>` inside their popout window, used as
+   * React portal targets.
+   */
   popoutRoots: Record<TileryPanelId, HTMLElement | null>;
+  /**
+   * Opens a popout window for the given panel (or focuses it if already open).
+   *
+   * @returns `true` if the window was opened or focused, `false` if blocked.
+   */
   requestPopoutPanel: (
     panelId: TileryPanelId,
     opts?: TileryPopoutPanelOptions,
   ) => boolean;
+  /** Closes the popout window and returns the panel to its floating state. */
   returnPopoutPanelToFloating: (panelId: TileryPanelId) => void;
 };
 
+/**
+ * Synchronises open popout windows with the layout state, opening new windows
+ * for panels that become popped-out and closing windows whose panels return to
+ * floating or are removed.
+ */
 export function useTileryPopoutWindows({
   containerRef,
   state,

@@ -1,3 +1,7 @@
+/**
+ * Tab-level state operations: append, insert, remove, move, id-rename, active
+ * selection, data update, and behavior update.
+ */
 import type {
   TileryLayoutState,
   TileryPanelId,
@@ -42,6 +46,11 @@ type MoveTabToRootSplitAction = MoveTabAction & {
   to: Extract<MoveTabAction['to'], { splitRoot: true }>;
 };
 
+/**
+ * Appends a new tab to the end of the panel's tab list and optionally makes
+ * it the active tab.
+ * @returns The input state unchanged when the target panel does not exist.
+ */
 export function tileryAppendTab(
   current: TileryLayoutState,
   action: AppendTabAction,
@@ -70,6 +79,12 @@ export function tileryAppendTab(
   };
 }
 
+/**
+ * Inserts a new tab at the given index within the panel's tab list and
+ * optionally makes it the active tab. The index is clamped to the valid
+ * range `[0, panel.tabs.length]`.
+ * @returns The input state unchanged when the target panel does not exist.
+ */
 export function tileryInsertTab(
   current: TileryLayoutState,
   action: InsertTabAction,
@@ -101,6 +116,13 @@ export function tileryInsertTab(
   };
 }
 
+/**
+ * Removes a tab from its panel and selects the nearest remaining sibling as
+ * the active tab. If removing the tab would empty the panel, the panel itself
+ * is removed via `tileryRemovePanelAndFill`.
+ * @returns The input state unchanged when the tab is missing, not closable,
+ *   or its parent panel is missing.
+ */
 export function tileryRemoveTab(
   current: TileryLayoutState,
   tabId: TileryTabId,
@@ -134,6 +156,12 @@ export function tileryRemoveTab(
   };
 }
 
+/**
+ * Renames a tab's id from `action.oldTabId` to `action.newTabId`, updating
+ * the owning panel's tab list and activeTabId reference in one step.
+ * @returns The input state unchanged when the old id is missing, the new id
+ *   is already taken, or the parent panel is missing.
+ */
 export function tileryChangeTabId(
   current: TileryLayoutState,
   action: ChangeTabIdAction,
@@ -167,6 +195,13 @@ export function tileryChangeTabId(
   };
 }
 
+/**
+ * Moves a tab to a new position, which may be a different index within the
+ * same panel, before/after another tab, or into a freshly-split panel
+ * (either by splitting an existing panel or by splitting the layout root).
+ * @returns The input state unchanged when the tab is missing, non-draggable,
+ *   its source panel is missing, or behavior rules prevent the move.
+ */
 export function tileryMoveTab(
   current: TileryLayoutState,
   action: MoveTabAction,
@@ -254,6 +289,11 @@ export function tileryMoveTab(
   );
 }
 
+/**
+ * Makes the given tab the active tab in its panel.
+ * @returns The input state unchanged when the tab is missing, its panel is
+ *   missing, or it is already the active tab.
+ */
 export function tilerySetActiveTab(
   current: TileryLayoutState,
   tabId: TileryTabId,
@@ -275,6 +315,11 @@ export function tilerySetActiveTab(
   };
 }
 
+/**
+ * Replaces the `data` payload stored on a tab without touching any other
+ * state.
+ * @returns The input state unchanged when the tab does not exist.
+ */
 export function tilerySetPanelData(
   current: TileryLayoutState,
   tabId: TileryTabId,
@@ -291,6 +336,11 @@ export function tilerySetPanelData(
   };
 }
 
+/**
+ * Applies a partial behavior update (`closable`, `draggable`) to a tab.
+ * @returns The input state unchanged when the tab is missing or the resolved
+ *   behavior flags are identical to the current values.
+ */
 export function tilerySetTabBehavior(
   current: TileryLayoutState,
   tabId: TileryTabId,

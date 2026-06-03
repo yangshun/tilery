@@ -1,5 +1,12 @@
 'use client';
 
+/**
+ * High-level tab and panel drag controller.
+ *
+ * Orchestrates pointer-event handlers, DOM element registration, drop-zone
+ * hit-testing, and drag-state tracking for the full tab/panel drag lifecycle.
+ */
+
 import { useCallback, useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import type {
@@ -40,6 +47,13 @@ type Refs = {
 const DRAG_THRESHOLD_PX = 4;
 const ROOT_DROP_EDGE_PX = 24;
 
+/**
+ * Creates all pointer event handlers and DOM-element registration callbacks
+ * needed to drive tab and panel dragging within the Tilery layout.
+ *
+ * @returns Handlers to attach to tab, tab-bar, and container elements, the
+ * current {@link TileryDragState}, and ref-registration helpers.
+ */
 export function useTileryDragController(
   tilery: () => TileryController | null,
   mainContainerRef?: RefObject<HTMLDivElement | null>,

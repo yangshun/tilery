@@ -1,5 +1,9 @@
 'use client';
 
+/**
+ * The tab strip for a panel.
+ */
+
 import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import type { TileryController, TileryPanel, TileryTab } from 'tilery/internal';
 import { tileryPanelBehaviorFromState } from 'tilery/internal';
@@ -7,28 +11,59 @@ import { PanelActions, type PanelActionsProps } from './panel-actions';
 import { Tab } from './tab';
 import type { TileryTabTriggerRenderer } from '../tilery';
 
+/**
+ * Props for the {@link TabBar} component.
+ */
 export type TabBarProps = {
+  /** The panel model whose tabs are rendered in this strip. */
   panel: TileryPanel;
+  /** The Tilery layout controller for the current root. */
   tilery: TileryController;
+  /**
+   * Renders the visible header content for a tab in the strip and in the
+   * overflow menu.
+   */
   renderHeader: (tab: TileryTab, ctx: { isActive: boolean }) => React.ReactNode;
+  /**
+   * Replaces the default `<div>` tab trigger with a custom element. The
+   * renderer receives the tab model, active state, pre-built props, and
+   * children.
+   */
   renderTabTrigger?: TileryTabTriggerRenderer;
+  /** Callback ref that registers the tab-list element. */
   registerTabBar: (el: HTMLElement | null) => void;
+  /** Callback ref that registers an individual tab element by ID. */
   registerTab: (tabId: string, el: HTMLElement | null) => void;
+  /** Called on pointer-down over a tab trigger. */
   onTabPointerDown: (e: React.PointerEvent, tabId: string) => void;
+  /** Called on pointer-move during a tab drag gesture. */
   onTabPointerMove: (e: React.PointerEvent) => void;
+  /**
+   * Called on pointer-up over a tab trigger. The `onClick` callback should
+   * be invoked if the gesture was a click rather than a drag.
+   */
   onTabPointerUp: (
     e: React.PointerEvent,
     tabId: string,
     onClick: () => void,
   ) => void;
+  /** Called on pointer-cancel to clean up an interrupted tab drag. */
   onTabPointerCancel: (e: React.PointerEvent) => void;
+  /** Called on pointer-down over the bar background (outside any tab). */
   onTabBarPointerDown: (e: React.PointerEvent, panelId: string) => void;
+  /**
+   * Called on pointer-down over the floating panel's tab bar when the
+   * pointer is not over a tab or action button, initiating a panel drag.
+   */
   onFloatingTabBarPointerDown?: (
     e: React.PointerEvent,
     panelId: string,
   ) => void;
+  /** Called on pointer-up over the bar background to end a drag. */
   onTabBarPointerUp: (e: React.PointerEvent) => void;
+  /** Called when a tab is activated via click or overflow menu. */
   onTabClick: (tabId: string) => void;
+  /** Called when the close button on a tab is clicked. */
   onTabClose: (tabId: string) => void;
 } & Pick<
   PanelActionsProps,
@@ -113,6 +148,12 @@ function TabOverflowIcon() {
   );
 }
 
+/**
+ * Renders the scrollable tab strip for a single panel. Tracks which tabs
+ * overflow the visible area, exposes an overflow dropdown menu for hidden
+ * tabs, auto-scrolls the active tab into view, and delegates to
+ * {@link PanelActions} for the new-tab and actions buttons.
+ */
 export function TabBar({
   panel,
   tilery,

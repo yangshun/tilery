@@ -1,3 +1,6 @@
+/**
+ * Pinned edge-panel ordering, sizing, and clamping.
+ */
 import type {
   TileryEdge,
   TileryEdgePanelState,
@@ -12,6 +15,11 @@ import { tileryAxisPixels, tileryResolveSizePercent } from './size';
 const EDGE_ORDER: TileryEdge[] = ['left', 'right', 'top', 'bottom'];
 const DEFAULT_MIN_SIZE = 10;
 
+/**
+ * Returns a stable ordered list of edge-panel IDs from `state`, filtering
+ * stale entries from `edgePanelOrder` and appending any edge panels not yet
+ * tracked, sorted by canonical side order (left → right → top → bottom).
+ */
 export function tileryEdgePanelOrderFromState(
   state: TileryLayoutState,
 ): TileryPanelId[] {
@@ -41,12 +49,17 @@ export function tileryEdgePanelOrderFromState(
   return [...ordered, ...missing];
 }
 
+/**
+ * Returns a map from each occupied edge side to the first panel ID assigned
+ * to that side according to the canonical edge order.
+ */
 export function tileryEdgePanelIdBySide(
   state: TileryLayoutState,
 ): Partial<Record<TileryEdge, TileryPanelId>> {
   const bySide: Partial<Record<TileryEdge, TileryPanelId>> = {};
   for (const panelId of tileryEdgePanelOrderFromState(state)) {
     const panel = state.panels[panelId];
+    /* v8 ignore next 2 -- the order helper yields exactly one edge panel per side. */
     if (panel?.kind !== 'edge') continue;
     if (bySide[panel.edge.side]) continue;
     bySide[panel.edge.side] = panel.id;
@@ -54,6 +67,10 @@ export function tileryEdgePanelIdBySide(
   return bySide;
 }
 
+/**
+ * Computes the current clamped percentage size for each edge side, returning
+ * `0` for any side that has no active edge panel.
+ */
 export function tileryEdgePanelSizes(
   state: TileryLayoutState,
 ): Record<TileryEdge, number> {
@@ -65,12 +82,19 @@ export function tileryEdgePanelSizes(
   };
   for (const panelId of tileryEdgePanelOrderFromState(state)) {
     const panel = state.panels[panelId];
+    /* v8 ignore next -- the order helper yields only edge panels. */
     if (panel?.kind !== 'edge') continue;
     sizes[panel.edge.side] = clampPercent(panel.edge.size);
   }
   return sizes;
 }
 
+/**
+ * Resizes an edge panel to `size` after clamping it against the panel's
+ * min/max constraints and the space needed by the opposite edge panel.
+ * Returns `state` unchanged when the panel is not edge-kind, is not
+ * resizable, or the clamped size equals the current size.
+ */
 export function tilerySetEdgePanelSize(
   state: TileryLayoutState,
   panelId: TileryPanelId,
@@ -102,6 +126,12 @@ export function tilerySetEdgePanelSize(
   };
 }
 
+/**
+ * Clamps `targetSize` to the valid range for an edge panel: at least
+ * `minSize`, at most the panel's `maxSize` and the available space after
+ * reserving room for the opposite edge and the center minimum. Returns the
+ * panel's current size unchanged when `min > max`.
+ */
 export function tileryClampEdgePanelSize(
   state: TileryLayoutState,
   panelId: TileryPanelId,
@@ -129,6 +159,11 @@ export function tileryClampEdgePanelSize(
   return Math.max(min, Math.min(upper, clampPercent(targetSize)));
 }
 
+/**
+ * Ensures `state.edgePanelOrder` matches the canonical order derived from
+ * `tileryEdgePanelOrderFromState`. Returns `state` unchanged when the order
+ * is already consistent.
+ */
 export function tileryNormalizeEdgePanelOrders(
   state: TileryLayoutState,
 ): TileryLayoutState {
@@ -137,10 +172,19 @@ export function tileryNormalizeEdgePanelOrders(
   return { ...state, edgePanelOrder };
 }
 
+/**
+ * Returns the default percentage size for a newly created edge panel:
+ * 28 % for top/bottom and 24 % for left/right.
+ */
 export function tileryDefaultEdgePanelSize(side: TileryEdge): number {
   return side === 'top' || side === 'bottom' ? 28 : 24;
 }
 
+/**
+ * Computes the four-sided inset for an edge panel given its side and
+ * percentage size, placing the occupying edge at zero and pushing the
+ * opposite side inward by `100 - size`.
+ */
 export function tileryEdgeInset(
   side: TileryEdge,
   size: number,

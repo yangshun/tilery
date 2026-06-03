@@ -1,16 +1,35 @@
 'use client';
 
+/**
+ * Renders drag drop-zone highlights and the tab insertion bar.
+ */
+
 import type { TileryDragState } from 'tilery/internal';
 
+/**
+ * Props for the {@link DropOverlay} component.
+ */
 export type DropOverlayProps = {
+  /** Current drag state that drives which overlay variant is rendered. */
   drag: TileryDragState;
+  /** Ref to the root layout container, used to convert DOM rects to
+   *  relative coordinates. */
   containerRef: React.RefObject<HTMLDivElement | null>;
+  /** Map from panel ID to its root DOM element, used to locate panel
+   *  drop zones. */
   panelEls: Map<string, HTMLElement>;
+  /** Content rendered inside the floating drag ghost element. */
   ghostLabel?: React.ReactNode;
 };
 
 const INSERTION_BAR_WIDTH = 3;
 
+/**
+ * Absolute-positioned overlay layer rendered on top of the layout during a
+ * drag operation. Displays a highlighted zone (root edge, panel half, or tab
+ * insertion bar) based on the current hover target, plus a floating ghost
+ * label that follows the pointer.
+ */
 export function DropOverlay({
   drag,
   containerRef,
@@ -56,6 +75,7 @@ function renderRootZone(
   cRect: DOMRect,
 ): React.ReactNode {
   const zone = drag.hoverRootZone;
+  /* v8 ignore next -- renderRootZone is only called when a root zone is set. */
   if (!zone) return null;
   const mainLayer = container.querySelector<HTMLElement>('.tilery__main-layer');
   if (!mainLayer) return null;
@@ -95,6 +115,7 @@ function renderRootZone(
 }
 
 function clampPercent(value: number) {
+  /* v8 ignore next -- hoverRootSize is always a finite number or defaulted. */
   return Math.max(0, Math.min(100, Number.isFinite(value) ? value : 50));
 }
 

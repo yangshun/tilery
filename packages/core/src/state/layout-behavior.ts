@@ -1,3 +1,8 @@
+/**
+ * Normalize and cascade resize/drag/drop behavior.
+ * Converts user-facing config (including the `locked` shorthand) to resolved
+ * booleans and propagates inherited behavior down the layout tree.
+ */
 import type {
   TileryLayoutBehavior,
   TileryLayoutBehaviorConfig,
@@ -6,6 +11,7 @@ import type {
   TileryPanelId,
 } from '../types';
 
+/** The default behavior applied to every panel when no overrides are provided. */
 export const TILERY_DEFAULT_LAYOUT_BEHAVIOR: TileryLayoutBehavior = {
   resizable: true,
   draggable: true,
@@ -13,14 +19,17 @@ export const TILERY_DEFAULT_LAYOUT_BEHAVIOR: TileryLayoutBehavior = {
 };
 
 /**
- * The single definition of what `locked: true` means for a panel: every
- * interaction is disabled. Returns a fresh object so callers may treat the
- * result as owned/mutable. Shared by layout and floating behavior normalizers.
+ * Canonical expansion of `locked: true` — all three interaction flags are
+ * disabled. Returns a fresh object each time so callers may mutate it freely.
  */
 export function tileryLockedLayoutBehavior(): TileryLayoutBehavior {
   return { resizable: false, draggable: false, droppable: false };
 }
 
+/**
+ * Resolve a behavior config object to explicit booleans, expanding the
+ * `locked` shorthand and filling any missing flags with `true` (enabled).
+ */
 export function tileryNormalizeLayoutBehavior(
   config: TileryLayoutBehaviorConfig | undefined,
 ): TileryLayoutBehavior {
@@ -34,6 +43,10 @@ export function tileryNormalizeLayoutBehavior(
   };
 }
 
+/**
+ * Extract the behavior flags stored on a layout tree node, defaulting any
+ * undefined flag to `true`.
+ */
 export function tileryBehaviorFromNode(
   node: Pick<TileryLayoutTree, 'resizable' | 'draggable' | 'droppable'>,
 ): TileryLayoutBehavior {
@@ -44,6 +57,10 @@ export function tileryBehaviorFromNode(
   };
 }
 
+/**
+ * Combine parent and child behavior by ANDing each flag, so a disabled flag
+ * anywhere in the ancestor chain disables the behavior for all descendants.
+ */
 export function tileryMergeLayoutBehavior(
   parent: TileryLayoutBehavior,
   child: TileryLayoutBehavior,
@@ -55,6 +72,11 @@ export function tileryMergeLayoutBehavior(
   };
 }
 
+/**
+ * Resolve the effective behavior for a panel by walking the layout tree and
+ * merging inherited flags. Returns the default (all enabled) when the panel
+ * is not found or the state has no layout tree.
+ */
 export function tileryPanelBehaviorFromState(
   state: TileryLayoutState,
   panelId: TileryPanelId,
@@ -70,6 +92,11 @@ export function tileryPanelBehaviorFromState(
   );
 }
 
+/**
+ * Return `true` when a tab is allowed to move from `sourcePanelId` to
+ * `targetPanelId` — the source must be draggable and the target droppable.
+ * Intra-panel reordering also requires both flags on the same panel.
+ */
 export function tileryCanMoveTabBetweenPanels(
   state: TileryLayoutState,
   sourcePanelId: TileryPanelId,
@@ -83,6 +110,10 @@ export function tileryCanMoveTabBetweenPanels(
   return source.draggable && target.droppable;
 }
 
+/**
+ * Return `true` when both panels have draggable and droppable enabled, which
+ * is required before a panel swap can be committed.
+ */
 export function tileryCanSwapPanels(
   state: TileryLayoutState,
   panelA: TileryPanelId,

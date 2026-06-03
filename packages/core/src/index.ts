@@ -1,3 +1,9 @@
+/**
+ * Public entry point: the Tilery core type surface (types only).
+ *
+ * Import from here when you only need types; runtime implementation details
+ * are intentionally excluded.
+ */
 export type {
   TileryDirection,
   TileryDockedLayoutInit,

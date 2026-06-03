@@ -1,3 +1,8 @@
+/**
+ * Builds the initial `TileryLayoutState` from an authored
+ * `TileryInitialLayout` descriptor, including tiled, floating, and edge
+ * panels.
+ */
 import type {
   TileryDockedLayoutInit,
   TileryEdge,
@@ -36,11 +41,16 @@ import { tileryNormalizeTabBehavior } from './tab-behavior';
 
 let idCounter = 0;
 
+/**
+ * Generates a unique, prefixed identifier for panels and tabs that were not
+ * given an explicit id by the caller.
+ */
 export function tileryNextId(prefix: string): string {
   idCounter += 1;
   return `${prefix}_${idCounter}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
+/** Mutable accumulator threaded through the initial-state build helpers. */
 type InitialStateBuildContext = {
   panels: Record<TileryPanelId, TileryPanelState>;
   tabs: Record<TileryTabId, TileryTabState>;
@@ -49,6 +59,11 @@ type InitialStateBuildContext = {
   hasFullScreenPanel: boolean;
 };
 
+/**
+ * Converts a `TileryInitialLayout` descriptor into a fully normalized
+ * `TileryLayoutState` ready for use as the reducer's starting state,
+ * including all tiled, edge, and floating panels.
+ */
 export function tileryCreateInitialState(
   initial: TileryInitialLayout,
 ): TileryLayoutState {
@@ -273,6 +288,10 @@ function layoutLeafSignature(layout: TileryLayoutTree): string {
   return `${layout.direction}(${layout.children.map(layoutLeafSignature).join(',')})`;
 }
 
+/**
+ * Converts a public `TileryPanelInit` (user-facing) into the internal shape
+ * expected by the reducer, assigning a generated id when none is provided.
+ */
 export function tileryPanelInitToReducerInit(init: TileryPanelInit): {
   id: TileryPanelId;
   tabs: TileryReducerTabInit[];
@@ -283,6 +302,11 @@ export function tileryPanelInitToReducerInit(init: TileryPanelInit): {
   };
 }
 
+/**
+ * Converts a public `TileryTabInit` into the fully resolved
+ * `TileryReducerTabInit` shape, assigning a generated id and normalizing
+ * behavior flags.
+ */
 export function tileryTabInitToReducerInit(
   init: TileryTabInit,
 ): TileryReducerTabInit {

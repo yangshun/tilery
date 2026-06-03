@@ -1,3 +1,8 @@
+/**
+ * Pure reducer mapping every `TileryReducerAction` to the next layout state.
+ * Also re-exports the action types, id generator, and init helpers so
+ * consumers only need a single import point.
+ */
 import type { TileryLayoutState } from '../types';
 import type { TileryReducerAction } from './actions';
 import { tileryWarnForConstraintDiagnostics } from './diagnostics';
@@ -56,6 +61,13 @@ export {
   tileryTabInitToReducerInit,
 } from './initial-layout';
 
+/**
+ * Applies a single `TileryReducerAction` to the current layout state and
+ * returns the next state. The state is first normalized before dispatch so
+ * every case handler receives a consistent shape.
+ * @returns The updated layout state, or the (normalized) input state
+ *   unchanged when the action is a no-op or targets a missing panel/tab.
+ */
 export function tileryReducer(
   state: TileryLayoutState,
   action: TileryReducerAction,

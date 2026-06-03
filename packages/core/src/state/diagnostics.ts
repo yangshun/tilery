@@ -1,3 +1,6 @@
+/**
+ * Dev-time constraint warnings for panel min/max sizes and divider conflicts.
+ */
 import type {
   TileryDivider,
   TileryLayoutState,
@@ -24,17 +27,24 @@ type ParsedSize = {
   value: number;
 };
 
+/** A single constraint warning with a stable deduplication key and a human-readable message. */
 export type TileryConstraintWarning = {
   key: string;
   message: string;
 };
 
+/** Options that control which constraint checks are performed and how sizes are resolved. */
 export type TileryConstraintDiagnosticsOptions = {
   minSize?: TilerySize;
   sizeContext?: TilerySizeResolutionContext;
   warnUnresolvedPixels?: boolean;
 };
 
+/**
+ * Inspects every panel and divider in `state` for constraint violations
+ * (minSize > maxSize, overconstrained dividers, unresolved pixel sizes) and
+ * returns all findings as an array of `TileryConstraintWarning` objects.
+ */
 export function tileryCollectConstraintWarnings(
   state: TileryLayoutState,
   options: TileryConstraintDiagnosticsOptions = {},
@@ -75,6 +85,10 @@ export function tileryCollectConstraintWarnings(
   return [...warnings.entries()].map(([key, message]) => ({ key, message }));
 }
 
+/**
+ * Collects constraint warnings for `state` and emits each one as a
+ * deduplicated `console.warn` in development builds (no-op in production).
+ */
 export function tileryWarnForConstraintDiagnostics(
   state: TileryLayoutState,
   options: TileryConstraintDiagnosticsOptions = {},
@@ -84,6 +98,11 @@ export function tileryWarnForConstraintDiagnostics(
   }
 }
 
+/**
+ * Emits a `[Tilery]`-prefixed `console.warn` for the given `key` at most
+ * once per session; subsequent calls with the same key are silently ignored.
+ * No-op in production builds.
+ */
 export function tileryWarnOnce(key: string, message: string): void {
   /* v8 ignore next -- production builds intentionally suppress dev warnings. */
   if (!tileryDevWarningsEnabled()) return;
@@ -92,6 +111,10 @@ export function tileryWarnOnce(key: string, message: string): void {
   console.warn(`[Tilery] ${message}`);
 }
 
+/**
+ * Clears the set of already-emitted warning keys, allowing each warning to
+ * fire again. Intended for use in tests that need a clean warning state.
+ */
 export function tileryResetDevWarnings(): void {
   warnedKeys.clear();
 }

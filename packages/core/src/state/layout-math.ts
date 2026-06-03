@@ -1,3 +1,8 @@
+/**
+ * Geometry: derive dividers/junctions, constraint ranges, and clamping.
+ * Converts flat inset-based panel maps into interactive resize primitives and
+ * applies divider/junction moves back to state.
+ */
 import type {
   TileryDirection,
   TileryDivider,
@@ -21,36 +26,48 @@ import {
 } from './layout-tree';
 import { tileryAxisPixels, tileryResolveSizePercent } from './size';
 
+/** Fallback minimum panel size (percentage) used when no explicit `minSize` is configured. */
 export const TILERY_DEFAULT_MIN_SIZE = 10;
 const EPSILON = 0.0001;
 
 const eq = (a: number, b: number) => Math.abs(a - b) < EPSILON;
 
+/**
+ * Allowable pixel range for a derived divider together with its current
+ * position, used to clamp pointer moves before committing a resize.
+ */
 export type TileryDividerConstraintRange = {
   current: number;
   min: number;
   max: number;
 };
 
+/** Absolute left edge of a panel in 0–100 percentage space. */
 export function tileryPanelLeft(p: TileryPanelState): number {
   return p.inset.left;
 }
+/** Absolute right edge of a panel in 0–100 percentage space. */
 export function tileryPanelRight(p: TileryPanelState): number {
   return 100 - p.inset.right;
 }
+/** Absolute top edge of a panel in 0–100 percentage space. */
 export function tileryPanelTop(p: TileryPanelState): number {
   return p.inset.top;
 }
+/** Absolute bottom edge of a panel in 0–100 percentage space. */
 export function tileryPanelBottom(p: TileryPanelState): number {
   return 100 - p.inset.bottom;
 }
+/** Panel width as a percentage of the container. */
 export function tileryPanelWidth(p: TileryPanelState): number {
   return 100 - p.inset.left - p.inset.right;
 }
+/** Panel height as a percentage of the container. */
 export function tileryPanelHeight(p: TileryPanelState): number {
   return 100 - p.inset.top - p.inset.bottom;
 }
 
+/** DOMRect-compatible shape used by geometry helpers that accept any rect-like value. */
 export type TileryRectLike = {
   left: number;
   top: number;
@@ -61,10 +78,9 @@ export type TileryRectLike = {
 };
 
 /**
- * Convert a client/pointer coordinate into a 0–100 percentage offset measured
- * from one edge of a rect. Shared by the divider, junction, and edge-resize
- * pointer handlers so the pixel→percent conversion lives in exactly one place.
- * Accepts any DOMRect-shaped value.
+ * Convert a client pointer coordinate to a 0–100 percentage offset from the
+ * specified edge of `rect`. Shared by divider, junction, and edge-resize
+ * handlers so the pixel-to-percent conversion lives in one place.
  */
 export function tileryRectEdgePercent(
   rect: TileryRectLike,
@@ -84,6 +100,10 @@ export function tileryRectEdgePercent(
   }
 }
 
+/**
+ * Return the ID of the panel that is currently full-screen, or `null` when no
+ * panel is full-screen.
+ */
 export function tileryGetFullScreenPanelId(
   state: TileryLayoutState,
 ): TileryPanelId | null {
@@ -94,6 +114,10 @@ export function tileryGetFullScreenPanelId(
   );
 }
 
+/**
+ * Divide a panel's inset into two adjacent insets along `direction`, where
+ * `sizePercent` (0–100) determines the share given to the newly created panel.
+ */
 export function tilerySplitInset(
   inset: TileryInset,
   direction: TileryDirection,
@@ -129,6 +153,12 @@ export function tilerySplitInset(
   };
 }
 
+/**
+ * Derive all resizable dividers from the current layout state. For tree-based
+ * layouts the dividers come directly from the tree; for flat inset layouts they
+ * are inferred from shared panel edges. Returns an empty array when a panel is
+ * full-screen.
+ */
 export function tileryDeriveDividers(
   state: TileryLayoutState,
 ): TileryDivider[] {
@@ -200,6 +230,11 @@ export function tileryDeriveDividers(
   return dividers;
 }
 
+/**
+ * Derive T-junction handles from the current divider set. Each junction is a
+ * point where one divider's endpoint touches the interior of a perpendicular
+ * divider. Returns an empty array when a panel is full-screen.
+ */
 export function tileryDeriveJunctions(
   state: TileryLayoutState,
 ): TileryJunction[] {
@@ -207,6 +242,10 @@ export function tileryDeriveJunctions(
   return deriveTJunctions(tileryDeriveDividers(state));
 }
 
+/**
+ * Apply a junction drag by clamping and committing moves to the vertical and
+ * horizontal dividers that meet at the junction simultaneously.
+ */
 export function tileryApplyJunctionResize(
   state: TileryLayoutState,
   junction: TileryJunction,
@@ -412,6 +451,11 @@ function sizeFits(
   return size >= min - EPSILON && size <= max + EPSILON;
 }
 
+/**
+ * Clamp a desired divider position to the range allowed by min/max sizes of
+ * all panels on both sides. Returns the current position when the divider is
+ * disabled or no range can be computed.
+ */
 export function tileryClampDividerPosition(
   state: TileryLayoutState,
   divider: TileryDivider,
@@ -430,6 +474,13 @@ export function tileryClampDividerPosition(
   return tileryClampToConstraintRange(range, targetPosition);
 }
 
+/**
+ * Compute the full constraint range for a divider given the panels on both
+ * sides and the global min size. For tree-based layouts the range is delegated
+ * to the layout-tree helper; for flat layouts it is derived from panel insets.
+ *
+ * @returns The range, or `null` for a disabled divider with a zero-width range.
+ */
 export function tileryGetDividerConstraintRange(
   state: TileryLayoutState,
   divider: TileryDivider,
@@ -494,6 +545,10 @@ export function tileryGetDividerConstraintRange(
   return { current: divider.position, min, max };
 }
 
+/**
+ * Check whether splitting `inset` in `direction` at `sizePercent` would leave
+ * both resulting panels at or above the global minimum size.
+ */
 export function tilerySplitFitsMin(
   inset: TileryInset,
   direction: TileryDirection,
@@ -510,6 +565,11 @@ export function tilerySplitFitsMin(
   return fits(source) && fits(created);
 }
 
+/**
+ * Check whether splitting `sourcePanel` in `direction` at `sizePercent` would
+ * satisfy both the source panel's own min/max constraints and the created
+ * panel's constraints.
+ */
 export function tilerySplitFitsPanelConstraints(
   sourcePanel: TileryPanelState,
   direction: TileryDirection,
@@ -547,6 +607,10 @@ export function tilerySplitFitsPanelConstraints(
   );
 }
 
+/**
+ * Commit a divider move to `newPosition` by updating the relevant panel insets
+ * (or the layout tree for tree-based layouts) and returning the next state.
+ */
 export function tileryApplyDividerResize(
   state: TileryLayoutState,
   divider: TileryDivider,
@@ -594,6 +658,10 @@ export function tileryApplyDividerResize(
   return { ...state, panels: nextPanels };
 }
 
+/**
+ * Reset a layout-tree divider to its default position, clamped to the current
+ * constraint range. No-ops for disabled dividers or flat-inset layouts.
+ */
 export function tileryApplyDividerReset(
   state: TileryLayoutState,
   divider: TileryDivider,
@@ -613,6 +681,11 @@ export function tileryApplyDividerReset(
   return tilerySyncLayoutPanels({ ...state, layout }, layout);
 }
 
+/**
+ * Find the set of panels that can fully cover the area vacated by `removed` by
+ * expanding along exactly one axis. Returns an empty array when no single side
+ * provides complete coverage, meaning no automatic fill is possible.
+ */
 export function tileryFindRemovalFillers(
   panels: TileryPanelState[],
   removed: TileryPanelState,
@@ -694,6 +767,10 @@ export function tileryFindRemovalFillers(
   return [];
 }
 
+/**
+ * Test whether two panels' inset rectangles overlap, excluding shared edges
+ * (panels that are merely adjacent do not overlap).
+ */
 export function tileryRectsOverlap(a: TileryInset, b: TileryInset): boolean {
   const aL = a.left;
   const aR = 100 - a.right;

@@ -1,5 +1,9 @@
 'use client';
 
+/**
+ * Panel frame: tab bar + content host.
+ */
+
 import {
   tileryPanelBehaviorFromState,
   type TileryFloatingResizeEdge,
@@ -9,14 +13,39 @@ import {
 import { tileryPanelDomId } from '../dom-ids';
 import { TabBar, type TabBarProps } from './tab-bar';
 
+/**
+ * Props for the {@link PanelChrome} component.
+ */
 export type PanelChromeProps = Omit<TabBarProps, 'panel' | 'renderHeader'> & {
+  /** The panel model that drives layout, behavior flags, and tab list. */
   panel: TileryPanel;
+  /**
+   * Renders the visible header content (title, icon, etc.) for a single tab
+   * both in the tab strip and in the overflow menu.
+   */
   renderHeader: (tab: TileryTab, ctx: { isActive: boolean }) => React.ReactNode;
+  /** Callback ref that registers the panel's root DOM element. */
   registerPanel: (el: HTMLElement | null) => void;
+  /** Callback ref that registers the empty slot where panel content is
+   *  portal-rendered. */
   registerContentSlot: (el: HTMLElement | null) => void;
+  /**
+   * Set to `true` when the component is rendered inside a native pop-out
+   * window, causing the panel to fill the entire viewport.
+   * @defaultValue false
+   */
   popoutWindow?: boolean;
+  /**
+   * Explicit inline styles that override the auto-computed inset placement.
+   * Primarily used for edge panels that are sized by an external handle.
+   */
   placementStyle?: React.CSSProperties;
+  /** Called when a pointer-down event occurs on the panel root. */
   onPanelPointerDown?: (e: React.PointerEvent, panelId: string) => void;
+  /**
+   * Called when a pointer-down event occurs on one of the floating-panel
+   * resize edge handles.
+   */
   onFloatingResizePointerDown?: (
     e: React.PointerEvent,
     panelId: string,
@@ -35,6 +64,12 @@ const floatingResizeEdges: TileryFloatingResizeEdge[] = [
   'bottom-right',
 ];
 
+/**
+ * Outer shell of a single panel: computes the panel's CSS position from the
+ * layout state (tiled inset, floating bounds, full-screen, or popout),
+ * renders the {@link TabBar} and an empty content slot, and attaches floating
+ * resize handles when the panel is in floating mode.
+ */
 export function PanelChrome({
   panel,
   tilery,

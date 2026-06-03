@@ -1,5 +1,9 @@
 'use client';
 
+/**
+ * T-junction handle resizing two dividers at once.
+ */
+
 import { useCallback } from 'react';
 import type {
   TileryJunction as JunctionType,
@@ -8,10 +12,23 @@ import type {
 import { tileryRectEdgePercent } from 'tilery/internal';
 import { useTileryPointerDrag } from '../use-pointer-drag';
 
+/**
+ * Props for the {@link TileryJunction} component.
+ */
 export type JunctionProps = {
+  /** The junction model object describing the intersection point and kind. */
   junction: JunctionType;
+  /** When true the handle is non-interactive and renders a default cursor. */
   disabled?: boolean;
+  /**
+   * Side-length of the square pointer-capture hit target in pixels.
+   * @defaultValue 24
+   */
   hitSize?: number;
+  /**
+   * Called when the junction is dragged. Receives the new x/y percentages
+   * within the container and returns `true` if the position was applied.
+   */
   onDrag: (
     junctionId: string,
     xPercent: number,
@@ -19,13 +36,20 @@ export type JunctionProps = {
     input: 'pointer',
     sizeContext?: TilerySizeResolutionContext,
   ) => boolean | void;
+  /** Called after a drag interaction ends. */
   onDragEnd?: () => void;
+  /** Ref to the layout container used to compute percentage positions. */
   containerRef: React.RefObject<HTMLDivElement | null>;
 };
 
 const DEFAULT_HIT_SIZE_PX = 24;
 const noop = () => {};
 
+/**
+ * Pointer-draggable corner handle positioned at the intersection of a
+ * horizontal and a vertical divider. Dragging it simultaneously adjusts
+ * both dividers, keyed to the `junction.kind` layout topology.
+ */
 export function TileryJunction({
   junction,
   disabled = false,

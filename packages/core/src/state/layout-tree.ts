@@ -1,3 +1,8 @@
+/**
+ * The recursive layout tree: build/sync/surgery and panel-order derivation.
+ * Converts between inset-based panel records and a split/panel tree, and
+ * provides all structural mutations (split, remove, swap, resize, reset).
+ */
 import type {
   TileryDirection,
   TileryDivider,
@@ -26,6 +31,7 @@ import { tileryAxisPixels, tileryResolveSizePercent } from './size';
 const EPSILON = 0.0001;
 const ROOT_RECT: Rect = { left: 0, right: 100, top: 0, bottom: 100 };
 
+/** Axis-aligned rectangle expressed in 0–100 percentage coordinates. */
 type Rect = {
   left: number;
   right: number;
@@ -33,15 +39,19 @@ type Rect = {
   bottom: number;
 };
 
+/** A tiled panel together with its percentage rect, used during tree construction. */
 type PanelItem = {
   id: TileryPanelId;
   rect: Rect;
 };
 
+/** Narrowed alias for split nodes, used in internal helpers that only operate on splits. */
 type SplitNode = Extract<TileryLayoutTree, { kind: 'split' }>;
 
+/** Behavior config augmented with an optional default size for split creation. */
 type SplitConfig = TileryLayoutBehaviorConfig & { defaultSize?: number };
 
+/** Intermediate result returned when a specific split boundary is located in the tree. */
 type BoundaryMatch = {
   node: SplitNode;
   rect: Rect;
@@ -50,6 +60,10 @@ type BoundaryMatch = {
   childSizes: number[];
 };
 
+/**
+ * The allowable pixel range for a layout-tree divider together with its current
+ * position. Used to clamp drag targets before committing a resize.
+ */
 export type TileryLayoutDividerConstraintRange = {
   current: number;
   min: number;
@@ -58,6 +72,7 @@ export type TileryLayoutDividerConstraintRange = {
 
 const eq = (a: number, b: number) => Math.abs(a - b) < EPSILON;
 
+/** Convert a panel inset (edges away from each side, 0–100) to an absolute percentage rect. */
 export function tileryInsetToRect(inset: TileryInset): Rect {
   return {
     left: inset.left,
@@ -67,6 +82,7 @@ export function tileryInsetToRect(inset: TileryInset): Rect {
   };
 }
 
+/** Convert an absolute percentage rect back to a panel inset. */
 export function tileryRectToInset(rect: Rect): TileryInset {
   return {
     top: rect.top,
@@ -76,6 +92,13 @@ export function tileryRectToInset(rect: Rect): TileryInset {
   };
 }
 
+/**
+ * Reconstruct a split/panel tree from an existing flat array of tiled panels
+ * by inferring split boundaries from their inset geometry.
+ *
+ * @returns `null` when no tiled panels are present or the geometry cannot be
+ *   expressed as a valid split tree.
+ */
 export function tileryBuildLayoutTreeFromPanels(
   panels: TileryPanelState[],
 ): TileryLayoutTree | null {
@@ -88,6 +111,10 @@ export function tileryBuildLayoutTreeFromPanels(
   return buildTree(items, ROOT_RECT);
 }
 
+/**
+ * Flatten the layout tree into a depth-first left-to-right panel order, which
+ * reflects visual DOM stacking order for tiled panels.
+ */
 export function tileryPanelOrderFromLayout(
   layout: TileryLayoutTree | null | undefined,
 ): TileryPanelId[] {
@@ -96,6 +123,10 @@ export function tileryPanelOrderFromLayout(
   return layout.children.flatMap((child) => tileryPanelOrderFromLayout(child));
 }
 
+/**
+ * Derive the ordered list of tiled panel IDs from a layout state, preferring
+ * the tree-derived order when a layout exists.
+ */
 export function tileryPanelOrderFromState(
   state: TileryLayoutState,
 ): TileryPanelId[] {
@@ -105,6 +136,10 @@ export function tileryPanelOrderFromState(
   return order.filter((id) => state.panels[id]?.kind === 'tiled');
 }
 
+/**
+ * Return floating panel IDs in their recorded stacking order, appending any
+ * floating panels not yet in `floatingPanelOrder` sorted by z-index.
+ */
 export function tileryFloatingPanelOrderFromState(
   state: TileryLayoutState,
 ): TileryPanelId[] {
@@ -122,6 +157,10 @@ export function tileryFloatingPanelOrderFromState(
   return [...ordered, ...missing];
 }
 
+/**
+ * Concatenate tiled, edge, and floating panel orders into a single unified
+ * sequence covering every panel in the state.
+ */
 export function tileryAllPanelOrderFromState(
   state: TileryLayoutState,
 ): TileryPanelId[] {
@@ -132,6 +171,10 @@ export function tileryAllPanelOrderFromState(
   ];
 }
 
+/**
+ * Walk the layout tree and compute the percentage inset for every leaf panel,
+ * returning a map from panel ID to inset.
+ */
 export function tileryDeriveLayoutInsets(
   layout: TileryLayoutTree | null | undefined,
 ): Record<TileryPanelId, TileryInset> {
@@ -143,6 +186,10 @@ export function tileryDeriveLayoutInsets(
   return out;
 }
 
+/**
+ * Synchronize panel insets and all panel-order arrays from a given layout tree,
+ * returning an updated state (identity-stable when nothing changed).
+ */
 export function tilerySyncLayoutPanels(
   state: TileryLayoutState,
   layout: TileryLayoutTree | null | undefined = state.layout,
@@ -185,6 +232,11 @@ export function tilerySyncLayoutPanels(
   };
 }
 
+/**
+ * Ensure the layout state is fully consistent: if a layout tree exists it is
+ * synced; otherwise one is reconstructed from panel insets, or the state is
+ * cleaned to match only existing tiled panels.
+ */
 export function tileryNormalizeLayoutState(
   state: TileryLayoutState,
 ): TileryLayoutState {
@@ -221,6 +273,12 @@ export function tileryNormalizeLayoutState(
   };
 }
 
+/**
+ * Insert `newPanelId` as a sibling of `panelId` in the given direction,
+ * replacing the existing panel node with a new split.
+ *
+ * @returns The updated tree, or `null` if `panelId` was not found.
+ */
 export function tilerySplitPanelInLayout(
   layout: TileryLayoutTree | null | undefined,
   panelId: TileryPanelId,
@@ -267,6 +325,11 @@ export function tilerySplitPanelInLayout(
   return next.changed ? next.node : null;
 }
 
+/**
+ * Wrap the entire current layout as one child of a new root split and place
+ * `newPanelId` on the given side. When `layout` is null the new panel becomes
+ * the sole root.
+ */
 export function tilerySplitRootInLayout(
   layout: TileryLayoutTree | null | undefined,
   newPanelId: TileryPanelId,
@@ -305,6 +368,11 @@ export function tilerySplitRootInLayout(
   )!;
 }
 
+/**
+ * Compute the equal-share percentage size a new root-level panel should receive
+ * given the current tree and split direction, so all siblings stay equal width
+ * or height.
+ */
 export function tileryDefaultRootSplitSize(
   layout: TileryLayoutTree | null | undefined,
   splitDirection: 'horizontal' | 'vertical',
@@ -318,6 +386,11 @@ export function tileryDefaultRootSplitSize(
   return 100 / (existingAxisCount + 1);
 }
 
+/**
+ * Remove the leaf for `panelId` from the tree, collapsing any single-child
+ * splits that result. Returns the original layout unchanged when `panelId` is
+ * not found.
+ */
 export function tileryRemovePanelFromLayout(
   layout: TileryLayoutTree | null | undefined,
   panelId: TileryPanelId,
@@ -327,6 +400,10 @@ export function tileryRemovePanelFromLayout(
   return result.removed ? result.node : layout;
 }
 
+/**
+ * Exchange the positions of `panelA` and `panelB` in the tree by swapping
+ * their panel IDs at their respective leaf nodes, leaving all sizes intact.
+ */
 export function tilerySwapPanelsInLayout(
   layout: TileryLayoutTree | null | undefined,
   panelA: TileryPanelId,
@@ -341,6 +418,11 @@ export function tilerySwapPanelsInLayout(
   });
 }
 
+/**
+ * Walk the tree and produce a flat list of `TileryDivider` descriptors, one
+ * per split boundary, with absolute percentage positions and the panel IDs on
+ * each side.
+ */
 export function tileryDeriveLayoutDividers(
   layout: TileryLayoutTree | null | undefined,
 ): TileryDivider[] {
@@ -351,10 +433,9 @@ export function tileryDeriveLayoutDividers(
 }
 
 /**
- * Clamp a target divider position into a constraint range. When the range is
- * inverted (min > max — constraints leave no slack) the divider stays at its
- * current position. Shared by the layout-tree clamp here and the derived-divider
- * clamp in layout-math so the rule lives in one place.
+ * Clamp `target` into `[range.min, range.max]`. When the range is inverted
+ * (min > max — constraints leave no slack) the current position is returned
+ * unchanged. Shared by the layout-tree and derived-divider clampers.
  */
 export function tileryClampToConstraintRange(
   range: { current: number; min: number; max: number },
@@ -364,6 +445,12 @@ export function tileryClampToConstraintRange(
   return Math.max(range.min, Math.min(range.max, target));
 }
 
+/**
+ * Clamp a desired pixel position for a layout-tree divider to the feasible
+ * range enforced by min/max sizes on both neighboring children.
+ *
+ * @returns The clamped position, or `null` when the divider ID is not found.
+ */
 export function tileryClampLayoutDividerPosition(
   layout: TileryLayoutTree | null | undefined,
   splitId: string,
@@ -383,6 +470,12 @@ export function tileryClampLayoutDividerPosition(
   return tileryClampToConstraintRange(range, targetPosition);
 }
 
+/**
+ * Compute the pixel constraint range for a layout-tree divider identified by
+ * `splitId`, taking per-panel min/max sizes into account.
+ *
+ * @returns The range object, or `null` when the divider is not found in the tree.
+ */
 export function tileryGetLayoutDividerConstraintRange(
   layout: TileryLayoutTree | null | undefined,
   splitId: string,
@@ -419,6 +512,11 @@ export function tileryGetLayoutDividerConstraintRange(
   return { current, min, max };
 }
 
+/**
+ * Redistribute child sizes throughout the tree so that every panel respects its
+ * min/max constraints after the container has been resized. Returns the layout
+ * unchanged when no sizes need correction.
+ */
 export function tileryNormalizeLayoutForContainerResize(
   layout: TileryLayoutTree | null | undefined,
   panels: Record<TileryPanelId, TileryPanelState> = {},
@@ -435,6 +533,10 @@ export function tileryNormalizeLayoutForContainerResize(
   );
 }
 
+/**
+ * Move the divider identified by `splitId` to `newPosition` (percentage pixels)
+ * by adjusting the sizes of the two children it separates.
+ */
 export function tileryResizeLayoutDivider(
   layout: TileryLayoutTree | null | undefined,
   splitId: string,
@@ -470,6 +572,10 @@ export function tileryResizeLayoutDivider(
   });
 }
 
+/**
+ * Restore a divider to the position implied by each child's `defaultSize`,
+ * clamping to the min/max constraint range so the result is always valid.
+ */
 export function tileryResetLayoutDivider(
   layout: TileryLayoutTree | null | undefined,
   splitId: string,

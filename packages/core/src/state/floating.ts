@@ -1,3 +1,6 @@
+/**
+ * Floating/popout panel geometry and state transitions.
+ */
 import type {
   TileryDockPanelTarget,
   TileryFloatingPanelBounds,
@@ -37,6 +40,11 @@ import {
 } from './layout-behavior';
 import { tileryRemovePanelAndFill } from './panels';
 
+/**
+ * Converts a tiled, edge, or already-floating panel to a floating panel,
+ * removing it from the tiled layout or edge order and bringing it to the
+ * front. Returns `state` unchanged when the panel does not exist.
+ */
 export function tileryFloatPanel(
   state: TileryLayoutState,
   panelId: TileryPanelId,
@@ -170,6 +178,12 @@ export function tileryFloatPanel(
   );
 }
 
+/**
+ * Floats a panel and marks it for rendering in a detached popout window,
+ * applying optional window and floating-panel bounds from `opts`.
+ * Returns the floated state unchanged if the panel is not found or not
+ * floating after the float step.
+ */
 export function tileryPopoutPanel(
   state: TileryLayoutState,
   panelId: TileryPanelId,
@@ -199,6 +213,11 @@ export function tileryPopoutPanel(
   );
 }
 
+/**
+ * Clears the popout flag on a floating panel, optionally repositioning it
+ * with new bounds. Returns `state` unchanged when the panel is not floating,
+ * has no popout, and no new bounds are supplied.
+ */
 export function tileryReturnPanelToFloating(
   state: TileryLayoutState,
   panelId: TileryPanelId,
@@ -229,6 +248,12 @@ export function tileryReturnPanelToFloating(
   );
 }
 
+/**
+ * Moves a single tab out of its source panel into a new floating panel,
+ * removing the source panel if it becomes empty. Returns `state` unchanged
+ * when the tab is not draggable, `newPanelId` already exists, or the source
+ * panel is not draggable.
+ */
 export function tileryFloatTab(
   state: TileryLayoutState,
   tabId: TileryTabId,
@@ -315,6 +340,11 @@ export function tileryFloatTab(
   return tileryFocusFloatingPanel(next, newPanelId);
 }
 
+/**
+ * Floats a tab into a new panel and immediately marks that panel for popout,
+ * combining `tileryFloatTab` with popout placement in one step. Returns
+ * `state` unchanged if the float step produces no change.
+ */
 export function tileryPopoutTab(
   state: TileryLayoutState,
   tabId: TileryTabId,
@@ -353,6 +383,12 @@ export function tileryPopoutTab(
   );
 }
 
+/**
+ * Inserts a floating panel into the tiled layout by splitting a target panel,
+ * or places it as the sole tiled panel when no tiled panels exist yet. Returns
+ * `state` unchanged when the panel is not floating, not draggable, the target
+ * is full-screen, or the split violates size constraints.
+ */
 export function tileryDockPanel(
   state: TileryLayoutState,
   panelId: TileryPanelId,
@@ -479,6 +515,11 @@ export function tileryDockPanel(
   };
 }
 
+/**
+ * Brings a floating panel to the front by moving it to the end of
+ * `floatingPanelOrder` and reassigning z-indexes. Returns `state` unchanged
+ * when the panel does not exist or is not floating.
+ */
 export function tileryFocusFloatingPanel(
   state: TileryLayoutState,
   panelId: TileryPanelId,
@@ -492,6 +533,11 @@ export function tileryFocusFloatingPanel(
   return syncFloatingZIndexes(state, order);
 }
 
+/**
+ * Updates the position and size of a floating panel. Returns `state`
+ * unchanged when the panel is not floating or the normalized bounds are
+ * identical to the current bounds.
+ */
 export function tilerySetFloatingPanelBounds(
   state: TileryLayoutState,
   panelId: TileryPanelId,
@@ -517,6 +563,11 @@ export function tilerySetFloatingPanelBounds(
   };
 }
 
+/**
+ * Updates the OS-level window dimensions for a panel's popout window. Returns
+ * `state` unchanged when the panel has no active popout or the bounds are
+ * identical after normalization.
+ */
 export function tilerySetPopoutWindowBounds(
   state: TileryLayoutState,
   panelId: TileryPanelId,
@@ -553,6 +604,11 @@ export function tilerySetPopoutWindowBounds(
   };
 }
 
+/**
+ * Derives sensible default floating bounds from a panel's current inset,
+ * falling back to a centered ~46×48% rectangle when the panel occupies
+ * nearly the full viewport.
+ */
 export function tileryDefaultFloatingBounds(
   panel: TileryPanelState,
 ): TileryFloatingPanelBounds {
@@ -570,6 +626,11 @@ export function tileryDefaultFloatingBounds(
   return tileryNormalizeFloatingBounds(undefined, fallback);
 }
 
+/**
+ * Clamps and rounds floating-panel bounds so that `x`/`y` keep the panel on
+ * screen, `width`/`height` stay between 12 % and 100 %, and coordinates are
+ * rounded to four decimal places. Missing fields are filled from `fallback`.
+ */
 export function tileryNormalizeFloatingBounds(
   value: TileryFloatingPanelBoundsInit | undefined,
   fallback: TileryFloatingPanelBounds,
@@ -586,6 +647,10 @@ export function tileryNormalizeFloatingBounds(
   };
 }
 
+/**
+ * Fallback OS window geometry used when no explicit bounds are provided to
+ * a popout operation (720 × 520 px, offset 80 px from the top-left corner).
+ */
 export const TILERY_DEFAULT_POPOUT_WINDOW_BOUNDS: TileryPopoutWindowBounds = {
   left: 80,
   top: 80,
@@ -593,6 +658,11 @@ export const TILERY_DEFAULT_POPOUT_WINDOW_BOUNDS: TileryPopoutWindowBounds = {
   height: 520,
 };
 
+/**
+ * Converts a `TileryPopoutPanelConfig` (boolean shorthand or object with
+ * optional `windowBounds`) into a normalized `TileryPopoutPanelPlacement`,
+ * or `undefined` when `value` is falsy.
+ */
 export function tileryNormalizePopoutPanelPlacement(
   value: TileryPopoutPanelConfig | undefined,
 ): TileryPopoutPanelPlacement | undefined {
@@ -606,6 +676,11 @@ export function tileryNormalizePopoutPanelPlacement(
   };
 }
 
+/**
+ * Clamps and rounds OS window bounds: `width`/`height` must be at least
+ * 240 × 160 px; `left`/`top` are clamped to ±10 000 px and rounded to
+ * integers. Missing fields are filled from `fallback`.
+ */
 export function tileryNormalizePopoutWindowBounds(
   value: TileryPopoutWindowBoundsInit | undefined,
   fallback: TileryPopoutWindowBounds,
@@ -620,6 +695,10 @@ export function tileryNormalizePopoutWindowBounds(
   };
 }
 
+/**
+ * Builds the `window.open` features string for a popout window from the
+ * given bounds (e.g. `"popup=yes,left=80,top=80,width=720,height=520"`).
+ */
 export function tileryPopoutWindowFeatureString(
   bounds: TileryPopoutWindowBounds,
 ): string {
@@ -632,6 +711,10 @@ export function tileryPopoutWindowFeatureString(
   ].join(',');
 }
 
+/**
+ * Converts percentage-based floating bounds (`x`, `y`, `width`, `height`) to
+ * the four-sided inset representation used by panel state.
+ */
 export function tileryFloatingBoundsToInset(bounds: TileryFloatingPanelBounds) {
   return {
     top: bounds.y,
@@ -641,6 +724,10 @@ export function tileryFloatingBoundsToInset(bounds: TileryFloatingPanelBounds) {
   };
 }
 
+/**
+ * Returns `true` when two floating-panel bounds have identical `x`, `y`,
+ * `width`, and `height` values.
+ */
 export function tileryFloatingBoundsEqual(
   a: TileryFloatingPanelBounds,
   b: TileryFloatingPanelBounds,
@@ -650,6 +737,10 @@ export function tileryFloatingBoundsEqual(
   );
 }
 
+/**
+ * Returns `true` when two popout window bounds have identical `left`, `top`,
+ * `width`, and `height` values.
+ */
 export function tileryPopoutWindowBoundsEqual(
   a: TileryPopoutWindowBounds,
   b: TileryPopoutWindowBounds,
@@ -662,6 +753,11 @@ export function tileryPopoutWindowBoundsEqual(
   );
 }
 
+/**
+ * Produces a floating panel's behavior by overlaying explicit `config`
+ * overrides onto `base`. When `config.locked` is `true`, all interaction
+ * flags are set to `false` regardless of `base`.
+ */
 export function tileryMergeFloatingBehavior(
   base: TileryLayoutBehavior,
   config: TileryLayoutBehaviorConfig | undefined,
@@ -676,6 +772,11 @@ export function tileryMergeFloatingBehavior(
   };
 }
 
+/**
+ * Applies a pointer delta (`dx`, `dy`) to the specified resize edge(s) of
+ * floating-panel bounds, adjusting the origin and dimensions accordingly.
+ * Does not clamp — call `tileryNormalizeFloatingBounds` afterwards if needed.
+ */
 export function tileryResizeFloatingBounds(
   bounds: TileryFloatingPanelBounds,
   edge: TileryFloatingResizeEdge,
@@ -700,6 +801,10 @@ export function tileryResizeFloatingBounds(
   return next;
 }
 
+/**
+ * Returns `true` when two layout behavior objects have identical `resizable`,
+ * `draggable`, and `droppable` flags.
+ */
 export function tileryLayoutBehaviorEqual(
   a: TileryLayoutBehavior,
   b: TileryLayoutBehavior,
@@ -711,16 +816,28 @@ export function tileryLayoutBehaviorEqual(
   );
 }
 
+/**
+ * Computes a default split size (20–50 %) to use when docking a floating
+ * panel, derived from the panel's current floating width.
+ */
 export function tileryDefaultDockSize(
   bounds: TileryFloatingPanelBounds,
 ): number {
   return Math.max(20, Math.min(50, bounds.width));
 }
 
+/**
+ * Returns the z-index that a newly created or focused floating panel should
+ * receive, one above the current topmost floating panel.
+ */
 export function tileryNextFloatingZIndex(state: TileryLayoutState): number {
   return tileryFloatingZIndex(tileryFloatingPanelOrderFromState(state).length);
 }
 
+/**
+ * Maps a zero-based floating-panel stack index to a CSS z-index value,
+ * starting at 20 so floating panels sit above tiled content.
+ */
 export function tileryFloatingZIndex(index: number): number {
   return 20 + index;
 }

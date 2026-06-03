@@ -1,3 +1,7 @@
+/**
+ * The internal reducer action union. Every dispatchable mutation the
+ * reducer handles is represented as a discriminated-union member here.
+ */
 import type {
   TileryDockPanelTarget,
   TileryDirection,
@@ -14,6 +18,11 @@ import type {
   TileryTabId,
 } from '../types';
 
+/**
+ * Normalized tab descriptor used when a tab is being created by the
+ * reducer (e.g. during append, insert, or split). All behavior flags are
+ * fully resolved — no optional omissions.
+ */
 export type TileryReducerTabInit = {
   id: TileryTabId;
   data: unknown;
@@ -21,6 +30,11 @@ export type TileryReducerTabInit = {
   draggable: boolean;
 };
 
+/**
+ * Tab descriptor carried inside actions that create or reference a tab.
+ * Behavior flags are optional and fall back to the panel/global defaults
+ * when omitted.
+ */
 export type TileryReducerTabAction = {
   id: TileryTabId;
   data: unknown;
@@ -28,6 +42,12 @@ export type TileryReducerTabAction = {
   draggable?: boolean;
 };
 
+/**
+ * The complete set of actions the Tilery reducer handles. Each member
+ * encodes one discrete layout mutation — panel lifecycle (split, remove,
+ * float, dock, …), tab lifecycle (append, insert, move, remove, …), resize
+ * operations (dividers, junctions, edge panels), and full-state replacement.
+ */
 export type TileryReducerAction =
   | {
       type: 'PANEL_SPLIT';

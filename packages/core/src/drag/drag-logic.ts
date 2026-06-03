@@ -1,3 +1,9 @@
+/**
+ * Classify and commit drag interactions.
+ * Determines whether a drag resolves to a tab-bar reorder, a root-edge split,
+ * a panel-zone split, or a panel swap, then dispatches the appropriate
+ * controller commands.
+ */
 import type {
   TileryDirection,
   TileryController,
@@ -15,6 +21,10 @@ import {
 } from '../state/layout-tree';
 import { tileryTabBarDropAt, type TileryPanelZone } from './drop-zones';
 
+/**
+ * Live state for an in-progress drag gesture, tracking the originating tab,
+ * current pointer position, and the resolved drop zone.
+ */
 export type TileryDragState = {
   tabId: TileryTabId;
   pointerId: number;
@@ -32,6 +42,11 @@ export type TileryDragState = {
   } | null;
 };
 
+/**
+ * Evaluate the completed drag state and dispatch the appropriate controller
+ * command: tab-bar reorder, root split, panel-zone split, or panel swap.
+ * Silently no-ops when behavior flags prevent the move.
+ */
 export function tileryCommitDrag(
   tilery: TileryController | null,
   drag: TileryDragState,
@@ -143,6 +158,11 @@ export function tileryCommitDrag(
   }
 }
 
+/**
+ * Compute the default size percentage for a new root-edge panel that would
+ * result from dragging `tabId` to a root edge. Temporarily removes the source
+ * panel from the layout when it would be relocated entirely.
+ */
 export function tileryRootSplitSizeForDrag(
   state: TileryLayoutState,
   tabId: TileryTabId,
@@ -188,8 +208,14 @@ function moveSiblingsPreservingOrder(
   }
 }
 
+/** Relative spatial relationship between two adjacent panels. */
 type AdjacencySide = 'left' | 'right' | 'above' | 'below' | null;
 
+/**
+ * Classify a drag-zone / adjacency-side combination as `'swap'` (panels
+ * should exchange positions), `'suppress'` (the source is already on that
+ * side, so no move is needed), or `'split'` (insert a new split).
+ */
 export function tileryClassifyByZoneAndSide(
   zone: TileryDirection,
   side: NonNullable<AdjacencySide>,
@@ -214,6 +240,10 @@ export function tileryClassifyByZoneAndSide(
   return 'split';
 }
 
+/**
+ * Determine which side of `target` the `source` panel is directly adjacent to,
+ * or `null` when the two panels do not share a touching edge with overlap.
+ */
 export function tileryAdjacencySide(
   source: {
     inset: { top: number; right: number; bottom: number; left: number };

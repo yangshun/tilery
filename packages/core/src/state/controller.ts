@@ -1,3 +1,7 @@
+/**
+ * Builds the imperative `TileryController` facade over a dispatch function
+ * and a state getter, providing strongly-typed panel and tab handle objects.
+ */
 import type {
   TileryDockPanelTarget,
   TileryDirection,
@@ -34,20 +38,36 @@ import {
   tileryPanelBehaviorFromState,
 } from './layout-behavior';
 
+/** Function type for dispatching a reducer action. */
 export type TileryDispatch = (action: TileryReducerAction) => void;
+
+/** Function type for reading the current layout state snapshot. */
 export type TileryGetState = () => TileryLayoutState;
+
+/** Function type for reading the current container size resolution context. */
 export type TileryGetSizeContext = () =>
   | TilerySizeResolutionContext
   | undefined;
 
+/** Optional host-level callbacks injected into the controller at construction time. */
 export type TileryControllerOptions = {
+  /**
+   * Called before a panel is popped out; returning `false` cancels the
+   * popout.
+   */
   requestPopoutPanel?: (
     panelId: TileryPanelId,
     opts?: TileryPopoutPanelOptions,
   ) => boolean | void;
+  /** Called when a popped-out panel is returned to the floating layer. */
   onReturnPanelToFloating?: (panelId: TileryPanelId) => void;
 };
 
+/**
+ * Creates a `TileryController` that wires public API methods to reducer
+ * dispatches, reading current state through `getState` and resolving size
+ * constraints through the optional `getSizeContext`.
+ */
 export function makeTileryController(
   getState: TileryGetState,
   dispatch: TileryDispatch,
@@ -322,6 +342,10 @@ function normalizeMoveTarget(
   };
 }
 
+/**
+ * Constructs a live `TileryPanel` handle whose properties reflect the
+ * current state on every read — they are not snapshots.
+ */
 export function tileryMakePanel(
   id: TileryPanelId,
   getState: TileryGetState,
@@ -439,6 +463,10 @@ export function tileryMakePanel(
   };
 }
 
+/**
+ * Constructs a live `TileryTab` handle whose properties reflect the current
+ * state on every read — they are not snapshots.
+ */
 export function tileryMakeTab<TData = unknown>(
   id: TileryTabId,
   getState: TileryGetState,

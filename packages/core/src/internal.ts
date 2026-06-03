@@ -1,8 +1,12 @@
-// `internal.ts` is the adapter-facing entry point. It re-exports the ENTIRE
-// public type surface plus the implementation functions (below) and impl-only
-// types (dividers, junctions, …) that end users don't need. `index.ts` is the
-// curated public type surface. Using `export type *` keeps the adapter's view of
-// the public types drift-free instead of hand-maintaining a subset here.
+/**
+ * Adapter-facing entry point for `@tilery/core`: re-exports the full public
+ * type surface plus implementation functions and impl-only types (dividers,
+ * junctions, …) that end users do not need.
+ *
+ * `index.ts` is the curated public type surface. Using `export type *` keeps
+ * the adapter's view of the public types drift-free instead of
+ * hand-maintaining a subset here.
+ */
 export type * from './types';
 
 export {

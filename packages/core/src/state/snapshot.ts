@@ -1,3 +1,6 @@
+/**
+ * Serialize/deserialize layout state to/from persistable snapshots.
+ */
 import type {
   TileryDockedLayoutSnapshot,
   TileryEdge,
@@ -20,6 +23,12 @@ type NonEmptyLayout<TData> = Exclude<
   { type: 'empty' }
 >;
 
+/**
+ * Serializes the full layout state — tiled layout tree, edge panels, and
+ * floating panels — into a `TileryLayoutSnapshot` that can be persisted and
+ * later restored. Returns a plain `{ type: 'empty' }` snapshot when there are
+ * no tiled panels, edge panels, or floating panels.
+ */
 export function tileryCreateLayoutSnapshot<TData = unknown>(
   state: TileryLayoutState,
 ): TileryLayoutSnapshot<TData> {
@@ -148,6 +157,7 @@ function edgePanelsToSnapshot<TData>(
     const panelId = bySide[side];
     if (!panelId) continue;
     const panel = state.panels[panelId];
+    /* v8 ignore next -- bySide only yields existing edge panel ids. */
     if (!panel || panel.kind !== 'edge') continue;
     out[side] = {
       type: 'edgePanel',
