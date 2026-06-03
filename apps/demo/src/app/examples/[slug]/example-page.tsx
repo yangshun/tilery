@@ -158,16 +158,10 @@ export function ExamplePage({
         {demos.map((demo) => {
           const Component = components[demo.id] ?? components.default;
           if (!Component) return null;
-          const isDefaultDemo = demos.length === 1 && demo.id === 'default';
 
           return (
             <section key={demo.id} className="example-preview__case">
-              <div
-                className={
-                  isDefaultDemo
-                    ? 'example-preview__demo-surface example-preview__demo-surface--boxed'
-                    : 'example-preview__demo-surface'
-                }>
+              <div className="example-preview__demo-surface example-preview__demo-surface--boxed">
                 {mounted ? <Component /> : null}
               </div>
               <div
