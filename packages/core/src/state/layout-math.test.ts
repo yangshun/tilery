@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vite-plus/test';
 import {
+  tileryApplyDividerReset,
   tileryApplyDividerResize,
   tileryApplyJunctionResize,
   tileryClampDividerPosition,
@@ -286,6 +287,69 @@ describe('tileryClampDividerPosition + tileryApplyDividerResize', () => {
     const next = tileryApplyDividerResize(state, div, 70);
     expect(next.panels.A!.inset.right).toBe(30);
     expect(next.panels.B!.inset.left).toBe(70);
+  });
+
+  it('applies divider reset through the tree path', () => {
+    const state = tileryCreateInitialState({
+      type: 'group',
+      direction: 'horizontal',
+      children: [
+        {
+          type: 'panel',
+          id: 'A',
+          size: 50,
+          defaultSize: 25,
+          tabs: [{ id: 'ta', data: {} }],
+        },
+        {
+          type: 'panel',
+          id: 'B',
+          size: 50,
+          defaultSize: 75,
+          tabs: [{ id: 'tb', data: {} }],
+        },
+      ],
+    });
+    const div = tileryDeriveDividers(state)[0]!;
+
+    const next = tileryApplyDividerReset(state, div);
+
+    expect(next.panels.A!.inset.right).toBe(75);
+    expect(next.panels.B!.inset.left).toBe(25);
+  });
+
+  it('no-ops divider reset when the divider cannot target the layout tree', () => {
+    const state = tileryCreateInitialState({
+      type: 'group',
+      direction: 'horizontal',
+      children: [
+        {
+          type: 'panel',
+          id: 'A',
+          size: 50,
+          tabs: [{ id: 'ta', data: {} }],
+        },
+        {
+          type: 'panel',
+          id: 'B',
+          size: 50,
+          tabs: [{ id: 'tb', data: {} }],
+        },
+      ],
+    });
+    const div = tileryDeriveDividers(state)[0]!;
+
+    expect(tileryApplyDividerReset(state, { ...div, disabled: true })).toBe(
+      state,
+    );
+    expect(tileryApplyDividerReset(state, { ...div, splitId: undefined })).toBe(
+      state,
+    );
+    expect(tileryApplyDividerReset(state, { ...div, splitId: 'missing' })).toBe(
+      state,
+    );
+    const withoutLayout = { ...state, layout: null };
+    expect(tileryApplyDividerReset(withoutLayout, div)).toBe(withoutLayout);
   });
 });
 

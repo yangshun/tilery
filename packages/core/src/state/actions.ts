@@ -151,6 +151,12 @@ export type TileryReducerAction =
       sizeContext?: TilerySizeResolutionContext;
     }
   | {
+      type: 'DIVIDER_RESET';
+      dividerId: string;
+      minSize?: TilerySize;
+      sizeContext?: TilerySizeResolutionContext;
+    }
+  | {
       type: 'JUNCTION_RESIZE';
       junctionId: string;
       x: number;

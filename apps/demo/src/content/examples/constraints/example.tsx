@@ -156,6 +156,52 @@ const containerResizeLayout: TileryInitialLayout<TabData> = {
   ],
 };
 
+const defaultResetLayout: TileryInitialLayout<TabData> = {
+  type: 'group',
+  direction: 'horizontal',
+  children: [
+    {
+      type: 'panel',
+      id: 'reset-navigator',
+      size: 50,
+      defaultSize: 30,
+      minSize: '180px',
+      tabs: [
+        {
+          id: 'reset-navigator-tab',
+          data: {
+            title: 'Navigator',
+            summary:
+              'Double-click the divider to return this panel to its 30% reset target.',
+            accent: '#3aaf6f',
+            constraints: 'size: 50, defaultSize: 30, minSize: 180px',
+          },
+          closeable: false,
+        },
+      ],
+    },
+    {
+      type: 'panel',
+      id: 'reset-editor',
+      size: 50,
+      defaultSize: 70,
+      minSize: '220px',
+      tabs: [
+        {
+          id: 'reset-editor-tab',
+          data: {
+            title: 'Editor',
+            summary:
+              'Reset keeps the default ratio stable even after several manual resizes.',
+            accent: '#3884ff',
+            constraints: 'size: 50, defaultSize: 70, minSize: 220px',
+          },
+        },
+      ],
+    },
+  ],
+};
+
 const widths = [
   { label: 'Narrow', value: 480 },
   { label: 'Medium', value: 640 },
@@ -164,9 +210,10 @@ const widths = [
 
 export function Example() {
   return (
-    <ExampleStack rows="minmax(0, 1fr) 214px">
+    <ExampleStack rows="minmax(0, 1fr) 214px 214px">
       <PanelConstraintsExample />
       <ContainerResizeExample />
+      <DefaultResetExample />
     </ExampleStack>
   );
 }
@@ -218,6 +265,23 @@ export function ContainerResizeExample() {
   );
 }
 // end-source-region container-resize
+
+// source-region default-reset
+export function DefaultResetExample() {
+  return (
+    <ExampleSection
+      title="Default reset"
+      description="Drag the divider, then double-click it. Tilery restores the defaultSize ratio and still applies minSize/maxSize limits.">
+      <Tilery<TabData>
+        initialLayout={defaultResetLayout}
+        minSize={10}
+        renderTabHeader={renderHeader}
+        renderTabContent={renderContent}
+      />
+    </ExampleSection>
+  );
+}
+// end-source-region default-reset
 
 function renderHeader(tab: TileryTab<TabData>) {
   return (

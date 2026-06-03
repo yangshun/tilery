@@ -486,6 +486,7 @@ describe('tileryCreateInitialState', () => {
       kind: 'panel',
       panelId: 'Only',
       size: 75,
+      defaultSize: 75,
       resizable: true,
       draggable: true,
       droppable: true,
@@ -2809,6 +2810,82 @@ describe('tileryReducer dispatch matrix', () => {
       type: 'DIVIDER_RESIZE',
       dividerId: div.id,
       newPosition: 70,
+    });
+    expect(next).toBe(state);
+  });
+
+  it('DIVIDER_RESET restores the initial size ratio', () => {
+    const state = tileryCreateInitialState({
+      type: 'group',
+      direction: 'horizontal',
+      children: [
+        {
+          type: 'panel',
+          id: 'L',
+          size: 30,
+          tabs: [{ id: 'left', data: {} }],
+        },
+        {
+          type: 'panel',
+          id: 'R',
+          size: 70,
+          tabs: [{ id: 'right', data: {} }],
+        },
+      ],
+    });
+    const div = tileryDeriveDividers(state)[0]!;
+    const resized = tileryReducer(state, {
+      type: 'DIVIDER_RESIZE',
+      dividerId: div.id,
+      newPosition: 55,
+    });
+
+    const reset = tileryReducer(resized, {
+      type: 'DIVIDER_RESET',
+      dividerId: div.id,
+    });
+
+    expect(reset.panels.L!.inset.right).toBe(70);
+    expect(reset.panels.R!.inset.left).toBe(30);
+  });
+
+  it('DIVIDER_RESET uses explicit defaultSize values', () => {
+    const state = tileryCreateInitialState({
+      type: 'group',
+      direction: 'horizontal',
+      children: [
+        {
+          type: 'panel',
+          id: 'L',
+          size: 50,
+          defaultSize: 25,
+          tabs: [{ id: 'left', data: {} }],
+        },
+        {
+          type: 'panel',
+          id: 'R',
+          size: 50,
+          defaultSize: 75,
+          tabs: [{ id: 'right', data: {} }],
+        },
+      ],
+    });
+    const div = tileryDeriveDividers(state)[0]!;
+
+    const reset = tileryReducer(state, {
+      type: 'DIVIDER_RESET',
+      dividerId: div.id,
+    });
+
+    expect(reset.panels.L!.inset.right).toBe(75);
+    expect(reset.panels.R!.inset.left).toBe(25);
+  });
+
+  it('DIVIDER_RESET is a no-op for an unknown divider id', () => {
+    const state = twoSideBySide();
+    const next = tileryReducer(state, {
+      type: 'DIVIDER_RESET',
+      dividerId: 'phantom',
     });
     expect(next).toBe(state);
   });

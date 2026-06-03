@@ -18,6 +18,7 @@ export {
 } from './collapse/example';
 export {
   ContainerResizeExample,
+  DefaultResetExample,
   Example as ConstraintsExample,
   PanelConstraintsExample,
 } from './constraints/example';
@@ -274,10 +275,12 @@ const exampleDefinitions = [
     demos: [
       { id: 'panel-constraints', sourceRegion: 'panel-constraints' },
       { id: 'container-resize', sourceRegion: 'container-resize' },
+      { id: 'default-reset', sourceRegion: 'default-reset' },
     ],
     guide: {
       paragraphs: [
         'Use size constraints when a panel has a real lower or upper bound, like a navigator that should not collapse past its content. Drag handles toward the constrained panels until they stop moving.',
+        'Double-click a divider when you want to send adjacent panels back to their defaultSize ratio. The reset still runs through the same minSize and maxSize constraints as normal dragging.',
         'The container resize demo shows the same rules applying when the available area changes: proportions are preserved where possible, then min and max sizes clamp the result.',
       ],
       readNext: [

@@ -20,6 +20,7 @@ import {
   PanelMenuExample,
   NewTabExample,
   ConstraintsExample,
+  DefaultResetExample,
   PanelConstraintsExample,
   ContainerResizeExample,
   PanelLockingExample,
@@ -70,6 +71,7 @@ const registry: Record<string, Record<string, React.ComponentType>> = {
     default: ConstraintsExample,
     'panel-constraints': PanelConstraintsExample,
     'container-resize': ContainerResizeExample,
+    'default-reset': DefaultResetExample,
   },
   'panel-locking': { default: PanelLockingExample },
   'tab-locking': {

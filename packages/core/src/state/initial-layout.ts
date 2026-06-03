@@ -110,6 +110,7 @@ function buildInitialLayoutTree(
       kind: 'panel',
       panelId,
       size: init.size,
+      defaultSize: init.defaultSize ?? init.size,
       ...behavior,
     };
   }
@@ -124,6 +125,7 @@ function buildInitialLayoutTree(
       return {
         ...children[0]!,
         size: init.size,
+        defaultSize: init.defaultSize ?? init.size ?? children[0]!.defaultSize,
         ...tileryMergeLayoutBehavior(
           behavior,
           tileryBehaviorFromNode(children[0]!),
@@ -135,6 +137,7 @@ function buildInitialLayoutTree(
       id: init.id ?? initialSplitId(init.direction, children),
       direction: init.direction,
       size: init.size,
+      defaultSize: init.defaultSize ?? init.size,
       ...behavior,
       children,
     };

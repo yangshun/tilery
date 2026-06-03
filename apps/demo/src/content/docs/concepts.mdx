@@ -42,6 +42,8 @@ Initial layouts are authored as n-ary group trees. A horizontal group places chi
 
 `size` belongs to each child item and controls that child’s allocation inside its parent group. Omitted sizes share the remaining space.
 
+Use `defaultSize` when a divider should have a reset target. A user can drag a divider away from the authored ratio, then double-click the divider to return adjacent panels to their default sizes.
+
 ## Runtime state
 
 The public runtime state keeps panels and tabs in flat lookup objects for direct access, while layout geometry stays in the nested tree. That gives controller methods quick access to panels and tabs without losing the authoring model used for persistence.
@@ -79,7 +81,7 @@ const saved = localStorage.getItem('tilery-layout');
 />;
 ```
 
-Snapshots store the panel tree, tab order, active tabs, fullscreen state, size constraints, explicit behavior booleans, floating bounds, popout window bounds, and z-order.
+Snapshots store the panel tree, tab order, active tabs, fullscreen state, default sizes, size constraints, explicit behavior booleans, floating bounds, popout window bounds, and z-order.
 
 ## Floating and popout panels
 

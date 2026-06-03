@@ -164,6 +164,7 @@ export type TileryLayoutTree =
       kind: 'panel';
       panelId: TileryPanelId;
       size?: number;
+      defaultSize?: number;
       resizable?: boolean;
       draggable?: boolean;
       droppable?: boolean;
@@ -173,6 +174,7 @@ export type TileryLayoutTree =
       id: string;
       direction: 'horizontal' | 'vertical';
       size?: number;
+      defaultSize?: number;
       resizable?: boolean;
       draggable?: boolean;
       droppable?: boolean;
@@ -200,6 +202,7 @@ export type TileryPanelInit<TData = unknown> = {
   type: 'panel';
   id?: TileryPanelId;
   size?: number;
+  defaultSize?: number;
   tabs: TileryTabInit<TData>[];
   activeTabId?: TileryTabId;
   fullScreen?: boolean;
@@ -212,6 +215,7 @@ export type TileryGroupInit<TData = unknown> = {
   id?: string;
   direction: 'horizontal' | 'vertical';
   size?: number;
+  defaultSize?: number;
   children: TileryDockedLayoutInit<TData>[];
 } & TileryLayoutBehaviorConfig;
 
@@ -247,6 +251,7 @@ export type TileryPanelSnapshot<TData = unknown> = {
   type: 'panel';
   id?: TileryPanelId;
   size?: number;
+  defaultSize?: number;
   tabs: TileryTabSnapshot<TData>[];
   activeTabId?: TileryTabId;
   fullScreen?: boolean;
@@ -264,6 +269,7 @@ export type TileryGroupSnapshot<TData = unknown> = {
   id?: string;
   direction: 'horizontal' | 'vertical';
   size?: number;
+  defaultSize?: number;
   children: TileryDockedLayoutSnapshot<TData>[];
 } & TileryLayoutBehavior;
 

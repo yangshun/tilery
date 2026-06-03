@@ -22,6 +22,7 @@ import {
   tileryPanelOrderFromLayout,
   tileryRectToInset,
   tileryRemovePanelFromLayout,
+  tileryResetLayoutDivider,
   tileryResizeLayoutDivider,
   tilerySplitPanelInLayout,
   tilerySwapPanelsInLayout,
@@ -510,6 +511,25 @@ describe('tileryNormalizeLayoutForContainerResize', () => {
     ).toBeUndefined();
   });
 
+  it('returns panel leaves unchanged', () => {
+    const layout: TileryLayoutTree = {
+      kind: 'panel',
+      panelId: 'P',
+      resizable: true,
+      draggable: true,
+      droppable: true,
+    };
+
+    expect(
+      tileryNormalizeLayoutForContainerResize(
+        layout,
+        { P: panel('P', full) },
+        10,
+        { width: 1000 },
+      ),
+    ).toBe(layout);
+  });
+
   it('preserves proportions when the resized container still satisfies constraints', () => {
     const state = stateFromPanels([
       {
@@ -886,6 +906,111 @@ describe('tree divider resize', () => {
     });
   });
 
+  it('resets adjacent split children to their default size ratio', () => {
+    const layout: TileryLayoutTree = {
+      kind: 'split',
+      id: 'root',
+      direction: 'horizontal',
+      children: [
+        { kind: 'panel', panelId: 'L', size: 50, defaultSize: 30 },
+        { kind: 'panel', panelId: 'R', size: 50, defaultSize: 70 },
+      ],
+    };
+    const resized = tileryResizeLayoutDivider(layout, 'root#0', 60);
+
+    const reset = tileryResetLayoutDivider(resized, 'root#0', 10);
+
+    expect(tileryDeriveLayoutInsets(reset)).toEqual({
+      L: { top: 0, right: 70, bottom: 0, left: 0 },
+      R: { top: 0, right: 0, bottom: 0, left: 30 },
+    });
+  });
+
+  it('uses the current size as the reset fallback when defaultSize is omitted', () => {
+    const layout = tileryBuildLayoutTreeFromPanels([
+      panel('L', { top: 0, right: 40, bottom: 0, left: 0 }),
+      panel('R', { top: 0, right: 0, bottom: 0, left: 60 }),
+    ])!;
+    const divider = tileryDeriveLayoutDividers(layout)[0]!;
+
+    const reset = tileryResetLayoutDivider(layout, divider.splitId!, 10);
+
+    expect(tileryDeriveLayoutInsets(reset)).toEqual({
+      L: { top: 0, right: 40, bottom: 0, left: 0 },
+      R: { top: 0, right: 0, bottom: 0, left: 60 },
+    });
+  });
+
+  it('resets vertical split children to their default size ratio', () => {
+    const layout: TileryLayoutTree = {
+      kind: 'split',
+      id: 'root',
+      direction: 'vertical',
+      children: [
+        { kind: 'panel', panelId: 'T', size: 50, defaultSize: 20 },
+        { kind: 'panel', panelId: 'B', size: 50, defaultSize: 80 },
+      ],
+    };
+
+    const reset = tileryResetLayoutDivider(layout, 'root#0', 10);
+
+    expect(tileryDeriveLayoutInsets(reset)).toEqual({
+      T: { top: 0, right: 0, bottom: 80, left: 0 },
+      B: { top: 20, right: 0, bottom: 0, left: 0 },
+    });
+  });
+
+  it('no-ops divider reset for missing or degenerate boundaries', () => {
+    const layout: TileryLayoutTree = {
+      kind: 'split',
+      id: 'root',
+      direction: 'horizontal',
+      children: [
+        { kind: 'panel', panelId: 'A', size: 0, defaultSize: 50 },
+        { kind: 'panel', panelId: 'B', size: 0, defaultSize: 50 },
+        { kind: 'panel', panelId: 'C', size: 100, defaultSize: 100 },
+      ],
+    };
+    const zeroDefaults: TileryLayoutTree = {
+      kind: 'split',
+      id: 'defaults',
+      direction: 'horizontal',
+      children: [
+        { kind: 'panel', panelId: 'A', size: 50, defaultSize: 0 },
+        { kind: 'panel', panelId: 'B', size: 50, defaultSize: 0 },
+      ],
+    };
+
+    expect(tileryResetLayoutDivider(layout, 'missing', 10)).toBe(layout);
+    expect(tileryResetLayoutDivider(layout, 'root#0', 10)).toBe(layout);
+    expect(tileryResetLayoutDivider(zeroDefaults, 'defaults#0', 10)).toBe(
+      zeroDefaults,
+    );
+  });
+
+  it('clamps divider reset against panel constraints', () => {
+    const layout: TileryLayoutTree = {
+      kind: 'split',
+      id: 'root',
+      direction: 'horizontal',
+      children: [
+        { kind: 'panel', panelId: 'L', size: 50, defaultSize: 20 },
+        { kind: 'panel', panelId: 'R', size: 50, defaultSize: 80 },
+      ],
+    };
+    const panels: Record<string, TileryPanelState> = {
+      L: { ...panel('L', full), minSize: 35 },
+      R: panel('R', full),
+    };
+
+    const reset = tileryResetLayoutDivider(layout, 'root#0', 10, panels);
+
+    expect(tileryDeriveLayoutInsets(reset)).toEqual({
+      L: { top: 0, right: 65, bottom: 0, left: 0 },
+      R: { top: 0, right: 0, bottom: 0, left: 35 },
+    });
+  });
+
   it('keeps the current position when the min size cannot fit', () => {
     const layout = tileryBuildLayoutTreeFromPanels([
       panel('T', { top: 0, right: 0, bottom: 50, left: 0 }),
@@ -922,5 +1047,209 @@ describe('tree divider resize', () => {
     const nested = (resized as Extract<TileryLayoutTree, { kind: 'split' }>)
       .children[0] as Extract<TileryLayoutTree, { kind: 'split' }>;
     expect(nested.children[0]!.size).toBe(10);
+  });
+
+  it('preserves scaled default sizes when splitting into a same-axis parent', () => {
+    const layout: TileryLayoutTree = {
+      kind: 'split',
+      id: 'root',
+      direction: 'horizontal',
+      children: [
+        { kind: 'panel', panelId: 'A', size: 40, defaultSize: 40 },
+        { kind: 'panel', panelId: 'B', size: 60, defaultSize: 60 },
+      ],
+    };
+
+    const next = tilerySplitPanelInLayout(layout, 'B', 'C', 'left', 25);
+
+    expect(next).toMatchObject({
+      kind: 'split',
+      direction: 'horizontal',
+      children: [
+        { kind: 'panel', panelId: 'A', size: 40, defaultSize: 40 },
+        { kind: 'panel', panelId: 'C', size: 15, defaultSize: 15 },
+        { kind: 'panel', panelId: 'B', size: 45, defaultSize: 45 },
+      ],
+    });
+  });
+
+  it('preserves parent default size when replacing inside a nested child', () => {
+    const layout: TileryLayoutTree = {
+      kind: 'split',
+      id: 'root',
+      direction: 'vertical',
+      children: [
+        {
+          kind: 'split',
+          id: 'nested',
+          direction: 'horizontal',
+          size: 60,
+          defaultSize: 60,
+          children: [
+            { kind: 'panel', panelId: 'A', size: 50 },
+            { kind: 'panel', panelId: 'B', size: 50 },
+          ],
+        },
+        { kind: 'panel', panelId: 'C', size: 40, defaultSize: 40 },
+      ],
+    };
+
+    const next = tilerySplitPanelInLayout(layout, 'B', 'D', 'right', 20);
+
+    expect(next).toMatchObject({
+      kind: 'split',
+      direction: 'vertical',
+      children: [
+        {
+          kind: 'split',
+          direction: 'horizontal',
+          size: 60,
+          defaultSize: 60,
+        },
+        { kind: 'panel', panelId: 'C', size: 40, defaultSize: 40 },
+      ],
+    });
+  });
+
+  it('leaves nested replacement default size unset when the parent has none', () => {
+    const layout: TileryLayoutTree = {
+      kind: 'split',
+      id: 'root',
+      direction: 'vertical',
+      children: [
+        {
+          kind: 'split',
+          id: 'nested',
+          direction: 'horizontal',
+          size: 60,
+          children: [
+            { kind: 'panel', panelId: 'A', size: 50 },
+            { kind: 'panel', panelId: 'B', size: 50 },
+          ],
+        },
+        { kind: 'panel', panelId: 'C', size: 40 },
+      ],
+    };
+
+    const next = tilerySplitPanelInLayout(layout, 'B', 'D', 'right', 20);
+    const split = next as Extract<TileryLayoutTree, { kind: 'split' }>;
+
+    expect(split.children[0]!.defaultSize).toBeUndefined();
+  });
+
+  it('omits scaled child default sizes when split input is invalid', () => {
+    const layout: TileryLayoutTree = {
+      kind: 'split',
+      id: 'root',
+      direction: 'horizontal',
+      children: [
+        { kind: 'panel', panelId: 'A', size: 40 },
+        { kind: 'panel', panelId: 'B', size: 60, defaultSize: Number.NaN },
+      ],
+    };
+
+    const next = tilerySplitPanelInLayout(layout, 'B', 'C', 'left', Number.NaN);
+    const split = next as Extract<TileryLayoutTree, { kind: 'split' }>;
+
+    expect(split.children).toMatchObject([
+      { kind: 'panel', panelId: 'A', size: 40 },
+      { kind: 'panel', panelId: 'C', size: 30 },
+      { kind: 'panel', panelId: 'B', size: 30 },
+    ]);
+    expect(split.children[1]!.defaultSize).toBeUndefined();
+    expect(split.children[2]!.defaultSize).toBeUndefined();
+  });
+
+  it('does not invent a default size when removing into a single child split', () => {
+    const layout: TileryLayoutTree = {
+      kind: 'split',
+      id: 'root',
+      direction: 'horizontal',
+      children: [
+        { kind: 'panel', panelId: 'A', size: 50 },
+        { kind: 'panel', panelId: 'B', size: 50 },
+      ],
+    };
+
+    expect(tileryRemovePanelFromLayout(layout, 'B')).toEqual({
+      kind: 'panel',
+      panelId: 'A',
+      resizable: true,
+      draggable: true,
+      droppable: true,
+    });
+  });
+
+  it('preserves a remaining child default size when removing into one child', () => {
+    const layout: TileryLayoutTree = {
+      kind: 'split',
+      id: 'root',
+      direction: 'horizontal',
+      children: [
+        { kind: 'panel', panelId: 'A', size: 50, defaultSize: 30 },
+        { kind: 'panel', panelId: 'B', size: 50 },
+      ],
+    };
+
+    expect(tileryRemovePanelFromLayout(layout, 'B')).toEqual({
+      kind: 'panel',
+      panelId: 'A',
+      defaultSize: 30,
+      resizable: true,
+      draggable: true,
+      droppable: true,
+    });
+  });
+
+  it('omits scaled default size when a flattened child default is invalid', () => {
+    const layout: TileryLayoutTree = {
+      kind: 'split',
+      id: 'root',
+      direction: 'horizontal',
+      children: [
+        {
+          kind: 'split',
+          id: 'inner',
+          direction: 'horizontal',
+          size: 50,
+          defaultSize: 50,
+          children: [
+            {
+              kind: 'panel',
+              panelId: 'A',
+              size: 50,
+              defaultSize: Number.NaN,
+            },
+            { kind: 'panel', panelId: 'B', size: 50 },
+          ],
+        },
+        { kind: 'panel', panelId: 'C', size: 50 },
+      ],
+    };
+    const panels: Record<string, TileryPanelState> = {
+      A: panel('A', full),
+      B: panel('B', full),
+      C: panel('C', full),
+    };
+
+    const state = tilerySyncLayoutPanels(
+      { panels, panelOrder: [], tabs: {}, layout },
+      layout,
+    );
+
+    expect(state.layout).toMatchObject({
+      kind: 'split',
+      direction: 'horizontal',
+      children: [
+        { kind: 'panel', panelId: 'A', size: 25 },
+        { kind: 'panel', panelId: 'B', size: 25, defaultSize: 25 },
+        { kind: 'panel', panelId: 'C', size: 50 },
+      ],
+    });
+    const normalized = state.layout as Extract<
+      TileryLayoutTree,
+      { kind: 'split' }
+    >;
+    expect(normalized.children[0]!.defaultSize).toBeUndefined();
   });
 });

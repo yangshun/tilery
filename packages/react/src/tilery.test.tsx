@@ -1582,6 +1582,56 @@ describe('Tilery — divider drag dispatch', () => {
     t.cleanup();
   });
 
+  it('double-clicking a divider resets it to its default size', () => {
+    const resizeEvents: TileryResizeEvent[] = [];
+    const resizeEndEvents: TileryResizeEvent[] = [];
+    const t = mount(lShapeLayout(), undefined, {
+      onResize: (event) => resizeEvents.push(event),
+      onResizeEnd: (event) => resizeEndEvents.push(event),
+    });
+    const getVerticalDivider = () =>
+      Array.from(t.host.querySelectorAll<HTMLElement>('.tilery__divider')).find(
+        (el) => el.getAttribute('data-orientation') === 'vertical',
+      )!;
+
+    act(() => {
+      const divider = getVerticalDivider();
+      reactProps(divider).onPointerDown(pointerEvent());
+      reactProps(divider).onPointerMove(
+        pointerEvent({ clientX: 500, clientY: 400 }),
+      );
+      reactProps(divider).onPointerUp(pointerEvent());
+    });
+    expect(t.controller().getPanel('sidebar')!.inset.right).toBe(50);
+
+    act(() => {
+      reactProps(getVerticalDivider()).onDoubleClick({
+        preventDefault() {},
+        stopPropagation() {},
+      });
+    });
+
+    expect(t.controller().getPanel('sidebar')!.inset.right).toBe(60);
+    expect(t.controller().getPanel('editor')!.inset.left).toBe(40);
+    expect(resizeEvents).toHaveLength(2);
+    expect(resizeEndEvents).toHaveLength(2);
+    expect(resizeEvents[1]).toMatchObject({
+      phase: 'resize',
+      input: 'pointer',
+      source: {
+        type: 'divider',
+        orientation: 'vertical',
+        previousPosition: 50,
+        position: 40,
+      },
+    });
+    expect(resizeEndEvents[1]).toMatchObject({
+      ...resizeEvents[1],
+      phase: 'end',
+    });
+    t.cleanup();
+  });
+
   it('does not report no-op resize lifecycle events', () => {
     const resizeEvents: TileryResizeEvent[] = [];
     const resizeEndEvents: TileryResizeEvent[] = [];

@@ -112,7 +112,7 @@ export type TileryResizeEvent = {
 
 type TileryResizeAction = Extract<
   TileryReducerAction,
-  { type: 'DIVIDER_RESIZE' | 'JUNCTION_RESIZE' }
+  { type: 'DIVIDER_RESIZE' | 'DIVIDER_RESET' | 'JUNCTION_RESIZE' }
 >;
 
 export type TileryProps<TData = unknown> = {
@@ -530,7 +530,21 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
         input,
       );
     },
-    [dispatchResize, getSizeContext, minSize],
+    [dispatchResize, minSize],
+  );
+  const onDividerReset = useCallback(
+    (dividerId: string, nextSizeContext?: TilerySizeResolutionContext) => {
+      return dispatchResize(
+        {
+          type: 'DIVIDER_RESET',
+          dividerId,
+          minSize,
+          sizeContext: nextSizeContext,
+        },
+        'pointer',
+      );
+    },
+    [dispatchResize, minSize],
   );
   const onJunctionDrag = useCallback(
     (
@@ -688,6 +702,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
             disabled={!resizable || d.disabled}
             hitSize={resizeHandleHitSize}
             onDrag={onDividerDrag}
+            onReset={onDividerReset}
             onDragEnd={commitResize}
             containerRef={containerRef}
           />
@@ -777,7 +792,7 @@ function makeResizeSource(
   state: TileryLayoutState,
   action: TileryResizeAction,
 ): TileryResizeSource | null {
-  if (action.type === 'DIVIDER_RESIZE') {
+  if (action.type === 'DIVIDER_RESIZE' || action.type === 'DIVIDER_RESET') {
     const previousDivider = tileryDeriveDividers(previousState).find(
       (divider) => divider.id === action.dividerId,
     );

@@ -36,6 +36,8 @@ type PanelItem = {
 
 type SplitNode = Extract<TileryLayoutTree, { kind: 'split' }>;
 
+type SplitConfig = TileryLayoutBehaviorConfig & { defaultSize?: number };
+
 type BoundaryMatch = {
   node: SplitNode;
   rect: Rect;
@@ -227,12 +229,20 @@ export function tilerySplitPanelInLayout(
   const children: TileryLayoutTree[] =
     direction === 'left' || direction === 'top'
       ? [
-          { ...newLeaf, size },
-          { ...panelLeaf, size: 100 - size },
+          { ...newLeaf, size, defaultSize: size },
+          {
+            ...panelLeaf,
+            size: 100 - size,
+            defaultSize: 100 - size,
+          },
         ]
       : [
-          { ...panelLeaf, size: 100 - size },
-          { ...newLeaf, size },
+          {
+            ...panelLeaf,
+            size: 100 - size,
+            defaultSize: 100 - size,
+          },
+          { ...newLeaf, size, defaultSize: size },
         ];
   const split = createSplit(splitId, splitDirection, children)!;
   const next = replacePanelLeaf(layout, panelId, split);
@@ -376,6 +386,46 @@ export function tileryResizeLayoutDivider(
       })),
     };
   });
+}
+
+export function tileryResetLayoutDivider(
+  layout: TileryLayoutTree | null | undefined,
+  splitId: string,
+  minSize: TilerySize,
+  panels: Record<TileryPanelId, TileryPanelState> = {},
+  sizeContext?: TilerySizeResolutionContext,
+): TileryLayoutTree | null | undefined {
+  const match = findBoundaryWithRect(layout, splitId, ROOT_RECT);
+  if (!match) return layout;
+  const { node, rect, boundaryIndex, childSizes } = match;
+  const beforeSize = childSizes[boundaryIndex]!;
+  const afterSize = childSizes[boundaryIndex + 1]!;
+  const pairSize = beforeSize + afterSize;
+  if (pairSize <= EPSILON) return layout;
+  const before = node.children[boundaryIndex]!;
+  const after = node.children[boundaryIndex + 1]!;
+  const beforeDefault = layoutChildDefaultSize(before, beforeSize);
+  const afterDefault = layoutChildDefaultSize(after, afterSize);
+  const defaultTotal = beforeDefault + afterDefault;
+  if (defaultTotal <= EPSILON) return layout;
+
+  const pairStart = sum(childSizes.slice(0, boundaryIndex));
+  const targetBoundary = pairStart + (pairSize * beforeDefault) / defaultTotal;
+  const span =
+    node.direction === 'horizontal'
+      ? rect.right - rect.left
+      : rect.bottom - rect.top;
+  const start = node.direction === 'horizontal' ? rect.left : rect.top;
+  const targetPosition = start + (span * targetBoundary) / 100;
+  const clamped = tileryClampLayoutDividerPosition(
+    layout,
+    splitId,
+    targetPosition,
+    minSize,
+    panels,
+    sizeContext,
+  )!;
+  return tileryResizeLayoutDivider(layout, splitId, clamped);
 }
 
 function buildTree(items: PanelItem[], bounds: Rect): TileryLayoutTree | null {
@@ -586,6 +636,8 @@ function replacePanelLeaf(
           node: {
             ...replacement,
             size: node.size,
+            defaultSize:
+              node.defaultSize ?? replacement.defaultSize ?? node.size,
             ...tileryMergeLayoutBehavior(
               tileryBehaviorFromNode(node),
               tileryBehaviorFromNode(replacement),
@@ -605,6 +657,7 @@ function replacePanelLeaf(
           tileryBehaviorFromNode(child),
           tileryBehaviorFromNode(replacement),
         ),
+        defaultSize: child.defaultSize ?? child.size,
       };
       const nextChildren = [
         ...children.slice(0, index),
@@ -630,7 +683,11 @@ function replacePanelLeaf(
         node.direction,
         [
           ...children.slice(0, index),
-          { ...replaced.node, size: child.size },
+          {
+            ...replaced.node,
+            size: child.size,
+            defaultSize: child.defaultSize ?? replaced.node.defaultSize,
+          },
           ...children.slice(index + 1),
         ],
         node.size,
@@ -658,7 +715,15 @@ function removePanelLeaf(
     if (!result.removed) continue;
     const nextChildren = [
       ...children.slice(0, index),
-      ...(result.node ? [{ ...result.node, size: child.size }] : []),
+      ...(result.node
+        ? [
+            {
+              ...result.node,
+              size: child.size,
+              defaultSize: child.defaultSize ?? result.node.defaultSize,
+            },
+          ]
+        : []),
       ...children.slice(index + 1),
     ];
     return {
@@ -717,9 +782,10 @@ function createSplit(
   direction: 'horizontal' | 'vertical',
   children: TileryLayoutTree[],
   size?: number,
-  behaviorConfig?: TileryLayoutBehaviorConfig,
+  behaviorConfig?: SplitConfig,
 ): TileryLayoutTree | null {
   const behavior = tileryNormalizeLayoutBehavior(behaviorConfig);
+  const defaultSize = finiteLayoutSize(behaviorConfig?.defaultSize);
   const flattened: TileryLayoutTree[] = [];
   for (const child of normalizedChildren(children)) {
     if (
@@ -727,10 +793,16 @@ function createSplit(
       child.direction === direction &&
       isDefaultBehavior(child)
     ) {
+      const parentDefaultSize =
+        finiteLayoutSize(child.defaultSize) ?? child.size;
       for (const grandchild of normalizedChildren(child.children)) {
         flattened.push({
           ...grandchild,
           size: (child.size! * grandchild.size!) / 100,
+          defaultSize: scaledLayoutSize(
+            parentDefaultSize,
+            grandchild.defaultSize ?? grandchild.size,
+          ),
         });
       }
     } else {
@@ -742,10 +814,13 @@ function createSplit(
   if (normalized.length === 0) return null;
   if (normalized.length === 1) {
     const next = normalized[0]!;
-    const { size: _childSize, ...rest } = next;
+    const { size: _childSize, defaultSize: childDefaultSize, ...rest } = next;
     return {
       ...rest,
       ...(size === undefined ? {} : { size }),
+      ...(defaultSize === undefined && childDefaultSize === undefined
+        ? {}
+        : { defaultSize: defaultSize ?? childDefaultSize }),
       ...tileryMergeLayoutBehavior(behavior, tileryBehaviorFromNode(next)),
     };
   }
@@ -754,6 +829,7 @@ function createSplit(
     id,
     direction,
     size,
+    defaultSize,
     ...behavior,
     children: normalized,
   };
@@ -775,6 +851,7 @@ function normalizeLayoutNode(node: TileryLayoutTree): TileryLayoutTree {
     normalized.id === node.id &&
     normalized.direction === node.direction &&
     normalized.size === node.size &&
+    normalized.defaultSize === node.defaultSize &&
     normalized.resizable === node.resizable &&
     normalized.draggable === node.draggable &&
     normalized.droppable === node.droppable &&
@@ -834,9 +911,11 @@ function replacementForParent(
     replacement.direction === parentDirection &&
     isDefaultBehavior(replacement)
   ) {
+    const parentDefaultSize = finiteLayoutSize(replacement.defaultSize) ?? size;
     return normalizedChildren(replacement.children).map((child) => ({
       ...child,
       size: (size * child.size!) / 100,
+      defaultSize: scaledLayoutSize(parentDefaultSize, child.defaultSize),
     }));
   }
   return [{ ...replacement, size }];
@@ -875,6 +954,25 @@ function layoutChildMaxSize(
     tileryResolveSizePercent(panels[child.panelId]?.maxSize, axisPixels) ??
     Infinity
   );
+}
+
+function layoutChildDefaultSize(child: TileryLayoutTree, fallback: number) {
+  return finiteLayoutSize(child.defaultSize) ?? Math.max(0, fallback);
+}
+
+function finiteLayoutSize(size: number | undefined): number | undefined {
+  return typeof size === 'number' && Number.isFinite(size)
+    ? Math.max(0, size)
+    : undefined;
+}
+
+function scaledLayoutSize(
+  parentSize: number | undefined,
+  childSize: number | undefined,
+): number | undefined {
+  const parent = finiteLayoutSize(parentSize);
+  const child = finiteLayoutSize(childSize);
+  return parent == null || child == null ? undefined : (parent * child) / 100;
 }
 
 type ChildSizeConstraint = {

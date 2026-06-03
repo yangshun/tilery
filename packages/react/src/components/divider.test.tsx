@@ -54,6 +54,8 @@ function mountWithRef({
   hitSize,
   populateRef,
   onDrag,
+  onReset,
+  onDragEnd,
 }: {
   divider: DividerType;
   accessibility?: typeof DEFAULT_ACCESSIBILITY;
@@ -65,6 +67,11 @@ function mountWithRef({
     pct: number,
     input: 'keyboard' | 'pointer',
   ) => boolean | void;
+  onReset?: (
+    id: string,
+    sizeContext?: { width?: number; height?: number },
+  ) => boolean | void;
+  onDragEnd?: () => void;
 }) {
   const host = document.createElement('div');
   document.body.appendChild(host);
@@ -100,6 +107,8 @@ function mountWithRef({
         disabled,
         hitSize,
         onDrag,
+        onReset,
+        onDragEnd,
         containerRef: ref,
       }),
     );
@@ -157,6 +166,28 @@ function keyboardEvent(key: string, shiftKey = false) {
       stopped = true;
     },
   } as unknown as React.KeyboardEvent<HTMLDivElement>;
+  return {
+    event,
+    get prevented() {
+      return prevented;
+    },
+    get stopped() {
+      return stopped;
+    },
+  };
+}
+
+function mouseEvent() {
+  let prevented = false;
+  let stopped = false;
+  const event = {
+    preventDefault() {
+      prevented = true;
+    },
+    stopPropagation() {
+      stopped = true;
+    },
+  } as unknown as React.MouseEvent<HTMLDivElement>;
   return {
     event,
     get prevented() {
@@ -314,6 +345,95 @@ describe('TileryDivider — defensive null container', () => {
     });
     expect(recorded).toEqual([]);
     t.cleanup();
+  });
+});
+
+describe('TileryDivider — double-click reset', () => {
+  it('calls reset with container size and commits changed resets', () => {
+    const resetCalls: Array<{
+      id: string;
+      sizeContext?: { width?: number; height?: number };
+    }> = [];
+    let dragEnds = 0;
+    const t = mountWithRef({
+      divider: VERTICAL_DIVIDER,
+      populateRef: true,
+      onDrag: () => {},
+      onReset: (id, sizeContext) => {
+        resetCalls.push({ id, sizeContext });
+        return true;
+      },
+      onDragEnd: () => {
+        dragEnds += 1;
+      },
+    });
+    const event = mouseEvent();
+
+    t.handlers.onDoubleClick(event.event);
+
+    expect(resetCalls).toEqual([
+      { id: 'v|A|B', sizeContext: { width: 1000, height: 800 } },
+    ]);
+    expect(dragEnds).toBe(1);
+    expect(event.prevented).toBe(true);
+    expect(event.stopped).toBe(true);
+    t.cleanup();
+  });
+
+  it('does not commit unchanged resets', () => {
+    let dragEnds = 0;
+    const t = mountWithRef({
+      divider: VERTICAL_DIVIDER,
+      populateRef: true,
+      onDrag: () => {},
+      onReset: () => false,
+      onDragEnd: () => {
+        dragEnds += 1;
+      },
+    });
+
+    t.handlers.onDoubleClick(mouseEvent().event);
+
+    expect(dragEnds).toBe(0);
+    t.cleanup();
+  });
+
+  it('ignores reset when disabled, missing, or without a container', () => {
+    let resetCalls = 0;
+    const disabled = mountWithRef({
+      divider: VERTICAL_DIVIDER,
+      disabled: true,
+      populateRef: true,
+      onDrag: () => {},
+      onReset: () => {
+        resetCalls += 1;
+        return true;
+      },
+    });
+    disabled.handlers.onDoubleClick(mouseEvent().event);
+    disabled.cleanup();
+
+    const missingReset = mountWithRef({
+      divider: VERTICAL_DIVIDER,
+      populateRef: true,
+      onDrag: () => {},
+    });
+    missingReset.handlers.onDoubleClick(mouseEvent().event);
+    missingReset.cleanup();
+
+    const missingContainer = mountWithRef({
+      divider: VERTICAL_DIVIDER,
+      populateRef: false,
+      onDrag: () => {},
+      onReset: () => {
+        resetCalls += 1;
+        return true;
+      },
+    });
+    missingContainer.handlers.onDoubleClick(mouseEvent().event);
+    missingContainer.cleanup();
+
+    expect(resetCalls).toBe(0);
   });
 });
 

@@ -15,6 +15,7 @@ import {
   tileryGetLayoutDividerConstraintRange,
   tileryDeriveLayoutDividers,
   tileryResizeLayoutDivider,
+  tileryResetLayoutDivider,
   tilerySyncLayoutPanels,
 } from './layout-tree';
 import { tileryAxisPixels, tileryResolveSizePercent } from './size';
@@ -558,6 +559,25 @@ export function tileryApplyDividerResize(
     }
   }
   return { ...state, panels: nextPanels };
+}
+
+export function tileryApplyDividerReset(
+  state: TileryLayoutState,
+  divider: TileryDivider,
+  minSize: TilerySize = TILERY_DEFAULT_MIN_SIZE,
+  sizeContext?: TilerySizeResolutionContext,
+): TileryLayoutState {
+  if (divider.disabled) return state;
+  if (!divider.splitId || !state.layout) return state;
+  const layout = tileryResetLayoutDivider(
+    state.layout,
+    divider.splitId,
+    minSize,
+    state.panels,
+    sizeContext,
+  );
+  if (layout === state.layout) return state;
+  return tilerySyncLayoutPanels({ ...state, layout }, layout);
 }
 
 export function tileryFindRemovalFillers(

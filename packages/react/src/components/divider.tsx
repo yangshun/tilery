@@ -18,6 +18,10 @@ export type DividerProps = {
     input: 'keyboard' | 'pointer',
     sizeContext?: TilerySizeResolutionContext,
   ) => boolean | void;
+  onReset?: (
+    dividerId: string,
+    sizeContext?: TilerySizeResolutionContext,
+  ) => boolean | void;
   onDragEnd?: () => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
 };
@@ -47,6 +51,7 @@ export function TileryDivider({
   disabled = false,
   hitSize = DEFAULT_HIT_SIZE_PX,
   onDrag,
+  onReset,
   onDragEnd = noop,
   containerRef,
 }: DividerProps) {
@@ -68,6 +73,23 @@ export function TileryDivider({
       });
     },
     [containerRef, disabled, divider.id, divider.orientation, onDrag],
+  );
+
+  const onDoubleClick = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (disabled || !onReset) return;
+      const container = containerRef.current;
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
+      e.preventDefault();
+      e.stopPropagation();
+      const didReset = onReset(divider.id, {
+        width: rect.width,
+        height: rect.height,
+      });
+      if (didReset) onDragEnd();
+    },
+    [containerRef, disabled, divider.id, onDragEnd, onReset],
   );
 
   const handlers = useTileryPointerDrag({ onMove });
@@ -166,6 +188,7 @@ export function TileryDivider({
       onPointerMove={disabled ? undefined : handlers.onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
+      onDoubleClick={onDoubleClick}
       onKeyDown={onKeyDown}
       role="separator"
       aria-disabled={disabled ? true : undefined}

@@ -221,6 +221,49 @@ describe('TileryController lookups', () => {
       draggable: false,
     });
   });
+  it('round-trips default sizes through layout snapshots', () => {
+    const { controller, getState } = makeStore();
+
+    controller.setLayout({
+      type: 'group',
+      direction: 'horizontal',
+      children: [
+        {
+          type: 'panel',
+          id: 'L',
+          size: 50,
+          defaultSize: 30,
+          tabs: [{ id: 'left', data: { title: 'left' } }],
+        },
+        {
+          type: 'panel',
+          id: 'R',
+          size: 50,
+          defaultSize: 70,
+          tabs: [{ id: 'right', data: { title: 'right' } }],
+        },
+      ],
+    });
+    const snapshot = controller.getLayout<{ title: string }>();
+
+    expect(snapshot).toMatchObject({
+      type: 'group',
+      children: [
+        { type: 'panel', id: 'L', size: 50, defaultSize: 30 },
+        { type: 'panel', id: 'R', size: 50, defaultSize: 70 },
+      ],
+    });
+
+    controller.setLayout(snapshot);
+
+    expect(getState().layout).toMatchObject({
+      kind: 'split',
+      children: [
+        { kind: 'panel', panelId: 'L', defaultSize: 30 },
+        { kind: 'panel', panelId: 'R', defaultSize: 70 },
+      ],
+    });
+  });
   it('round-trips floating panels through layout snapshots', () => {
     const { controller, getState } = makeStore();
 

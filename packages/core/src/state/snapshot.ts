@@ -53,6 +53,7 @@ function layoutToSnapshot<TData>(
       return {
         ...children[0]!,
         size: layout.size,
+        defaultSize: layout.defaultSize,
         ...tileryMergeLayoutBehavior(
           tileryBehaviorFromNode(layout),
           childBehavior(children[0]!),
@@ -64,6 +65,7 @@ function layoutToSnapshot<TData>(
       id: layout.id,
       direction: layout.direction,
       size: layout.size,
+      defaultSize: layout.defaultSize,
       ...tileryBehaviorFromNode(layout),
       children,
     };
@@ -76,6 +78,7 @@ function layoutToSnapshot<TData>(
     type: 'panel',
     id: panel.id,
     size: layout.size,
+    defaultSize: layout.defaultSize,
     ...tileryBehaviorFromNode(layout),
     activeTabId: panel.activeTabId ?? undefined,
     fullScreen: panel.fullScreen,

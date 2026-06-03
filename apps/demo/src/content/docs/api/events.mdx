@@ -19,7 +19,7 @@ Use callbacks when your app needs to persist layout, update external state, or r
 
 ## TileryResizeEvent
 
-onResize fires for each pointer or keyboard resize that changes panel sizes. onResizeEnd fires on pointer release for drag resizes and immediately after each keyboard resize.
+onResize fires for each pointer or keyboard resize that changes panel sizes. onResizeEnd fires on pointer release for drag resizes, immediately after each keyboard resize, and after a double-click divider reset. Double-click reset is reported as `input: 'pointer'` with a divider source.
 
 ```tsx
 type TileryResizeEvent = {

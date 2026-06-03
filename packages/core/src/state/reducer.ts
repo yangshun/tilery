@@ -14,6 +14,7 @@ import {
 } from './floating';
 import {
   TILERY_DEFAULT_MIN_SIZE,
+  tileryApplyDividerReset,
   tileryApplyDividerResize,
   tileryApplyJunctionResize,
   tileryClampDividerPosition,
@@ -173,6 +174,17 @@ export function tileryReducer(
         action.sizeContext,
       );
       return tileryApplyDividerResize(current, target, clamped);
+    }
+    case 'DIVIDER_RESET': {
+      const dividers = tileryDeriveDividers(current);
+      const target = dividers.find((d) => d.id === action.dividerId);
+      if (!target) return current;
+      return tileryApplyDividerReset(
+        current,
+        target,
+        action.minSize ?? TILERY_DEFAULT_MIN_SIZE,
+        action.sizeContext,
+      );
     }
     case 'JUNCTION_RESIZE': {
       const junction = tileryDeriveJunctions(current).find(
