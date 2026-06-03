@@ -264,8 +264,8 @@ td code {
 /* Sidebar */
 .sidebar-container {
   flex-shrink: 0;
-  width: calc(var(--site-sidebar-width) + 20px);
-  padding: 10px 0 10px 10px;
+  width: calc(var(--site-sidebar-width) + 30px);
+  padding: 10px 10px 10px 10px;
 }
 
 .sidebar {
@@ -273,19 +273,36 @@ td code {
   height: 100%;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
+  overflow: hidden;
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .sidebar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 16px 16px 12px;
+}
+
+.sidebar__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sidebar__github {
+  color: var(--site-fg);
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  text-decoration: none;
 }
 
 .sidebar__toggle {
   display: none;
-  color: var(--site-muted);
+  color: var(--site-fg);
   background: transparent;
   cursor: pointer;
 }
@@ -304,6 +321,7 @@ td code {
 .sidebar__nav {
   flex: 1;
   padding: 4px 8px;
+  overflow-y: auto;
 }
 
 .sidebar__group {
@@ -368,9 +386,6 @@ td code {
   background: rgba(255, 255, 255, 0.06);
 }
 
-.sidebar__footer {
-  padding: 8px 8px;
-}
 
 /* Doc Page */
 .doc-description {
@@ -809,13 +824,11 @@ td code {
     background: rgba(255, 255, 255, 0.06);
   }
 
-  .sidebar__nav,
-  .sidebar__footer {
+  .sidebar__nav {
     display: none;
   }
 
-  .sidebar--open .sidebar__nav,
-  .sidebar--open .sidebar__footer {
+  .sidebar--open .sidebar__nav {
     display: block;
   }
 

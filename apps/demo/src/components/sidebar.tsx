@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { RiCloseLine, RiMenuLine } from 'react-icons/ri';
+import { RiCloseLine, RiGithubFill, RiMenuLine } from 'react-icons/ri';
 
 export type SidebarItem = {
   href: string;
@@ -45,19 +45,29 @@ export function Sidebar({ groups }: { groups: SidebarGroup[] }) {
         <Link href="/" className="sidebar__logo">
           Tilery
         </Link>
-        <button
-          type="button"
-          className="sidebar__toggle"
-          aria-expanded={isOpen}
-          aria-controls="site-sidebar-nav"
-          aria-label={isOpen ? 'Close navigation menu' : 'Open navigation menu'}
-          onClick={() => setIsOpen((open) => !open)}>
-          {isOpen ? (
-            <RiCloseLine aria-hidden="true" />
-          ) : (
-            <RiMenuLine aria-hidden="true" />
-          )}
-        </button>
+        <div className="sidebar__header-actions">
+          <a
+            href="https://github.com/yangshun/tilery"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="sidebar__github"
+            aria-label="GitHub repository">
+            <RiGithubFill aria-hidden="true" />
+          </a>
+          <button
+            type="button"
+            className="sidebar__toggle"
+            aria-expanded={isOpen}
+            aria-controls="site-sidebar-nav"
+            aria-label={isOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            onClick={() => setIsOpen((open) => !open)}>
+            {isOpen ? (
+              <RiCloseLine aria-hidden="true" />
+            ) : (
+              <RiMenuLine aria-hidden="true" />
+            )}
+          </button>
+        </div>
       </div>
       <nav id="site-sidebar-nav" className="sidebar__nav">
         {groups.map((group) => (
@@ -73,15 +83,6 @@ export function Sidebar({ groups }: { groups: SidebarGroup[] }) {
           </div>
         ))}
       </nav>
-      <div className="sidebar__footer">
-        <a
-          href="https://github.com/yangshun/tilery"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="sidebar__link">
-          GitHub
-        </a>
-      </div>
     </aside>
   );
 }
