@@ -54,11 +54,11 @@ The Tilery ref exposes a `TileryController`. Use it when the application, not a 
 
 ## Tab Workflow APIs
 
-Use openOrActivateTab() when app resources have stable ids, such as file paths, issue ids, or routes. If the id already exists, Tilery activates that tab and does not update its data or create a duplicate. If the id is missing, Tilery inserts the tab at the supplied target and activates it.
+Use `openOrActivateTab()` when app resources have stable ids, such as file paths, issue ids, or routes. If the id already exists, Tilery activates that tab and does not update its data or create a duplicate. If the id is missing, Tilery inserts the tab at the supplied target and activates it.
 
 Edge panels are normal tab targets once they exist in the root layout. Move a tab into a pinned sidebar with `{ panel: edgePanelId }`, or inspect `panel.kind === 'edge'` when the app needs to treat sidebars differently from main tiled panels.
 
-Use changeTabId() when a temporary tab receives a durable id later, for example after saving a draft file. The rename updates panel tab order and active tab references; it returns null when the old id is missing or the new id is already in use.
+Use `changeTabId()` when a temporary tab receives a durable id later, for example after saving a draft file. The rename updates panel tab order and active tab references; it returns `null` when the old id is missing or the new id is already in use.
 
 ```tsx
 tilery.openOrActivateTab(
@@ -74,7 +74,7 @@ tilery.changeTabId('untitled-1', savedFilePath)?.activate();
 
 ## Panel Objects
 
-TileryPanel objects are returned by getPanel() and getPanels().
+`TileryPanel` objects are returned by `getPanel()` and `getPanels()`.
 
 | Property / Method               | Description                                                                |
 | ------------------------------- | -------------------------------------------------------------------------- |
@@ -111,7 +111,7 @@ TileryPanel objects are returned by getPanel() and getPanels().
 
 ## Tab Objects
 
-TileryTab objects are returned by getTab(), getTabs(), and panel tab properties.
+`TileryTab` objects are returned by `getTab()`, `getTabs()`, and panel tab properties.
 
 | Property / Method       | Description                            |
 | ----------------------- | -------------------------------------- |
@@ -131,7 +131,7 @@ TileryTab objects are returned by getTab(), getTabs(), and panel tab properties.
 
 ## TileryMoveTarget
 
-Used with moveTab() and tab.moveTo():
+Used with `moveTab()` and `tab.moveTo()`:
 
 ```tsx
 type TileryMoveTarget =
@@ -154,11 +154,11 @@ type TileryMoveTarget =
     } & TileryLayoutBehaviorConfig);
 ```
 
-Use splitPanel when the new panel should sit beside one existing panel. Use splitRoot when the new panel should become a full-width or full-height row/column around the whole main tiled layout. If splitRoot omits size, Tilery gives the new panel an equal share of the resulting root rows or columns.
+Use `splitPanel` when the new panel should sit beside one existing panel. Use `splitRoot` when the new panel should become a full-width or full-height row/column around the whole main tiled layout. If `splitRoot` omits `size`, Tilery gives the new panel an equal share of the resulting root rows or columns.
 
 ## TileryOpenTabTarget
 
-Used with openOrActivateTab() for the insertion path:
+Used with `openOrActivateTab()` for the insertion path:
 
 ```tsx
 type TileryOpenTabTarget =
@@ -169,7 +169,7 @@ type TileryOpenTabTarget =
 
 ## TileryFloatPanelOptions
 
-Used with floatPanel() and panel.float():
+Used with `floatPanel()` and `panel.float()`:
 
 ```tsx
 type TileryFloatPanelOptions = TileryFloatingPanelBoundsInit &
@@ -178,7 +178,7 @@ type TileryFloatPanelOptions = TileryFloatingPanelBoundsInit &
 
 ## TileryPopoutPanelOptions
 
-Used with popoutPanel() and panel.popout():
+Used with `popoutPanel()` and `panel.popout()`:
 
 ```tsx
 type TileryPopoutPanelOptions = {
@@ -189,7 +189,7 @@ type TileryPopoutPanelOptions = {
 
 ## TileryFloatTabOptions
 
-Used with floatTab() and tab.float():
+Used with `floatTab()` and `tab.float()`:
 
 ```tsx
 type TileryFloatTabOptions = {
@@ -200,7 +200,7 @@ type TileryFloatTabOptions = {
 
 ## TileryPopoutTabOptions
 
-Used with popoutTab() and tab.popout():
+Used with `popoutTab()` and `tab.popout()`:
 
 ```tsx
 type TileryPopoutTabOptions = {
@@ -212,7 +212,7 @@ type TileryPopoutTabOptions = {
 
 ## TileryDockPanelTarget
 
-Used with dockPanel() and panel.dock():
+Used with `dockPanel()` and `panel.dock()`:
 
 ```tsx
 type TileryDockPanelTarget = {

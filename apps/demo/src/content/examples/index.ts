@@ -158,7 +158,7 @@ const exampleDefinitions = [
     guide: {
       paragraphs: [
         'Start here if you want the smallest useful Tilery layout: two panels in a horizontal group, each with one tab. Drag the divider to see how the group distributes space between its children.',
-        'The code shows how initialLayout, tab headers, and tab content work together before you add nested groups, custom actions, or persistence.',
+        'The code shows how `initialLayout`, tab headers, and tab content work together before you add nested groups, custom actions, or persistence.',
       ],
       readNext: [
         {
@@ -300,7 +300,7 @@ const exampleDefinitions = [
     guide: {
       paragraphs: [
         'Panel actions are for commands that belong to the panel shell: menus, maximize and minimize controls, and app-defined new-tab behavior. Open the menu and use the new-tab demo to see how Tilery leaves product-specific commands to your app.',
-        'The tab bar stays built in, but panelActions, onPanelAction, and onNewTab let you extend the controls without replacing the whole header.',
+        'The tab bar stays built in, but `renderPanelActions` and `onNewTab` let you extend the controls without replacing the whole header.',
       ],
       readNext: [
         {
@@ -330,7 +330,7 @@ const exampleDefinitions = [
     guide: {
       paragraphs: [
         'Use size constraints when a panel has a real lower or upper bound, like a navigator that should not collapse past its content. Drag handles toward the constrained panels until they stop moving.',
-        'Double-click a divider when you want to send adjacent panels back to their defaultSize ratio. The reset still runs through the same minSize and maxSize constraints as normal dragging.',
+        'Double-click a divider when you want to send adjacent panels back to their `defaultSize` ratio. The reset still runs through the same `minSize` and `maxSize` constraints as normal dragging.',
         'The container resize demo shows the same rules applying when the available area changes: proportions are preserved where possible, then min and max sizes clamp the result.',
       ],
       readNext: [
@@ -355,7 +355,7 @@ const exampleDefinitions = [
     guide: {
       paragraphs: [
         'Panel locking separates resize, drag, and drop behavior so app chrome can stay fixed while other regions remain flexible. Try resizing, dragging from, and dropping into locked panels.',
-        'locked: true disables all three interactions, while resizable, draggable, and droppable let you model more specific restrictions.',
+        '`locked: true` disables all three interactions, while `resizable`, `draggable`, and `droppable` let you model more specific restrictions.',
       ],
       readNext: [
         {
@@ -384,7 +384,7 @@ const exampleDefinitions = [
     guide: {
       paragraphs: [
         'Tab locking is for tabs that represent protected resources or app-owned surfaces. Try closing and dragging the locked tabs, then use the runtime controls to change behavior without remounting tab content.',
-        'locked: true maps to non-closeable and non-draggable; tab.setBehavior() applies the same behavior after the workspace is already running.',
+        '`locked: true` maps to non-closeable and non-draggable; `tab.setBehavior()` applies the same behavior after the workspace is already running.',
       ],
       readNext: [
         {
@@ -466,14 +466,14 @@ const exampleDefinitions = [
     demos: [{ id: 'link-tabs', sourceRegion: 'link-tabs' }],
     guide: {
       paragraphs: [
-        'Link tabs are a rendering concern: keep hrefs and router metadata in tab data, then use renderTabTrigger to render the tab trigger as an anchor or router component.',
+        'Link tabs are a rendering concern: keep hrefs and router metadata in tab data, then use `renderTabTrigger` to render the tab trigger as an anchor or router component.',
         'Tilery keeps the close button outside the trigger, so link tabs do not wrap button controls and can still close without triggering navigation or activation.',
       ],
       readNext: [
         {
           href: '/docs/api/component',
           label: 'Component Props',
-          description: 'See the renderTabTrigger API and related render props.',
+          description: 'See the `renderTabTrigger` API and related render props.',
         },
         {
           href: '/docs/api/control',
@@ -528,7 +528,7 @@ const exampleDefinitions = [
     ],
     guide: {
       paragraphs: [
-        'Persistence is built around snapshots: save the current layout, store it in your app, and pass it back later. Move tabs or resize panels in the localStorage demo, then reload the page.',
+        'Persistence is built around snapshots: save the current layout, store it in your app, and pass it back later. Move tabs or resize panels in the `localStorage` demo, then reload the page.',
         'The snapshot controls show the same flow manually, which is useful when you want explicit save, reset, or restore actions instead of automatic persistence.',
       ],
       readNext: [

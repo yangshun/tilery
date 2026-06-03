@@ -19,7 +19,7 @@ Use callbacks when your app needs to persist layout, update external state, or r
 
 ## TileryResizeEvent
 
-onResize fires for each pointer or keyboard resize that changes panel sizes. onResizeEnd fires on pointer release for drag resizes, immediately after each keyboard resize, and after a double-click divider reset. Double-click reset is reported as `input: 'pointer'` with a divider source.
+`onResize` fires for each pointer or keyboard resize that changes panel sizes. `onResizeEnd` fires on pointer release for drag resizes, immediately after each keyboard resize, and after a double-click divider reset. Double-click reset is reported as `input: 'pointer'` with a divider source.
 
 ```tsx
 type TileryResizeEvent = {
@@ -60,7 +60,7 @@ type TileryResizeEvent = {
 
 Lifecycle events fire for state changes that activate, move, add, or remove tabs and panels. Events include the action source, previous state, next state, and compact tab or panel snapshots from the relevant side of the transition.
 
-When a panel closes because its last tab moved out, onPanelsClose reports that moved tab even though onTabsClose does not fire.
+When a panel closes because its last tab moved out, `onPanelsClose` reports that moved tab even though `onTabsClose` does not fire.
 
 ```tsx
 type TileryLifecycleSource =

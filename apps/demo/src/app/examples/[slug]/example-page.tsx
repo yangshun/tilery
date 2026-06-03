@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { CodeBlockFrame } from '../../../components/code-block-frame';
 import { PageNavigation } from '../../../components/page-navigation';
 import type { ExampleDemoSurface as ExampleDemoSurfaceMode } from '../../../content/examples';
@@ -158,7 +158,9 @@ export function ExamplePage({
       <div className="example-preview__guide">
         <div className="example-preview__copy">
           {guide.paragraphs.map((paragraph) => (
-            <p key={paragraph}>{paragraph}</p>
+            <p key={paragraph}>
+              <InlineCode text={paragraph} />
+            </p>
           ))}
         </div>
       </div>
@@ -191,6 +193,18 @@ export function ExamplePage({
       </section>
       <PageNavigation previous={navigation.previous} next={navigation.next} />
     </div>
+  );
+}
+
+function InlineCode({ text }: { text: string }) {
+  const parts = useMemo(() => text.split(/`([^`]+)`/), [text]);
+  if (parts.length === 1) return <>{text}</>;
+  return (
+    <>
+      {parts.map((part, i) =>
+        i % 2 === 1 ? <code key={i}>{part}</code> : part,
+      )}
+    </>
   );
 }
 
