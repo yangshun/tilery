@@ -400,8 +400,8 @@ td code {
 
 .example-preview__links a {
   color: var(--site-fg);
-  font-weight: 650;
-  text-decoration: none;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .example-preview__links a:hover {
