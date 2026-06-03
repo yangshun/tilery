@@ -3,6 +3,7 @@ import {
   tileryAdjacencySide,
   tileryClassifyByZoneAndSide,
   tileryCommitDrag,
+  tileryRootSplitSizeForDrag,
   type TileryDragState,
 } from './drag-logic';
 import type {
@@ -209,6 +210,25 @@ describe('tileryCommitDrag — every branch', () => {
     expect(calls[0]).toEqual({
       tabId: 'TX',
       target: { splitPanel: 'P', direction: 'right', size: 50 },
+    });
+  });
+  it('root hover zone maps to splitRoot moveTab', () => {
+    const { controller, calls } = mockController();
+    tileryCommitDrag(
+      controller,
+      {
+        ...baseDrag,
+        hoverTabBar: null,
+        hoverPanelId: null,
+        hoverZone: null,
+        hoverRootZone: 'bottom',
+        hoverRootSize: 100 / 3,
+      },
+      'TX',
+    );
+    expect(calls[0]).toEqual({
+      tabId: 'TX',
+      target: { splitRoot: true, direction: 'bottom', size: 100 / 3 },
     });
   });
   it('directional zone no-ops when the target behavior rejects drops', () => {
@@ -714,6 +734,32 @@ describe('tileryCommitDrag — panelDrag=true (moves all tabs)', () => {
     ]);
   });
 
+  it('root hover zone moves all tabs from source panel', () => {
+    const { controller, calls, activeCalls } = panelDragController();
+    tileryCommitDrag(
+      controller,
+      {
+        ...baseDrag,
+        hoverTabBar: null,
+        hoverPanelId: null,
+        hoverZone: null,
+        hoverRootZone: 'bottom',
+        hoverRootSize: 100 / 3,
+      },
+      'T1',
+      true,
+    );
+    expect(calls).toEqual([
+      {
+        tabId: 'T1',
+        target: { splitRoot: true, direction: 'bottom', size: 100 / 3 },
+      },
+      { tabId: 'T2', target: { afterTab: 'T1' } },
+      { tabId: 'T3', target: { afterTab: 'T2' } },
+    ]);
+    expect(activeCalls).toEqual(['T1']);
+  });
+
   it('no-ops when any source panel tab is not draggable', () => {
     const { controller, calls, activeCalls } = panelDragController();
     (
@@ -940,5 +986,84 @@ describe('tileryCommitDrag — panelDrag=true (moves all tabs)', () => {
       true,
     );
     expect(calls).toEqual([]);
+  });
+});
+
+describe('tileryRootSplitSizeForDrag', () => {
+  it('bases root panel-drag size on the layout after the source panel is removed', () => {
+    const state: TileryLayoutState = {
+      panels: {
+        sidebar: {
+          id: 'sidebar',
+          kind: 'tiled',
+          inset: { top: 0, right: 60, bottom: 0, left: 0 },
+          tabs: ['side'],
+          activeTabId: 'side',
+          fullScreen: false,
+        },
+        editor: {
+          id: 'editor',
+          kind: 'tiled',
+          inset: { top: 0, right: 0, bottom: 50, left: 40 },
+          tabs: ['file'],
+          activeTabId: 'file',
+          fullScreen: false,
+        },
+        terminal: {
+          id: 'terminal',
+          kind: 'tiled',
+          inset: { top: 50, right: 0, bottom: 0, left: 40 },
+          tabs: ['shell'],
+          activeTabId: 'shell',
+          fullScreen: false,
+        },
+      },
+      panelOrder: ['sidebar', 'editor', 'terminal'],
+      tabs: {
+        side: {
+          id: 'side',
+          panelId: 'sidebar',
+          data: {},
+          closeable: true,
+          draggable: true,
+        },
+        file: {
+          id: 'file',
+          panelId: 'editor',
+          data: {},
+          closeable: true,
+          draggable: true,
+        },
+        shell: {
+          id: 'shell',
+          panelId: 'terminal',
+          data: {},
+          closeable: true,
+          draggable: true,
+        },
+      },
+      layout: {
+        kind: 'split',
+        id: 'root',
+        direction: 'horizontal',
+        children: [
+          { kind: 'panel', panelId: 'sidebar', size: 40 },
+          {
+            kind: 'split',
+            id: 'right',
+            direction: 'vertical',
+            size: 60,
+            children: [
+              { kind: 'panel', panelId: 'editor', size: 50 },
+              { kind: 'panel', panelId: 'terminal', size: 50 },
+            ],
+          },
+        ],
+      },
+    };
+
+    expect(
+      tileryRootSplitSizeForDrag(state, 'side', 'bottom', true),
+    ).toBeCloseTo(100 / 3);
   });
 });

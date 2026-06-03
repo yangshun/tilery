@@ -144,8 +144,17 @@ type TileryMoveTarget =
       size?: number;
       minSize?: TilerySize;
       maxSize?: TilerySize;
+    } & TileryLayoutBehaviorConfig)
+  | ({
+      splitRoot: true;
+      direction: TileryDirection;
+      size?: number;
+      minSize?: TilerySize;
+      maxSize?: TilerySize;
     } & TileryLayoutBehaviorConfig);
 ```
+
+Use splitPanel when the new panel should sit beside one existing panel. Use splitRoot when the new panel should become a full-width or full-height row/column around the whole main tiled layout. If splitRoot omits size, Tilery gives the new panel an equal share of the resulting root rows or columns.
 
 ## TileryOpenTabTarget
 

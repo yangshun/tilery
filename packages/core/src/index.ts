@@ -43,6 +43,7 @@ export type {
   TileryPopoutWindowBoundsInit,
   TileryRootInit,
   TileryRootSnapshot,
+  TileryRootSplitMoveTarget,
   TilerySize,
   TilerySizeResolutionContext,
   TileryTabBehavior,

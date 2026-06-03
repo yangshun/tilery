@@ -267,6 +267,57 @@ export function tilerySplitPanelInLayout(
   return next.changed ? next.node : null;
 }
 
+export function tilerySplitRootInLayout(
+  layout: TileryLayoutTree | null | undefined,
+  newPanelId: TileryPanelId,
+  direction: TileryDirection,
+  requestedSize?: number,
+  newPanelBehavior?: TileryLayoutBehaviorConfig,
+): TileryLayoutTree {
+  const splitDirection =
+    direction === 'left' || direction === 'right' ? 'horizontal' : 'vertical';
+  const size =
+    requestedSize === undefined
+      ? tileryDefaultRootSplitSize(layout, splitDirection)
+      : clampPercent(requestedSize);
+  const newLeaf: TileryLayoutTree = {
+    kind: 'panel',
+    panelId: newPanelId,
+    size,
+    defaultSize: size,
+    ...tileryNormalizeLayoutBehavior(newPanelBehavior),
+  };
+  if (!layout) return newLeaf;
+
+  const existing: TileryLayoutTree = {
+    ...layout,
+    size: 100 - size,
+    defaultSize: layout.defaultSize ?? 100 - size,
+  };
+  const children =
+    direction === 'left' || direction === 'top'
+      ? [newLeaf, existing]
+      : [existing, newLeaf];
+  return createSplit(
+    `split:root:${direction}:${newPanelId}`,
+    splitDirection,
+    children,
+  )!;
+}
+
+export function tileryDefaultRootSplitSize(
+  layout: TileryLayoutTree | null | undefined,
+  splitDirection: 'horizontal' | 'vertical',
+): number {
+  if (!layout) return 100;
+  const normalized = normalizeLayoutNode(layout);
+  const existingAxisCount =
+    normalized.kind === 'split' && normalized.direction === splitDirection
+      ? normalized.children.length
+      : 1;
+  return 100 / (existingAxisCount + 1);
+}
+
 export function tileryRemovePanelFromLayout(
   layout: TileryLayoutTree | null | undefined,
   panelId: TileryPanelId,

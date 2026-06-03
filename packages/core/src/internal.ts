@@ -51,6 +51,7 @@ export {
   tileryBuildLayoutTreeFromPanels,
   tileryFloatingPanelOrderFromState,
   tileryPanelOrderFromState,
+  tilerySplitRootInLayout,
   tilerySyncLayoutPanels,
 } from './state/layout-tree';
 
@@ -77,10 +78,12 @@ export {
   tileryCommitDrag,
   tileryAdjacencySide,
   tileryClassifyByZoneAndSide,
+  tileryRootSplitSizeForDrag,
   type TileryDragState,
 } from './drag/drag-logic';
 
 export {
+  tileryEdgeZoneAt,
   tileryZoneAt,
   tileryTabBarDropAt,
   type TileryPanelZone,

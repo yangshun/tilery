@@ -6,7 +6,11 @@ import type {
   TileryTabState,
 } from '../types';
 import type { TileryReducerAction } from './actions';
-import { tileryCanMoveTabBetweenPanels } from './layout-behavior';
+import {
+  tileryBehaviorFromNode,
+  tileryCanMoveTabBetweenPanels,
+  tileryPanelBehaviorFromState,
+} from './layout-behavior';
 import {
   tilerySplitFitsPanelConstraints,
   tilerySplitInset,
@@ -14,6 +18,7 @@ import {
 import {
   tileryPanelOrderFromState,
   tilerySplitPanelInLayout,
+  tilerySplitRootInLayout,
   tilerySyncLayoutPanels,
 } from './layout-tree';
 import { tileryRemovePanelAndFill } from './panels';
@@ -32,6 +37,9 @@ type ChangeTabIdAction = Extract<
 type MoveTabAction = Extract<TileryReducerAction, { type: 'TAB_MOVE' }>;
 type MoveTabToSplitAction = MoveTabAction & {
   to: Extract<MoveTabAction['to'], { splitPanelId: TileryPanelId }>;
+};
+type MoveTabToRootSplitAction = MoveTabAction & {
+  to: Extract<MoveTabAction['to'], { splitRoot: true }>;
 };
 
 export function tileryAppendTab(
@@ -207,6 +215,15 @@ export function tileryMoveTab(
     return moveTabToSplit(
       current,
       action as MoveTabToSplitAction,
+      tab,
+      sourcePanel,
+    );
+  }
+
+  if ('splitRoot' in action.to) {
+    return moveTabToRootSplit(
+      current,
+      action as MoveTabToRootSplitAction,
       tab,
       sourcePanel,
     );
@@ -415,6 +432,90 @@ function moveTabToSplit(
     };
   }
   return next;
+}
+
+function moveTabToRootSplit(
+  current: TileryLayoutState,
+  action: MoveTabToRootSplitAction,
+  tab: TileryTabState,
+  sourcePanel: TileryPanelState,
+): TileryLayoutState {
+  if (!tileryPanelBehaviorFromState(current, sourcePanel.id).draggable) {
+    return current;
+  }
+  if (current.layout && !tileryBehaviorFromNode(current.layout).droppable) {
+    return current;
+  }
+  if (
+    sourcePanel.kind === 'tiled' &&
+    sourcePanel.tabs.length === 1 &&
+    tileryPanelOrderFromState(current).length === 1
+  ) {
+    return current;
+  }
+
+  let next: TileryLayoutState = {
+    ...current,
+    tabs: {
+      ...current.tabs,
+      [action.tabId]: { ...tab, panelId: action.to.newPanelId },
+    },
+  };
+  const sourceTabs = sourcePanel.tabs.filter((id) => id !== action.tabId);
+  const wasActive = sourcePanel.activeTabId === action.tabId;
+  if (sourceTabs.length === 0) {
+    next = tileryRemovePanelAndFill(next, {
+      ...sourcePanel,
+      tabs: [],
+      activeTabId: null,
+    });
+  } else {
+    next = {
+      ...next,
+      panels: {
+        ...next.panels,
+        [sourcePanel.id]: {
+          ...sourcePanel,
+          tabs: sourceTabs,
+          activeTabId: wasActive
+            ? tileryNextActiveTabAfterRemoval(
+                sourcePanel.tabs,
+                action.tabId,
+                sourceTabs,
+                sourcePanel.activeTabId,
+              )
+            : sourcePanel.activeTabId,
+        },
+      },
+    };
+  }
+
+  const behavior = tileryBehaviorFromNode(action.to);
+  const newPanel: TileryPanelState = {
+    id: action.to.newPanelId,
+    kind: 'tiled',
+    inset: { top: 0, right: 0, bottom: 0, left: 0 },
+    tabs: [action.tabId],
+    activeTabId: action.tabId,
+    fullScreen: false,
+    minSize: action.to.minSize,
+    maxSize: action.to.maxSize,
+  };
+  const layout = tilerySplitRootInLayout(
+    next.layout,
+    action.to.newPanelId,
+    action.to.direction,
+    action.to.sizePercent,
+    behavior,
+  );
+  return tilerySyncLayoutPanels(
+    {
+      ...next,
+      panels: { ...next.panels, [action.to.newPanelId]: newPanel },
+      layout,
+    },
+    layout,
+  );
 }
 
 function finishTabMove(

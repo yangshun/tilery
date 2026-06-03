@@ -303,6 +303,19 @@ function normalizeMoveTarget(
       ...behavior,
     };
   }
+  if ('splitRoot' in target) {
+    const behavior = tileryNormalizeLayoutBehavior(target);
+    return {
+      splitRoot: true as const,
+      direction: target.direction,
+      ...(target.size === undefined ? {} : { sizePercent: target.size }),
+      newPanelId: tileryNextId('p'),
+      minSize: target.minSize,
+      maxSize: target.maxSize,
+      sizeContext,
+      ...behavior,
+    };
+  }
   return {
     panelId: target.panel,
     index: target.index ?? Number.MAX_SAFE_INTEGER,

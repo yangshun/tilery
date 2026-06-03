@@ -3150,6 +3150,54 @@ describe('Tilery — drag flow covers the drop overlay path', () => {
     t.cleanup();
   });
 
+  it('creates a root bottom row when a panel is dragged to the main-layer bottom edge', () => {
+    const t = mount(lShapeLayout());
+    const sidebarBar = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="sidebar"] .tilery__tab-bar',
+    )!;
+    sidebarBar.setPointerCapture = () => {};
+    sidebarBar.releasePointerCapture = () => {};
+    const down = pointerEvent({ clientX: 100, clientY: 16, pointerId: 18 });
+    Object.assign(down as unknown as Record<string, unknown>, {
+      currentTarget: sidebarBar,
+      target: sidebarBar,
+    });
+
+    act(() => {
+      reactProps(sidebarBar).onPointerDown(down);
+      reactProps(sidebarBar).onPointerMove(
+        pointerEvent({ clientX: 500, clientY: 795, pointerId: 18 }),
+      );
+    });
+
+    const overlay = t.host.querySelector<HTMLElement>('.tilery__drop-overlay');
+    expect(overlay?.dataset.rootZone).toBe('true');
+    expect(overlay?.dataset.zone).toBe('bottom');
+    expect(parseFloat(overlay!.style.top)).toBeCloseTo(800 * (2 / 3));
+    expect(parseFloat(overlay!.style.height)).toBeCloseTo(800 / 3);
+
+    act(() => {
+      reactProps(sidebarBar).onPointerUp(
+        pointerEvent({ clientX: 500, clientY: 795, pointerId: 18 }),
+      );
+    });
+
+    const movedPanel = t.controller().getTab('side')!.panel;
+    expect(t.controller().getPanel('sidebar')).toBeNull();
+    expect(movedPanel.id).not.toBe('sidebar');
+    expect(movedPanel.inset.top).toBeCloseTo(200 / 3);
+    expect(movedPanel.inset.right).toBe(0);
+    expect(movedPanel.inset.bottom).toBe(0);
+    expect(movedPanel.inset.left).toBe(0);
+    expect(t.controller().getPanel('editor')!.inset.top).toBe(0);
+    expect(t.controller().getPanel('editor')!.inset.bottom).toBeCloseTo(
+      200 / 3,
+    );
+    expect(t.controller().getPanel('term')!.inset.top).toBeCloseTo(100 / 3);
+    expect(t.controller().getPanel('term')!.inset.bottom).toBeCloseTo(100 / 3);
+    t.cleanup();
+  });
+
   it('moves a floating panel by dragging empty tab-bar space', () => {
     const t = mount(floatingLayout());
     const paletteBar = t.host.querySelector<HTMLElement>(

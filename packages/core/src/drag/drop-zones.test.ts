@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vite-plus/test';
 import {
+  tileryEdgeZoneAt,
   tileryTabBarDropAt,
   tileryZoneAt,
   tileryZoneToSplitInset,
@@ -41,6 +42,23 @@ describe('tileryZoneAt', () => {
     expect(tileryZoneAt(rect, 30, 50, 0.1)).toBe('center');
     expect(tileryZoneAt(rect, 70, 50, 0.1)).toBe('center');
     expect(tileryZoneAt(rect, 95, 50, 0.1)).toBe('right');
+  });
+});
+
+describe('tileryEdgeZoneAt', () => {
+  it('returns only a narrow edge zone and no center zone', () => {
+    expect(tileryEdgeZoneAt(rect, 50, 50, 16)).toBeNull();
+    expect(tileryEdgeZoneAt(rect, 50, 8, 16)).toBe('top');
+    expect(tileryEdgeZoneAt(rect, 50, 92, 16)).toBe('bottom');
+    expect(tileryEdgeZoneAt(rect, 8, 50, 16)).toBe('left');
+    expect(tileryEdgeZoneAt(rect, 92, 50, 16)).toBe('right');
+  });
+
+  it('returns null outside the rect', () => {
+    expect(tileryEdgeZoneAt(rect, -1, 50)).toBeNull();
+    expect(tileryEdgeZoneAt(rect, 101, 50)).toBeNull();
+    expect(tileryEdgeZoneAt(rect, 50, -1)).toBeNull();
+    expect(tileryEdgeZoneAt(rect, 50, 101)).toBeNull();
   });
 });
 

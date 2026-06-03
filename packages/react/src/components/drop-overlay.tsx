@@ -25,6 +25,8 @@ export function DropOverlay({
 
   if (drag.hoverTabBar) {
     overlay = renderTabBarInsertion(drag.hoverTabBar, container, cRect);
+  } else if (drag.hoverRootZone) {
+    overlay = renderRootZone(container, drag, cRect);
   } else if (drag.hoverPanelId && drag.hoverZone) {
     const panelEl = panelEls.get(drag.hoverPanelId);
     if (panelEl) {
@@ -46,6 +48,54 @@ export function DropOverlay({
       </div>
     </>
   );
+}
+
+function renderRootZone(
+  container: HTMLElement,
+  drag: TileryDragState,
+  cRect: DOMRect,
+): React.ReactNode {
+  const zone = drag.hoverRootZone;
+  if (!zone) return null;
+  const mainLayer = container.querySelector<HTMLElement>('.tilery__main-layer');
+  if (!mainLayer) return null;
+  const rect = mainLayer.getBoundingClientRect();
+  const fraction = clampPercent(drag.hoverRootSize ?? 50) / 100;
+  let left = rect.left;
+  let top = rect.top;
+  let width = rect.width;
+  let height = rect.height;
+
+  if (zone === 'left') {
+    width = rect.width * fraction;
+  } else if (zone === 'right') {
+    width = rect.width * fraction;
+    left = rect.right - width;
+  } else if (zone === 'top') {
+    height = rect.height * fraction;
+  } else {
+    height = rect.height * fraction;
+    top = rect.bottom - height;
+  }
+
+  return (
+    <div
+      className="tilery__drop-overlay"
+      data-zone={zone}
+      data-root-zone="true"
+      aria-hidden="true"
+      style={{
+        left: left - cRect.left,
+        top: top - cRect.top,
+        width,
+        height,
+      }}
+    />
+  );
+}
+
+function clampPercent(value: number) {
+  return Math.max(0, Math.min(100, Number.isFinite(value) ? value : 50));
 }
 
 function renderTabBarInsertion(

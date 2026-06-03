@@ -9,6 +9,7 @@ type TabData = {
   kind: 'explorer' | 'editor' | 'terminal';
 };
 
+// source-region nested-terminal
 const layout: TileryInitialLayout<TabData> = {
   type: 'group',
   direction: 'horizontal',
@@ -57,6 +58,57 @@ const layout: TileryInitialLayout<TabData> = {
 };
 
 export function Example() {
+  return <IdeDemo layout={layout} />;
+}
+// end-source-region nested-terminal
+
+// source-region root-bottom-row
+const rootBottomRowLayout: TileryInitialLayout<TabData> = {
+  type: 'group',
+  direction: 'vertical',
+  children: [
+    {
+      type: 'panel',
+      id: 'editor',
+      size: 40,
+      tabs: [
+        { id: 'index-ts', data: { title: 'index.ts', kind: 'editor' } },
+        { id: 'app-tsx', data: { title: 'app.tsx', kind: 'editor' } },
+      ],
+    },
+    {
+      type: 'panel',
+      id: 'terminal',
+      size: 26.6666666667,
+      tabs: [
+        {
+          id: 'bash',
+          data: { title: 'Terminal', kind: 'terminal' },
+          closeable: false,
+        },
+      ],
+    },
+    {
+      type: 'panel',
+      id: 'sidebar',
+      size: 33.3333333333,
+      tabs: [
+        {
+          id: 'explorer',
+          data: { title: 'Explorer', kind: 'explorer' },
+          closeable: false,
+        },
+      ],
+    },
+  ],
+};
+
+export function RootBottomRowExample() {
+  return <IdeDemo layout={rootBottomRowLayout} />;
+}
+// end-source-region root-bottom-row
+
+function IdeDemo({ layout }: { layout: TileryInitialLayout<TabData> }) {
   return (
     <Tilery<TabData>
       initialLayout={layout}

@@ -1,6 +1,7 @@
 import type {
   TileryDirection,
   TileryController,
+  TileryLayoutState,
   TileryPanelId,
   TileryTabId,
 } from '../types';
@@ -8,6 +9,10 @@ import {
   tileryCanMoveTabBetweenPanels,
   tileryPanelBehaviorFromState,
 } from '../state/layout-behavior';
+import {
+  tileryDefaultRootSplitSize,
+  tileryRemovePanelFromLayout,
+} from '../state/layout-tree';
 import { tileryTabBarDropAt, type TileryPanelZone } from './drop-zones';
 
 export type TileryDragState = {
@@ -19,6 +24,8 @@ export type TileryDragState = {
   y: number;
   hoverPanelId: TileryPanelId | null;
   hoverZone: TileryPanelZone | null;
+  hoverRootZone?: TileryDirection | null;
+  hoverRootSize?: number | null;
   hoverTabBar: {
     panelId: TileryPanelId;
     hit: ReturnType<typeof tileryTabBarDropAt>;
@@ -80,6 +87,19 @@ export function tileryCommitDrag(
     }
     return;
   }
+  if (drag.hoverRootZone) {
+    const size =
+      drag.hoverRootSize ??
+      tileryRootSplitSizeForDrag(state, tabId, drag.hoverRootZone, panelDrag);
+    tilery.moveTab(tabId, {
+      splitRoot: true,
+      direction: drag.hoverRootZone,
+      size,
+    });
+    moveSiblingsPreservingOrder(tilery, tabsBefore, tabsAfter, tabId);
+    if (panelDrag) tilery.setActiveTab(tabId);
+    return;
+  }
   if (drag.hoverPanelId && drag.hoverZone) {
     if (drag.hoverZone === 'center') {
       const target = tilery.getPanel(drag.hoverPanelId);
@@ -121,6 +141,25 @@ export function tileryCommitDrag(
     moveSiblingsPreservingOrder(tilery, tabsBefore, tabsAfter, tabId);
     if (panelDrag) tilery.setActiveTab(tabId);
   }
+}
+
+export function tileryRootSplitSizeForDrag(
+  state: TileryLayoutState,
+  tabId: TileryTabId,
+  direction: TileryDirection,
+  panelDrag: boolean = false,
+): number {
+  const tab = state.tabs[tabId];
+  if (!tab) return 50;
+  const sourcePanel = state.panels[tab.panelId];
+  if (!sourcePanel) return 50;
+  const splitDirection =
+    direction === 'left' || direction === 'right' ? 'horizontal' : 'vertical';
+  const layout =
+    sourcePanel.kind === 'tiled' && (panelDrag || sourcePanel.tabs.length === 1)
+      ? tileryRemovePanelFromLayout(state.layout, sourcePanel.id)
+      : state.layout;
+  return tileryDefaultRootSplitSize(layout, splitDirection);
 }
 
 function moveSiblingsPreservingOrder(

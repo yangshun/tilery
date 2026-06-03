@@ -1,5 +1,8 @@
 export { Example as BasicExample } from './basic/example';
-export { Example as IdeExample } from './ide/example';
+export {
+  Example as IdeExample,
+  RootBottomRowExample as IdeRootBottomRowExample,
+} from './ide/example';
 export { Example as EdgePanelsExample } from './edge-panels/example';
 export { Example as DashboardExample } from './dashboard/example';
 export {
@@ -169,9 +172,14 @@ const exampleDefinitions = [
     title: 'IDE Layout',
     description: 'VS Code-like layout with sidebar, editor, and terminal.',
     category: 'Layout Patterns',
+    demos: [
+      { id: 'default', sourceRegion: 'nested-terminal' },
+      { id: 'root-bottom-row', sourceRegion: 'root-bottom-row' },
+    ],
     guide: {
       paragraphs: [
         'Use this layout for an editor-style shell with a sidebar, main editor, and terminal. Resize the sidebar and terminal, then move editor tabs to see which parts of the workspace are structural and which are document-like.',
+        'The first demo keeps the terminal inside the right-hand editor column. Drag the empty space in the Explorer tab bar to move the whole sidebar; dropping it on the bottom edge of the workspace creates the full-width bottom row shown in the second demo.',
         'Explorer is modeled as non-closeable app chrome, while the editor and terminal are ordinary tabbed panels inside nested groups.',
       ],
       readNext: [

@@ -8,6 +8,7 @@ import {
   BasicExample,
   EdgePanelsExample,
   IdeExample,
+  IdeRootBottomRowExample,
   DashboardExample,
   AbyssSpacedThemeExample,
   AbyssThemeExample,
@@ -52,7 +53,7 @@ import {
 
 const registry: Record<string, Record<string, React.ComponentType>> = {
   basic: { default: BasicExample },
-  ide: { default: IdeExample },
+  ide: { default: IdeExample, 'root-bottom-row': IdeRootBottomRowExample },
   'edge-panels': { default: EdgePanelsExample },
   dashboard: { default: DashboardExample },
   themes: {

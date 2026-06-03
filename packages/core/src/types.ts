@@ -354,11 +354,20 @@ export type TilerySplitMoveTarget = {
   maxSize?: TilerySize;
 } & TileryLayoutBehaviorConfig;
 
+export type TileryRootSplitMoveTarget = {
+  splitRoot: true;
+  direction: TileryDirection;
+  size?: number;
+  minSize?: TilerySize;
+  maxSize?: TilerySize;
+} & TileryLayoutBehaviorConfig;
+
 export type TileryMoveTarget =
   | { panel: TileryPanelId; index?: number }
   | { beforeTab: TileryTabId }
   | { afterTab: TileryTabId }
-  | TilerySplitMoveTarget;
+  | TilerySplitMoveTarget
+  | TileryRootSplitMoveTarget;
 
 export type TileryOpenTabTarget =
   | { panel: TileryPanelId; index?: number }

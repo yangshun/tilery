@@ -128,6 +128,18 @@ export type TileryReducerAction =
             resizable?: boolean;
             draggable?: boolean;
             droppable?: boolean;
+          }
+        | {
+            splitRoot: true;
+            direction: TileryDirection;
+            sizePercent?: number;
+            newPanelId: TileryPanelId;
+            minSize?: TilerySize;
+            maxSize?: TilerySize;
+            sizeContext?: TilerySizeResolutionContext;
+            resizable?: boolean;
+            draggable?: boolean;
+            droppable?: boolean;
           };
     }
   | { type: 'TAB_ACTIVE_SET'; tabId: TileryTabId }

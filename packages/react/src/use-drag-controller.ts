@@ -1,19 +1,24 @@
 'use client';
 
 import { useCallback, useRef, useState } from 'react';
+import type { RefObject } from 'react';
 import type {
   TileryController,
+  TileryDirection,
   TileryPanelId,
   TileryTabId,
 } from 'tilery/internal';
 import {
   tileryAdjacencySide,
+  tileryEdgeZoneAt,
   tileryTabBarDropAt,
   tileryZoneAt,
   tileryClassifyByZoneAndSide,
   tileryCommitDrag,
   tileryGetFullScreenPanelId,
   tileryPanelBehaviorFromState,
+  tileryPanelOrderFromState,
+  tileryRootSplitSizeForDrag,
   type TileryPanelZone,
   type TileryDragState,
 } from 'tilery/internal';
@@ -32,8 +37,12 @@ type Refs = {
 };
 
 const DRAG_THRESHOLD_PX = 4;
+const ROOT_DROP_EDGE_PX = 24;
 
-export function useTileryDragController(tilery: () => TileryController | null) {
+export function useTileryDragController(
+  tilery: () => TileryController | null,
+  mainContainerRef?: RefObject<HTMLDivElement | null>,
+) {
   const refs = useRef<Refs>({
     panelEls: new Map(),
     tabBarEls: new Map(),
@@ -140,6 +149,27 @@ export function useTileryDragController(tilery: () => TileryController | null) {
     [tilery],
   );
 
+  const canDropOnRoot = useCallback(
+    (draggedTabId: TileryTabId, panelDrag: boolean): boolean => {
+      const m = tilery();
+      /* v8 ignore next */
+      if (!m) return true;
+      const draggedTab = m.getTab(draggedTabId);
+      if (!draggedTab || !draggedTab.draggable) return false;
+      const state = m.getState();
+      const sourceBehavior = tileryPanelBehaviorFromState(
+        state,
+        draggedTab.panel.id,
+      );
+      if (!sourceBehavior.draggable) return false;
+      const tiledPanelCount = tileryPanelOrderFromState(state).length;
+      if (draggedTab.panel.kind !== 'tiled') return true;
+      if (panelDrag) return tiledPanelCount > 1;
+      return tiledPanelCount > 1 || draggedTab.panel.tabs.length > 1;
+    },
+    [tilery],
+  );
+
   const canStartTabDrag = useCallback(
     (tabId: TileryTabId): boolean => {
       const m = tilery();
@@ -155,9 +185,18 @@ export function useTileryDragController(tilery: () => TileryController | null) {
       x: number,
       y: number,
       draggedTabId: TileryTabId,
-    ): Pick<TileryDragState, 'hoverPanelId' | 'hoverZone' | 'hoverTabBar'> => {
+    ): Pick<
+      TileryDragState,
+      | 'hoverPanelId'
+      | 'hoverZone'
+      | 'hoverRootZone'
+      | 'hoverTabBar'
+      | 'hoverRootSize'
+    > => {
       let hoverPanelId: TileryPanelId | null = null;
       let hoverZone: TileryPanelZone | null = null;
+      let hoverRootZone: TileryDirection | null = null;
+      let hoverRootSize: number | null = null;
       let hoverTabBar: TileryDragState['hoverTabBar'] = null;
       const m = tilery();
       const fullScreenPanelId = m
@@ -187,6 +226,30 @@ export function useTileryDragController(tilery: () => TileryController | null) {
       }
 
       if (!hoverTabBar && !fullScreenPanelId) {
+        const mainEl = mainContainerRef?.current;
+        if (mainEl) {
+          const r = mainEl.getBoundingClientRect();
+          const rootZone = tileryEdgeZoneAt(
+            { left: r.left, top: r.top, width: r.width, height: r.height },
+            x,
+            y,
+            ROOT_DROP_EDGE_PX,
+          );
+          if (rootZone && canDropOnRoot(draggedTabId, panelDragRef.current)) {
+            hoverRootZone = rootZone;
+            hoverRootSize = m
+              ? tileryRootSplitSizeForDrag(
+                  m.getState(),
+                  draggedTabId,
+                  rootZone,
+                  panelDragRef.current,
+                )
+              : null;
+          }
+        }
+      }
+
+      if (!hoverTabBar && !hoverRootZone && !fullScreenPanelId) {
         for (const [panelId, panelEl] of refs.current.panelEls) {
           const r = panelEl.getBoundingClientRect();
           const z = tileryZoneAt(
@@ -207,9 +270,22 @@ export function useTileryDragController(tilery: () => TileryController | null) {
           break;
         }
       }
-      return { hoverPanelId, hoverZone, hoverTabBar };
+      return {
+        hoverPanelId,
+        hoverZone,
+        hoverRootZone,
+        hoverRootSize,
+        hoverTabBar,
+      };
     },
-    [tilery, isOwnSoloPanel, classifySplitInteraction, canDropOnPanel],
+    [
+      tilery,
+      mainContainerRef,
+      isOwnSoloPanel,
+      classifySplitInteraction,
+      canDropOnPanel,
+      canDropOnRoot,
+    ],
   );
 
   const onTabPointerDown = useCallback(

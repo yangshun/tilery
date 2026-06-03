@@ -440,7 +440,10 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
     onChange?.(state);
   }, [state, onChange]);
 
-  const drag = useTileryDragController(() => tileryRef.current);
+  const drag = useTileryDragController(
+    () => tileryRef.current,
+    mainContainerRef,
+  );
   const floatingDrag = useTileryFloatingPanelDrag({
     tilery: () => tileryRef.current,
     containerRef: rootContainerRef,

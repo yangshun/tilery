@@ -31,6 +31,25 @@ export function tileryZoneAt(
   return 'center';
 }
 
+export function tileryEdgeZoneAt(
+  rect: { left: number; top: number; width: number; height: number },
+  x: number,
+  y: number,
+  edgeSize: number = 24,
+): TileryDirection | null {
+  const localX = x - rect.left;
+  const localY = y - rect.top;
+  if (localX < 0 || localX > rect.width || localY < 0 || localY > rect.height) {
+    return null;
+  }
+  const clampedEdgeSize = Math.max(0, edgeSize);
+  if (localY < clampedEdgeSize) return 'top';
+  if (rect.height - localY < clampedEdgeSize) return 'bottom';
+  if (localX < clampedEdgeSize) return 'left';
+  if (rect.width - localX < clampedEdgeSize) return 'right';
+  return null;
+}
+
 export type TileryTabBarHit =
   | { kind: 'before'; tabId: string }
   | { kind: 'after'; tabId: string }

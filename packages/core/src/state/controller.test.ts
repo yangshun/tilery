@@ -1108,6 +1108,29 @@ describe('TileryController.moveTab — every TileryMoveTarget shape', () => {
     expect(action.to.resizable).toBe(false);
     expect(action.to.newPanelId).toMatch(/^p_/);
   });
+
+  it('splitRoot target maps size to reducer sizePercent', () => {
+    const { controller, dispatched } = makeStore();
+    controller.moveTab('T1', {
+      splitRoot: true,
+      direction: 'bottom',
+      size: 30,
+      minSize: 12,
+      maxSize: 60,
+      draggable: false,
+    });
+    const action = dispatched[0]!;
+    if (action.type !== 'TAB_MOVE') throw new Error('expected TAB_MOVE');
+    if (!('splitRoot' in action.to)) throw new Error('expected splitRoot');
+    expect(action.to.splitRoot).toBe(true);
+    expect(action.to.direction).toBe('bottom');
+    expect(action.to.sizePercent).toBe(30);
+    expect(action.to.minSize).toBe(12);
+    expect(action.to.maxSize).toBe(60);
+    expect(action.to.draggable).toBe(false);
+    expect(action.to.newPanelId).toMatch(/^p_/);
+  });
+
   it('splitPanel move target normalizes locked to explicit behavior booleans', () => {
     const { controller, dispatched } = makeStore();
     controller.moveTab('T1', {
@@ -1123,6 +1146,20 @@ describe('TileryController.moveTab — every TileryMoveTarget shape', () => {
     expect(action.to.draggable).toBe(false);
     expect(action.to.droppable).toBe(false);
   });
+  it('splitRoot move target normalizes locked to explicit behavior booleans', () => {
+    const { controller, dispatched } = makeStore();
+    controller.moveTab('T1', {
+      splitRoot: true,
+      direction: 'top',
+      locked: true,
+    });
+    const action = dispatched[0]!;
+    if (action.type !== 'TAB_MOVE') throw new Error('expected TAB_MOVE');
+    if (!('splitRoot' in action.to)) throw new Error('expected splitRoot');
+    expect(action.to.resizable).toBe(false);
+    expect(action.to.draggable).toBe(false);
+    expect(action.to.droppable).toBe(false);
+  });
   it('splitPanel target defaults size to 50', () => {
     const { controller, dispatched } = makeStore();
     controller.moveTab('T1', { splitPanel: 'P2', direction: 'left' });
@@ -1131,6 +1168,14 @@ describe('TileryController.moveTab — every TileryMoveTarget shape', () => {
     if (!('splitPanelId' in action.to))
       throw new Error('expected splitPanelId target');
     expect(action.to.sizePercent).toBe(50);
+  });
+  it('splitRoot target leaves size unset when no explicit size is provided', () => {
+    const { controller, dispatched } = makeStore();
+    controller.moveTab('T1', { splitRoot: true, direction: 'left' });
+    const action = dispatched[0]!;
+    if (action.type !== 'TAB_MOVE') throw new Error('expected TAB_MOVE');
+    if (!('splitRoot' in action.to)) throw new Error('expected splitRoot');
+    expect(action.to.sizePercent).toBeUndefined();
   });
 });
 

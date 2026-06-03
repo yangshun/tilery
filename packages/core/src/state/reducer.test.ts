@@ -2449,6 +2449,153 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next.panels.NEWP!.maxSize).toBe(45);
   });
 
+  it('TAB_MOVE splitRoot creates a full-width bottom row below the current layout', () => {
+    const state = tJunctionLayout();
+    const next = tileryReducer(state, {
+      type: 'TAB_MOVE',
+      tabId: 'side',
+      to: {
+        splitRoot: true,
+        direction: 'bottom',
+        sizePercent: 30,
+        newPanelId: 'BOTTOM',
+        minSize: 12,
+        maxSize: 45,
+      },
+    });
+
+    expect(next.panels.sidebar).toBeUndefined();
+    expect(next.panels.BOTTOM).toMatchObject({
+      kind: 'tiled',
+      tabs: ['side'],
+      activeTabId: 'side',
+      minSize: 12,
+      maxSize: 45,
+      inset: { top: 70, right: 0, bottom: 0, left: 0 },
+    });
+    expect(next.tabs.side!.panelId).toBe('BOTTOM');
+    expect(next.panels.editor!.inset).toEqual({
+      top: 0,
+      right: 0,
+      bottom: 65,
+      left: 0,
+    });
+    expect(next.panels.terminal!.inset).toEqual({
+      top: 35,
+      right: 0,
+      bottom: 30,
+      left: 0,
+    });
+  });
+
+  it('TAB_MOVE splitRoot without size shares the resulting root rows evenly', () => {
+    const state = tJunctionLayout();
+    const next = tileryReducer(state, {
+      type: 'TAB_MOVE',
+      tabId: 'side',
+      to: {
+        splitRoot: true,
+        direction: 'bottom',
+        newPanelId: 'BOTTOM',
+      },
+    });
+
+    expect(next.panels.sidebar).toBeUndefined();
+    expect(next.panels.editor!.inset.top).toBe(0);
+    expect(next.panels.editor!.inset.bottom).toBeCloseTo(200 / 3);
+    expect(next.panels.terminal!.inset.top).toBeCloseTo(100 / 3);
+    expect(next.panels.terminal!.inset.bottom).toBeCloseTo(100 / 3);
+    expect(next.panels.BOTTOM!.inset.top).toBeCloseTo(200 / 3);
+    expect(next.panels.BOTTOM!.inset.bottom).toBe(0);
+    expect(next.panels.BOTTOM!.tabs).toEqual(['side']);
+  });
+
+  it('TAB_MOVE splitRoot without size shares the resulting root columns evenly', () => {
+    const state = sideBySideWithThreeLeftTabs();
+    const next = tileryReducer(state, {
+      type: 'TAB_MOVE',
+      tabId: 'L1',
+      to: {
+        splitRoot: true,
+        direction: 'right',
+        newPanelId: 'RIGHT',
+      },
+    });
+
+    expect(next.panels.L!.tabs).toEqual(['L2', 'L3']);
+    expect(next.panels.L!.inset.left).toBe(0);
+    expect(next.panels.L!.inset.right).toBeCloseTo(200 / 3);
+    expect(next.panels.R!.inset.left).toBeCloseTo(100 / 3);
+    expect(next.panels.R!.inset.right).toBeCloseTo(100 / 3);
+    expect(next.panels.RIGHT!.inset.left).toBeCloseTo(200 / 3);
+    expect(next.panels.RIGHT!.inset.right).toBe(0);
+    expect(next.panels.RIGHT!.tabs).toEqual(['L1']);
+  });
+
+  it('TAB_MOVE splitRoot splits a tab out of the only panel when tabs remain behind', () => {
+    const state = createStateFromPanels({
+      panels: [
+        {
+          id: 'P',
+          inset: { top: 0, right: 0, bottom: 0, left: 0 },
+          tabs: [
+            { id: 'A', data: {} },
+            { id: 'B', data: {} },
+          ],
+        },
+      ],
+    });
+    const next = tileryReducer(state, {
+      type: 'TAB_MOVE',
+      tabId: 'B',
+      to: {
+        splitRoot: true,
+        direction: 'bottom',
+        sizePercent: 25,
+        newPanelId: 'BOTTOM',
+      },
+    });
+
+    expect(next.panels.P!.tabs).toEqual(['A']);
+    expect(next.panels.P!.inset).toEqual({
+      top: 0,
+      right: 0,
+      bottom: 25,
+      left: 0,
+    });
+    expect(next.panels.BOTTOM!.tabs).toEqual(['B']);
+    expect(next.panels.BOTTOM!.inset).toEqual({
+      top: 75,
+      right: 0,
+      bottom: 0,
+      left: 0,
+    });
+  });
+
+  it('TAB_MOVE splitRoot is a no-op when moving the only tab from the only tiled panel', () => {
+    const state = createStateFromPanels({
+      panels: [
+        {
+          id: 'P',
+          inset: { top: 0, right: 0, bottom: 0, left: 0 },
+          tabs: [{ id: 'A', data: {} }],
+        },
+      ],
+    });
+    const next = tileryReducer(state, {
+      type: 'TAB_MOVE',
+      tabId: 'A',
+      to: {
+        splitRoot: true,
+        direction: 'bottom',
+        sizePercent: 25,
+        newPanelId: 'BOTTOM',
+      },
+    });
+
+    expect(next).toBe(state);
+  });
+
   it('TAB_MOVE splitPanel uses flat fallback when no layout tree exists', () => {
     const state = nonTilingSideBySide();
     const next = tileryReducer(state, {

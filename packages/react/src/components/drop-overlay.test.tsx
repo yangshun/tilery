@@ -75,6 +75,20 @@ function buildContainer({
   return { container, panel, tabBar };
 }
 
+function buildRootContainer() {
+  const container = document.createElement('div');
+  container.className = 'tilery__inner';
+  document.body.appendChild(container);
+  stubRect(container, { left: 0, top: 0, width: 1000, height: 800 });
+
+  const mainLayer = document.createElement('div');
+  mainLayer.className = 'tilery__main-layer';
+  stubRect(mainLayer, { left: 100, top: 50, width: 600, height: 300 });
+  container.appendChild(mainLayer);
+
+  return { container, mainLayer };
+}
+
 function dragWith(overrides: Partial<TileryDragState>): TileryDragState {
   return {
     tabId: 'foo',
@@ -171,6 +185,57 @@ describe('DropOverlay — drag ghost', () => {
     expect(t.host.querySelector('.tilery__drag-ghost')!.textContent).toBe(
       'Tab',
     );
+    t.cleanup();
+  });
+});
+
+describe('DropOverlay — root zones', () => {
+  it('uses hoverRootSize for a bottom root drop preview', () => {
+    const { container } = buildRootContainer();
+    const t = mount(
+      dragWith({ hoverRootZone: 'bottom', hoverRootSize: 100 / 3 }),
+      container,
+      new Map(),
+    );
+    const overlay = t.host.querySelector<HTMLElement>('.tilery__drop-overlay')!;
+    expect(overlay.getAttribute('data-root-zone')).toBe('true');
+    expect(overlay.getAttribute('data-zone')).toBe('bottom');
+    expect(parseFloat(overlay.style.top)).toBeCloseTo(250);
+    expect(parseFloat(overlay.style.height)).toBeCloseTo(100);
+    t.cleanup();
+  });
+
+  it('uses hoverRootSize for a right root drop preview', () => {
+    const { container } = buildRootContainer();
+    const t = mount(
+      dragWith({ hoverRootZone: 'right', hoverRootSize: 25 }),
+      container,
+      new Map(),
+    );
+    const overlay = t.host.querySelector<HTMLElement>('.tilery__drop-overlay')!;
+    expect(overlay.getAttribute('data-zone')).toBe('right');
+    expect(overlay.style.left).toBe('550px');
+    expect(overlay.style.width).toBe('150px');
+    t.cleanup();
+  });
+
+  it('falls back to half-size when the root hover has no preview size', () => {
+    const { container } = buildRootContainer();
+    const t = mount(dragWith({ hoverRootZone: 'top' }), container, new Map());
+    const overlay = t.host.querySelector<HTMLElement>('.tilery__drop-overlay')!;
+    expect(overlay.style.top).toBe('50px');
+    expect(overlay.style.height).toBe('150px');
+    t.cleanup();
+  });
+
+  it('does not render a root drop preview without the main layer', () => {
+    const { container } = buildContainer({ panelId: 'P', tabIds: ['T'] });
+    const t = mount(
+      dragWith({ hoverRootZone: 'bottom', hoverRootSize: 100 / 3 }),
+      container,
+      new Map(),
+    );
+    expect(t.host.querySelector('.tilery__drop-overlay')).toBeNull();
     t.cleanup();
   });
 });
