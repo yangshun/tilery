@@ -10,7 +10,7 @@ The API reference is split by workflow. If you are wiring Tilery for the first t
 | Task                              | Use this page                             | Why                                                                                                             |
 | --------------------------------- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
 | Render a Tilery workspace         | [Component Props](/docs/api/component)    | Covers `initialLayout`, render functions, sizing props, built-in actions, and callbacks on the React component. |
-| Author or persist a layout        | [Layouts & Snapshots](/docs/api/layout)   | Covers group trees, panels, floating panels, tab config, behavior flags, and the snapshot shape.                |
+| Author or persist a layout        | [Layouts & Snapshots](/docs/api/layout)   | Covers group trees, panels, edge panels, floating panels, tab config, behavior flags, and snapshots.            |
 | Theme or override UI              | [Styling API](/docs/api/styling)          | Covers CSS variables, stable selectors, data attributes, popout-safe styling, and hit target props.             |
 | Open, move, float, or rename tabs | [Programmatic Control](/docs/api/control) | Covers the controller ref plus panel and tab objects for runtime workflows.                                     |
 | Sync app state or analytics       | [Events & Callbacks](/docs/api/events)    | Covers resize events, lifecycle events, structural changes, and close/open payloads.                            |
@@ -33,7 +33,7 @@ The API reference is split by workflow. If you are wiring Tilery for the first t
     </a>
     <p>
       Build the serializable tree shape used for initial layouts, persistence,
-      floating panels, size constraints, and locking behavior.
+      edge panels, floating panels, size constraints, and locking behavior.
     </p>
   </li>
   <li className="doc-link-list__item">

@@ -327,6 +327,18 @@ export function tileryMakePanel(
         getState().panels[id]?.inset ?? { top: 0, right: 0, bottom: 0, left: 0 }
       );
     },
+    get edge() {
+      const panel = getState().panels[id];
+      return panel?.kind === 'edge' ? panel.edge.side : undefined;
+    },
+    get edgeSize() {
+      const panel = getState().panels[id];
+      return panel?.kind === 'edge' ? panel.edge.size : undefined;
+    },
+    get edgeDefaultSize() {
+      const panel = getState().panels[id];
+      return panel?.kind === 'edge' ? panel.edge.defaultSize : undefined;
+    },
     get floating() {
       return getState().panels[id]?.kind === 'floating';
     },

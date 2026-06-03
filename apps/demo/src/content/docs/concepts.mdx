@@ -52,6 +52,7 @@ The public runtime state keeps panels and tabs in flat lookup objects for direct
 type TileryLayoutState = {
   panels: Record<TileryPanelId, TileryPanelState>;
   panelOrder: TileryPanelId[];
+  edgePanelOrder?: TileryPanelId[];
   floatingPanelOrder?: TileryPanelId[];
   tabs: Record<TileryTabId, TileryTabState>;
   layout?: TileryLayoutTree | null;
@@ -81,7 +82,13 @@ const saved = localStorage.getItem('tilery-layout');
 />;
 ```
 
-Snapshots store the panel tree, tab order, active tabs, fullscreen state, default sizes, size constraints, explicit behavior booleans, floating bounds, popout window bounds, and z-order.
+Snapshots store the panel tree, edge panel regions, tab order, active tabs, fullscreen state, default sizes, size constraints, explicit behavior booleans, floating bounds, popout window bounds, and z-order.
+
+## Edge panels
+
+Edge panels are pinned root-level tab groups outside the main tiled tree. Use them for app chrome such as explorers, inspectors, terminals, and problem lists when those regions should stay anchored around the center workspace.
+
+A normal split sidebar participates in the same layout tree as editor panels. An edge panel does not: it reserves space on `left`, `right`, `top`, or `bottom`, and the main tiled grid renders inside the remaining center area.
 
 ## Floating and popout panels
 

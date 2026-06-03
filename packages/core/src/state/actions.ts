@@ -85,6 +85,13 @@ export type TileryReducerAction =
     }
   | { type: 'PANEL_SWAP'; panelA: TileryPanelId; panelB: TileryPanelId }
   | {
+      type: 'EDGE_PANEL_SIZE_SET';
+      panelId: TileryPanelId;
+      size: number;
+      minSize?: TilerySize;
+      sizeContext?: TilerySizeResolutionContext;
+    }
+  | {
       type: 'TAB_APPEND';
       panelId: TileryPanelId;
       tab: TileryReducerTabAction;

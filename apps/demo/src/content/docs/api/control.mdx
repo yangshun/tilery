@@ -56,6 +56,8 @@ The Tilery ref exposes a `TileryController`. Use it when the application, not a 
 
 Use openOrActivateTab() when app resources have stable ids, such as file paths, issue ids, or routes. If the id already exists, Tilery activates that tab and does not update its data or create a duplicate. If the id is missing, Tilery inserts the tab at the supplied target and activates it.
 
+Edge panels are normal tab targets once they exist in the root layout. Move a tab into a pinned sidebar with `{ panel: edgePanelId }`, or inspect `panel.kind === 'edge'` when the app needs to treat sidebars differently from main tiled panels.
+
 Use changeTabId() when a temporary tab receives a durable id later, for example after saving a draft file. The rename updates panel tab order and active tab references; it returns null when the old id is missing or the new id is already in use.
 
 ```tsx
@@ -77,8 +79,11 @@ TileryPanel objects are returned by getPanel() and getPanels().
 | Property / Method               | Description                                                                |
 | ------------------------------- | -------------------------------------------------------------------------- |
 | `id`                            | Panel identifier                                                           |
-| `kind`                          | Panel kind: tiled or floating                                              |
+| `kind`                          | Panel kind: tiled, edge, or floating                                       |
 | `inset`                         | Current &#123; top, right, bottom, left &#125; percentages                 |
+| `edge`                          | Edge side for pinned edge panels                                           |
+| `edgeSize`                      | Edge width or height percentage for pinned edge panels                     |
+| `edgeDefaultSize`               | Edge default size percentage, if set                                       |
 | `floating`                      | Whether this panel is detached                                             |
 | `floatingBounds`                | Floating &#123; x, y, width, height &#125; percentages, if detached        |
 | `floatingZIndex`                | Current floating z-index, if detached                                      |

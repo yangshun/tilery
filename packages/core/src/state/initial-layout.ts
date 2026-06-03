@@ -1,5 +1,7 @@
 import type {
   TileryDockedLayoutInit,
+  TileryEdge,
+  TileryEdgePanelInit,
   TileryFloatingPanelInit,
   TileryInitialLayout,
   TileryLayoutState,
@@ -13,6 +15,11 @@ import type {
 } from '../types';
 import type { TileryReducerTabInit } from './actions';
 import { tileryWarnForConstraintDiagnostics } from './diagnostics';
+import {
+  tileryDefaultEdgePanelSize,
+  tileryEdgeInset,
+  tileryNormalizeEdgePanelOrders,
+} from './edges';
 import {
   tileryFloatingBoundsToInset,
   tileryFloatingZIndex,
@@ -37,6 +44,7 @@ export function tileryNextId(prefix: string): string {
 type InitialStateBuildContext = {
   panels: Record<TileryPanelId, TileryPanelState>;
   tabs: Record<TileryTabId, TileryTabState>;
+  edgePanelOrder: TileryPanelId[];
   floatingPanelOrder: TileryPanelId[];
   hasFullScreenPanel: boolean;
 };
@@ -47,12 +55,17 @@ export function tileryCreateInitialState(
   const ctx: InitialStateBuildContext = {
     panels: {},
     tabs: {},
+    edgePanelOrder: [],
     floatingPanelOrder: [],
     hasFullScreenPanel: false,
   };
   const main = initial.type === 'root' ? initial.main : initial;
   const layout = buildInitialLayoutTree(main, ctx);
   if (initial.type === 'root') {
+    for (const side of edgeSides) {
+      const panel = initial.edges?.[side];
+      if (panel) buildInitialEdgePanel(side, panel, ctx);
+    }
     initial.floating?.forEach((panel, index) =>
       buildInitialFloatingPanel(panel, ctx, index),
     );
@@ -60,11 +73,14 @@ export function tileryCreateInitialState(
   const state: TileryLayoutState = {
     panels: ctx.panels,
     panelOrder: [],
+    edgePanelOrder: ctx.edgePanelOrder,
     floatingPanelOrder: ctx.floatingPanelOrder,
     tabs: ctx.tabs,
     layout,
   };
-  const next = tilerySyncLayoutPanels(state, layout);
+  const next = tileryNormalizeEdgePanelOrders(
+    tilerySyncLayoutPanels(state, layout),
+  );
   tileryWarnForConstraintDiagnostics(next);
   return next;
 }
@@ -197,6 +213,52 @@ function buildInitialFloatingPanel(
     },
   };
   ctx.floatingPanelOrder.push(panelId);
+}
+
+const edgeSides: TileryEdge[] = ['left', 'right', 'top', 'bottom'];
+
+function buildInitialEdgePanel(
+  side: TileryEdge,
+  init: TileryEdgePanelInit,
+  ctx: InitialStateBuildContext,
+) {
+  const panelId = init.id ?? tileryNextId('p');
+  const tabs: TileryTabId[] = [];
+  for (const tabInit of init.tabs) {
+    const tabId = tabInit.id ?? tileryNextId('t');
+    const behavior = tileryNormalizeTabBehavior(tabInit);
+    ctx.tabs[tabId] = {
+      id: tabId,
+      panelId,
+      data: tabInit.data,
+      ...behavior,
+    };
+    tabs.push(tabId);
+  }
+  const activeTabId =
+    init.activeTabId && tabs.includes(init.activeTabId)
+      ? init.activeTabId
+      : (tabs[0] ?? null);
+  const fullScreen = Boolean(init.fullScreen && !ctx.hasFullScreenPanel);
+  if (fullScreen) ctx.hasFullScreenPanel = true;
+  const size = init.size ?? tileryDefaultEdgePanelSize(side);
+  ctx.panels[panelId] = {
+    id: panelId,
+    kind: 'edge',
+    inset: tileryEdgeInset(side, size),
+    tabs,
+    activeTabId,
+    fullScreen,
+    minSize: init.minSize,
+    maxSize: init.maxSize,
+    behavior: tileryNormalizeLayoutBehavior(init),
+    edge: {
+      side,
+      size,
+      defaultSize: init.defaultSize ?? init.size,
+    },
+  };
+  ctx.edgePanelOrder.push(panelId);
 }
 
 function initialSplitId(

@@ -197,6 +197,7 @@ export function useTileryDragController(tilery: () => TileryController | null) {
           if (!z) continue;
           const panel = m?.getPanel(panelId);
           if (panel?.floating && z !== 'center') continue;
+          if (panel?.kind === 'edge' && z !== 'center') continue;
           if (isOwnSoloPanel(panelId, draggedTabId)) continue;
           if (!canDropOnPanel(panelId, draggedTabId)) continue;
           if (classifySplitInteraction(panelId, draggedTabId, z) === 'suppress')

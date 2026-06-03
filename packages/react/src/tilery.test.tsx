@@ -8,6 +8,7 @@ import React, { act, createRef } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { Tilery, type TileryProps, type TileryResizeEvent } from './tilery';
+import { EdgeResizeHandle } from './components/edge-resize-handle';
 import type {
   TileryActiveTabChangeEvent,
   TileryPanelsCloseEvent,
@@ -143,6 +144,45 @@ function floatingLayout(): TileryInitialLayout<Data> {
         tabs: [{ id: 'palette-tab', data: { title: 'Palette' } }],
       },
     ],
+  };
+}
+
+function edgeLayout(): TileryInitialLayout<Data> {
+  return {
+    type: 'root',
+    main: {
+      type: 'panel',
+      id: 'editor',
+      tabs: [{ id: 'editor-tab', data: { title: 'Editor' } }],
+    },
+    edges: {
+      top: {
+        type: 'edgePanel',
+        id: 'top-tools',
+        size: 10,
+        tabs: [{ id: 'activity', data: { title: 'Activity' } }],
+      },
+      left: {
+        type: 'edgePanel',
+        id: 'explorer',
+        size: 22,
+        minSize: 12,
+        maxSize: 40,
+        tabs: [{ id: 'files', data: { title: 'Files' } }],
+      },
+      right: {
+        type: 'edgePanel',
+        id: 'inspector',
+        size: 18,
+        tabs: [{ id: 'outline', data: { title: 'Outline' } }],
+      },
+      bottom: {
+        type: 'edgePanel',
+        id: 'terminal',
+        size: 30,
+        tabs: [{ id: 'shell', data: { title: 'Shell' } }],
+      },
+    },
   };
 }
 
@@ -405,11 +445,16 @@ function mount(
   // The container ref is `.tilery__inner` — stub its rect so any drag math
   // can convert clientX/Y into percentages without relying on jsdom layout.
   const inner = host.querySelector('.tilery__inner') as HTMLDivElement;
-  if (opts.stubRect !== false) stubContainerRect(inner);
+  const mainLayer = host.querySelector('.tilery__main-layer') as HTMLDivElement;
+  if (opts.stubRect !== false) {
+    stubContainerRect(inner);
+    stubContainerRect(mainLayer);
+  }
 
   return {
     host,
     inner,
+    mainLayer,
     controller: () => ref.current!,
     cleanup() {
       act(() => {
@@ -453,6 +498,100 @@ function pointerEvent(
     } as unknown as HTMLElement,
   } as unknown as React.PointerEvent;
 }
+
+describe('EdgeResizeHandle', () => {
+  it('computes default placement and pointer sizes for every edge side', () => {
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    const container = document.createElement('div');
+    stubContainerRect(container);
+    const root = createRoot(host);
+    const calls: Array<{ panelId: string; size: number }> = [];
+
+    act(() => {
+      root.render(
+        <>
+          <EdgeResizeHandle
+            panelId="left"
+            side="left"
+            hitSize={-1}
+            containerRef={{ current: container }}
+            onDrag={(panelId, size) => {
+              calls.push({ panelId, size });
+            }}
+          />
+          <EdgeResizeHandle
+            panelId="right"
+            side="right"
+            containerRef={{ current: container }}
+            onDrag={(panelId, size) => {
+              calls.push({ panelId, size });
+            }}
+          />
+          <EdgeResizeHandle
+            panelId="top"
+            side="top"
+            containerRef={{ current: container }}
+            onDrag={(panelId, size) => {
+              calls.push({ panelId, size });
+            }}
+          />
+          <EdgeResizeHandle
+            panelId="bottom"
+            side="bottom"
+            containerRef={{ current: container }}
+            onDrag={(panelId, size) => {
+              calls.push({ panelId, size });
+            }}
+          />
+        </>,
+      );
+    });
+
+    const handles = Array.from(
+      host.querySelectorAll<HTMLElement>('.tilery__edge-resize-handle'),
+    );
+    expect(handles.map((handle) => handle.dataset.edgeResizeSide)).toEqual([
+      'left',
+      'right',
+      'top',
+      'bottom',
+    ]);
+    expect(handles[0]!.style.right).toBe('-12px');
+    expect(handles[0]!.style.width).toBe('24px');
+    expect(handles[1]!.style.left).toBe('-12px');
+    expect(handles[2]!.style.bottom).toBe('-12px');
+    expect(handles[3]!.style.top).toBe('-12px');
+
+    act(() => {
+      handles.forEach((handle) =>
+        reactProps(handle).onPointerDown(pointerEvent()),
+      );
+      reactProps(handles[0]!).onPointerMove(
+        pointerEvent({ clientX: 250, clientY: 200 }),
+      );
+      reactProps(handles[1]!).onPointerMove(
+        pointerEvent({ clientX: 750, clientY: 200 }),
+      );
+      reactProps(handles[2]!).onPointerMove(
+        pointerEvent({ clientX: 500, clientY: 160 }),
+      );
+      reactProps(handles[3]!).onPointerMove(
+        pointerEvent({ clientX: 500, clientY: 560 }),
+      );
+    });
+
+    expect(calls).toEqual([
+      { panelId: 'left', size: 25 },
+      { panelId: 'right', size: 25 },
+      { panelId: 'top', size: 20 },
+      { panelId: 'bottom', size: 30 },
+    ]);
+
+    act(() => root.unmount());
+    host.remove();
+  });
+});
 
 type PopoutWindowMock = Window & {
   document: Document;
@@ -1519,6 +1658,51 @@ describe('Tilery — rendering', () => {
     t.cleanup();
   });
 
+  it('renders pinned edge panels outside the main tiled layer', () => {
+    const t = mount(edgeLayout());
+    const explorer = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="explorer"]',
+    )!;
+    const terminal = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="terminal"]',
+    )!;
+    const topTools = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="top-tools"]',
+    )!;
+    const inspector = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="inspector"]',
+    )!;
+    const editor = t.host.querySelector<HTMLElement>(
+      '.tilery__main-layer .tilery__panel[data-panel-id="editor"]',
+    )!;
+
+    expect(explorer.getAttribute('data-edge')).toBe('left');
+    expect(terminal.getAttribute('data-edge')).toBe('bottom');
+    expect(topTools.getAttribute('data-edge')).toBe('top');
+    expect(inspector.getAttribute('data-edge')).toBe('right');
+    expect(explorer.style.width).toBe('22%');
+    expect(explorer.style.top).toBe('10%');
+    expect(explorer.style.bottom).toBe('30%');
+    expect(inspector.style.width).toBe('18%');
+    expect(topTools.style.height).toBe('10%');
+    expect(terminal.style.height).toBe('30%');
+    expect(t.mainLayer.style.left).toBe('22%');
+    expect(t.mainLayer.style.top).toBe('10%');
+    expect(t.mainLayer.style.right).toBe('18%');
+    expect(t.mainLayer.style.bottom).toBe('30%');
+    expect(editor.style.left).toBe('0%');
+    expect(editor.style.right).toBe('0%');
+    expect(t.host.querySelectorAll('.tilery__edge-resize-handle')).toHaveLength(
+      4,
+    );
+    expect(t.controller().getPanel('explorer')).toMatchObject({
+      kind: 'edge',
+      edge: 'left',
+      edgeSize: 22,
+    });
+    t.cleanup();
+  });
+
   it('renders an empty layout after removing the last panel', () => {
     const t = mount(singlePanelLayout());
     act(() => {
@@ -1568,6 +1752,55 @@ describe('Tilery — tab click + close', () => {
 });
 
 describe('Tilery — divider drag dispatch', () => {
+  it('resizes pinned edge panels with edge resize handles', () => {
+    const resizeEvents: TileryResizeEvent[] = [];
+    const resizeEndEvents: TileryResizeEvent[] = [];
+    const t = mount(edgeLayout(), undefined, {
+      onResize: (event) => resizeEvents.push(event),
+      onResizeEnd: (event) => resizeEndEvents.push(event),
+    });
+    const handle = t.host.querySelector<HTMLElement>(
+      '.tilery__edge-resize-handle[data-edge-resize-side="left"]',
+    )!;
+
+    act(() => {
+      reactProps(handle).onPointerDown(pointerEvent());
+      reactProps(handle).onPointerMove(
+        pointerEvent({ clientX: 300, clientY: 400 }),
+      );
+      reactProps(handle).onPointerUp(pointerEvent());
+    });
+
+    expect(t.controller().getPanel('explorer')?.edgeSize).toBe(30);
+    expect(t.mainLayer.style.left).toBe('30%');
+    expect(resizeEvents).toHaveLength(1);
+    expect(resizeEndEvents).toHaveLength(1);
+    expect(resizeEvents[0]).toMatchObject({
+      source: {
+        type: 'edge',
+        panelId: 'explorer',
+        side: 'left',
+        previousSize: 22,
+        size: 30,
+      },
+      changes: [
+        {
+          panelId: 'explorer',
+          dimension: 'width',
+          previousSize: 22,
+          size: 30,
+          previousPixelSize: 220,
+          pixelSize: 300,
+        },
+      ],
+    });
+    expect(resizeEndEvents[0]).toMatchObject({
+      ...resizeEvents[0],
+      phase: 'end',
+    });
+    t.cleanup();
+  });
+
   it('dragging the vertical divider resizes both adjacent panels', () => {
     const t = mount(lShapeLayout());
     // Find the vertical divider by its orientation attribute.
@@ -2811,6 +3044,79 @@ describe('Tilery — drag flow covers the drop overlay path', () => {
     expect(overlay).not.toBeNull();
     expect(overlay?.dataset.zone).toBe('center');
     expect(t.host.querySelector('.tilery__drag-ghost')).not.toBeNull();
+    t.cleanup();
+  });
+
+  it('moves tabs into pinned edge panel tab bars with insertion feedback', () => {
+    const t = mount({
+      type: 'root',
+      main: {
+        type: 'panel',
+        id: 'editor',
+        tabs: [
+          { id: 'editor-tab', data: { title: 'Editor' } },
+          { id: 'readme-tab', data: { title: 'Readme' } },
+        ],
+      },
+      edges: {
+        left: {
+          type: 'edgePanel',
+          id: 'explorer',
+          size: 22,
+          tabs: [{ id: 'files', data: { title: 'Files' } }],
+        },
+      },
+    });
+    const readmeTab = t.host.querySelector<HTMLElement>(
+      '.tilery__tab[data-tab-id="readme-tab"]',
+    )!;
+    const explorerTabBar = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="explorer"] .tilery__tab-bar',
+    )!;
+    const explorerTabList = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="explorer"] .tilery__tab-list',
+    )!;
+    const filesTab = t.host.querySelector<HTMLElement>(
+      '.tilery__tab[data-tab-id="files"]',
+    )!;
+    stubElementRect(explorerTabBar, {
+      left: 0,
+      top: 0,
+      width: 220,
+      height: 32,
+    });
+    stubElementRect(explorerTabList, {
+      left: 0,
+      top: 0,
+      width: 220,
+      height: 32,
+    });
+    stubElementRect(filesTab, { left: 0, top: 0, width: 80, height: 32 });
+
+    act(() => {
+      reactProps(readmeTab).onPointerDown(
+        pointerEvent({ clientX: 120, clientY: 16, pointerId: 16 }),
+      );
+      reactProps(readmeTab).onPointerMove(
+        pointerEvent({ clientX: 160, clientY: 16, pointerId: 16 }),
+      );
+    });
+
+    expect(t.host.querySelector('.tilery__drop-insertion')).not.toBeNull();
+
+    act(() => {
+      reactProps(readmeTab).onPointerUp(
+        pointerEvent({ clientX: 160, clientY: 16, pointerId: 16 }),
+      );
+    });
+
+    expect(t.controller().getTab('readme-tab')?.panel.id).toBe('explorer');
+    expect(
+      t
+        .controller()
+        .getPanel('explorer')
+        ?.tabs.map((tab) => tab.id),
+    ).toEqual(['files', 'readme-tab']);
     t.cleanup();
   });
 

@@ -1,5 +1,7 @@
 import type {
   TileryDockedLayoutSnapshot,
+  TileryEdge,
+  TileryEdgePanelSnapshot,
   TileryFloatingPanelSnapshot,
   TileryLayoutBehavior,
   TileryLayoutSnapshot,
@@ -10,6 +12,7 @@ import {
   tileryBehaviorFromNode,
   tileryMergeLayoutBehavior,
 } from './layout-behavior';
+import { tileryEdgePanelIdBySide } from './edges';
 import { tileryFloatingPanelOrderFromState } from './layout-tree';
 
 type NonEmptyLayout<TData> = Exclude<
@@ -28,13 +31,17 @@ export function tileryCreateLayoutSnapshot<TData = unknown>(
     .filter((panel): panel is TileryFloatingPanelSnapshot<TData> =>
       Boolean(panel),
     );
+  const edges = edgePanelsToSnapshot<TData>(state);
   const mainSnapshot: TileryDockedLayoutSnapshot<TData> = main ?? {
     type: 'empty',
   };
-  if (floating.length === 0) return mainSnapshot;
+  if (floating.length === 0 && Object.keys(edges).length === 0) {
+    return mainSnapshot;
+  }
   return {
     type: 'root',
     main: mainSnapshot,
+    ...(Object.keys(edges).length > 0 ? { edges } : {}),
     floating,
   };
 }
@@ -131,6 +138,42 @@ function floatingPanelToSnapshot<TData>(
     }),
   };
 }
+
+function edgePanelsToSnapshot<TData>(
+  state: TileryLayoutState,
+): Partial<Record<TileryEdge, TileryEdgePanelSnapshot<TData>>> {
+  const bySide = tileryEdgePanelIdBySide(state);
+  const out: Partial<Record<TileryEdge, TileryEdgePanelSnapshot<TData>>> = {};
+  for (const side of edgeSides) {
+    const panelId = bySide[side];
+    if (!panelId) continue;
+    const panel = state.panels[panelId];
+    if (!panel || panel.kind !== 'edge') continue;
+    out[side] = {
+      type: 'edgePanel',
+      id: panel.id,
+      size: panel.edge.size,
+      defaultSize: panel.edge.defaultSize,
+      ...panel.behavior,
+      activeTabId: panel.activeTabId ?? undefined,
+      fullScreen: panel.fullScreen,
+      minSize: panel.minSize,
+      maxSize: panel.maxSize,
+      tabs: panel.tabs.map((tabId) => {
+        const tab = state.tabs[tabId]!;
+        return {
+          id: tab.id,
+          data: tab.data as TData,
+          closeable: tab.closeable,
+          draggable: tab.draggable,
+        };
+      }),
+    };
+  }
+  return out;
+}
+
+const edgeSides: TileryEdge[] = ['left', 'right', 'top', 'bottom'];
 
 function childBehavior(layout: NonEmptyLayout<unknown>): TileryLayoutBehavior {
   return {

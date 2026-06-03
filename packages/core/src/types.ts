@@ -10,6 +10,8 @@ export type TilerySizeResolutionContext = {
 
 export type TileryDirection = 'left' | 'right' | 'top' | 'bottom';
 
+export type TileryEdge = TileryDirection;
+
 export type TileryInset = {
   top: number;
   right: number;
@@ -78,6 +80,12 @@ export type TileryFloatingPanelPlacement = {
   popout?: TileryPopoutPanelPlacement;
 };
 
+export type TileryEdgePanelPlacement = {
+  side: TileryEdge;
+  size: number;
+  defaultSize?: number;
+};
+
 type TileryPanelStateBase = {
   id: TileryPanelId;
   inset: TileryInset;
@@ -100,7 +108,17 @@ export type TileryFloatingPanelState = TileryPanelStateBase & {
   behavior: TileryLayoutBehavior;
 };
 
-export type TileryPanelState = TileryTiledPanelState | TileryFloatingPanelState;
+export type TileryEdgePanelState = TileryPanelStateBase & {
+  kind: 'edge';
+  edge: TileryEdgePanelPlacement;
+  behavior: TileryLayoutBehavior;
+  floating?: never;
+};
+
+export type TileryPanelState =
+  | TileryTiledPanelState
+  | TileryFloatingPanelState
+  | TileryEdgePanelState;
 
 export type TileryTabState<TData = unknown> = {
   id: TileryTabId;
@@ -184,6 +202,7 @@ export type TileryLayoutTree =
 export type TileryLayoutState = {
   panels: Record<TileryPanelId, TileryPanelState>;
   panelOrder: TileryPanelId[];
+  edgePanelOrder?: TileryPanelId[];
   floatingPanelOrder?: TileryPanelId[];
   tabs: Record<TileryTabId, TileryTabState>;
   layout?: TileryLayoutTree | null;
@@ -237,9 +256,22 @@ export type TileryFloatingPanelInit<TData = unknown> = {
   maxSize?: TilerySize;
 } & TileryLayoutBehaviorConfig;
 
+export type TileryEdgePanelInit<TData = unknown> = {
+  type: 'edgePanel';
+  id?: TileryPanelId;
+  size?: number;
+  defaultSize?: number;
+  tabs: TileryTabInit<TData>[];
+  activeTabId?: TileryTabId;
+  fullScreen?: boolean;
+  minSize?: TilerySize;
+  maxSize?: TilerySize;
+} & TileryLayoutBehaviorConfig;
+
 export type TileryRootInit<TData = unknown> = {
   type: 'root';
   main: TileryDockedLayoutInit<TData>;
+  edges?: Partial<Record<TileryEdge, TileryEdgePanelInit<TData>>>;
   floating?: TileryFloatingPanelInit<TData>[];
 };
 
@@ -291,9 +323,22 @@ export type TileryFloatingPanelSnapshot<TData = unknown> = {
   maxSize?: TilerySize;
 } & TileryLayoutBehavior;
 
+export type TileryEdgePanelSnapshot<TData = unknown> = {
+  type: 'edgePanel';
+  id?: TileryPanelId;
+  size: number;
+  defaultSize?: number;
+  tabs: TileryTabSnapshot<TData>[];
+  activeTabId?: TileryTabId;
+  fullScreen?: boolean;
+  minSize?: TilerySize;
+  maxSize?: TilerySize;
+} & TileryLayoutBehavior;
+
 export type TileryRootSnapshot<TData = unknown> = {
   type: 'root';
   main: TileryDockedLayoutSnapshot<TData>;
+  edges?: Partial<Record<TileryEdge, TileryEdgePanelSnapshot<TData>>>;
   floating: TileryFloatingPanelSnapshot<TData>[];
 };
 
@@ -425,6 +470,9 @@ export type TileryPanel = {
   readonly id: TileryPanelId;
   readonly kind: TileryPanelState['kind'];
   readonly inset: Readonly<TileryInset>;
+  readonly edge: TileryEdge | undefined;
+  readonly edgeSize: number | undefined;
+  readonly edgeDefaultSize: number | undefined;
   readonly floating: boolean;
   readonly floatingBounds: Readonly<TileryFloatingPanelBounds> | undefined;
   readonly floatingZIndex: number | undefined;

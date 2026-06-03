@@ -3,7 +3,11 @@ import {
   makeTileryController,
   type TileryControllerOptions,
 } from './controller';
-import { tileryReducer, type TileryReducerAction } from './reducer';
+import {
+  tileryCreateInitialState,
+  tileryReducer,
+  type TileryReducerAction,
+} from './reducer';
 import { createStateFromPanels } from './test-helpers';
 import type { TileryLayoutState, TilerySizeResolutionContext } from '../types';
 
@@ -315,6 +319,118 @@ describe('TileryController lookups', () => {
       'P1',
     ]);
   });
+
+  it('round-trips edge panels through layout snapshots', () => {
+    const { controller, getState } = makeStore(
+      tileryCreateInitialState({
+        type: 'root',
+        main: {
+          type: 'panel',
+          id: 'main',
+          tabs: [{ id: 'main-tab', data: { title: 'main' } }],
+        },
+        edges: {
+          left: {
+            type: 'edgePanel',
+            id: 'explorer',
+            size: 22,
+            defaultSize: 24,
+            minSize: '140px',
+            maxSize: 34,
+            resizable: false,
+            tabs: [{ id: 'files', data: { title: 'files' } }],
+          },
+        },
+      }),
+    );
+
+    const snapshot = controller.getLayout<{ title: string }>();
+
+    expect(snapshot).toMatchObject({
+      type: 'root',
+      main: { type: 'panel', id: 'main' },
+      edges: {
+        left: {
+          type: 'edgePanel',
+          id: 'explorer',
+          size: 22,
+          defaultSize: 24,
+          minSize: '140px',
+          maxSize: 34,
+          resizable: false,
+          draggable: true,
+          droppable: true,
+          tabs: [
+            {
+              id: 'files',
+              data: { title: 'files' },
+              closeable: true,
+              draggable: true,
+            },
+          ],
+        },
+      },
+      floating: [],
+    });
+
+    controller.setLayout(snapshot);
+
+    expect(getState().edgePanelOrder).toEqual(['explorer']);
+    expect(getState().panels.explorer).toMatchObject({
+      kind: 'edge',
+      edge: { side: 'left', size: 22, defaultSize: 24 },
+      minSize: '140px',
+      maxSize: 34,
+      behavior: { resizable: false, draggable: true, droppable: true },
+    });
+    expect(controller.getPanel('explorer')).toMatchObject({
+      id: 'explorer',
+      kind: 'edge',
+      edge: 'left',
+      edgeSize: 22,
+      edgeDefaultSize: 24,
+    });
+    expect(controller.getPanels().map((panel) => panel.id)).toEqual([
+      'main',
+      'explorer',
+    ]);
+  });
+
+  it('removes edge panels without changing the main tiled layout', () => {
+    const { controller, getState } = makeStore(
+      tileryCreateInitialState({
+        type: 'root',
+        main: {
+          type: 'panel',
+          id: 'main',
+          tabs: [{ id: 'main-tab', data: { title: 'main' } }],
+        },
+        edges: {
+          bottom: {
+            type: 'edgePanel',
+            id: 'terminal',
+            size: 30,
+            tabs: [{ id: 'shell', data: { title: 'shell' } }],
+          },
+        },
+      }),
+    );
+
+    controller.removePanel('terminal');
+
+    expect(getState().panels.terminal).toBeUndefined();
+    expect(getState().tabs.shell).toBeUndefined();
+    expect(getState().edgePanelOrder).toEqual([]);
+    expect(getState().layout).toMatchObject({
+      kind: 'panel',
+      panelId: 'main',
+    });
+    expect(controller.getLayout()).toMatchObject({
+      type: 'panel',
+      id: 'main',
+    });
+  });
+
   it('round-trips native popout metadata through layout snapshots', () => {
     const { controller, getState } = makeStore();
 
@@ -902,6 +1018,7 @@ describe('TileryController mutations', () => {
     expect(getState()).toEqual({
       panels: {},
       panelOrder: [],
+      edgePanelOrder: [],
       floatingPanelOrder: [],
       tabs: {},
       layout: null,

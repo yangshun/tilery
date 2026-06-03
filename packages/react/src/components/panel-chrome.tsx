@@ -15,6 +15,7 @@ export type PanelChromeProps = Omit<TabBarProps, 'panel' | 'renderHeader'> & {
   registerPanel: (el: HTMLElement | null) => void;
   registerContentSlot: (el: HTMLElement | null) => void;
   popoutWindow?: boolean;
+  placementStyle?: React.CSSProperties;
   onPanelPointerDown?: (e: React.PointerEvent, panelId: string) => void;
   onFloatingResizePointerDown?: (
     e: React.PointerEvent,
@@ -42,6 +43,7 @@ export function PanelChrome({
   registerPanel,
   registerContentSlot,
   popoutWindow = false,
+  placementStyle,
   onPanelPointerDown,
   onFloatingResizePointerDown,
   ...tabBarProps
@@ -74,12 +76,14 @@ export function PanelChrome({
             height: `${floatingBounds.height}%`,
             zIndex: panel.floatingZIndex,
           }
-        : {
-            top: `${top}%`,
-            right: `${right}%`,
-            bottom: `${bottom}%`,
-            left: `${left}%`,
-          };
+        : placementStyle
+          ? placementStyle
+          : {
+              top: `${top}%`,
+              right: `${right}%`,
+              bottom: `${bottom}%`,
+              left: `${left}%`,
+            };
   return (
     <div
       id={tileryPanelDomId(panel.id)}
@@ -87,6 +91,7 @@ export function PanelChrome({
       className="tilery__panel"
       data-panel-id={panel.id}
       data-floating={isFloating}
+      data-edge={panel.edge}
       data-popout={panel.poppedOut}
       data-full-screen={isFullScreen}
       data-resizable={behavior.resizable}

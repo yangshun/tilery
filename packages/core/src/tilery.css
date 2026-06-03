@@ -15,6 +15,10 @@
   inset: var(--tilery-outer-gap, var(--tilery-panel-gap, 4px));
 }
 
+.tilery__main-layer {
+  position: absolute;
+}
+
 .tilery__popout {
   position: relative;
   width: 100vw;
@@ -56,6 +60,12 @@
 .tilery__floating-resize-handle {
   position: absolute;
   z-index: 1;
+  touch-action: none;
+}
+
+.tilery__edge-resize-handle {
+  position: absolute;
+  z-index: 2;
   touch-action: none;
 }
 

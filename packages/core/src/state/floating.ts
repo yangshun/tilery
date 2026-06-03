@@ -17,6 +17,7 @@ import type {
   TilerySizeResolutionContext,
   TileryTabId,
 } from '../types';
+import { tileryEdgePanelOrderFromState } from './edges';
 import {
   tileryFindRemovalFillers,
   tilerySplitFitsPanelConstraints,
@@ -105,6 +106,20 @@ export function tileryFloatPanel(
     ...tileryFloatingPanelOrderFromState(state).filter((id) => id !== panelId),
     panelId,
   ];
+
+  if (panel.kind === 'edge') {
+    return tileryFocusFloatingPanel(
+      {
+        ...state,
+        panels: nextPanels,
+        edgePanelOrder: tileryEdgePanelOrderFromState(state).filter(
+          (id) => id !== panelId,
+        ),
+        floatingPanelOrder,
+      },
+      panelId,
+    );
+  }
 
   if (state.layout) {
     const layout = tileryRemovePanelFromLayout(state.layout, panelId) ?? null;

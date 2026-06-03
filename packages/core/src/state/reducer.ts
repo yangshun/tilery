@@ -1,6 +1,7 @@
 import type { TileryLayoutState } from '../types';
 import type { TileryReducerAction } from './actions';
 import { tileryWarnForConstraintDiagnostics } from './diagnostics';
+import { tilerySetEdgePanelSize } from './edges';
 import {
   tileryDockPanel,
   tileryFloatPanel,
@@ -119,6 +120,15 @@ export function tileryReducer(
     }
     case 'PANEL_SWAP': {
       return tilerySwapPanels(current, action.panelA, action.panelB);
+    }
+    case 'EDGE_PANEL_SIZE_SET': {
+      return tilerySetEdgePanelSize(
+        current,
+        action.panelId,
+        action.size,
+        action.minSize ?? TILERY_DEFAULT_MIN_SIZE,
+        action.sizeContext,
+      );
     }
     case 'TAB_APPEND': {
       return tileryAppendTab(current, action);

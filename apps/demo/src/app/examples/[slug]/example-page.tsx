@@ -6,6 +6,7 @@ import { PageNavigation } from '../../../components/page-navigation';
 import type { SiteNavigationItem } from '../../../content/navigation';
 import {
   BasicExample,
+  EdgePanelsExample,
   IdeExample,
   DashboardExample,
   AbyssSpacedThemeExample,
@@ -52,6 +53,7 @@ import {
 const registry: Record<string, Record<string, React.ComponentType>> = {
   basic: { default: BasicExample },
   ide: { default: IdeExample },
+  'edge-panels': { default: EdgePanelsExample },
   dashboard: { default: DashboardExample },
   themes: {
     default: ThemesExample,

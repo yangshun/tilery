@@ -2,6 +2,7 @@ export type {
   TileryDirection,
   TileryDivider,
   TileryDividerOrientation,
+  TileryEdge,
   TileryFloatingPanelBounds,
   TileryFloatingResizeEdge,
   TileryController,
@@ -39,8 +40,17 @@ export {
 export { tileryPanelBehaviorFromState } from './state/layout-behavior';
 
 export {
+  tileryClampEdgePanelSize,
+  tileryEdgePanelIdBySide,
+  tileryEdgePanelOrderFromState,
+  tileryEdgePanelSizes,
+} from './state/edges';
+
+export {
   tileryAllPanelOrderFromState,
   tileryBuildLayoutTreeFromPanels,
+  tileryFloatingPanelOrderFromState,
+  tileryPanelOrderFromState,
   tilerySyncLayoutPanels,
 } from './state/layout-tree';
 

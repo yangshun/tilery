@@ -40,7 +40,8 @@ Use these selectors when variables are not enough, such as pill-shaped tabs or a
 | Selector                          | Description                                   |
 | --------------------------------- | --------------------------------------------- |
 | `.tilery`                         | Root element for one Tilery instance          |
-| `.tilery__inner`                  | Main tiled-panel viewport                     |
+| `.tilery__inner`                  | Internal absolute positioning container       |
+| `.tilery__main-layer`             | Center tiled-grid layer inside pinned edges   |
 | `.tilery__panel`                  | Panel container                               |
 | `.tilery__tab-bar`                | Panel header containing tabs and actions      |
 | `.tilery__tab-list`               | Scrollable tab row                            |
@@ -54,6 +55,7 @@ Use these selectors when variables are not enough, such as pill-shaped tabs or a
 | `.tilery__panel-menu-item`        | Panel action menu item                        |
 | `.tilery__divider`                | One-dimensional resize divider                |
 | `.tilery__junction`               | T-junction resize control                     |
+| `.tilery__edge-resize-handle`     | Pinned edge panel resize control              |
 | `.tilery__floating-resize-handle` | Floating panel resize control                 |
 | `.tilery__drop-overlay`           | Panel drop preview                            |
 | `.tilery__drop-insertion`         | Tab-row insertion preview                     |
@@ -68,25 +70,27 @@ Use data attributes for component state that is not always expressible through p
 
 Hover and keyboard focus are normal browser interaction states, so style them with `:hover` and `:focus-visible`.
 
-| Attribute                   | Elements                                         | Description                                                    |
-| --------------------------- | ------------------------------------------------ | -------------------------------------------------------------- |
-| `data-panel-id`             | `.tilery__panel`                                 | Panel id                                                       |
-| `data-tab-id`               | `.tilery__tab`                                   | Tab id                                                         |
-| `data-active`               | `.tilery__tab, .tilery__tab-content`             | Whether the tab or tab content is active                       |
-| `data-closeable`            | `.tilery__tab`                                   | Whether the tab can be closed                                  |
-| `data-draggable`            | `.tilery__tab, .tilery__tab-bar, .tilery__panel` | Whether the tab, tab bar, or panel can start drag interactions |
-| `data-droppable`            | `.tilery__tab-bar, .tilery__panel`               | Whether the panel area accepts drops                           |
-| `data-floating`             | `.tilery__panel`                                 | Whether the panel is detached as a floating panel              |
-| `data-popout`               | `.tilery__panel`                                 | Whether the panel is in a native popout window                 |
-| `data-full-screen`          | `.tilery__panel`                                 | Whether the panel is maximized                                 |
-| `data-resizable`            | `.tilery__panel`                                 | Whether the panel participates in resize interactions          |
-| `data-zone`                 | `.tilery__drop-overlay`                          | Current panel drop preview zone                                |
-| `data-orientation`          | `.tilery__divider`                               | Divider orientation: horizontal or vertical                    |
-| `data-resize-active`        | `.tilery__divider, .tilery__junction`            | Set while the resize control is being dragged                  |
-| `data-resize-disabled`      | `.tilery__divider, .tilery__junction`            | Set when the resize control cannot resize its adjacent panels  |
-| `data-resize-at-min`        | `.tilery__divider, .tilery__junction`            | Set when a resize boundary is clamped at a minimum size        |
-| `data-resize-at-max`        | `.tilery__divider, .tilery__junction`            | Set when a resize boundary is clamped at a maximum size        |
-| `data-floating-resize-edge` | `.tilery__floating-resize-handle`                | Floating panel resize edge or corner                           |
+| Attribute                   | Elements                                                           | Description                                                    |
+| --------------------------- | ------------------------------------------------------------------ | -------------------------------------------------------------- |
+| `data-panel-id`             | `.tilery__panel`                                                   | Panel id                                                       |
+| `data-tab-id`               | `.tilery__tab`                                                     | Tab id                                                         |
+| `data-active`               | `.tilery__tab, .tilery__tab-content`                               | Whether the tab or tab content is active                       |
+| `data-closeable`            | `.tilery__tab`                                                     | Whether the tab can be closed                                  |
+| `data-draggable`            | `.tilery__tab, .tilery__tab-bar, .tilery__panel`                   | Whether the tab, tab bar, or panel can start drag interactions |
+| `data-droppable`            | `.tilery__tab-bar, .tilery__panel`                                 | Whether the panel area accepts drops                           |
+| `data-edge`                 | `.tilery__panel`                                                   | Edge side for pinned edge panels                               |
+| `data-floating`             | `.tilery__panel`                                                   | Whether the panel is detached as a floating panel              |
+| `data-popout`               | `.tilery__panel`                                                   | Whether the panel is in a native popout window                 |
+| `data-full-screen`          | `.tilery__panel`                                                   | Whether the panel is maximized                                 |
+| `data-resizable`            | `.tilery__panel`                                                   | Whether the panel participates in resize interactions          |
+| `data-zone`                 | `.tilery__drop-overlay`                                            | Current panel drop preview zone                                |
+| `data-orientation`          | `.tilery__divider`                                                 | Divider orientation: horizontal or vertical                    |
+| `data-resize-active`        | `.tilery__divider, .tilery__junction, .tilery__edge-resize-handle` | Set while the resize control is being dragged                  |
+| `data-resize-disabled`      | `.tilery__divider, .tilery__junction, .tilery__edge-resize-handle` | Set when the resize control cannot resize its adjacent panels  |
+| `data-resize-at-min`        | `.tilery__divider, .tilery__junction`                              | Set when a resize boundary is clamped at a minimum size        |
+| `data-resize-at-max`        | `.tilery__divider, .tilery__junction`                              | Set when a resize boundary is clamped at a maximum size        |
+| `data-edge-resize-side`     | `.tilery__edge-resize-handle`                                      | Edge side controlled by the resize handle                      |
+| `data-floating-resize-edge` | `.tilery__floating-resize-handle`                                  | Floating panel resize edge or corner                           |
 
 ## Resize State Styling
 

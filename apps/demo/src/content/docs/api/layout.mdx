@@ -1,6 +1,6 @@
 ---
 title: Layouts & Snapshots
-description: Initial layout, snapshot, size, behavior, floating panel, and tab configuration types.
+description: Initial layout, snapshot, size, behavior, edge panel, floating panel, and tab configuration types.
 ---
 
 ## Initial layout, snapshot, and runtime state
@@ -13,13 +13,13 @@ Tilery uses three related shapes. They are easy to mix up, so choose the one tha
 | `TileryLayoutSnapshot<TData>` | Persistence                      | Returned by `getLayout()`. Stores explicit behavior booleans and floating bounds. |
 | `TileryLayoutState`           | Runtime callbacks and inspection | Internal working state exposed to callbacks. Do not persist it.                   |
 
-Initial layouts and snapshots share the same serializable tree idea: groups contain panels or groups, panels contain tabs, and a root layout can also contain floating panels. A snapshot preserves the panel tree, tab order, active tabs, fullscreen panel, reset targets, size constraints, behavior booleans, floating bounds, popout window bounds, and z-order.
+Initial layouts and snapshots share the same serializable tree idea: groups contain panels or groups, panels contain tabs, and a root layout can also contain pinned edge panels and floating panels. A snapshot preserves the panel tree, edge regions, tab order, active tabs, fullscreen panel, reset targets, size constraints, behavior booleans, floating bounds, popout window bounds, and z-order.
 
 Use `getLayout()` to create a snapshot and pass that snapshot back to `initialLayout` or `setLayout(layout)` to restore it.
 
 ## Size and behavior rules
 
-`size` belongs to each child item and controls that item’s allocation inside its parent group. `defaultSize` is optional and defines where adjacent panels return when the user double-clicks a divider. If you omit `defaultSize`, Tilery uses the item’s initial `size` as the reset target.
+`size` belongs to each child item and controls that item’s allocation inside its parent group. On root edge panels, `size` controls the pinned side’s width or height as a percentage of the Tilery root. `defaultSize` is optional and defines where adjacent panels return when the user double-clicks a divider. If you omit `defaultSize`, Tilery uses the item’s initial `size` as the reset target.
 
 `minSize` and `maxSize` can be numbers, percentage strings, or pixel strings. Divider reset uses the same constraints as drag resizing, so a default target can still be clamped when a panel needs more room.
 
@@ -30,11 +30,14 @@ Initial layouts accept `locked: true` as shorthand for disabling resize, drag, a
 ```tsx
 type TilerySize = number | `${number}%` | `${number}px`;
 
+type TileryEdge = 'left' | 'right' | 'top' | 'bottom';
+
 type TileryInitialLayout<TData> =
   | TileryDockedLayoutInit<TData>
   | {
       type: 'root';
       main: TileryDockedLayoutInit<TData>;
+      edges?: Partial<Record<TileryEdge, TileryEdgePanelInit<TData>>>;
       floating?: TileryFloatingPanelInit<TData>[];
     };
 
@@ -80,6 +83,18 @@ type TileryFloatingPanelInit<TData> = {
   bounds?: Partial<TileryFloatingPanelBounds>;
   zIndex?: number;
   popout?: true | { windowBounds?: Partial<TileryPopoutWindowBounds> };
+  tabs: TileryTabInit<TData>[];
+  activeTabId?: string;
+  fullScreen?: boolean;
+  minSize?: TilerySize;
+  maxSize?: TilerySize;
+} & TileryLayoutBehaviorConfig;
+
+type TileryEdgePanelInit<TData> = {
+  type: 'edgePanel';
+  id?: string;
+  size?: number;
+  defaultSize?: number;
   tabs: TileryTabInit<TData>[];
   activeTabId?: string;
   fullScreen?: boolean;
@@ -134,6 +149,7 @@ type TileryLayoutSnapshot<TData> =
   | {
       type: 'root';
       main: TileryDockedLayoutSnapshot<TData>;
+      edges?: Partial<Record<TileryEdge, TileryEdgePanelSnapshot<TData>>>;
       floating: TileryFloatingPanelSnapshot<TData>[];
     };
 
@@ -165,6 +181,18 @@ type TileryFloatingPanelSnapshot<TData> = {
   bounds: TileryFloatingPanelBounds;
   zIndex: number;
   popout?: { windowBounds: TileryPopoutWindowBounds };
+  tabs: TileryTabSnapshot<TData>[];
+  activeTabId?: string;
+  fullScreen?: boolean;
+  minSize?: TilerySize;
+  maxSize?: TilerySize;
+} & TileryLayoutBehavior;
+
+type TileryEdgePanelSnapshot<TData> = {
+  type: 'edgePanel';
+  id?: string;
+  size: number;
+  defaultSize?: number;
   tabs: TileryTabSnapshot<TData>[];
   activeTabId?: string;
   fullScreen?: boolean;

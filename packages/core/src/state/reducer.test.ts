@@ -6,6 +6,15 @@ import {
   tileryReducer,
   tileryTabInitToReducerInit,
 } from './reducer';
+import {
+  tileryClampEdgePanelSize,
+  tileryDefaultEdgePanelSize,
+  tileryEdgeInset,
+  tileryEdgePanelOrderFromState,
+  tileryEdgePanelSizes,
+  tileryNormalizeEdgePanelOrders,
+  tilerySetEdgePanelSize,
+} from './edges';
 import { tileryDeriveDividers, tileryDeriveJunctions } from './layout-math';
 import { createStateFromPanels } from './test-helpers';
 import type { TileryLayoutState } from '../types';
@@ -169,6 +178,231 @@ describe('tileryCreateInitialState', () => {
       panelId: 'palette',
       closeable: false,
       draggable: false,
+    });
+  });
+
+  it('builds root layouts with pinned edge panels', () => {
+    const state = tileryCreateInitialState({
+      type: 'root',
+      main: {
+        type: 'panel',
+        id: 'main',
+        tabs: [{ id: 'main-tab', data: {} }],
+      },
+      edges: {
+        left: {
+          type: 'edgePanel',
+          id: 'explorer',
+          size: 22,
+          defaultSize: 24,
+          minSize: '120px',
+          maxSize: 36,
+          locked: true,
+          tabs: [{ id: 'files', data: {}, locked: true }],
+        },
+        bottom: {
+          type: 'edgePanel',
+          id: 'terminal',
+          size: 28,
+          tabs: [{ id: 'shell', data: {} }],
+        },
+      },
+    });
+
+    expect(state.panelOrder).toEqual(['main']);
+    expect(state.edgePanelOrder).toEqual(['explorer', 'terminal']);
+    expect(state.panels.explorer).toMatchObject({
+      kind: 'edge',
+      edge: { side: 'left', size: 22, defaultSize: 24 },
+      minSize: '120px',
+      maxSize: 36,
+      behavior: {
+        resizable: false,
+        draggable: false,
+        droppable: false,
+      },
+    });
+    expect(state.tabs.files).toMatchObject({
+      panelId: 'explorer',
+      closeable: false,
+      draggable: false,
+    });
+    expect(state.panels.terminal).toMatchObject({
+      kind: 'edge',
+      edge: { side: 'bottom', size: 28 },
+    });
+  });
+
+  it('clamps edge panel resize to panel constraints and remaining center space', () => {
+    const state = tileryCreateInitialState({
+      type: 'root',
+      main: {
+        type: 'panel',
+        id: 'main',
+        tabs: [{ id: 'main-tab', data: {} }],
+      },
+      edges: {
+        left: {
+          type: 'edgePanel',
+          id: 'left-edge',
+          size: 20,
+          minSize: 12,
+          maxSize: 80,
+          tabs: [{ id: 'left-tab', data: {} }],
+        },
+        right: {
+          type: 'edgePanel',
+          id: 'right-edge',
+          size: 20,
+          tabs: [{ id: 'right-tab', data: {} }],
+        },
+      },
+    });
+
+    const tooSmall = tileryReducer(state, {
+      type: 'EDGE_PANEL_SIZE_SET',
+      panelId: 'left-edge',
+      size: 5,
+      minSize: 10,
+    });
+    expect(tooSmall.panels['left-edge']).toMatchObject({
+      kind: 'edge',
+      edge: { size: 12 },
+    });
+
+    const tooLarge = tileryReducer(state, {
+      type: 'EDGE_PANEL_SIZE_SET',
+      panelId: 'left-edge',
+      size: 90,
+      minSize: 10,
+    });
+    expect(tooLarge.panels['left-edge']).toMatchObject({
+      kind: 'edge',
+      edge: { size: 70 },
+    });
+  });
+
+  it('normalizes stale edge panel order and derives edge sizes', () => {
+    const state = tileryCreateInitialState({
+      type: 'root',
+      main: {
+        type: 'panel',
+        id: 'main',
+        tabs: [{ id: 'main-tab', data: {} }],
+      },
+      edges: {
+        left: {
+          type: 'edgePanel',
+          id: 'left-edge',
+          size: 20,
+          tabs: [{ id: 'left-tab', data: {} }],
+        },
+        right: {
+          type: 'edgePanel',
+          id: 'right-edge',
+          size: 24,
+          tabs: [{ id: 'right-tab', data: {} }],
+        },
+        top: {
+          type: 'edgePanel',
+          id: 'top-edge',
+          size: 12,
+          tabs: [{ id: 'top-tab', data: {} }],
+        },
+      },
+    });
+    const leftEdge = state.panels['left-edge']!;
+    if (leftEdge.kind !== 'edge') throw new Error('expected edge panel');
+    const stale: TileryLayoutState = {
+      ...state,
+      edgePanelOrder: ['missing', 'main', 'right-edge'],
+      panels: {
+        ...state.panels,
+        'left-edge': {
+          ...leftEdge,
+          edge: {
+            ...leftEdge.edge,
+            size: Number.POSITIVE_INFINITY,
+          },
+        },
+      },
+    };
+
+    expect(tileryEdgePanelOrderFromState(stale)).toEqual([
+      'right-edge',
+      'left-edge',
+      'top-edge',
+    ]);
+    expect(tileryEdgePanelSizes(stale)).toEqual({
+      left: 0,
+      right: 24,
+      top: 12,
+      bottom: 0,
+    });
+    expect(tileryNormalizeEdgePanelOrders(state)).toBe(state);
+    expect(tileryNormalizeEdgePanelOrders(stale).edgePanelOrder).toEqual([
+      'right-edge',
+      'left-edge',
+      'top-edge',
+    ]);
+  });
+
+  it('handles edge helper fallback and constrained no-op branches', () => {
+    const state = tileryCreateInitialState({
+      type: 'root',
+      main: {
+        type: 'panel',
+        id: 'main',
+        tabs: [{ id: 'main-tab', data: {} }],
+      },
+      edges: {
+        top: {
+          type: 'edgePanel',
+          id: 'top-edge',
+          size: 20,
+          minSize: 80,
+          tabs: [{ id: 'top-tab', data: {} }],
+        },
+        bottom: {
+          type: 'edgePanel',
+          id: 'bottom-edge',
+          size: 30,
+          tabs: [{ id: 'bottom-tab', data: {} }],
+        },
+        right: {
+          type: 'edgePanel',
+          id: 'right-edge',
+          size: 18,
+          resizable: false,
+          tabs: [{ id: 'right-tab', data: {} }],
+        },
+      },
+    });
+
+    expect(tileryClampEdgePanelSize(state, 'missing', 150)).toBe(100);
+    expect(tilerySetEdgePanelSize(state, 'main', 20)).toBe(state);
+    expect(tilerySetEdgePanelSize(state, 'right-edge', 22)).toBe(state);
+    expect(tilerySetEdgePanelSize(state, 'bottom-edge', 30)).toBe(state);
+    expect(tileryClampEdgePanelSize(state, 'top-edge', 60, 30)).toBe(20);
+    expect(tileryDefaultEdgePanelSize('left')).toBe(24);
+    expect(tileryDefaultEdgePanelSize('bottom')).toBe(28);
+    expect(tileryEdgeInset('right', 18)).toEqual({
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 82,
+    });
+    expect(tileryEdgeInset('top', 12)).toEqual({
+      top: 0,
+      right: 0,
+      bottom: 88,
+      left: 0,
+    });
+    expect(tileryEdgeInset('bottom', Number.NaN)).toEqual({
+      top: 100,
+      right: 0,
+      bottom: 0,
+      left: 0,
     });
   });
 
@@ -464,6 +698,7 @@ describe('tileryCreateInitialState', () => {
     expect(empty).toEqual({
       panels: {},
       panelOrder: [],
+      edgePanelOrder: [],
       floatingPanelOrder: [],
       tabs: {},
       layout: null,

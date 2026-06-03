@@ -6,6 +6,7 @@ import type {
   TileryTabState,
 } from '../types';
 import type { TileryReducerAction } from './actions';
+import { tileryEdgePanelOrderFromState } from './edges';
 import {
   tileryCanSwapPanels,
   tileryPanelBehaviorFromState,
@@ -179,6 +180,20 @@ export function tileryRemovePanelAndFill(
   state: TileryLayoutState,
   removed: TileryPanelState,
 ): TileryLayoutState {
+  if (removed.kind === 'edge') {
+    const { [removed.id]: _drop, ...nextPanels } = state.panels;
+    const nextTabs = { ...state.tabs };
+    for (const tid of removed.tabs) delete nextTabs[tid];
+    return {
+      ...state,
+      panels: nextPanels,
+      edgePanelOrder: tileryEdgePanelOrderFromState(state).filter(
+        (id) => id !== removed.id,
+      ),
+      tabs: nextTabs,
+    };
+  }
+
   if (removed.kind === 'floating') {
     const { [removed.id]: _drop, ...nextPanels } = state.panels;
     const nextTabs = { ...state.tabs };
@@ -201,6 +216,7 @@ export function tileryRemovePanelAndFill(
     const currentOrder = tileryPanelOrderFromState(state);
     return tilerySyncLayoutPanels(
       {
+        ...state,
         panels: nextPanels,
         panelOrder: currentOrder.filter((id) => id !== removed.id),
         tabs: nextTabs,
@@ -219,6 +235,7 @@ export function tileryRemovePanelAndFill(
     const nextTabs = { ...state.tabs };
     for (const tid of tabsToDrop) delete nextTabs[tid];
     return {
+      ...state,
       panels: restPanels,
       panelOrder: currentOrder.filter((id) => id !== removed.id),
       tabs: nextTabs,

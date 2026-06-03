@@ -1,5 +1,6 @@
 export { Example as BasicExample } from './basic/example';
 export { Example as IdeExample } from './ide/example';
+export { Example as EdgePanelsExample } from './edge-panels/example';
 export { Example as DashboardExample } from './dashboard/example';
 export {
   AbyssSpacedThemeExample,
@@ -61,6 +62,7 @@ export { Example as NestedExample } from './nested/example';
 
 export { metadata as basicMeta } from './basic/metadata';
 export { metadata as ideMeta } from './ide/metadata';
+export { metadata as edgePanelsMeta } from './edge-panels/metadata';
 export { metadata as dashboardMeta } from './dashboard/metadata';
 export { metadata as themesMeta } from './themes/metadata';
 export { metadata as panelActionsMeta } from './collapse/metadata';
@@ -87,6 +89,7 @@ export type ExampleCategory = (typeof exampleCategoryOrder)[number];
 type ExampleSlug =
   | 'basic'
   | 'ide'
+  | 'edge-panels'
   | 'dashboard'
   | 'nested'
   | 'constraints'
@@ -120,6 +123,7 @@ type ExampleMetadata = {
 const exampleOrder = [
   'basic',
   'ide',
+  'edge-panels',
   'dashboard',
   'nested',
   'constraints',
@@ -180,6 +184,30 @@ const exampleDefinitions = [
           href: '/docs/api/layout',
           label: 'Layouts & Snapshots',
           description: 'See the tree shape behind the IDE layout.',
+        },
+      ],
+    },
+  },
+  {
+    slug: 'edge-panels',
+    title: 'Edge Panels',
+    description: 'Pinned side and bottom panels outside the main tiled grid.',
+    category: 'Layout Patterns',
+    guide: {
+      paragraphs: [
+        'Use edge panels for app chrome that should stay anchored around the workspace: file explorers, inspectors, terminals, and problem lists. Resize the left, right, and bottom panels, then resize the editor split to see that the main tiled grid stays inside the remaining center area.',
+        'Edge panels still hold normal Tilery tabs, so tabs can move into and out of their tab bars. They are not part of the main split tree, which keeps editor divider logic separate from workspace sidebars.',
+      ],
+      readNext: [
+        {
+          href: '/docs/api/layout',
+          label: 'Layouts & Snapshots',
+          description: 'Add root edges to an initial layout or snapshot.',
+        },
+        {
+          href: '/docs/api/control',
+          label: 'Programmatic Control',
+          description: 'Inspect edge panels and move tabs into them.',
         },
       ],
     },

@@ -14,6 +14,7 @@ import {
 import { createPortal } from 'react-dom';
 import { PanelChrome } from './components/panel-chrome';
 import { TileryDivider, type DividerAccessibility } from './components/divider';
+import { EdgeResizeHandle } from './components/edge-resize-handle';
 import { TileryJunction } from './components/junction';
 import { DropOverlay } from './components/drop-overlay';
 import { tileryPanelDomId } from './dom-ids';
@@ -38,9 +39,15 @@ import {
   tileryClampDividerPosition,
   tileryDeriveDividers,
   tileryDeriveJunctions,
+  tileryEdgePanelOrderFromState,
+  tileryEdgePanelSizes,
+  tileryFloatingPanelOrderFromState,
   tileryGetFullScreenPanelId,
+  tileryPanelBehaviorFromState,
+  tileryPanelOrderFromState,
   tileryWarnForConstraintDiagnostics,
   type TileryReducerAction,
+  type TileryEdge,
   type TileryInitialLayout,
   type TileryDivider as TileryDividerState,
   type TileryDividerOrientation,
@@ -121,6 +128,13 @@ export type TileryResizeSource =
       y: number;
       verticalDividerId: string;
       horizontalDividerId: string;
+    }
+  | {
+      type: 'edge';
+      panelId: TileryPanelId;
+      side: TileryEdge;
+      previousSize: number;
+      size: number;
     };
 
 export type TileryResizeEvent = {
@@ -134,7 +148,13 @@ export type TileryResizeEvent = {
 
 type TileryResizeAction = Extract<
   TileryReducerAction,
-  { type: 'DIVIDER_RESIZE' | 'DIVIDER_RESET' | 'JUNCTION_RESIZE' }
+  {
+    type:
+      | 'DIVIDER_RESIZE'
+      | 'DIVIDER_RESET'
+      | 'JUNCTION_RESIZE'
+      | 'EDGE_PANEL_SIZE_SET';
+  }
 >;
 
 export type TileryProps<TData = unknown> = {
@@ -239,12 +259,13 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
     onPanelsClose,
   };
 
-  const containerRef = useRef<HTMLDivElement | null>(null);
+  const rootContainerRef = useRef<HTMLDivElement | null>(null);
+  const mainContainerRef = useRef<HTMLDivElement | null>(null);
   const [sizeContext, setSizeContext] = useState<TilerySizeResolutionContext>(
     {},
   );
   const getSizeContext = useCallback(
-    () => measureContainer(containerRef.current),
+    () => measureContainer(mainContainerRef.current),
     [],
   );
   const normalizeContainerSize = useCallback(
@@ -266,7 +287,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
   );
 
   useLayoutEffect(() => {
-    const container = containerRef.current;
+    const container = mainContainerRef.current;
     /* v8 ignore next */
     if (!container) return;
     const updateSizeContext = () => {
@@ -305,12 +326,16 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
         warnUnresolvedPixels: true,
       });
       const nextState = tileryReducer(previousState, resizeAction);
+      const eventContainer =
+        resizeAction.type === 'EDGE_PANEL_SIZE_SET'
+          ? rootContainerRef.current
+          : mainContainerRef.current;
       const event = makeResizeEvent(
         previousState,
         nextState,
         resizeAction,
         input,
-        containerRef.current,
+        eventContainer,
       );
       if (!event) return false;
       resizeStateRef.current = nextState;
@@ -359,7 +384,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
 
   const { popoutRoots, requestPopoutPanel, returnPopoutPanelToFloating } =
     useTileryPopoutWindows({
-      containerRef,
+      containerRef: rootContainerRef,
       state,
       dispatchWithLifecycle,
     });
@@ -418,7 +443,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
   const drag = useTileryDragController(() => tileryRef.current);
   const floatingDrag = useTileryFloatingPanelDrag({
     tilery: () => tileryRef.current,
-    containerRef,
+    containerRef: rootContainerRef,
     onTabPointerMove: drag.onTabPointerMove,
     onTabBarPointerUp: drag.onTabBarPointerUp,
     onTabPointerCancel: drag.onTabPointerCancel,
@@ -433,7 +458,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
     return div;
   });
   useEffect(() => {
-    const container = containerRef.current;
+    const container = rootContainerRef.current;
     /* v8 ignore next */
     if (!limboEl || !container) return;
     container.appendChild(limboEl);
@@ -593,6 +618,26 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
     },
     [dispatchResize, getSizeContext, minSize],
   );
+  const onEdgePanelDrag = useCallback(
+    (
+      panelId: TileryPanelId,
+      size: number,
+      input: 'pointer',
+      nextSizeContext?: TilerySizeResolutionContext,
+    ) => {
+      return dispatchResize(
+        {
+          type: 'EDGE_PANEL_SIZE_SET',
+          panelId,
+          size,
+          minSize,
+          sizeContext: nextSizeContext,
+        },
+        input,
+      );
+    },
+    [dispatchResize, minSize],
+  );
 
   const renderHeaderAdapter = useCallback(
     (tab: TileryTab, ctx: { isActive: boolean }) =>
@@ -653,6 +698,24 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
     [drag],
   );
 
+  const tiledPanelIds = useMemo(
+    () => tileryPanelOrderFromState(state),
+    [state],
+  );
+  const edgePanelIds = useMemo(
+    () => tileryEdgePanelOrderFromState(state),
+    [state],
+  );
+  const floatingPanelIds = useMemo(
+    () => tileryFloatingPanelOrderFromState(state),
+    [state],
+  );
+  const edgeSizes = useMemo(() => tileryEdgePanelSizes(state), [state]);
+  const mainLayerStyle = useMemo(
+    () => edgeMainLayerStyle(edgeSizes),
+    [edgeSizes],
+  );
+
   const tabPortals = useMemo(() => {
     return Object.values(state.tabs).map((tabState) => {
       const host = ensureTabHost(tabState.id);
@@ -673,87 +736,131 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.tabs, activeByPanel, renderTabContent, getCachedTab]);
 
+  const renderPanel = (
+    panelId: TileryPanelId,
+    placementStyle?: React.CSSProperties,
+  ) => {
+    const panel = getCachedPanel(panelId);
+    /* v8 ignore next */
+    if (!panel) return null;
+    const popoutRoot = panel.poppedOut ? popoutRoots[panelId] : null;
+    const panelChrome = (
+      <PanelChrome
+        key={panelId}
+        panel={panel}
+        tilery={tileryRef.current!}
+        renderHeader={renderHeaderAdapter}
+        renderTabTrigger={
+          renderTabTrigger ? renderTabTriggerAdapter : undefined
+        }
+        registerPanel={getRegisterPanel(panelId)}
+        registerContentSlot={getRegisterContentSlot(panelId)}
+        popoutWindow={Boolean(popoutRoot)}
+        placementStyle={placementStyle}
+        registerTabBar={getRegisterTabBar(panelId)}
+        registerTab={stableRegisterTab}
+        onPanelPointerDown={onPanelPointerDown}
+        onFloatingResizePointerDown={floatingDrag.onFloatingResizePointerDown}
+        onTabPointerDown={drag.onTabPointerDown}
+        onTabPointerMove={floatingDrag.onPointerMove}
+        onTabPointerUp={drag.onTabPointerUp}
+        onTabPointerCancel={floatingDrag.onPointerCancel}
+        onTabBarPointerDown={drag.onTabBarPointerDown}
+        onFloatingTabBarPointerDown={floatingDrag.onFloatingTabBarPointerDown}
+        onTabBarPointerUp={floatingDrag.onTabBarPointerUp}
+        onTabClick={onTabClick}
+        onTabClose={onTabClose}
+        showActionsButton={resolvePanelVisibility(showActionsButton, panel)}
+        showNewTabButton={resolvePanelVisibility(showNewTabButton, panel)}
+        onNewTab={onNewTab}
+        renderPanelActions={renderPanelActions}
+        renderActionsButtonIcon={renderActionsButtonIcon}
+      />
+    );
+    if (panel.poppedOut) {
+      return popoutRoot
+        ? createPortal(panelChrome, popoutRoot, `popout-${panelId}`)
+        : null;
+    }
+    return panelChrome;
+  };
+
   return (
     <div className="tilery">
-      <div ref={containerRef} className="tilery__inner">
-        {tileryAllPanelOrderFromState(state).map((panelId) => {
-          if (fullScreenPanelId && panelId !== fullScreenPanelId) return null;
-          const panel = getCachedPanel(panelId);
-          /* v8 ignore next */
-          if (!panel) return null;
-          const popoutRoot = panel.poppedOut ? popoutRoots[panelId] : null;
-          const panelChrome = (
-            <PanelChrome
-              key={panelId}
-              panel={panel}
-              tilery={tileryRef.current!}
-              renderHeader={renderHeaderAdapter}
-              renderTabTrigger={
-                renderTabTrigger ? renderTabTriggerAdapter : undefined
-              }
-              registerPanel={getRegisterPanel(panelId)}
-              registerContentSlot={getRegisterContentSlot(panelId)}
-              popoutWindow={Boolean(popoutRoot)}
-              registerTabBar={getRegisterTabBar(panelId)}
-              registerTab={stableRegisterTab}
-              onPanelPointerDown={onPanelPointerDown}
-              onFloatingResizePointerDown={
-                floatingDrag.onFloatingResizePointerDown
-              }
-              onTabPointerDown={drag.onTabPointerDown}
-              onTabPointerMove={floatingDrag.onPointerMove}
-              onTabPointerUp={drag.onTabPointerUp}
-              onTabPointerCancel={floatingDrag.onPointerCancel}
-              onTabBarPointerDown={drag.onTabBarPointerDown}
-              onFloatingTabBarPointerDown={
-                floatingDrag.onFloatingTabBarPointerDown
-              }
-              onTabBarPointerUp={floatingDrag.onTabBarPointerUp}
-              onTabClick={onTabClick}
-              onTabClose={onTabClose}
-              showActionsButton={resolvePanelVisibility(
-                showActionsButton,
-                panel,
-              )}
-              showNewTabButton={resolvePanelVisibility(showNewTabButton, panel)}
-              onNewTab={onNewTab}
-              renderPanelActions={renderPanelActions}
-              renderActionsButtonIcon={renderActionsButtonIcon}
-            />
-          );
-          if (panel.poppedOut) {
-            return popoutRoot
-              ? createPortal(panelChrome, popoutRoot, `popout-${panelId}`)
-              : null;
-          }
-          return panelChrome;
-        })}
+      <div ref={rootContainerRef} className="tilery__inner">
+        {fullScreenPanelId
+          ? renderPanel(fullScreenPanelId)
+          : edgePanelIds.map((panelId) => {
+              const panel = state.panels[panelId];
+              if (!panel || panel.kind !== 'edge') return null;
+              return renderPanel(
+                panelId,
+                edgePanelPlacementStyle(panel.edge.side, edgeSizes),
+              );
+            })}
 
-        {dividers.map((d) => (
-          <TileryDivider
-            key={d.id}
-            divider={d}
-            accessibility={dividerAccessibility[d.id]!}
-            disabled={!resizable || d.disabled}
-            hitSize={resizeHandleHitSize}
-            onDrag={onDividerDrag}
-            onReset={onDividerReset}
-            onDragEnd={commitResize}
-            containerRef={containerRef}
-          />
-        ))}
+        <div
+          ref={mainContainerRef}
+          className="tilery__main-layer"
+          style={mainLayerStyle}>
+          {!fullScreenPanelId &&
+            tiledPanelIds.map((panelId) => renderPanel(panelId))}
 
-        {junctions.map((junction) => (
-          <TileryJunction
-            key={junction.id}
-            junction={junction}
-            disabled={!resizable || junction.disabled}
-            hitSize={resizeHandleHitSize}
-            onDrag={onJunctionDrag}
-            onDragEnd={commitResize}
-            containerRef={containerRef}
-          />
-        ))}
+          {!fullScreenPanelId &&
+            dividers.map((d) => (
+              <TileryDivider
+                key={d.id}
+                divider={d}
+                accessibility={dividerAccessibility[d.id]!}
+                disabled={!resizable || d.disabled}
+                hitSize={resizeHandleHitSize}
+                onDrag={onDividerDrag}
+                onReset={onDividerReset}
+                onDragEnd={commitResize}
+                containerRef={mainContainerRef}
+              />
+            ))}
+
+          {!fullScreenPanelId &&
+            junctions.map((junction) => (
+              <TileryJunction
+                key={junction.id}
+                junction={junction}
+                disabled={!resizable || junction.disabled}
+                hitSize={resizeHandleHitSize}
+                onDrag={onJunctionDrag}
+                onDragEnd={commitResize}
+                containerRef={mainContainerRef}
+              />
+            ))}
+        </div>
+
+        {!fullScreenPanelId &&
+          floatingPanelIds.map((panelId) => renderPanel(panelId))}
+
+        {!fullScreenPanelId &&
+          edgePanelIds.map((panelId) => {
+            const panel = state.panels[panelId];
+            if (!panel || panel.kind !== 'edge') return null;
+            const behavior = tileryPanelBehaviorFromState(state, panelId);
+            return (
+              <EdgeResizeHandle
+                key={`edge-resize-${panelId}`}
+                panelId={panelId}
+                side={panel.edge.side}
+                disabled={!resizable || !behavior.resizable}
+                hitSize={resizeHandleHitSize}
+                placementStyle={edgeResizeHandleStyle(
+                  panel.edge.side,
+                  edgeSizes,
+                  resizeHandleHitSize,
+                )}
+                onDrag={onEdgePanelDrag}
+                onDragEnd={commitResize}
+                containerRef={rootContainerRef}
+              />
+            );
+          })}
 
         {tabPortals}
 
@@ -780,7 +887,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
             return (
               <DropOverlay
                 drag={drag.dragState}
-                containerRef={containerRef}
+                containerRef={rootContainerRef}
                 panelEls={panelEls.current}
                 ghostLabel={ghostLabel}
               />
@@ -798,6 +905,99 @@ function resolvePanelVisibility(
   panel: TileryPanel,
 ): boolean {
   return typeof value === 'function' ? value(panel) : value;
+}
+
+function edgeMainLayerStyle(
+  sizes: Record<TileryEdge, number>,
+): React.CSSProperties {
+  return {
+    top: `${sizes.top}%`,
+    right: `${sizes.right}%`,
+    bottom: `${sizes.bottom}%`,
+    left: `${sizes.left}%`,
+  };
+}
+
+function edgePanelPlacementStyle(
+  side: TileryEdge,
+  sizes: Record<TileryEdge, number>,
+): React.CSSProperties {
+  if (side === 'left') {
+    return {
+      top: `${sizes.top}%`,
+      bottom: `${sizes.bottom}%`,
+      left: '0%',
+      width: `${sizes.left}%`,
+    };
+  }
+  if (side === 'right') {
+    return {
+      top: `${sizes.top}%`,
+      right: '0%',
+      bottom: `${sizes.bottom}%`,
+      width: `${sizes.right}%`,
+    };
+  }
+  if (side === 'top') {
+    return {
+      top: '0%',
+      right: '0%',
+      left: '0%',
+      height: `${sizes.top}%`,
+    };
+  }
+  return {
+    right: '0%',
+    bottom: '0%',
+    left: '0%',
+    height: `${sizes.bottom}%`,
+  };
+}
+
+function edgeResizeHandleStyle(
+  side: TileryEdge,
+  sizes: Record<TileryEdge, number>,
+  hitSize: number | undefined,
+): React.CSSProperties {
+  const resolvedHitSize = normalizeResizeHitSize(hitSize);
+  if (side === 'left') {
+    return {
+      top: `${sizes.top}%`,
+      bottom: `${sizes.bottom}%`,
+      left: `calc(${sizes.left}% - ${resolvedHitSize / 2}px)`,
+      width: resolvedHitSize,
+      cursor: 'col-resize',
+    };
+  }
+  if (side === 'right') {
+    return {
+      top: `${sizes.top}%`,
+      bottom: `${sizes.bottom}%`,
+      left: `calc(${100 - sizes.right}% - ${resolvedHitSize / 2}px)`,
+      width: resolvedHitSize,
+      cursor: 'col-resize',
+    };
+  }
+  if (side === 'top') {
+    return {
+      top: `calc(${sizes.top}% - ${resolvedHitSize / 2}px)`,
+      right: '0%',
+      left: '0%',
+      height: resolvedHitSize,
+      cursor: 'row-resize',
+    };
+  }
+  return {
+    top: `calc(${100 - sizes.bottom}% - ${resolvedHitSize / 2}px)`,
+    right: '0%',
+    left: '0%',
+    height: resolvedHitSize,
+    cursor: 'row-resize',
+  };
+}
+
+function normalizeResizeHitSize(value: number | undefined): number {
+  return Number.isFinite(value) && value! > 0 ? value! : 24;
 }
 
 function makeResizeEvent(
@@ -844,6 +1044,21 @@ function makeResizeSource(
       orientation: previousDivider.orientation,
       previousPosition: previousDivider.position,
       position: divider.position,
+    };
+  }
+
+  if (action.type === 'EDGE_PANEL_SIZE_SET') {
+    const previousPanel = previousState.panels[action.panelId];
+    const panel = state.panels[action.panelId];
+    if (!previousPanel || previousPanel.kind !== 'edge') return null;
+    const size =
+      panel?.kind === 'edge' ? panel.edge.size : previousPanel.edge.size;
+    return {
+      type: 'edge',
+      panelId: action.panelId,
+      side: previousPanel.edge.side,
+      previousSize: previousPanel.edge.size,
+      size,
     };
   }
 
