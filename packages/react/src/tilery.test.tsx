@@ -591,6 +591,45 @@ describe('EdgeResizeHandle', () => {
     act(() => root.unmount());
     host.remove();
   });
+
+  it('renders a disabled handle without pointer-down/move handlers', () => {
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    const container = document.createElement('div');
+    stubContainerRect(container);
+    const root = createRoot(host);
+    let moves = 0;
+
+    act(() => {
+      root.render(
+        <EdgeResizeHandle
+          panelId="left"
+          side="left"
+          disabled
+          hitSize={20}
+          containerRef={{ current: container }}
+          onDrag={() => {
+            moves += 1;
+          }}
+        />,
+      );
+    });
+
+    const handle = host.querySelector<HTMLElement>(
+      '.tilery__edge-resize-handle',
+    )!;
+    expect(handle.getAttribute('data-resize-disabled')).toBe('');
+    // Disabled handles do not wire pointer-down/move, so a drag never starts.
+    expect(reactProps(handle).onPointerDown).toBeUndefined();
+    expect(reactProps(handle).onPointerMove).toBeUndefined();
+    expect(moves).toBe(0);
+    // pointer-up is always wired; with no onDragEnd it exercises the default noop.
+    act(() => reactProps(handle).onPointerUp(pointerEvent()));
+    expect(moves).toBe(0);
+
+    act(() => root.unmount());
+    host.remove();
+  });
 });
 
 type PopoutWindowMock = Window & {
@@ -1614,6 +1653,29 @@ describe('Tilery — rendering', () => {
     t.cleanup();
   });
 
+  it('falls back to the default hit target size for a non-positive value', () => {
+    const t = mount(lShapeLayout(), undefined, { resizeHandleHitSize: 0 });
+    const divider = t.host.querySelector<HTMLElement>('.tilery__divider')!;
+    expect(divider.style.width).toBe('24px');
+    t.cleanup();
+  });
+
+  it('normalizes the edge resize handle hit size for positive and zero values', () => {
+    // Edge handles route through their own hit-size normalizer in Tilery.
+    const positive = mount(edgeLayout(), undefined, {
+      resizeHandleHitSize: 20,
+    });
+    expect(
+      positive.host.querySelector('.tilery__edge-resize-handle'),
+    ).not.toBeNull();
+    positive.cleanup();
+    const zero = mount(edgeLayout(), undefined, { resizeHandleHitSize: 0 });
+    expect(
+      zero.host.querySelector('.tilery__edge-resize-handle'),
+    ).not.toBeNull();
+    zero.cleanup();
+  });
+
   it('labels panels and exposes computed separator values for resize handles', () => {
     const t = mount(lShapeLayout());
     const panels = Array.from(
@@ -2520,6 +2582,113 @@ describe('Tilery — panel modes', () => {
     expect(t.controller().getPanel('editor')!.fullScreen).toBe(true);
     t.cleanup();
   });
+
+  // Locks the cross-layer decision: a fullscreen panel hides EVERY other layer
+  // — tiled siblings, edge panels, AND floating panels — not just dividers.
+  // (Dockview-style libraries instead keep floating groups above a maximized
+  // grid; Tilery deliberately renders the maximized panel alone.)
+  function coexistenceLayout(): TileryInitialLayout<Data> {
+    return {
+      type: 'root',
+      main: {
+        type: 'group',
+        direction: 'horizontal',
+        children: [
+          {
+            type: 'panel',
+            id: 'sidebar',
+            size: 30,
+            tabs: [{ id: 's1', data: { title: 'Files' } }],
+          },
+          {
+            type: 'panel',
+            id: 'editor',
+            size: 70,
+            tabs: [{ id: 'e1', data: { title: 'main.ts' } }],
+          },
+        ],
+      },
+      edges: {
+        left: {
+          type: 'edgePanel',
+          id: 'activity',
+          size: 18,
+          tabs: [{ id: 'act', data: { title: 'Activity' } }],
+        },
+      },
+      floating: [
+        {
+          type: 'floatingPanel',
+          id: 'palette',
+          bounds: { x: 20, y: 20, width: 30, height: 30 },
+          tabs: [{ id: 'pal', data: { title: 'Palette' } }],
+        },
+      ],
+    };
+  }
+
+  const panelIds = (host: HTMLElement) =>
+    Array.from(host.querySelectorAll<HTMLElement>('.tilery__panel')).map((p) =>
+      p.getAttribute('data-panel-id'),
+    );
+
+  it('suppresses floating and edge panels while a tiled panel is fullscreen', () => {
+    const t = mount(coexistenceLayout());
+
+    // Baseline: tiled + edge + floating all coexist.
+    expect(panelIds(t.host).sort()).toEqual([
+      'activity',
+      'editor',
+      'palette',
+      'sidebar',
+    ]);
+    expect(
+      t.host
+        .querySelector('[data-panel-id="palette"]')!
+        .getAttribute('data-floating'),
+    ).toBe('true');
+    expect(
+      t.host.querySelectorAll('.tilery__edge-resize-handle').length,
+    ).toBeGreaterThan(0);
+
+    act(() => t.controller().maximizePanel('editor'));
+
+    // Only the maximized panel survives — no sibling, no edge, no floating, no chrome.
+    expect(panelIds(t.host)).toEqual(['editor']);
+    expect(t.host.querySelector('[data-panel-id="palette"]')).toBeNull();
+    expect(t.host.querySelector('[data-panel-id="activity"]')).toBeNull();
+    expect(t.host.querySelectorAll('.tilery__divider')).toHaveLength(0);
+    expect(t.host.querySelectorAll('.tilery__edge-resize-handle')).toHaveLength(
+      0,
+    );
+    // The floating panel still exists in state — it is hidden, not destroyed.
+    expect(t.controller().getPanel('palette')).not.toBeNull();
+
+    act(() => t.controller().restorePanel('editor'));
+    expect(panelIds(t.host).sort()).toEqual([
+      'activity',
+      'editor',
+      'palette',
+      'sidebar',
+    ]);
+    t.cleanup();
+  });
+
+  it('maximizes a floating panel alone, hiding the tiled and edge layers', () => {
+    const t = mount(coexistenceLayout());
+
+    act(() => t.controller().maximizePanel('palette'));
+    expect(panelIds(t.host)).toEqual(['palette']);
+    expect(t.host.querySelector('[data-panel-id="editor"]')).toBeNull();
+    expect(t.host.querySelector('[data-panel-id="activity"]')).toBeNull();
+
+    // Restoring brings every layer back; maximizing the edge panel then isolates it.
+    act(() => t.controller().restorePanel('palette'));
+    act(() => t.controller().maximizePanel('activity'));
+    expect(panelIds(t.host)).toEqual(['activity']);
+    expect(t.host.querySelector('[data-panel-id="palette"]')).toBeNull();
+    t.cleanup();
+  });
 });
 
 describe('Tilery — panel action UI', () => {
@@ -3195,6 +3364,159 @@ describe('Tilery — drag flow covers the drop overlay path', () => {
     );
     expect(t.controller().getPanel('term')!.inset.top).toBeCloseTo(100 / 3);
     expect(t.controller().getPanel('term')!.inset.bottom).toBeCloseTo(100 / 3);
+    t.cleanup();
+  });
+
+  it('shows a root split overlay on the left, right, and top main-layer edges', () => {
+    const cases = [
+      { zone: 'left', panel: 'term', x: 4, y: 400 },
+      { zone: 'right', panel: 'sidebar', x: 996, y: 400 },
+      { zone: 'top', panel: 'term', x: 620, y: 4 },
+    ] as const;
+    for (const c of cases) {
+      const t = mount(lShapeLayout());
+      const bar = t.host.querySelector<HTMLElement>(
+        `.tilery__panel[data-panel-id="${c.panel}"] .tilery__tab-bar`,
+      )!;
+      bar.setPointerCapture = () => {};
+      bar.releasePointerCapture = () => {};
+      const down = pointerEvent({ clientX: 500, clientY: 16, pointerId: 30 });
+      Object.assign(down as unknown as Record<string, unknown>, {
+        currentTarget: bar,
+        target: bar,
+      });
+      act(() => {
+        reactProps(bar).onPointerDown(down);
+        reactProps(bar).onPointerMove(
+          pointerEvent({ clientX: c.x, clientY: c.y, pointerId: 30 }),
+        );
+      });
+      const overlay = t.host.querySelector<HTMLElement>(
+        '.tilery__drop-overlay',
+      );
+      expect(overlay?.dataset.rootZone, `${c.zone} overlay`).toBe('true');
+      expect(overlay?.dataset.zone).toBe(c.zone);
+      t.cleanup();
+    }
+  });
+
+  it('offers a root split when dragging a tab in a single multi-tab panel', () => {
+    const t = mount({
+      type: 'panel',
+      id: 'solo',
+      tabs: [
+        { id: 'one', data: { title: 'One' } },
+        { id: 'two', data: { title: 'Two' } },
+      ],
+    });
+    const tab = t.host.querySelector<HTMLElement>(
+      '.tilery__tab[data-tab-id="two"]',
+    )!;
+    act(() => {
+      reactProps(tab).onPointerDown(
+        pointerEvent({ clientX: 500, clientY: 16, pointerId: 31 }),
+      );
+      reactProps(tab).onPointerMove(
+        pointerEvent({ clientX: 996, clientY: 400, pointerId: 31 }),
+      );
+    });
+    // A single panel with multiple tabs still permits a root-edge split.
+    expect(t.host.querySelector('.tilery__drop-overlay')).not.toBeNull();
+    t.cleanup();
+  });
+
+  it('suppresses the root split when a lone tiled panel cannot divide', () => {
+    const t = mount({
+      type: 'root',
+      main: {
+        type: 'panel',
+        id: 'only',
+        tabs: [{ id: 'solo', data: { title: 'Solo' } }],
+      },
+      edges: {
+        left: {
+          type: 'edgePanel',
+          id: 'edge',
+          size: 20,
+          tabs: [{ id: 'e', data: { title: 'E' } }],
+        },
+      },
+    });
+    const tab = t.host.querySelector<HTMLElement>(
+      '.tilery__tab[data-tab-id="solo"]',
+    )!;
+    act(() => {
+      reactProps(tab).onPointerDown(
+        pointerEvent({ clientX: 500, clientY: 16, pointerId: 41 }),
+      );
+      reactProps(tab).onPointerMove(
+        pointerEvent({ clientX: 4, clientY: 400, pointerId: 41 }),
+      );
+    });
+    // The only tiled panel (single tab) cannot root-split, so no root overlay.
+    const overlay = t.host.querySelector<HTMLElement>('.tilery__drop-overlay');
+    expect(overlay?.dataset.rootZone).not.toBe('true');
+    t.cleanup();
+  });
+
+  it('suppresses split feedback over an edge panel body', () => {
+    const t = mount({
+      type: 'root',
+      main: {
+        type: 'panel',
+        id: 'main',
+        tabs: [
+          { id: 'm1', data: { title: 'M1' } },
+          { id: 'm2', data: { title: 'M2' } },
+        ],
+      },
+      edges: {
+        left: {
+          type: 'edgePanel',
+          id: 'edge',
+          size: 30,
+          tabs: [{ id: 'e', data: { title: 'E' } }],
+        },
+      },
+    });
+    const tab = t.host.querySelector<HTMLElement>(
+      '.tilery__tab[data-tab-id="m2"]',
+    )!;
+    const edgePanel = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="edge"]',
+    )!;
+    stubElementRect(edgePanel, { left: 0, top: 0, width: 300, height: 800 });
+    act(() => {
+      reactProps(tab).onPointerDown(
+        pointerEvent({ clientX: 500, clientY: 16, pointerId: 42 }),
+      );
+      // Hover the edge panel's top zone (non-center), away from the root edge.
+      reactProps(tab).onPointerMove(
+        pointerEvent({ clientX: 150, clientY: 80, pointerId: 42 }),
+      );
+    });
+    // Edge panels only accept center (tab-bar) drops, so no split overlay shows.
+    expect(t.host.querySelector('.tilery__drop-overlay')).toBeNull();
+    expect(t.host.querySelector('.tilery__drag-ghost')).not.toBeNull();
+    t.cleanup();
+  });
+
+  it('lets a floating panel tab start a root split', () => {
+    const t = mount(floatingLayout());
+    const tab = t.host.querySelector<HTMLElement>(
+      '.tilery__tab[data-tab-id="palette-tab"]',
+    )!;
+    act(() => {
+      reactProps(tab).onPointerDown(
+        pointerEvent({ clientX: 200, clientY: 120, pointerId: 43 }),
+      );
+      reactProps(tab).onPointerMove(
+        pointerEvent({ clientX: 4, clientY: 400, pointerId: 43 }),
+      );
+    });
+    // A non-tiled (floating) source is always allowed to root-split.
+    const overlay = t.host.querySelector<HTMLElement>('.tilery__drop-overlay');
+    expect(overlay?.dataset.rootZone).toBe('true');
     t.cleanup();
   });
 

@@ -59,8 +59,9 @@ export function tileryEdgePanelIdBySide(
   const bySide: Partial<Record<TileryEdge, TileryPanelId>> = {};
   for (const panelId of tileryEdgePanelOrderFromState(state)) {
     const panel = state.panels[panelId];
-    /* v8 ignore next 2 -- the order helper yields exactly one edge panel per side. */
+    /* v8 ignore next -- the order helper yields only edge panels. */
     if (panel?.kind !== 'edge') continue;
+    /* v8 ignore next -- public layouts hold at most one edge panel per side. */
     if (bySide[panel.edge.side]) continue;
     bySide[panel.edge.side] = panel.id;
   }

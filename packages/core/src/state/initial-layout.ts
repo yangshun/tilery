@@ -93,11 +93,32 @@ export function tileryCreateInitialState(
     tabs: ctx.tabs,
     layout,
   };
-  const next = tileryNormalizeEdgePanelOrders(
+  const synced = tileryNormalizeEdgePanelOrders(
     tilerySyncLayoutPanels(state, layout),
   );
+  // Once sizes are normalized, pin each node's `defaultSize` to its resolved
+  // `size` when it was omitted. `size` may have been derived (e.g. a group
+  // that shares the remaining space), so deferring this until after
+  // normalization keeps double-click reset restoring the initial proportions
+  // for derived sizes too — and makes getLayout()/setLayout() a fixed point
+  // instead of back-filling `defaultSize` from a serialized `size` on reload.
+  const next = synced.layout
+    ? { ...synced, layout: resolveLayoutDefaultSizes(synced.layout) }
+    : synced;
   tileryWarnForConstraintDiagnostics(next);
   return next;
+}
+
+function resolveLayoutDefaultSizes(node: TileryLayoutTree): TileryLayoutTree {
+  if (node.kind === 'panel') {
+    return node.defaultSize === undefined && node.size !== undefined
+      ? { ...node, defaultSize: node.size }
+      : node;
+  }
+  const children = node.children.map(resolveLayoutDefaultSizes);
+  return node.defaultSize === undefined && node.size !== undefined
+    ? { ...node, defaultSize: node.size, children }
+    : { ...node, children };
 }
 
 function buildInitialLayoutTree(

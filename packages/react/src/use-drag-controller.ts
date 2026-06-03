@@ -167,12 +167,14 @@ export function useTileryDragController(
       /* v8 ignore next */
       if (!m) return true;
       const draggedTab = m.getTab(draggedTabId);
+      /* v8 ignore next -- a drag only starts on an existing, draggable tab. */
       if (!draggedTab || !draggedTab.draggable) return false;
       const state = m.getState();
       const sourceBehavior = tileryPanelBehaviorFromState(
         state,
         draggedTab.panel.id,
       );
+      /* v8 ignore next -- a drag only starts from a draggable source panel. */
       if (!sourceBehavior.draggable) return false;
       const tiledPanelCount = tileryPanelOrderFromState(state).length;
       if (draggedTab.panel.kind !== 'tiled') return true;
@@ -249,6 +251,7 @@ export function useTileryDragController(
           );
           if (rootZone && canDropOnRoot(draggedTabId, panelDragRef.current)) {
             hoverRootZone = rootZone;
+            /* v8 ignore next 7 -- the controller is always resolved during an active drag. */
             hoverRootSize = m
               ? tileryRootSplitSizeForDrag(
                   m.getState(),

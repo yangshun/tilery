@@ -16,7 +16,7 @@ import {
   tileryPopoutWindowFeatureString,
   tileryResizeFloatingBounds,
 } from './floating';
-import { tileryCreateInitialState } from './reducer';
+import { tileryCreateInitialState, tileryReducer } from './reducer';
 import type { TileryFloatingPanelBounds, TileryPanelState } from '../types';
 
 describe('floating bounds helpers', () => {
@@ -179,5 +179,33 @@ describe('floating bounds helpers', () => {
     );
     expect(tileryFloatingZIndex(2)).toBe(22);
     expect(tileryNextFloatingZIndex(state)).toBe(22);
+  });
+});
+
+describe('floating an edge panel', () => {
+  it('detaches a pinned edge panel into the floating layer', () => {
+    let state = tileryCreateInitialState({
+      type: 'root',
+      main: { type: 'panel', id: 'center', tabs: [{ id: 'c', data: {} }] },
+      edges: {
+        left: {
+          type: 'edgePanel',
+          id: 'L',
+          size: 20,
+          tabs: [{ id: 'l', data: {} }],
+        },
+      },
+    });
+    expect(state.panels.L?.kind).toBe('edge');
+
+    state = tileryReducer(state, {
+      type: 'PANEL_FLOAT',
+      panelId: 'L',
+      bounds: { x: 5, y: 5, width: 30, height: 30 },
+    });
+
+    expect(state.panels.L?.kind).toBe('floating');
+    expect(state.edgePanelOrder ?? []).not.toContain('L');
+    expect(state.floatingPanelOrder).toContain('L');
   });
 });

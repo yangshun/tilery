@@ -268,6 +268,55 @@ describe('TileryController lookups', () => {
       ],
     });
   });
+  it('resolves an omitted defaultSize to the derived size for idempotent snapshots', () => {
+    const { controller } = makeStore();
+
+    controller.setLayout({
+      type: 'group',
+      direction: 'vertical',
+      children: [
+        // No `size`: this group derives the remaining 70% of the column.
+        {
+          type: 'group',
+          direction: 'horizontal',
+          children: [
+            {
+              type: 'panel',
+              id: 'A',
+              tabs: [{ id: 'a', data: { title: 'A' } }],
+            },
+            {
+              type: 'panel',
+              id: 'B',
+              tabs: [{ id: 'b', data: { title: 'B' } }],
+            },
+          ],
+        },
+        {
+          type: 'panel',
+          id: 'C',
+          size: 30,
+          tabs: [{ id: 'c', data: { title: 'C' } }],
+        },
+      ],
+    });
+
+    const first = controller.getLayout<{ title: string }>();
+    expect(first.type).toBe('group');
+    if (first.type === 'group') {
+      const inner = first.children[0]!;
+      expect(inner.type).toBe('group');
+      if (inner.type === 'group') {
+        // The derived size is pinned as the defaultSize, not left undefined.
+        expect(inner.size).toBeCloseTo(70);
+        expect(inner.defaultSize).toBe(inner.size);
+      }
+    }
+
+    // getLayout() is a fixed point: save + restore + re-read is unchanged.
+    controller.setLayout(JSON.parse(JSON.stringify(first)));
+    expect(controller.getLayout()).toEqual(first);
+  });
   it('round-trips floating panels through layout snapshots', () => {
     const { controller, getState } = makeStore();
 

@@ -1066,4 +1066,178 @@ describe('tileryRootSplitSizeForDrag', () => {
       tileryRootSplitSizeForDrag(state, 'side', 'bottom', true),
     ).toBeCloseTo(100 / 3);
   });
+
+  it('removes a single-tab source panel but keeps the layout for a multi-tab drag', () => {
+    const state: TileryLayoutState = {
+      panels: {
+        A: {
+          id: 'A',
+          kind: 'tiled',
+          inset: { top: 0, right: 50, bottom: 0, left: 0 },
+          tabs: ['a1'],
+          activeTabId: 'a1',
+          fullScreen: false,
+        },
+        B: {
+          id: 'B',
+          kind: 'tiled',
+          inset: { top: 0, right: 0, bottom: 0, left: 50 },
+          tabs: ['b1', 'b2'],
+          activeTabId: 'b1',
+          fullScreen: false,
+        },
+      },
+      panelOrder: ['A', 'B'],
+      tabs: {
+        a1: {
+          id: 'a1',
+          panelId: 'A',
+          data: {},
+          closable: true,
+          draggable: true,
+        },
+        b1: {
+          id: 'b1',
+          panelId: 'B',
+          data: {},
+          closable: true,
+          draggable: true,
+        },
+        b2: {
+          id: 'b2',
+          panelId: 'B',
+          data: {},
+          closable: true,
+          draggable: true,
+        },
+      },
+      layout: {
+        kind: 'split',
+        id: 'r',
+        direction: 'horizontal',
+        children: [
+          { kind: 'panel', panelId: 'A', size: 50 },
+          { kind: 'panel', panelId: 'B', size: 50 },
+        ],
+      },
+    };
+
+    // Single-tab panel A: dragging its only tab removes the panel first.
+    expect(
+      tileryRootSplitSizeForDrag(state, 'a1', 'bottom', false),
+    ).toBeGreaterThan(0);
+    // Multi-tab panel B: a single-tab drag leaves the panel in place.
+    expect(
+      tileryRootSplitSizeForDrag(state, 'b1', 'bottom', false),
+    ).toBeGreaterThan(0);
+
+    // A non-tiled (floating) source never removes anything from the tiled tree.
+    const withFloating: TileryLayoutState = {
+      ...state,
+      panels: {
+        ...state.panels,
+        F: {
+          id: 'F',
+          kind: 'floating',
+          inset: { top: 10, right: 10, bottom: 10, left: 10 },
+          tabs: ['f1'],
+          activeTabId: 'f1',
+          fullScreen: false,
+          behavior: { resizable: true, draggable: true, droppable: true },
+          floating: {
+            bounds: { x: 0, y: 0, width: 30, height: 30 },
+            zIndex: 10,
+          },
+        },
+      },
+      floatingPanelOrder: ['F'],
+      tabs: {
+        ...state.tabs,
+        f1: {
+          id: 'f1',
+          panelId: 'F',
+          data: {},
+          closable: true,
+          draggable: true,
+        },
+      },
+    };
+    expect(
+      tileryRootSplitSizeForDrag(withFloating, 'f1', 'right', false),
+    ).toBeGreaterThan(0);
+  });
+
+  it('falls back to 50 when the dragged tab or its panel is absent', () => {
+    const empty: TileryLayoutState = {
+      panels: {},
+      panelOrder: [],
+      tabs: {},
+      layout: null,
+    };
+    expect(tileryRootSplitSizeForDrag(empty, 'nope', 'right', false)).toBe(50);
+
+    const dangling: TileryLayoutState = {
+      panels: {},
+      panelOrder: [],
+      tabs: {
+        t: {
+          id: 't',
+          panelId: 'gone',
+          data: {},
+          closable: true,
+          draggable: true,
+        },
+      },
+      layout: null,
+    };
+    expect(tileryRootSplitSizeForDrag(dangling, 't', 'left', false)).toBe(50);
+  });
+});
+
+describe('tileryCommitDrag — root zone without a precomputed size', () => {
+  it('derives the split size when hoverRootSize is undefined', () => {
+    const calls: { tabId: TileryTabId; target: unknown }[] = [];
+    const controller = {
+      getTab: (id: TileryTabId) => ({
+        id,
+        draggable: true,
+        panel: {
+          id: 'SOURCE',
+          tabs: [],
+          inset: { top: 0, right: 0, bottom: 0, left: 0 },
+        },
+      }),
+      getState: (): TileryLayoutState => ({
+        panels: {},
+        panelOrder: [],
+        tabs: {},
+        layout: null,
+      }),
+      moveTab: (tabId: TileryTabId, target: unknown) =>
+        calls.push({ tabId, target }),
+    } as unknown as TileryController;
+
+    tileryCommitDrag(
+      controller,
+      {
+        tabId: 'TX',
+        pointerId: 1,
+        startX: 0,
+        startY: 0,
+        x: 0,
+        y: 0,
+        hoverTabBar: null,
+        hoverPanelId: null,
+        hoverZone: null,
+        hoverRootZone: 'bottom',
+      } as TileryDragState,
+      'TX',
+    );
+
+    // Empty state => source tab missing in state => default 50.
+    expect(calls[0]).toEqual({
+      tabId: 'TX',
+      target: { splitRoot: true, direction: 'bottom', size: 50 },
+    });
+  });
 });

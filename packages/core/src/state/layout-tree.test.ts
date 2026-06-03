@@ -28,6 +28,7 @@ import {
   tilerySwapPanelsInLayout,
   tilerySyncLayoutPanels,
 } from './layout-tree';
+import { tileryCreateInitialState } from './reducer';
 
 function panel(id: string, inset: TileryInset): TileryPanelState {
   return {
@@ -1251,5 +1252,28 @@ describe('tree divider resize', () => {
       { kind: 'split' }
     >;
     expect(normalized.children[0]!.defaultSize).toBeUndefined();
+  });
+});
+
+describe('tilerySyncLayoutPanels edge ordering without a tiled layout', () => {
+  it('resyncs a stale edge order while the floating order is unchanged', () => {
+    const base = tileryCreateInitialState({
+      type: 'root',
+      main: { type: 'empty' },
+      edges: {
+        left: {
+          type: 'edgePanel',
+          id: 'E',
+          size: 20,
+          tabs: [{ id: 'e', data: {} }],
+        },
+      },
+    });
+    expect(base.layout).toBeNull();
+
+    // Corrupt only the edge order; the floating order ([]) already matches.
+    const stale = { ...base, edgePanelOrder: [] };
+    const synced = tilerySyncLayoutPanels(stale, null);
+    expect(synced.edgePanelOrder).toEqual(['E']);
   });
 });

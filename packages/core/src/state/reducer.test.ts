@@ -16,6 +16,7 @@ import {
   tilerySetEdgePanelSize,
 } from './edges';
 import { tileryDeriveDividers, tileryDeriveJunctions } from './layout-math';
+import { tileryCreateLayoutSnapshot } from './snapshot';
 import { createStateFromPanels } from './test-helpers';
 import type { TileryLayoutState } from '../types';
 
@@ -3988,5 +3989,114 @@ describe('tileryReducer — panel mode state', () => {
         },
       }),
     ).toBe(state);
+  });
+});
+
+describe('edge panel initialization and resize defaults', () => {
+  it('generates tab ids, honors fullscreen, and falls back for a bad active tab', () => {
+    const state = tileryCreateInitialState({
+      type: 'root',
+      main: { type: 'panel', id: 'center', tabs: [{ id: 'c', data: {} }] },
+      edges: {
+        left: {
+          type: 'edgePanel',
+          id: 'L',
+          size: 20,
+          fullScreen: true,
+          activeTabId: 'does-not-exist',
+          // No tab id provided => one is generated.
+          tabs: [{ data: { title: 'Files' } }],
+        },
+      },
+    });
+
+    const edge = state.panels.L;
+    expect(edge?.kind).toBe('edge');
+    expect(edge?.fullScreen).toBe(true);
+    // Exactly one tab, with a generated id, selected as the fallback active tab.
+    expect(edge?.tabs).toHaveLength(1);
+    const generatedId = edge!.tabs[0]!;
+    expect(generatedId).not.toBe('does-not-exist');
+    expect(edge?.activeTabId).toBe(generatedId);
+  });
+
+  it('auto-ids an edge panel, allows no tabs, and ignores a second fullscreen request', () => {
+    const state = tileryCreateInitialState({
+      type: 'root',
+      // The main panel claims fullscreen first.
+      main: {
+        type: 'panel',
+        id: 'center',
+        fullScreen: true,
+        tabs: [{ id: 'c', data: {} }],
+      },
+      edges: {
+        // No id (auto-generated), no tabs (null active tab), fullscreen ignored.
+        left: { type: 'edgePanel', size: 20, fullScreen: true, tabs: [] },
+      },
+    });
+
+    const edgeId = (state.edgePanelOrder ?? [])[0]!;
+    expect(edgeId).toBeDefined();
+    const edge = state.panels[edgeId];
+    expect(edge?.kind).toBe('edge');
+    expect(edge?.tabs).toHaveLength(0);
+    expect(edge?.activeTabId).toBeNull();
+    // The main panel kept fullscreen; the edge did not steal it.
+    expect(edge?.fullScreen).toBe(false);
+    expect(state.panels.center?.fullScreen).toBe(true);
+
+    // Serializing an empty edge panel resolves its active tab id to undefined.
+    const snapshot = tileryCreateLayoutSnapshot(state);
+    expect(snapshot.type).toBe('root');
+    if (snapshot.type === 'root') {
+      expect(snapshot.edges?.left).toMatchObject({
+        activeTabId: undefined,
+        tabs: [],
+      });
+    }
+  });
+
+  it('EDGE_PANEL_SIZE_SET clamps with the default minimum when none is given', () => {
+    const state = tileryCreateInitialState({
+      type: 'root',
+      main: { type: 'panel', id: 'center', tabs: [{ id: 'c', data: {} }] },
+      edges: {
+        left: {
+          type: 'edgePanel',
+          id: 'L',
+          size: 20,
+          tabs: [{ id: 'l', data: {} }],
+        },
+      },
+    });
+
+    // Drag well below the default 10% floor — it clamps up to the minimum.
+    const next = tileryReducer(state, {
+      type: 'EDGE_PANEL_SIZE_SET',
+      panelId: 'L',
+      size: 1,
+    });
+    const panel = next.panels.L;
+    expect(panel?.kind === 'edge' ? panel.edge.size : null).toBeCloseTo(10, 5);
+  });
+
+  it('resyncs a stale edge panel order while leaving the floating order intact', () => {
+    const base = tileryCreateInitialState({
+      type: 'root',
+      main: { type: 'panel', id: 'c', tabs: [{ id: 'c1', data: {} }] },
+      edges: {
+        left: {
+          type: 'edgePanel',
+          id: 'L',
+          size: 20,
+          tabs: [{ id: 'l1', data: {} }],
+        },
+      },
+    });
+    // Corrupt the edge order; the floating order ([]) is already consistent.
+    const stale = { ...base, edgePanelOrder: [] };
+    const next = tileryReducer(stale, { type: 'TAB_ACTIVE_SET', tabId: 'l1' });
+    expect(next.edgePanelOrder).toEqual(['L']);
   });
 });

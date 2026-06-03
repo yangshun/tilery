@@ -73,6 +73,7 @@ export function EdgeResizeHandle({
       /* v8 ignore next -- disabled handles detach pointer move before this callback is reachable. */
       if (disabled) return;
       const container = containerRef.current;
+      /* v8 ignore next -- the layout container is always mounted during an active drag. */
       if (!container) return;
       const rect = container.getBoundingClientRect();
       const size = tileryRectEdgePercent(rect, e.clientX, e.clientY, side);
