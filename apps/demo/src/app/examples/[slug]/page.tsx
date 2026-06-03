@@ -42,17 +42,17 @@ export default async function Page({ params }: ExampleRouteProps) {
   const demos = await Promise.all(
     (meta.demos ?? [{ id: 'default' }]).map(async (demo) => {
       const sourceRegion = demo.sourceRegion ?? demo.id;
+      const sourceCode =
+        extractSourceRegion(source, sourceRegion) ?? source.trim();
 
       return {
         id: demo.id,
         surface: demo.surface ?? meta.surface ?? 'boxed',
-        sourceHtml: await codeToHtml(
-          extractSourceRegion(source, sourceRegion) ?? source.trim(),
-          {
-            lang: 'tsx',
-            theme: 'github-dark-default',
-          },
-        ),
+        sourceCode,
+        sourceHtml: await codeToHtml(sourceCode, {
+          lang: 'tsx',
+          theme: 'github-dark-default',
+        }),
       };
     }),
   );

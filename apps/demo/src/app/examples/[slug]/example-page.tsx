@@ -136,6 +136,7 @@ export function ExamplePage({
   };
   demos: Array<{
     id: string;
+    sourceCode: string;
     sourceHtml: string;
     surface: ExampleDemoSurfaceMode;
   }>;
@@ -172,7 +173,7 @@ export function ExamplePage({
                 {mounted ? <Component /> : null}
               </ExampleDemoSurface>
               <div className="example-preview__source">
-                <CodeBlockFrame html={demo.sourceHtml} />
+                <CodeBlockFrame code={demo.sourceCode} html={demo.sourceHtml} />
               </div>
             </section>
           );

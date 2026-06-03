@@ -8,10 +8,11 @@ export async function CodeBlock({
   code: string;
   language?: string;
 }) {
-  const html = await codeToHtml(code.trim(), {
+  const trimmedCode = code.trim();
+  const html = await codeToHtml(trimmedCode, {
     lang: language,
     theme: 'github-dark-default',
   });
 
-  return <CodeBlockFrame html={html} />;
+  return <CodeBlockFrame code={trimmedCode} html={html} />;
 }

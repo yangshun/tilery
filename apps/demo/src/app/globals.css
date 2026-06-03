@@ -20,7 +20,7 @@ button {
   --site-surface-2: #1a1c20;
   --site-accent: #3884ff;
   --site-nav-height: 48px;
-  --site-sidebar-width: 220px;
+  --site-sidebar-width: 248px;
   --site-font: system-ui, -apple-system, sans-serif;
   --site-mono: ui-monospace, 'SF Mono', 'Cascadia Code', monospace;
 }
@@ -84,6 +84,7 @@ pre code {
 
 .code-block pre {
   font-size: 12px;
+  padding-right: 54px;
 }
 
 .code-block--collapsed {
@@ -119,6 +120,46 @@ pre code {
     rgb(22 24 28 / 0),
     rgb(22 24 28 / 0.94)
   );
+}
+
+.code-block__copy {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid #3a404a;
+  border-radius: 6px;
+  color: #c4cad4;
+  background: #20242b;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.25);
+  cursor: pointer;
+}
+
+.code-block__copy svg {
+  width: 15px;
+  height: 15px;
+}
+
+.code-block__copy:hover {
+  color: var(--site-fg);
+  background: #272d36;
+}
+
+.code-block__copy[data-state='copied'] {
+  color: #b8f5d0;
+  border-color: #377a55;
+  background: #1d3528;
+}
+
+.code-block__copy[data-state='failed'] {
+  color: #ffd1d1;
+  border-color: #8d4b4b;
+  background: #3a2528;
 }
 
 .code-block__toggle {
