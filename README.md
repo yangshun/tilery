@@ -138,6 +138,7 @@ The main component. Renders a tiling panel layout.
 | ------------------------- | ------------------------------------------------------------------ | -------- | ----------------------------------------------- |
 | `initialLayout`           | `TileryInitialLayout<TData>`                                       | Yes      | The initial panel and tab configuration         |
 | `renderTabHeader`         | `(tab: TileryTab<TData>, ctx: { isActive: boolean }) => ReactNode` | Yes      | Renders the tab button content                  |
+| `renderTabTrigger`        | `(ctx: TileryTabTriggerRenderContext<TData>) => ReactElement`      | No       | Customizes the main tab trigger element         |
 | `renderTabContent`        | `(tab: TileryTab<TData>) => ReactNode`                             | Yes      | Renders the tab panel content                   |
 | `onChange`                | `(state: TileryLayoutState) => void`                               | No       | Called after every state change                 |
 | `onResize`                | `(event: TileryResizeEvent) => void`                               | No       | Called for each divider or junction resize      |
@@ -158,6 +159,29 @@ The main component. Renders a tiling panel layout.
 | `renderPanelActions`      | `(panel, ctx) => ReactNode`                                        | No       | Appends custom content to the panel action menu |
 | `renderActionsButtonIcon` | `(panel) => ReactNode`                                             | No       | Customizes the action menu button icon          |
 | `ref`                     | `Ref<TileryController>`                                            | No       | Controller ref for programmatic control         |
+
+#### Custom tab triggers
+
+Use `renderTabTrigger` when tabs need to render as links or router components.
+Keep link metadata in your tab `data`; Tilery supplies the props that preserve
+selection, drag, and accessibility behavior.
+
+```tsx
+<Tilery
+  initialLayout={layout}
+  renderTabHeader={(tab) => <span>{tab.data.title}</span>}
+  renderTabTrigger={({ tab, props, children }) =>
+    tab.data.href ? (
+      <a href={tab.data.href} {...props}>
+        {children}
+      </a>
+    ) : (
+      <div {...props}>{children}</div>
+    )
+  }
+  renderTabContent={(tab) => <div>{tab.data.title} content</div>}
+/>
+```
 
 ### `TileryInitialLayout<TData>`
 

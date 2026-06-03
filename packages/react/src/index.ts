@@ -10,6 +10,9 @@ export {
   type TileryResizePanelChange,
   type TileryResizePhase,
   type TileryResizeSource,
+  type TileryTabTriggerProps,
+  type TileryTabTriggerRenderContext,
+  type TileryTabTriggerRenderer,
 } from './tilery';
 
 export type {

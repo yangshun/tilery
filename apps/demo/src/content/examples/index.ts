@@ -38,6 +38,7 @@ export {
   TabApiExample,
   WorkflowApiExample,
 } from './controlled/example';
+export { Example as LinkTabsExample } from './link-tabs/example';
 export {
   Example as FloatingExample,
   InitialFloatingExample,
@@ -68,6 +69,7 @@ export { metadata as panelLockingMeta } from './panel-locking/metadata';
 export { metadata as tabLockingMeta } from './tab-locking/metadata';
 export { metadata as overflowMeta } from './overflow/metadata';
 export { metadata as controlledMeta } from './controlled/metadata';
+export { metadata as linkTabsMeta } from './link-tabs/metadata';
 export { metadata as floatingMeta } from './floating/metadata';
 export { metadata as persistenceMeta } from './persistence/metadata';
 export { metadata as callbacksMeta } from './callbacks/metadata';
@@ -93,6 +95,7 @@ type ExampleSlug =
   | 'panel-locking'
   | 'tab-locking'
   | 'controlled'
+  | 'link-tabs'
   | 'persistence'
   | 'callbacks'
   | 'floating'
@@ -125,6 +128,7 @@ const exampleOrder = [
   'panel-locking',
   'tab-locking',
   'controlled',
+  'link-tabs',
   'persistence',
   'callbacks',
   'floating',
@@ -400,6 +404,31 @@ const exampleDefinitions = [
           href: '/docs/api/events',
           label: 'Events & Callbacks',
           description: 'React to the structural changes made here.',
+        },
+      ],
+    },
+  },
+  {
+    slug: 'link-tabs',
+    title: 'Link Tabs',
+    description: 'Render tab triggers as anchors or router links.',
+    category: 'App Integration',
+    demos: [{ id: 'link-tabs', sourceRegion: 'link-tabs' }],
+    guide: {
+      paragraphs: [
+        'Link tabs are a rendering concern: keep hrefs and router metadata in tab data, then use renderTabTrigger to render the tab trigger as an anchor or router component.',
+        'Tilery keeps the close button outside the trigger, so link tabs do not wrap button controls and can still close without triggering navigation or activation.',
+      ],
+      readNext: [
+        {
+          href: '/docs/api/component',
+          label: 'Component Props',
+          description: 'See the renderTabTrigger API and related render props.',
+        },
+        {
+          href: '/docs/api/control',
+          label: 'Programmatic Control',
+          description: 'Coordinate route changes with tab activation.',
         },
       ],
     },

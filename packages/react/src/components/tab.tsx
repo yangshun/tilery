@@ -2,11 +2,16 @@
 
 import { useCallback } from 'react';
 import type { TileryTab } from 'tilery/internal';
+import type {
+  TileryTabTriggerProps,
+  TileryTabTriggerRenderer,
+} from '../tilery';
 
 export type TabProps = {
   tab: TileryTab;
   isActive: boolean;
   renderHeader: (tab: TileryTab, ctx: { isActive: boolean }) => React.ReactNode;
+  renderTrigger?: TileryTabTriggerRenderer;
   onPointerDown: (e: React.PointerEvent) => void;
   onPointerMove: (e: React.PointerEvent) => void;
   onPointerUp: (e: React.PointerEvent) => void;
@@ -19,6 +24,7 @@ export function Tab({
   tab,
   isActive,
   renderHeader,
+  renderTrigger,
   onPointerDown,
   onPointerMove,
   onPointerUp,
@@ -31,6 +37,51 @@ export function Tab({
     (el: HTMLElement | null) => registerTab(tabId, el),
     [registerTab, tabId],
   );
+  const handleTriggerRef = useCallback(
+    (_el: HTMLElement | null) => undefined,
+    [],
+  );
+  const usesCustomTrigger = renderTrigger != null;
+  const triggerProps: TileryTabTriggerProps = {
+    ref: handleTriggerRef,
+    className: 'tilery__tab-trigger',
+    'data-active': isActive,
+    'data-closeable': tab.closeable,
+    'data-draggable': tab.draggable,
+    'data-tab-id': tab.id,
+    onPointerDown,
+    onPointerMove,
+    onPointerUp,
+    onPointerCancel,
+    role: 'tab',
+    'aria-selected': isActive,
+  };
+  const triggerChildren = (
+    <span className="tilery__tab-header">
+      {renderHeader(tab, { isActive })}
+    </span>
+  );
+  const trigger = renderTrigger ? (
+    renderTrigger({
+      tab,
+      isActive,
+      props: triggerProps,
+      children: triggerChildren,
+    })
+  ) : (
+    <div className="tilery__tab-trigger">{triggerChildren}</div>
+  );
+  const tabInteractionProps = usesCustomTrigger
+    ? {}
+    : {
+        onPointerDown,
+        onPointerMove,
+        onPointerUp,
+        onPointerCancel,
+        role: 'tab',
+        'aria-selected': isActive,
+      };
+
   return (
     <div
       ref={handleRef}
@@ -39,15 +90,8 @@ export function Tab({
       data-closeable={tab.closeable}
       data-draggable={tab.draggable}
       data-tab-id={tab.id}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerCancel={onPointerCancel}
-      role="tab"
-      aria-selected={isActive}>
-      <span className="tilery__tab-header">
-        {renderHeader(tab, { isActive })}
-      </span>
+      {...tabInteractionProps}>
+      {trigger}
       {tab.closeable && (
         <button
           type="button"

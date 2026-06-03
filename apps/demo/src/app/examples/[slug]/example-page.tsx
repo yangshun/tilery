@@ -33,6 +33,7 @@ import {
   PanelApiExample,
   TabApiExample,
   WorkflowApiExample,
+  LinkTabsExample,
   FloatingExample,
   InitialFloatingExample,
   NativePopoutExample,
@@ -86,6 +87,7 @@ const registry: Record<string, Record<string, React.ComponentType>> = {
     'tab-objects': TabApiExample,
     'tab-workflows': WorkflowApiExample,
   },
+  'link-tabs': { default: LinkTabsExample, 'link-tabs': LinkTabsExample },
   floating: {
     default: FloatingExample,
     'initial-floating': InitialFloatingExample,

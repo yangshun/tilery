@@ -38,6 +38,7 @@ export function PanelChrome({
   panel,
   tilery,
   renderHeader,
+  renderTabTrigger,
   registerPanel,
   registerContentSlot,
   popoutWindow = false,
@@ -97,6 +98,7 @@ export function PanelChrome({
         panel={panel}
         tilery={tilery}
         renderHeader={renderHeader}
+        renderTabTrigger={renderTabTrigger}
         {...tabBarProps}
       />
       <div ref={registerContentSlot} className="tilery__panel-content" />

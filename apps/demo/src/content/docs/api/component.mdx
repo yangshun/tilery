@@ -25,6 +25,34 @@ Use these when mounting a Tilery instance. `initialLayout` describes the workspa
 | `renderTabHeader`  | `(tab: TileryTab<TData>, ctx: { isActive: boolean }) => ReactNode` | Yes      | Renders tab button content.          |
 | `renderTabContent` | `(tab: TileryTab<TData>) => ReactNode`                             | Yes      | Renders tab panel content.           |
 
+## Custom tab triggers
+
+Use `renderTabTrigger` when the tab itself needs to render as a link or router component. Keep link metadata in your tab `data`; Tilery supplies the props that preserve selection, drag, and accessibility behavior.
+
+```tsx
+type TabData = {
+  title: string;
+  href?: string;
+};
+
+<Tilery<TabData>
+  initialLayout={layout}
+  renderTabHeader={(tab) => <span>{tab.data.title}</span>}
+  renderTabTrigger={({ tab, props, children }) =>
+    tab.data.href ? (
+      <a href={tab.data.href} {...props}>
+        {children}
+      </a>
+    ) : (
+      <div {...props}>{children}</div>
+    )
+  }
+  renderTabContent={(tab) => <Editor tab={tab} />}
+/>;
+```
+
+For client-side routing, render your router link component in the same slot and spread `props` onto the component. The close button stays outside the trigger, so link tabs do not wrap button controls.
+
 ## Layout behavior and sizing
 
 Use these when the whole instance needs global resize behavior or a default panel constraint. Per-panel constraints still belong in the layout tree.

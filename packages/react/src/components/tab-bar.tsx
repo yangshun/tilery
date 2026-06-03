@@ -5,11 +5,13 @@ import type { TileryController, TileryPanel, TileryTab } from 'tilery/internal';
 import { tileryPanelBehaviorFromState } from 'tilery/internal';
 import { PanelActions, type PanelActionsProps } from './panel-actions';
 import { Tab } from './tab';
+import type { TileryTabTriggerRenderer } from '../tilery';
 
 export type TabBarProps = {
   panel: TileryPanel;
   tilery: TileryController;
   renderHeader: (tab: TileryTab, ctx: { isActive: boolean }) => React.ReactNode;
+  renderTabTrigger?: TileryTabTriggerRenderer;
   registerTabBar: (el: HTMLElement | null) => void;
   registerTab: (tabId: string, el: HTMLElement | null) => void;
   onTabPointerDown: (e: React.PointerEvent, tabId: string) => void;
@@ -41,6 +43,7 @@ function TabRow({
   tab,
   isActive,
   renderHeader,
+  renderTabTrigger,
   registerTab,
   onTabPointerDown,
   onTabPointerMove,
@@ -54,6 +57,7 @@ function TabRow({
 } & Pick<
   TabBarProps,
   | 'renderHeader'
+  | 'renderTabTrigger'
   | 'registerTab'
   | 'onTabPointerDown'
   | 'onTabPointerMove'
@@ -78,6 +82,7 @@ function TabRow({
       tab={tab}
       isActive={isActive}
       renderHeader={renderHeader}
+      renderTrigger={renderTabTrigger}
       registerTab={registerTab}
       onPointerDown={handleDown}
       onPointerMove={onTabPointerMove}
@@ -112,6 +117,7 @@ export function TabBar({
   panel,
   tilery,
   renderHeader,
+  renderTabTrigger,
   registerTabBar,
   registerTab,
   onTabPointerDown,
@@ -285,6 +291,7 @@ export function TabBar({
             tab={tab}
             isActive={activeTabId === tab.id}
             renderHeader={renderHeader}
+            renderTabTrigger={renderTabTrigger}
             registerTab={registerTab}
             onTabPointerDown={onTabPointerDown}
             onTabPointerMove={onTabPointerMove}

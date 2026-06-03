@@ -26,7 +26,7 @@ import type { TileryInitialLayout, TileryController } from 'tilery/internal';
 // test mounts a small layout, performs a single interaction, and asserts
 // the resulting DOM and the controller state.
 
-type Data = { title: string };
+type Data = { title: string; href?: string };
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -99,6 +99,17 @@ function singlePanelLayout(): TileryInitialLayout<Data> {
     type: 'panel',
     id: 'solo',
     tabs: [{ id: 'only', data: { title: 'Only' } }],
+  };
+}
+
+function linkTabsLayout(): TileryInitialLayout<Data> {
+  return {
+    type: 'panel',
+    id: 'links',
+    tabs: [
+      { id: 'overview', data: { title: 'Overview', href: '/overview' } },
+      { id: 'settings', data: { title: 'Settings', href: '/settings' } },
+    ],
   };
 }
 
@@ -512,6 +523,65 @@ describe('Tilery — rendering', () => {
       'bar.ts×',
       'bash×',
     ]);
+    t.cleanup();
+  });
+
+  it('renders custom tab triggers without wrapping the close button', () => {
+    const t = mount(linkTabsLayout(), undefined, {
+      renderTabTrigger: ({ tab, props, children }) => (
+        <a href={tab.data.href} {...props}>
+          {children}
+        </a>
+      ),
+    });
+
+    const link = t.host.querySelector<HTMLAnchorElement>(
+      'a.tilery__tab-trigger[data-tab-id="overview"]',
+    )!;
+    expect(link).not.toBeNull();
+    expect(link.getAttribute('href')).toBe('/overview');
+    expect(link.getAttribute('role')).toBe('tab');
+    expect(link.getAttribute('aria-selected')).toBe('true');
+    expect(link.textContent).toBe('Overview');
+    expect(link.querySelector('.tilery__tab-close')).toBeNull();
+    expect(
+      t.host.querySelector(
+        '.tilery__tab[data-tab-id="overview"] > .tilery__tab-close',
+      ),
+    ).not.toBeNull();
+    t.cleanup();
+  });
+
+  it('activates and closes tabs when using anchor tab triggers', () => {
+    const t = mount(linkTabsLayout(), undefined, {
+      renderTabTrigger: ({ tab, props, children }) => (
+        <a href={tab.data.href} {...props}>
+          {children}
+        </a>
+      ),
+    });
+    const settings = t.host.querySelector<HTMLAnchorElement>(
+      'a.tilery__tab-trigger[data-tab-id="settings"]',
+    )!;
+
+    act(() => {
+      reactProps(settings).onPointerDown(pointerEvent());
+      reactProps(settings).onPointerUp(pointerEvent());
+    });
+
+    expect(t.controller().getPanel('links')!.activeTab?.id).toBe('settings');
+
+    const overviewClose = t.host.querySelector<HTMLButtonElement>(
+      '.tilery__tab[data-tab-id="overview"] > .tilery__tab-close',
+    )!;
+    act(() => {
+      reactProps(overviewClose).onClick({
+        stopPropagation() {},
+      });
+    });
+
+    expect(t.controller().getTab('overview')).toBeNull();
+    expect(t.controller().getPanel('links')!.activeTab?.id).toBe('settings');
     t.cleanup();
   });
 

@@ -158,7 +158,7 @@
   align-items: center;
   gap: 8px;
   max-width: var(--tilery-tab-max-width, 180px);
-  padding: 0 6px 0 12px;
+  padding: 0 6px 0 0;
   height: 100%;
   font-size: var(--tilery-tab-font-size, 12px);
   background: transparent;
@@ -167,6 +167,7 @@
   cursor: pointer;
   white-space: nowrap;
   touch-action: none;
+  overflow: hidden;
 }
 
 .tilery__tab[data-draggable='false'] {
@@ -174,6 +175,31 @@
 }
 
 .tilery__tab[data-closeable='false'] {
+  gap: 0;
+  padding: 0;
+}
+
+.tilery__tab-trigger {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 0 0 12px;
+  background: transparent;
+  color: inherit;
+  border: 0;
+  cursor: inherit;
+  font: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  text-decoration: none;
+  white-space: nowrap;
+  touch-action: none;
+}
+
+.tilery__tab[data-closeable='false'] .tilery__tab-trigger {
   padding: 0 12px;
 }
 

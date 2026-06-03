@@ -69,6 +69,28 @@ export type TileryPanelActionsRenderContext = {
   closeMenu: () => void;
 };
 
+export type TileryTabTriggerProps = React.HTMLAttributes<HTMLElement> & {
+  ref: React.RefCallback<HTMLElement>;
+  className: string;
+  role: 'tab';
+  'aria-selected': boolean;
+  'data-active': boolean;
+  'data-closeable': boolean;
+  'data-draggable': boolean;
+  'data-tab-id': TileryTabId;
+};
+
+export type TileryTabTriggerRenderContext<TData = unknown> = {
+  tab: TileryTab<TData>;
+  isActive: boolean;
+  props: TileryTabTriggerProps;
+  children: React.ReactNode;
+};
+
+export type TileryTabTriggerRenderer<TData = unknown> = (
+  ctx: TileryTabTriggerRenderContext<TData>,
+) => React.ReactElement;
+
 export type TileryResizeInput = 'keyboard' | 'pointer';
 export type TileryResizePhase = 'resize' | 'end';
 export type TileryResizeDimension = 'width' | 'height';
@@ -121,6 +143,7 @@ export type TileryProps<TData = unknown> = {
     tab: TileryTab<TData>,
     ctx: { isActive: boolean },
   ) => React.ReactNode;
+  renderTabTrigger?: TileryTabTriggerRenderer<TData>;
   renderTabContent: (tab: TileryTab<TData>) => React.ReactNode;
   onChange?: (state: TileryLayoutState) => void;
   onResize?: (event: TileryResizeEvent) => void;
@@ -152,6 +175,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
   const {
     initialLayout,
     renderTabHeader,
+    renderTabTrigger,
     renderTabContent,
     onChange,
     onResize,
@@ -575,6 +599,14 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
       renderTabHeader(tab as TileryTab<TData>, ctx),
     [renderTabHeader],
   );
+  const renderTabTriggerAdapter = useCallback<TileryTabTriggerRenderer>(
+    (ctx) =>
+      renderTabTrigger!({
+        ...ctx,
+        tab: ctx.tab as TileryTab<TData>,
+      }),
+    [renderTabTrigger],
+  );
 
   const panelEls = useRef<Map<TileryPanelId, HTMLElement>>(new Map());
   const panelCbCache = useRef<
@@ -656,6 +688,9 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
               panel={panel}
               tilery={tileryRef.current!}
               renderHeader={renderHeaderAdapter}
+              renderTabTrigger={
+                renderTabTrigger ? renderTabTriggerAdapter : undefined
+              }
               registerPanel={getRegisterPanel(panelId)}
               registerContentSlot={getRegisterContentSlot(panelId)}
               popoutWindow={Boolean(popoutRoot)}
