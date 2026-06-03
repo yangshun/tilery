@@ -75,6 +75,74 @@ pre code {
   background-color: var(--site-surface) !important;
 }
 
+.code-block {
+  position: relative;
+  border: 1px solid var(--site-border);
+  border-radius: 6px;
+  background: var(--site-surface);
+}
+
+.code-block pre {
+  font-size: 12px;
+}
+
+.code-block--collapsed {
+  overflow: hidden;
+}
+
+.code-block__content {
+  border-radius: inherit;
+}
+
+.code-block .shiki {
+  border: 0;
+  border-radius: 0;
+  background-color: transparent !important;
+}
+
+.code-block--collapsed .code-block__content {
+  max-height: 360px;
+  overflow: hidden;
+}
+
+.code-block--collapsed::after {
+  content: '';
+  position: absolute;
+  right: 1px;
+  bottom: 1px;
+  left: 1px;
+  height: 96px;
+  pointer-events: none;
+  border-radius: 0 0 6px 6px;
+  background: linear-gradient(
+    to bottom,
+    rgb(22 24 28 / 0),
+    rgb(22 24 28 / 0.94)
+  );
+}
+
+.code-block__toggle {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  transform: translateX(-50%);
+  min-height: 30px;
+  padding: 0 12px;
+  border: 1px solid #3a404a;
+  border-radius: 6px;
+  color: var(--site-fg);
+  background: #20242b;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.35);
+  cursor: pointer;
+}
+
+.code-block__toggle:hover {
+  background: #272d36;
+}
+
 h1 {
   font-size: 28px;
   font-weight: 700;
@@ -427,10 +495,6 @@ td code {
   border: 1px solid var(--site-border);
   border-radius: 6px;
   background: #111318;
-}
-
-.example-preview__source pre {
-  font-size: 14px;
 }
 
 .example-preview__source {

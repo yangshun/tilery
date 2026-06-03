@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { CodeBlockFrame } from '../../../components/code-block-frame';
 import { PageNavigation } from '../../../components/page-navigation';
 import type { SiteNavigationItem } from '../../../content/navigation';
 import {
@@ -164,10 +165,9 @@ export function ExamplePage({
               <div className="example-preview__demo-surface example-preview__demo-surface--boxed">
                 {mounted ? <Component /> : null}
               </div>
-              <div
-                className="example-preview__source"
-                dangerouslySetInnerHTML={{ __html: demo.sourceHtml }}
-              />
+              <div className="example-preview__source">
+                <CodeBlockFrame html={demo.sourceHtml} />
+              </div>
             </section>
           );
         })}

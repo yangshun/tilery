@@ -1,4 +1,5 @@
 import { codeToHtml } from 'shiki';
+import { CodeBlockFrame } from './code-block-frame';
 
 export async function CodeBlock({
   code,
@@ -12,7 +13,5 @@ export async function CodeBlock({
     theme: 'github-dark-default',
   });
 
-  return (
-    <div className="code-block" dangerouslySetInnerHTML={{ __html: html }} />
-  );
+  return <CodeBlockFrame html={html} />;
 }
