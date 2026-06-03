@@ -12,21 +12,92 @@ button {
 }
 
 :root {
+  color-scheme: dark;
+
   --site-bg: #0e0f12;
   --site-fg: #d9dde3;
+  --site-fg-soft: #b8bec8;
   --site-muted: #9aa1ab;
   --site-border: #2a2d33;
   --site-surface: #16181c;
   --site-surface-2: #1a1c20;
+  --site-demo-bg: #111318;
+  --site-shell-bg: #08090b;
   --site-accent: #3884ff;
+  --site-link-hover: #8fb9ff;
+
+  --site-overlay: rgba(255, 255, 255, 0.06);
+  --site-overlay-soft: rgba(255, 255, 255, 0.04);
+  --site-overlay-weak: rgba(255, 255, 255, 0.02);
+  --site-sidebar-bg: rgba(255, 255, 255, 0.04);
+  --site-sidebar-border: rgba(255, 255, 255, 0.06);
+  --site-shell-border: rgba(255, 255, 255, 0.1);
+  --site-nav-hover-border: rgba(143, 185, 255, 0.56);
+  --site-shadow: 0 28px 100px rgba(0, 0, 0, 0.34);
+
+  --site-button-primary-bg: #f2f5fa;
+  --site-button-primary-fg: #050608;
+
+  --site-chrome-bg: #20242b;
+  --site-chrome-bg-hover: #272d36;
+  --site-chrome-border: #3a404a;
+  --site-chrome-fg: #c4cad4;
+
+  --site-success-fg: #b8f5d0;
+  --site-success-border: #377a55;
+  --site-success-bg: #1d3528;
+  --site-danger-fg: #ffd1d1;
+  --site-danger-border: #8d4b4b;
+  --site-danger-bg: #3a2528;
+
+  --site-fade-rgb: 22 24 28;
+
   --site-nav-height: 48px;
   --site-sidebar-width: 248px;
   --site-font: system-ui, -apple-system, sans-serif;
   --site-mono: ui-monospace, 'SF Mono', 'Cascadia Code', monospace;
 }
 
-html {
-  color-scheme: dark;
+[data-theme='light'] {
+  color-scheme: light;
+
+  --site-bg: #ffffff;
+  --site-fg: #1b1f24;
+  --site-fg-soft: #3c4450;
+  --site-muted: #5a626d;
+  --site-border: #e2e5ea;
+  --site-surface: #f3f4f6;
+  --site-surface-2: #e9ebef;
+  --site-demo-bg: #f6f7f9;
+  --site-shell-bg: #eef0f3;
+  --site-accent: #2563eb;
+  --site-link-hover: #1d4ed8;
+
+  --site-overlay: rgba(15, 23, 42, 0.07);
+  --site-overlay-soft: rgba(15, 23, 42, 0.045);
+  --site-overlay-weak: rgba(15, 23, 42, 0.025);
+  --site-sidebar-bg: rgba(15, 23, 42, 0.035);
+  --site-sidebar-border: rgba(15, 23, 42, 0.09);
+  --site-shell-border: rgba(15, 23, 42, 0.1);
+  --site-nav-hover-border: rgba(37, 99, 235, 0.5);
+  --site-shadow: 0 24px 70px rgba(15, 23, 42, 0.14);
+
+  --site-button-primary-bg: #14171b;
+  --site-button-primary-fg: #f6f7f9;
+
+  --site-chrome-bg: #ffffff;
+  --site-chrome-bg-hover: #eef0f3;
+  --site-chrome-border: #d4d9e0;
+  --site-chrome-fg: #46505f;
+
+  --site-success-fg: #146c43;
+  --site-success-border: #9cd9b5;
+  --site-success-bg: #e3f6ea;
+  --site-danger-fg: #b42318;
+  --site-danger-border: #f0b4b0;
+  --site-danger-bg: #fdeceb;
+
+  --site-fade-rgb: 243 244 246;
 }
 
 body {
@@ -69,6 +140,26 @@ pre code {
   background: none;
   padding: 0;
   font-size: inherit;
+}
+
+/*
+ * <pre> blocks rendered inside a Tilery demo are app content, not docs prose,
+ * so their border should follow the demo's own theme rather than the site
+ * theme. Without this, the global `pre` border (var(--site-border)) turns
+ * bright against the dark demo panels in light mode.
+ */
+.tilery pre {
+  border-color: var(--tilery-panel-border, #2a2d33);
+}
+
+.shiki,
+.shiki span {
+  color: var(--shiki-dark);
+}
+
+[data-theme='light'] .shiki,
+[data-theme='light'] .shiki span {
+  color: var(--shiki-light);
 }
 
 .shiki {
@@ -117,8 +208,8 @@ pre code {
   border-radius: 0 0 6px 6px;
   background: linear-gradient(
     to bottom,
-    rgb(22 24 28 / 0),
-    rgb(22 24 28 / 0.94)
+    rgb(var(--site-fade-rgb) / 0),
+    rgb(var(--site-fade-rgb) / 0.94)
   );
 }
 
@@ -132,11 +223,11 @@ pre code {
   justify-content: center;
   width: 30px;
   height: 30px;
-  border: 1px solid #3a404a;
+  border: 1px solid var(--site-chrome-border);
   border-radius: 6px;
-  color: #c4cad4;
-  background: #20242b;
-  box-shadow: 0 8px 24px rgb(0 0 0 / 0.25);
+  color: var(--site-chrome-fg);
+  background: var(--site-chrome-bg);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.12);
   cursor: pointer;
 }
 
@@ -147,19 +238,19 @@ pre code {
 
 .code-block__copy:hover {
   color: var(--site-fg);
-  background: #272d36;
+  background: var(--site-chrome-bg-hover);
 }
 
 .code-block__copy[data-state='copied'] {
-  color: #b8f5d0;
-  border-color: #377a55;
-  background: #1d3528;
+  color: var(--site-success-fg);
+  border-color: var(--site-success-border);
+  background: var(--site-success-bg);
 }
 
 .code-block__copy[data-state='failed'] {
-  color: #ffd1d1;
-  border-color: #8d4b4b;
-  background: #3a2528;
+  color: var(--site-danger-fg);
+  border-color: var(--site-danger-border);
+  background: var(--site-danger-bg);
 }
 
 .code-block__toggle {
@@ -172,16 +263,16 @@ pre code {
   transform: translateX(-50%);
   min-height: 30px;
   padding: 0 12px;
-  border: 1px solid #3a404a;
+  border: 1px solid var(--site-chrome-border);
   border-radius: 6px;
   color: var(--site-fg);
-  background: #20242b;
-  box-shadow: 0 8px 24px rgb(0 0 0 / 0.35);
+  background: var(--site-chrome-bg);
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.16);
   cursor: pointer;
 }
 
 .code-block__toggle:hover {
-  background: #272d36;
+  background: var(--site-chrome-bg-hover);
 }
 
 h1 {
@@ -275,8 +366,8 @@ td code {
   flex-direction: column;
   overflow: hidden;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--site-sidebar-bg);
+  border: 1px solid var(--site-sidebar-border);
 }
 
 .sidebar__header {
@@ -292,19 +383,45 @@ td code {
   gap: 4px;
 }
 
-.sidebar__github {
-  color: var(--site-fg);
-  font-size: 18px;
-  display: flex;
+.sidebar__icon-button {
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  color: var(--site-fg);
+  background: transparent;
+  font-size: 18px;
+  line-height: 0;
   text-decoration: none;
+  cursor: pointer;
+}
+
+.sidebar__icon-button:hover {
+  color: var(--site-fg);
+  background: var(--site-overlay);
+  text-decoration: none;
+}
+
+.sidebar__theme-icon {
+  display: inline-flex;
+}
+
+.sidebar__theme-icon--moon {
+  display: none;
+}
+
+[data-theme='light'] .sidebar__theme-icon--sun {
+  display: none;
+}
+
+[data-theme='light'] .sidebar__theme-icon--moon {
+  display: inline-flex;
 }
 
 .sidebar__toggle {
   display: none;
-  color: var(--site-fg);
-  background: transparent;
-  cursor: pointer;
 }
 
 .sidebar__logo {
@@ -377,15 +494,14 @@ td code {
 
 .sidebar__link:hover {
   color: var(--site-fg);
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--site-overlay);
   text-decoration: none;
 }
 
 .sidebar__link--active {
   color: var(--site-fg);
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--site-overlay);
 }
-
 
 /* Doc Page */
 .doc-description {
@@ -419,7 +535,7 @@ td code {
 }
 
 .doc-link-list__title:hover {
-  color: #8fb9ff;
+  color: var(--site-link-hover);
   text-decoration: none;
 }
 
@@ -448,13 +564,13 @@ td code {
   border: 1px solid var(--site-border);
   border-radius: 8px;
   color: var(--site-fg);
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--site-overlay-weak);
   text-decoration: none;
 }
 
 .page-navigation__link:hover {
-  border-color: rgba(143, 185, 255, 0.56);
-  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--site-nav-hover-border);
+  background: var(--site-overlay-soft);
   text-decoration: none;
 }
 
@@ -482,7 +598,7 @@ td code {
 .example-preview__description {
   max-width: 720px;
   margin-bottom: 14px;
-  color: #b8bec8;
+  color: var(--site-fg-soft);
   font-size: 15px;
 }
 
@@ -533,7 +649,7 @@ td code {
 }
 
 .example-preview__links a:hover {
-  color: #8fb9ff;
+  color: var(--site-link-hover);
 }
 
 .example-preview__case {
@@ -545,6 +661,10 @@ td code {
   overflow: hidden;
   margin-bottom: 24px;
   font-size: 16px;
+  /* Demos render dark Tilery workspaces; keep native UI (e.g. content
+     scrollbars) dark even when the site is in light mode. The themes example
+     overrides color-scheme per theme on its own wrapper. */
+  color-scheme: dark;
 }
 
 .example-preview__demo-surface .tilery {
@@ -554,7 +674,7 @@ td code {
 .example-preview__demo-surface--boxed {
   border: 1px solid var(--site-border);
   border-radius: 6px;
-  background: #111318;
+  background: var(--site-demo-bg);
 }
 
 .example-preview__source {
@@ -589,7 +709,7 @@ td code {
 
 .home-hero__lead {
   max-width: 650px;
-  color: #b8bec8;
+  color: var(--site-fg-soft);
   font-size: clamp(16px, 1.5vw, 18px);
   line-height: 1.55;
 }
@@ -618,8 +738,8 @@ td code {
 }
 
 .home-button--primary {
-  color: #050608;
-  background: #f2f5fa;
+  color: var(--site-button-primary-fg);
+  background: var(--site-button-primary-bg);
 }
 
 .home-button--secondary {
@@ -649,11 +769,12 @@ td code {
 
 .home-demo__shell {
   position: relative;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--site-shell-border);
   border-radius: 14px;
-  background: #08090b;
-  box-shadow: 0 28px 100px rgba(0, 0, 0, 0.34);
+  background: var(--site-shell-bg);
+  box-shadow: var(--site-shadow);
   overflow: hidden;
+  color-scheme: dark;
 }
 
 .home-demo__viewport {
@@ -752,7 +873,7 @@ td code {
 }
 
 .home-link-strip a:hover {
-  color: #8fb9ff;
+  color: var(--site-link-hover);
   text-decoration: none;
 }
 
@@ -810,18 +931,6 @@ td code {
 
   .sidebar__toggle {
     display: inline-flex;
-    width: 32px;
-    height: 32px;
-    align-items: center;
-    justify-content: center;
-    padding: 0 8px;
-    border-radius: 6px;
-    font-size: 20px;
-  }
-
-  .sidebar__toggle:hover {
-    color: var(--site-fg);
-    background: rgba(255, 255, 255, 0.06);
   }
 
   .sidebar__nav {

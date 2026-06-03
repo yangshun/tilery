@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { codeToHtml } from 'shiki';
 import { examples } from '../../../content/examples';
 import { getAdjacentSiteNavigation } from '../../../content/navigation';
+import { highlightCode } from '../../../lib/highlight';
 import { ExamplePage } from './example-page';
 
 type ExampleRouteProps = {
@@ -49,10 +49,7 @@ export default async function Page({ params }: ExampleRouteProps) {
         id: demo.id,
         surface: demo.surface ?? meta.surface ?? 'boxed',
         sourceCode,
-        sourceHtml: await codeToHtml(sourceCode, {
-          lang: 'tsx',
-          theme: 'github-dark-default',
-        }),
+        sourceHtml: await highlightCode(sourceCode, 'tsx'),
       };
     }),
   );

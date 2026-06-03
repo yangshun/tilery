@@ -1,4 +1,4 @@
-import { codeToHtml } from 'shiki';
+import { highlightCode } from '../lib/highlight';
 import { CodeBlockFrame } from './code-block-frame';
 
 export async function CodeBlock({
@@ -9,10 +9,7 @@ export async function CodeBlock({
   language?: string;
 }) {
   const trimmedCode = code.trim();
-  const html = await codeToHtml(trimmedCode, {
-    lang: language,
-    theme: 'github-dark-default',
-  });
+  const html = await highlightCode(trimmedCode, language);
 
   return <CodeBlockFrame code={trimmedCode} html={html} />;
 }
