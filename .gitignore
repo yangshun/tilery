@@ -143,3 +143,6 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
 .vercel
+
+# Claude Code: ignore per-developer local settings; shared config (e.g. launch.json) is tracked
+.claude/settings.local.json
