@@ -572,6 +572,30 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
     onTabPointerCancel: drag.onTabPointerCancel,
   });
 
+  // Escape aborts any in-progress drag: a floating panel move/resize reverts to
+  // its starting bounds, while a tab/panel drag discards its uncommitted drop
+  // preview. The cancel callbacks are held in refs so a single keydown listener
+  // stays attached across the frequent re-renders a live drag triggers. Only
+  // consume the key when a drag was actually cancelled, leaving Escape free for
+  // menus, dialogs, and anything wrapping the layout.
+  const cancelFloatingDragRef = useRef(floatingDrag.cancelDrag);
+  cancelFloatingDragRef.current = floatingDrag.cancelDrag;
+  const cancelTabDragRef = useRef(drag.cancelDrag);
+  cancelTabDragRef.current = drag.cancelDrag;
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      if (cancelFloatingDragRef.current() || cancelTabDragRef.current()) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown, true);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown, true);
+    };
+  }, []);
+
   const [limboEl] = useState(() => {
     /* v8 ignore next */
     if (typeof document === 'undefined') return null;

@@ -456,6 +456,18 @@ export function useTileryDragController(
     [setDragState],
   );
 
+  // Aborts an in-progress drag without committing it (e.g. on Escape). The
+  // gesture only commits on pointer-up, so discarding the drag state restores
+  // the pre-drag layout. No-ops (returning false) when no drag is active so
+  // callers can let the key event propagate normally.
+  const cancelDrag = useCallback((): boolean => {
+    if (!dragStateRef.current) return false;
+    pendingRef.current = null;
+    panelDragRef.current = false;
+    setDragState(null);
+    return true;
+  }, [setDragState]);
+
   return {
     dragState,
     panelDragRef,
@@ -468,6 +480,7 @@ export function useTileryDragController(
     onTabPointerCancel,
     onTabBarPointerDown,
     onTabBarPointerUp,
+    cancelDrag,
   };
 }
 

@@ -48,6 +48,12 @@ export type TileryFloatingPanelDragController = {
   onTabBarPointerUp: (e: PointerEvent) => void;
   /** Cancels any in-flight floating drag or resize. */
   onPointerCancel: (e: PointerEvent) => void;
+  /**
+   * Aborts an in-flight floating drag or resize, reverting the panel to the
+   * bounds it had when the gesture began. Returns `true` when a gesture was
+   * cancelled, or `false` when none was active.
+   */
+  cancelDrag: () => boolean;
 };
 
 /**
@@ -191,11 +197,23 @@ export function useTileryFloatingPanelDrag({
     [onTabPointerCancel],
   );
 
+  const cancelDrag = useCallback((): boolean => {
+    const floatingDrag = floatingDragRef.current;
+    if (!floatingDrag) return false;
+    floatingDragRef.current = null;
+    tilery()?.setFloatingPanelBounds(
+      floatingDrag.panelId,
+      floatingDrag.startBounds,
+    );
+    return true;
+  }, [tilery]);
+
   return {
     onFloatingTabBarPointerDown,
     onFloatingResizePointerDown,
     onPointerMove,
     onTabBarPointerUp: handleTabBarPointerUp,
     onPointerCancel,
+    cancelDrag,
   };
 }

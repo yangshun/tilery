@@ -512,6 +512,83 @@ describe('useTileryDragController — pointer flow', () => {
     tabEl.remove();
   });
 
+  it('cancelDrag aborts an active drag and no-ops without one', () => {
+    const { controller, getState } = setupStore();
+    const hook = renderHook(() => useTileryDragController(() => controller));
+    const tabEl = document.createElement('div');
+    document.body.appendChild(tabEl);
+    setBoundingClientRect(tabEl, {
+      left: 0,
+      top: 0,
+      right: 50,
+      bottom: 30,
+      width: 50,
+      height: 30,
+    });
+
+    // No active drag: cancelDrag is a no-op and reports nothing was cancelled.
+    let cancelled: boolean | undefined;
+    act(() => {
+      cancelled = hook.current().cancelDrag();
+    });
+    expect(cancelled).toBe(false);
+    expect(hook.current().dragState).toBeNull();
+
+    // Start a real drag (past the move threshold) so dragState is populated.
+    act(() => {
+      const down = pointerEvent('pointerdown', {
+        clientX: 25,
+        clientY: 15,
+        pointerId: 8,
+      });
+      Object.defineProperty(down, 'currentTarget', {
+        value: tabEl,
+        configurable: true,
+      });
+      hook.current().onTabPointerDown(asReact(down), 'T1');
+    });
+    act(() => {
+      const m = pointerEvent('pointermove', {
+        clientX: 100,
+        clientY: 100,
+        pointerId: 8,
+      });
+      hook.current().onTabPointerMove(asReact(m));
+    });
+    expect(hook.current().dragState).not.toBeNull();
+    const before = getState();
+
+    // Escape-style cancel: clears drag state and commits nothing.
+    act(() => {
+      cancelled = hook.current().cancelDrag();
+    });
+    expect(cancelled).toBe(true);
+    expect(hook.current().dragState).toBeNull();
+    expect(getState()).toBe(before);
+
+    // A trailing pointerup after the cancel must not commit or click.
+    let clicked = false;
+    act(() => {
+      const up = pointerEvent('pointerup', {
+        clientX: 100,
+        clientY: 100,
+        pointerId: 8,
+      });
+      Object.defineProperty(up, 'currentTarget', {
+        value: tabEl,
+        configurable: true,
+      });
+      hook.current().onTabPointerUp(asReact(up), 'T1', () => {
+        clicked = true;
+      });
+    });
+    expect(clicked).toBe(false);
+    expect(getState()).toBe(before);
+
+    hook.unmount();
+    tabEl.remove();
+  });
+
   it('pointerup with no pending nor drag state is a no-op (different pointer id)', () => {
     const { controller } = setupStore();
     const hook = renderHook(() => useTileryDragController(() => controller));

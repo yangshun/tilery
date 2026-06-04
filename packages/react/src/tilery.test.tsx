@@ -3552,6 +3552,134 @@ describe('Tilery — drag flow covers the drop overlay path', () => {
     t.cleanup();
   });
 
+  it('lets Escape cancel an in-progress tab drag without committing', () => {
+    const t = mount(lShapeLayout());
+    const fooTab = t.host.querySelector<HTMLElement>(
+      '.tilery__tab[data-tab-id="foo"]',
+    )!;
+    act(() => {
+      reactProps(fooTab).onPointerDown(
+        pointerEvent({ clientX: 500, clientY: 16, pointerId: 21 }),
+      );
+      reactProps(fooTab).onPointerMove(
+        pointerEvent({ clientX: 540, clientY: 60, pointerId: 21 }),
+      );
+    });
+    expect(t.host.querySelector('.tilery__drag-ghost')).not.toBeNull();
+
+    const escape = new KeyboardEvent('keydown', {
+      key: 'Escape',
+      bubbles: true,
+      cancelable: true,
+    });
+    act(() => {
+      window.dispatchEvent(escape);
+    });
+    // The drag preview is gone and the key was consumed.
+    expect(t.host.querySelector('.tilery__drag-ghost')).toBeNull();
+    expect(escape.defaultPrevented).toBe(true);
+
+    // A trailing pointerup must not commit a move or fire a click.
+    act(() => {
+      reactProps(fooTab).onPointerUp(
+        pointerEvent({ clientX: 540, clientY: 60, pointerId: 21 }),
+      );
+    });
+    expect(
+      t
+        .controller()
+        .getPanel('editor')!
+        .tabs.map((tab) => tab.id),
+    ).toEqual(['foo', 'bar']);
+    t.cleanup();
+  });
+
+  it('reverts an in-progress floating panel drag when Escape is pressed', () => {
+    const t = mount(floatingLayout());
+    const paletteBar = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="palette"] .tilery__tab-bar',
+    )!;
+    paletteBar.setPointerCapture = () => {};
+    paletteBar.releasePointerCapture = () => {};
+    const down = pointerEvent({ clientX: 100, clientY: 80, pointerId: 9 });
+    Object.assign(down as unknown as Record<string, unknown>, {
+      currentTarget: paletteBar,
+      target: paletteBar,
+    });
+
+    act(() => {
+      reactProps(paletteBar).onPointerDown(down);
+      reactProps(paletteBar).onPointerMove(
+        pointerEvent({ clientX: 200, clientY: 160, pointerId: 9 }),
+      );
+    });
+    expect(t.controller().getPanel('palette')?.floatingBounds).toEqual({
+      x: 20,
+      y: 20,
+      width: 32,
+      height: 40,
+    });
+
+    act(() => {
+      window.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          key: 'Escape',
+          bubbles: true,
+          cancelable: true,
+        }),
+      );
+    });
+    // Bounds snap back to where the drag began.
+    expect(t.controller().getPanel('palette')?.floatingBounds).toEqual({
+      x: 10,
+      y: 10,
+      width: 32,
+      height: 40,
+    });
+
+    // Releasing the pointer after the cancel leaves the reverted bounds intact.
+    act(() => {
+      reactProps(paletteBar).onPointerUp(
+        pointerEvent({ clientX: 200, clientY: 160, pointerId: 9 }),
+      );
+    });
+    expect(t.controller().getPanel('palette')?.floatingBounds).toEqual({
+      x: 10,
+      y: 10,
+      width: 32,
+      height: 40,
+    });
+    t.cleanup();
+  });
+
+  it('leaves Escape and other keys alone when no drag is in progress', () => {
+    const t = mount(floatingLayout());
+    const escape = new KeyboardEvent('keydown', {
+      key: 'Escape',
+      bubbles: true,
+      cancelable: true,
+    });
+    const other = new KeyboardEvent('keydown', {
+      key: 'a',
+      bubbles: true,
+      cancelable: true,
+    });
+    act(() => {
+      window.dispatchEvent(escape);
+      window.dispatchEvent(other);
+    });
+    // Nothing was cancelled, so neither key is consumed.
+    expect(escape.defaultPrevented).toBe(false);
+    expect(other.defaultPrevented).toBe(false);
+    expect(t.controller().getPanel('palette')?.floatingBounds).toEqual({
+      x: 10,
+      y: 10,
+      width: 32,
+      height: 40,
+    });
+    t.cleanup();
+  });
+
   it('ignores non-left-button floating panel drag starts', () => {
     const t = mount(floatingLayout());
     const paletteBar = t.host.querySelector<HTMLElement>(
