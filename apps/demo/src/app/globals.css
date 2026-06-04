@@ -483,6 +483,7 @@ td code {
   color: var(--site-fg);
   text-decoration: none;
   border-radius: 6px;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
 .sidebar__link + .sidebar__link {
@@ -1919,5 +1920,581 @@ td code {
 
   .page-navigation__link--next {
     text-align: left;
+  }
+}
+
+/* ===========================================================================
+   Playground — full-bleed live workspace + a site-themed inspector sidebar.
+   The workspace stays on Tilery's dark/themed palette; the inspector chrome
+   uses --site-* tokens so it adapts to the site light/dark theme.
+   =========================================================================== */
+/* Full-screen experience: hide the site sidebar and let the playground own the
+   viewport, so it doesn't share the standard sidebar layout. */
+.site-layout:has(.playground-page) .sidebar-container {
+  display: none;
+}
+
+.site-main:has(.playground-page) {
+  overflow: hidden;
+}
+
+.site-main > .playground-page {
+  max-width: none;
+  margin: 0;
+  padding: 10px;
+  height: 100dvh;
+  min-height: 0;
+  display: flex;
+  gap: 10px;
+  background: var(--site-bg);
+}
+
+/* Settings rail: a floating rounded panel on the LEFT, like the site sidebar. */
+.playground-inspector {
+  flex-shrink: 0;
+  width: 320px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--site-sidebar-border);
+  border-radius: 10px;
+  background: var(--site-sidebar-bg);
+  color: var(--site-fg);
+}
+
+/* Light mode: a clean white rail instead of the tinted gray. */
+[data-theme='light'] .playground-inspector {
+  background: #fff;
+}
+
+.playground-inspector__head {
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid var(--site-shell-border);
+}
+
+.playground-inspector__brand-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.playground-inspector__brand {
+  font-size: 16px;
+  font-weight: 680;
+  letter-spacing: -0.01em;
+  color: var(--site-fg);
+  text-decoration: none;
+}
+
+.playground-inspector__head-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.playground-inspector__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  color: color-mix(in srgb, var(--site-fg), transparent 25%);
+  font-size: 17px;
+  text-decoration: none;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.playground-inspector__icon:hover {
+  background: color-mix(in srgb, var(--site-fg), transparent 90%);
+  color: var(--site-fg);
+}
+
+.playground-inspector__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* Stage: the canvas the browser frame floats and resizes within (centered). */
+.playground-stage {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Browser frame: a resizable window wrapping the workspace. */
+.playground-browser {
+  width: min(980px, 100%);
+  height: min(660px, 100%);
+  min-width: 360px;
+  min-height: 280px;
+  max-width: 100%;
+  max-height: 100%;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--site-shell-border);
+  border-radius: 12px;
+  background: var(--tilery-bg, #0e0f12);
+  /* Clip the dark background to the padding box so the translucent border
+     composites over the (light) canvas instead of the dark frame bg —
+     otherwise the border reads as dark on light mode. */
+  background-clip: padding-box;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.42);
+}
+
+/* Custom corner grip: resizes the frame symmetrically about the stage centre
+   (JS), so the frame stays centred while the corner tracks the cursor. */
+.playground-browser__resize {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  z-index: 6;
+  width: 20px;
+  height: 20px;
+  cursor: nwse-resize;
+  touch-action: none;
+}
+
+.playground-browser__resize::after {
+  content: '';
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 9px;
+  height: 9px;
+  border-right: 2px solid color-mix(in srgb, var(--site-fg), transparent 55%);
+  border-bottom: 2px solid color-mix(in srgb, var(--site-fg), transparent 55%);
+  transition: border-color 0.15s ease;
+}
+
+.playground-browser__resize:hover::after {
+  border-color: color-mix(in srgb, var(--site-fg), transparent 25%);
+}
+
+.playground-browser__bar {
+  flex-shrink: 0;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--site-shell-border);
+  background: var(--site-shell-bg);
+}
+
+.playground-browser__lights {
+  display: inline-flex;
+  gap: 7px;
+  flex-shrink: 0;
+}
+
+.playground-browser__light {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+}
+
+.playground-browser__light--red {
+  background: #ff5f57;
+}
+
+.playground-browser__light--yellow {
+  background: #febc2e;
+}
+
+.playground-browser__light--green {
+  background: #28c840;
+}
+
+.playground-browser__address {
+  flex: 1;
+  min-width: 0;
+  max-width: 420px;
+  margin: 0 auto;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 12px;
+  border: 1px solid var(--site-shell-border);
+  border-radius: 7px;
+  background: var(--site-bg);
+  color: color-mix(in srgb, var(--site-fg), transparent 38%);
+  font-family: var(--site-mono);
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.playground-browser__bar-spacer {
+  width: 52px;
+  flex-shrink: 0;
+}
+
+/* Workspace fills the frame below the chrome bar. */
+.playground-workspace {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  background: var(--tilery-bg, #0e0f12);
+}
+
+.playground-workspace .tilery {
+  height: 100%;
+  font-size: 14px;
+}
+
+.playground-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.playground-tab__icon {
+  font-size: 14px;
+  opacity: 0.78;
+}
+
+/* Collapsible section */
+.playground-section {
+  border-bottom: 1px solid var(--site-shell-border);
+}
+
+.playground-section__header {
+  margin: 0;
+}
+
+.playground-section__head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: left;
+  color: color-mix(in srgb, var(--site-fg), transparent 35%);
+  cursor: pointer;
+  user-select: none;
+}
+
+.playground-section__chevron {
+  flex-shrink: 0;
+  font-size: 16px;
+  opacity: 0.7;
+  transition: transform 0.15s ease;
+}
+
+.playground-section__head[data-panel-open] .playground-section__chevron {
+  transform: rotate(180deg);
+}
+
+/* Animate expand/collapse with the grid 1fr<->0fr technique (robust, no pixel
+   measurement). The Panel is keepMounted so the open animation is reliable;
+   Base UI applies data-starting/ending-style during the transition (grid 0fr)
+   and only sets `hidden` once fully closed, so collapsed panels still leave the
+   tab order / a11y tree. */
+.playground-section__panel {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 0.24s ease;
+}
+
+.playground-section__panel[hidden] {
+  display: none;
+}
+
+.playground-section__panel[data-starting-style],
+.playground-section__panel[data-ending-style] {
+  grid-template-rows: 0fr;
+}
+
+.playground-section__body {
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 18px 16px;
+  transition: opacity 0.2s ease;
+}
+
+.playground-section__panel[data-starting-style] .playground-section__body,
+.playground-section__panel[data-ending-style] .playground-section__body {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .playground-section__panel,
+  .playground-section__body,
+  .playground-section__chevron {
+    transition: none;
+  }
+}
+
+/* Label + control row */
+.playground-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.playground-row__text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.playground-row__label {
+  font-size: 13px;
+}
+
+.playground-row__hint {
+  font-size: 11px;
+  color: color-mix(in srgb, var(--site-fg), transparent 52%);
+}
+
+.playground-row__control {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+/* Switch */
+.playground-switch {
+  position: relative;
+  width: 34px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid var(--site-shell-border);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--site-fg), transparent 85%);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.playground-switch[data-checked] {
+  background: var(--site-accent);
+  border-color: var(--site-accent);
+}
+
+.playground-switch[data-disabled] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.playground-switch__thumb {
+  position: absolute;
+  top: 50%;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  transform: translateY(-50%);
+  transition: left 0.15s ease;
+}
+
+.playground-switch[data-checked] .playground-switch__thumb {
+  left: 17px;
+}
+
+/* Buttons */
+.playground-btn {
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--site-shell-border);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--site-fg), transparent 90%);
+  color: var(--site-fg);
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.playground-btn:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--site-accent), transparent 40%);
+}
+
+.playground-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.playground-btn[data-variant='primary'] {
+  background: var(--site-accent);
+  border-color: var(--site-accent);
+  color: #fff;
+}
+
+.playground-btn[data-variant='danger']:hover:not(:disabled) {
+  border-color: #e5484d;
+  color: #ff6b6f;
+}
+
+.playground-btn[data-active='true'] {
+  border-color: var(--site-accent);
+  color: var(--site-accent);
+}
+
+.playground-btn-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Native select + text input share the boxed look */
+.playground-select,
+.playground-text {
+  height: 28px;
+  border: 1px solid var(--site-shell-border);
+  border-radius: 6px;
+  background: var(--site-bg);
+  color: var(--site-fg);
+  font-size: 12.5px;
+  font-family: inherit;
+}
+
+.playground-text {
+  padding: 0 8px;
+}
+
+/* Native select with a custom chevron overlay */
+.playground-select-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.playground-select {
+  max-width: 170px;
+  padding: 0 26px 0 8px;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.playground-select__icon {
+  position: absolute;
+  right: 7px;
+  display: inline-flex;
+  font-size: 15px;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* Native number input */
+.playground-num {
+  width: 78px;
+  height: 28px;
+  padding: 0 6px;
+  border: 1px solid var(--site-shell-border);
+  border-radius: 6px;
+  background: var(--site-bg);
+  color: var(--site-fg);
+  font-size: 12.5px;
+  font-family: inherit;
+}
+
+/* Inline groups (split direction, rename) */
+.playground-inline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.playground-inline .playground-select {
+  max-width: 108px;
+}
+
+.playground-inline .playground-text {
+  width: 132px;
+}
+
+/* Misc */
+.playground-empty,
+.playground-note {
+  margin: 0;
+  font-size: 12px;
+  color: color-mix(in srgb, var(--site-fg), transparent 50%);
+}
+
+.playground-note {
+  font-style: italic;
+}
+
+.playground-activity-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Event log */
+.playground-log {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.playground-log__row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--site-shell-border);
+}
+
+.playground-log__type {
+  font-family: var(--site-mono);
+  font-size: 11px;
+  color: var(--site-accent);
+}
+
+.playground-log__detail {
+  font-size: 12px;
+  color: color-mix(in srgb, var(--site-fg), transparent 30%);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 860px) {
+  .site-main > .playground-page {
+    flex-direction: column;
+  }
+
+  .playground-inspector {
+    width: 100%;
+    height: auto;
+    max-height: 44vh;
+    flex-shrink: 0;
+  }
+
+  .playground-stage {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .playground-browser {
+    width: 100%;
+    height: 100%;
   }
 }

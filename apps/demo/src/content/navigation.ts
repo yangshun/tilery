@@ -43,12 +43,15 @@ const exampleNavigationSections = exampleCategoryOrder.map((category) => ({
 export const siteNavigationGroups: SiteNavigationGroup[] = [
   {
     title: 'Guide',
-    items: docs
-      .filter((d) => d.group === 'Guide')
-      .map((d) => ({
-        href: `/docs/${d.slug}`,
-        label: d.title,
-      })),
+    items: [
+      ...docs
+        .filter((d) => d.group === 'Guide')
+        .map((d) => ({
+          href: `/docs/${d.slug}`,
+          label: d.title,
+        })),
+      { href: '/playground', label: 'Playground' },
+    ],
   },
   {
     title: 'Examples',
