@@ -33,32 +33,63 @@ function CapDemo({ type }: { type: HomeCapability['demo'] }) {
     case 'render':
       return (
         <>
-          <i className="home-capx home-capx-chip home-capx-chip--a" />
-          <i className="home-capx home-capx-chip home-capx-chip--b" />
+          <i className="home-capx home-capx-rbar" />
+          <i className="home-capx home-capx-render-a" />
+          <i className="home-capx home-capx-render-icon" />
+          <i className="home-capx home-capx-render-b" />
         </>
       );
     case 'styling':
       return (
         <>
-          <i className="home-capx home-capx-swatch" />
-          <i className="home-capx home-capx-accentbar" />
+          <i className="home-capx home-capx-style-bar" />
+          <i className="home-capx home-capx-style-accent" />
+          <i className="home-capx home-capx-style-swatch" />
+          <i className="home-capx home-capx-style-line" />
         </>
       );
     case 'core':
       return (
         <>
-          <i className="home-capx home-capx-node home-capx-node--1" />
-          <i className="home-capx home-capx-node home-capx-node--2" />
-          <i className="home-capx home-capx-node home-capx-node--3" />
-          <i className="home-capx home-capx-link" />
+          <i className="home-capx home-capx-layer home-capx-layer--3" />
+          <i className="home-capx home-capx-layer home-capx-layer--2" />
+          <i className="home-capx home-capx-layer home-capx-layer--1" />
         </>
       );
     case 'imperative':
       return (
         <>
-          <span className="home-capx home-capx-line">api.split()</span>
-          <span className="home-capx home-capx-caret" />
-          <i className="home-capx home-capx-splitpane" />
+          <span className="home-capx home-capx-line">panel.split()</span>
+          <i className="home-capx home-capx-imp-pane home-capx-imp-a" />
+          <i className="home-capx home-capx-imp-pane home-capx-imp-b" />
+        </>
+      );
+    case 'floating':
+      return (
+        <>
+          <i className="home-capx home-capx-float-base" />
+          <i className="home-capx home-capx-float-slot" />
+          <i className="home-capx home-capx-float-panel" />
+        </>
+      );
+    case 'persist':
+      return (
+        <>
+          <i className="home-capx home-capx-persist-pane home-capx-persist-pane--l" />
+          <i className="home-capx home-capx-persist-pane home-capx-persist-pane--r" />
+          <pre className="home-capx home-capx-persist-token">{'{ "panels": 2,\n  "tabs": 7 }'}</pre>
+        </>
+      );
+    case 'lock':
+      return (
+        <>
+          <i className="home-capx home-capx-lock-pane home-capx-lock-pane--l" />
+          <i className="home-capx home-capx-lock-pane home-capx-lock-pane--r" />
+          <i className="home-capx home-capx-lock-divider" />
+          <i className="home-capx home-capx-lock-icon home-capx-lock-icon--l" />
+          <i className="home-capx home-capx-lock-shackle home-capx-lock-shackle--l" />
+          <i className="home-capx home-capx-lock-icon home-capx-lock-icon--r" />
+          <i className="home-capx home-capx-lock-shackle home-capx-lock-shackle--r" />
         </>
       );
   }
@@ -75,18 +106,14 @@ export function CapabilitiesScene() {
   return (
     <section className="home-capabilities-scene" aria-labelledby="capabilities-title">
       <header className="home-scene-head">
-        <span className="home-scene-head__kicker">// primitives</span>
         <h2 id="capabilities-title" className="home-scene-head__title">
           The primitives for panel-based apps.
         </h2>
       </header>
 
       <div ref={gridRef} className="home-cap-grid" data-play={inView}>
-        {capabilities.map((cap, i) => (
-          <article
-            key={cap.title}
-            className="home-cap-card home-reveal"
-            style={{ '--reveal-i': i }}>
+        {capabilities.map((cap) => (
+          <article key={cap.title} className="home-cap-card">
             <div className="home-tabbar home-cap-card__bar">
               <div className="home-tab home-tab--active">
                 <span className="home-tab__label">{cap.title}</span>

@@ -1,24 +1,40 @@
 'use client';
 
-// Scene 2 — Principles. On desktop this is a pinned, scroll-scrubbed scene: a
-// single panel splits 1 -> 2 -> 3 as you scroll, each new panel revealing one
-// principle, with a typed controller call and a mini form whose state is never
-// reset (literally demonstrating "state that follows the work"). On mobile, or
-// when the scroller can't be resolved, or under reduced motion, it degrades to
-// three stacked cards.
+// Scene 2. On desktop this is a pinned, scroll-scrubbed scene: a single panel
+// splits 1 -> 2 -> 3 as you scroll, each new panel revealing one point about the
+// engine (with an icon). On mobile, or when the scroller can't be resolved, or
+// under reduced motion, it degrades to three stacked cards.
 
 import { useRef } from 'react';
+import type { IconType } from 'react-icons';
+import { RiBracesLine, RiCpuLine, RiLayoutGridLine } from 'react-icons/ri';
 import { motion, useTransform } from 'motion/react';
 import { useHomeScroll } from './scroll-container-context';
 import { useSceneProgress, useSmoothProgress } from './use-home-scroll';
 import { principles } from './home-data';
 
+const principleIcons: IconType[] = [RiLayoutGridLine, RiCpuLine, RiBracesLine];
+const principleTabs = ['workspace.tsx', 'core.ts', 'package.json'];
+
 function PrinciplesHead() {
   return (
     <header className="home-scene-head">
-      <span className="home-scene-head__kicker">// principles</span>
-      <h2 className="home-scene-head__title">One surface. The work splits to fit.</h2>
+      <h2 className="home-scene-head__title">Window management, effortlessly.</h2>
     </header>
+  );
+}
+
+function PrincipleBody({ index }: { index: number }) {
+  const Icon = principleIcons[index];
+  const item = principles[index];
+  return (
+    <>
+      <span className="home-pp__icon" aria-hidden="true">
+        <Icon />
+      </span>
+      <h3>{item.title}</h3>
+      <p>{item.body}</p>
+    </>
   );
 }
 
@@ -27,10 +43,9 @@ function StaticPrinciples() {
     <section className="home-principles-scene home-principles-scene--static">
       <PrinciplesHead />
       <div className="home-principles-static">
-        {principles.map((item) => (
+        {principles.map((item, i) => (
           <article key={item.title} className="home-principle home-reveal">
-            <h3>{item.title}</h3>
-            <p>{item.body}</p>
+            <PrincipleBody index={i} />
           </article>
         ))}
       </div>
@@ -44,11 +59,10 @@ function ScrubPrinciples() {
   const p = useSmoothProgress(raw);
 
   const bGrow = useTransform(p, [0.12, 0.32], [0, 1]);
-  const tGrow = useTransform(p, [0.5, 0.7], [0, 0.66]);
+  const tGrow = useTransform(p, [0.5, 0.7], [0, 1]);
   const p1 = useTransform(p, [0.04, 0.16], [0, 1]);
   const p2 = useTransform(p, [0.34, 0.5], [0, 1]);
   const p3 = useTransform(p, [0.66, 0.82], [0, 1]);
-  const codeReveal = useTransform(p, [0.36, 0.46], [0, 1]);
 
   return (
     <section
@@ -62,12 +76,11 @@ function ScrubPrinciples() {
             <div className="home-panel home-pp__panel home-pp__a">
               <div className="home-tabbar">
                 <div className="home-tab home-tab--active">
-                  <span className="home-tab__label">workspace.tsx</span>
+                  <span className="home-tab__label">{principleTabs[0]}</span>
                 </div>
               </div>
               <motion.div className="home-pp__body" style={{ opacity: p1 }}>
-                <h3>{principles[0].title}</h3>
-                <p>{principles[0].body}</p>
+                <PrincipleBody index={0} />
               </motion.div>
             </div>
 
@@ -76,23 +89,11 @@ function ScrubPrinciples() {
               <div className="home-panel home-pp__panel home-pp__editor">
                 <div className="home-tabbar">
                   <div className="home-tab home-tab--active">
-                    <span className="home-tab__label">state.tsx</span>
+                    <span className="home-tab__label">{principleTabs[1]}</span>
                   </div>
                 </div>
                 <motion.div className="home-pp__body" style={{ opacity: p2 }}>
-                  <h3>{principles[1].title}</h3>
-                  <p>{principles[1].body}</p>
-                  <label className="home-pp__form">
-                    <span>name</span>
-                    {/* Never remounted, so the typed value survives every split. */}
-                    <input
-                      type="text"
-                      defaultValue="ada@lovelace.dev"
-                      readOnly
-                      tabIndex={-1}
-                      aria-hidden="true"
-                    />
-                  </label>
+                  <PrincipleBody index={1} />
                 </motion.div>
               </div>
 
@@ -101,15 +102,11 @@ function ScrubPrinciples() {
                 <div className="home-panel home-pp__panel home-pp__terminal">
                   <div className="home-tabbar">
                     <div className="home-tab home-tab--active">
-                      <span className="home-tab__label">api.ts</span>
+                      <span className="home-tab__label">{principleTabs[2]}</span>
                     </div>
                   </div>
                   <motion.div className="home-pp__body" style={{ opacity: p3 }}>
-                    <h3>{principles[2].title}</h3>
-                    <p>{principles[2].body}</p>
-                    <motion.pre className="home-code" style={{ opacity: codeReveal }}>
-                      api.split(&apos;editor&apos;, &apos;right&apos;)
-                    </motion.pre>
+                    <PrincipleBody index={2} />
                   </motion.div>
                 </div>
               </motion.div>

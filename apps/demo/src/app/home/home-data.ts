@@ -18,28 +18,24 @@ export type HomeCapability = {
     | 'render'
     | 'styling'
     | 'core'
-    | 'imperative';
-};
-
-export type HomeLink = {
-  label: string;
-  href: string;
-  /** Mono keycap-style hint shown on the right of the command-palette row. */
-  hint: string;
+    | 'imperative'
+    | 'floating'
+    | 'persist'
+    | 'lock';
 };
 
 export const principles: HomePrinciple[] = [
   {
-    title: 'A real workspace surface',
-    body: 'Drag tabs, split panels, and resize complex arrangements without building your own window manager.',
+    title: 'A drop-in window manager',
+    body: 'Draggable tabs, split zones, resize, maximize, floating panels, and pop-out windows — all from one <Tilery> component.',
   },
   {
-    title: 'State that follows the work',
-    body: 'Stable portal hosts keep React subtrees alive as tabs move, so forms, editors, and previews do not reset.',
+    title: 'Framework-agnostic core',
+    body: 'Layout, drag, and resize logic live in a dependency-free core. React is the first adapter, not a requirement.',
   },
   {
-    title: 'Programmable by default',
-    body: 'Use the typed controller plus panel and tab objects to create panels, move tabs, activate views, persist layouts, and build your own controls.',
+    title: 'Zero dependencies, fully typed',
+    body: 'React is the only peer dependency, and every panel, tab, and controller is typed end to end.',
   },
 ];
 
@@ -74,11 +70,19 @@ export const capabilities: HomeCapability[] = [
     body: 'Split, append, insert, remove, activate, swap, and inspect layouts from product code.',
     demo: 'imperative',
   },
-];
-
-export const links: HomeLink[] = [
-  { label: 'Getting Started', href: '/docs/getting-started', hint: 'docs' },
-  { label: 'Concepts', href: '/docs/concepts', hint: 'guide' },
-  { label: 'API Reference', href: '/docs/api', hint: 'api' },
-  { label: 'Examples', href: '/examples/ide', hint: 'demo' },
+  {
+    title: 'Floating & popout',
+    body: 'Detach a panel into a draggable overlay, or pop it out into its own browser window.',
+    demo: 'floating',
+  },
+  {
+    title: 'Save & restore',
+    body: 'Serialize the whole layout — tabs, splits, sizes, and active views — then restore it exactly.',
+    demo: 'persist',
+  },
+  {
+    title: 'Lock panels & tabs',
+    body: 'Freeze resizing, dragging, dropping, or closing wherever you need it.',
+    demo: 'lock',
+  },
 ];
