@@ -20,6 +20,7 @@ import {
   tileryRemovePanelFromLayout,
 } from '../state/layout-tree';
 import { tileryTabBarDropAt, type TileryPanelZone } from './drop-zones';
+import { TILERY_EPSILON as EPS } from '../state/size';
 
 /**
  * Live state for an in-progress drag gesture, tracking the originating tab,
@@ -143,7 +144,7 @@ export function tileryCommitDrag(
       !panelDrag &&
       !sourcePanel.floating &&
       !target.floating &&
-      shouldSwapForSplit(sourcePanel, target, dir)
+      tileryResolveSplitInteraction(sourcePanel, target, dir) === 'swap'
     ) {
       tilery.swapPanels(sourcePanel.id, target.id);
       return;
@@ -188,14 +189,11 @@ function moveSiblingsPreservingOrder(
   tabsAfter: TileryTabId[],
   leadTabId: TileryTabId,
 ) {
-  // Reconstruct the original order: [...tabsBefore, leadTabId, ...tabsAfter]
-  // Move each sibling in sequence using afterTab on the previous one.
-  // Start by moving tabsBefore in order, each after the previous (first one after lead initially,
-  // then we fix by moving lead after them all at the end).
-  // Simpler: move tabsAfter after lead, then move tabsBefore before lead.
-  // Even simpler: move all in original order using panel+index targeting.
+  // Reconstruct [...tabsBefore, leadTabId, ...tabsAfter] around the already-moved
+  // lead tab: re-chain the tabs that followed the lead so each lands after the
+  // previous one, then re-insert the tabs that preceded it before the lead.
 
-  // Move tabs that were after the lead: chain after lead in order
+  // Tabs after the lead: chain each after the previous, starting at the lead.
   let prev = leadTabId;
   for (const id of tabsAfter) {
     tilery.moveTab(id, { afterTab: prev });
@@ -252,7 +250,6 @@ export function tileryAdjacencySide(
     inset: { top: number; right: number; bottom: number; left: number };
   },
 ): AdjacencySide {
-  const EPS = 0.0001;
   const sL = source.inset.left;
   const sR = 100 - source.inset.right;
   const sT = source.inset.top;
@@ -274,7 +271,17 @@ export function tileryAdjacencySide(
   return null;
 }
 
-function shouldSwapForSplit(
+/**
+ * Resolve how dragging a single-tab panel over `zone` of `target` should be
+ * handled: `'swap'` when the two adjacent solo panels should exchange places,
+ * `'suppress'` when the source already occupies that side (a no-op), or
+ * `'split'` for every other case (the default insert-a-split behavior).
+ *
+ * Shared by the commit logic (this module) and the hover/preview classifier in
+ * the React adapter so the committed drop and its on-screen preview can never
+ * diverge.
+ */
+export function tileryResolveSplitInteraction(
   source: {
     id: string;
     tabs: readonly { id: string }[];
@@ -285,15 +292,16 @@ function shouldSwapForSplit(
     tabs: readonly { id: string }[];
     inset: { top: number; right: number; bottom: number; left: number };
   },
-  zone: TileryDirection,
-): boolean {
-  if (source.id === target.id) return false;
-  if (source.tabs.length !== 1) return false;
-  if (target.tabs.length !== 1) return false;
+  zone: TileryPanelZone,
+): 'suppress' | 'swap' | 'split' {
+  if (zone === 'center') return 'split';
+  if (source.id === target.id) return 'split';
+  if (source.tabs.length !== 1) return 'split';
+  if (target.tabs.length !== 1) return 'split';
   const side = tileryAdjacencySide(source, target);
-  if (!side) return false;
-  if (!shareFullEdge(source.inset, target.inset, side)) return false;
-  return tileryClassifyByZoneAndSide(zone, side) === 'swap';
+  if (!side) return 'split';
+  if (!shareFullEdge(source.inset, target.inset, side)) return 'split';
+  return tileryClassifyByZoneAndSide(zone, side);
 }
 
 function shareFullEdge(
@@ -301,7 +309,6 @@ function shareFullEdge(
   b: { top: number; right: number; bottom: number; left: number },
   side: NonNullable<AdjacencySide>,
 ): boolean {
-  const EPS = 0.0001;
   if (side === 'left' || side === 'right') {
     return Math.abs(a.top - b.top) < EPS && Math.abs(a.bottom - b.bottom) < EPS;
   }

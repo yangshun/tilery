@@ -70,6 +70,7 @@ export {
   tileryCommitDrag,
   tileryAdjacencySide,
   tileryClassifyByZoneAndSide,
+  tileryResolveSplitInteraction,
   tileryRootSplitSizeForDrag,
   type TileryDragState,
 } from './drag/drag-logic';

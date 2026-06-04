@@ -16,16 +16,15 @@ import type {
   TileryTabId,
 } from 'tilery/internal';
 import {
-  tileryAdjacencySide,
   tileryCanMoveTabBetweenPanels,
   tileryEdgeZoneAt,
   tileryTabBarDropAt,
   tileryZoneAt,
-  tileryClassifyByZoneAndSide,
   tileryCommitDrag,
   tileryGetFullScreenPanelId,
   tileryPanelBehaviorFromState,
   tileryPanelOrderFromState,
+  tileryResolveSplitInteraction,
   tileryRootSplitSizeForDrag,
   type TileryPanelZone,
   type TileryDragState,
@@ -121,7 +120,6 @@ export function useTileryDragController(
       draggedTabId: TileryTabId,
       zone: TileryPanelZone,
     ): 'suppress' | 'swap' | 'split' => {
-      if (zone === 'center') return 'split';
       const m = tilery();
       /* v8 ignore next */
       if (!m) return 'split';
@@ -129,14 +127,9 @@ export function useTileryDragController(
       const draggedTab = m.getTab(draggedTabId);
       /* v8 ignore next */
       if (!target || !draggedTab) return 'split';
-      const source = draggedTab.panel;
-      if (source.id === target.id) return 'split';
-      if (source.tabs.length !== 1) return 'split';
-      if (target.tabs.length !== 1) return 'split';
-      const side = tileryAdjacencySide(source, target);
-      if (!side) return 'split';
-      if (!shareFullEdge(source.inset, target.inset, side)) return 'split';
-      return tileryClassifyByZoneAndSide(zone, side);
+      // Center (tab-merge) and every non-swap case resolve to 'split'; the
+      // shared core helper owns that classification.
+      return tileryResolveSplitInteraction(draggedTab.panel, target, zone);
     },
     [tilery],
   );
@@ -482,16 +475,4 @@ export function useTileryDragController(
     onTabBarPointerUp,
     cancelDrag,
   };
-}
-
-function shareFullEdge(
-  a: { top: number; right: number; bottom: number; left: number },
-  b: { top: number; right: number; bottom: number; left: number },
-  side: 'left' | 'right' | 'above' | 'below',
-): boolean {
-  const EPS = 0.0001;
-  if (side === 'left' || side === 'right') {
-    return Math.abs(a.top - b.top) < EPS && Math.abs(a.bottom - b.bottom) < EPS;
-  }
-  return Math.abs(a.left - b.left) < EPS && Math.abs(a.right - b.right) < EPS;
 }

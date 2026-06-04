@@ -10,7 +10,13 @@ import type {
   TilerySize,
   TilerySizeResolutionContext,
 } from '../types';
-import { tileryAxisPixels, tileryResolveSizePercent } from './size';
+import {
+  tileryApproxEqual,
+  tileryAxisPixels,
+  tileryResolveMaxSizePercent,
+  tileryResolveMinSizePercent,
+  tileryResolveSizePercent,
+} from './size';
 
 const EDGE_ORDER: TileryEdge[] = ['left', 'right', 'top', 'bottom'];
 const DEFAULT_MIN_SIZE = 10;
@@ -113,7 +119,7 @@ export function tilerySetEdgePanelSize(
     minSize,
     sizeContext,
   );
-  if (Math.abs(nextSize - panel.edge.size) < 0.0001) return state;
+  if (tileryApproxEqual(nextSize, panel.edge.size)) return state;
   return {
     ...state,
     panels: {
@@ -214,9 +220,11 @@ function panelMinSize(
   fallback: TilerySize,
   axisPixels: number | undefined,
 ): number {
-  return (
-    tileryResolveSizePercent(panel.minSize ?? fallback, axisPixels) ??
-    DEFAULT_MIN_SIZE
+  return tileryResolveMinSizePercent(
+    panel.minSize,
+    fallback,
+    axisPixels,
+    DEFAULT_MIN_SIZE,
   );
 }
 
@@ -224,7 +232,7 @@ function panelMaxSize(
   panel: TileryPanelState,
   axisPixels: number | undefined,
 ): number {
-  return tileryResolveSizePercent(panel.maxSize, axisPixels) ?? 100;
+  return tileryResolveMaxSizePercent(panel.maxSize, axisPixels, 100);
 }
 
 function edgeInset(side: TileryEdge, size: number) {

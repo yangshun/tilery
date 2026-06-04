@@ -10,6 +10,7 @@ import { tileryPanelBehaviorFromState } from 'tilery/internal';
 import { PanelActions, type PanelActionsProps } from './panel-actions';
 import { Tab } from './tab';
 import type { TileryTabTriggerRenderer } from '../tilery';
+import { tileryCssEscape as cssEscape } from '../css-escape';
 
 /**
  * Props for the {@link TabBar} component.
@@ -430,12 +431,4 @@ function scrollTabIntoView(tabList: HTMLElement, tab: HTMLElement) {
 
 function areStringArraysEqual(a: readonly string[], b: readonly string[]) {
   return a.length === b.length && a.every((value, index) => value === b[index]);
-}
-
-function cssEscape(value: string): string {
-  /* v8 ignore next 3 */
-  if (typeof CSS !== 'undefined' && typeof CSS.escape === 'function') {
-    return CSS.escape(value);
-  }
-  return value.replace(/[^a-zA-Z0-9_-]/g, '\\$&');
 }

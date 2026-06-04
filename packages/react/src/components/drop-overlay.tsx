@@ -5,6 +5,7 @@
  */
 
 import type { TileryDragState } from 'tilery/internal';
+import { tileryCssEscape as cssEscape } from '../css-escape';
 
 /**
  * Props for the {@link DropOverlay} component.
@@ -218,12 +219,4 @@ function readPanelGap(panelEl: HTMLElement): number {
   const value = getComputedStyle(panelEl).borderTopWidth;
   const n = parseFloat(value);
   return Number.isFinite(n) ? n : 0;
-}
-
-function cssEscape(value: string): string {
-  /* v8 ignore next 3 */
-  if (typeof CSS !== 'undefined' && typeof CSS.escape === 'function') {
-    return CSS.escape(value);
-  }
-  return value.replace(/[^a-zA-Z0-9_-]/g, (c) => `\\${c}`);
 }

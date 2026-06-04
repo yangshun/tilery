@@ -845,6 +845,33 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
     [drag],
   );
 
+  // Drop per-panel registration caches and content-slot entries when their
+  // panel disappears (closed, split away, docked, or popped back) so these maps
+  // don't grow unbounded across a long session of panel churn. The panel/tab
+  // handle caches and tab hosts are pruned on access elsewhere; these
+  // registration caches have no such access path once a panel is gone.
+  useEffect(() => {
+    const alive = new Set<TileryPanelId>(tileryAllPanelOrderFromState(state));
+    for (const id of panelCbCache.current.keys()) {
+      if (!alive.has(id)) panelCbCache.current.delete(id);
+    }
+    for (const id of tabBarCbCache.current.keys()) {
+      if (!alive.has(id)) tabBarCbCache.current.delete(id);
+    }
+    for (const id of slotCbCache.current.keys()) {
+      if (!alive.has(id)) slotCbCache.current.delete(id);
+    }
+    setContentSlots((prev) => {
+      const ids = Object.keys(prev);
+      if (ids.every((id) => alive.has(id))) return prev;
+      const next: Record<TileryPanelId, HTMLElement | null> = {};
+      for (const id of ids) {
+        if (alive.has(id)) next[id] = prev[id];
+      }
+      return next;
+    });
+  }, [state]);
+
   const tiledPanelIds = useMemo(
     () => tileryPanelOrderFromState(state),
     [state],

@@ -24,13 +24,17 @@ import {
   tileryResetLayoutDivider,
   tilerySyncLayoutPanels,
 } from './layout-tree';
-import { tileryAxisPixels, tileryResolveSizePercent } from './size';
+import {
+  tileryApproxEqual as eq,
+  tileryAxisPixels,
+  tileryResolveMaxSizePercent,
+  tileryResolveMinSizePercent,
+  tileryResolveSizePercent,
+  TILERY_EPSILON as EPSILON,
+} from './size';
 
 /** Fallback minimum panel size (percentage) used when no explicit `minSize` is configured. */
 export const TILERY_DEFAULT_MIN_SIZE = 10;
-const EPSILON = 0.0001;
-
-const eq = (a: number, b: number) => Math.abs(a - b) < EPSILON;
 
 /**
  * Allowable pixel range for a derived divider together with its current
@@ -425,15 +429,14 @@ function panelMinSize(
   fallback: TilerySize,
   axisPixels: number | undefined,
 ): number {
-  const fallbackSize = tileryResolveSizePercent(fallback, axisPixels) ?? 0;
-  return tileryResolveSizePercent(panel.minSize, axisPixels) ?? fallbackSize;
+  return tileryResolveMinSizePercent(panel.minSize, fallback, axisPixels);
 }
 
 function panelMaxSize(
   panel: TileryPanelState,
   axisPixels: number | undefined,
 ): number {
-  return tileryResolveSizePercent(panel.maxSize, axisPixels) ?? Infinity;
+  return tileryResolveMaxSizePercent(panel.maxSize, axisPixels);
 }
 
 function sizeFits(

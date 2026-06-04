@@ -32,7 +32,7 @@ describe('tileryCommitDrag — every branch', () => {
             : { id, tabs: [{}, {}] };
       },
       getTab(_id: TileryTabId) {
-        // Default: dragged tab's panel has 2 tabs → shouldSwapForSplit returns false.
+        // Default: dragged tab's panel has 2 tabs → tileryResolveSplitInteraction returns 'split'.
         return {
           id: _id,
           panel: {
@@ -432,7 +432,7 @@ describe('tileryCommitDrag — every branch', () => {
     expect(calls).toEqual([]);
   });
   it('directional zone splits when source == target (same-panel split, multi-tab)', () => {
-    // hover on source's own panel (multi-tab) — shouldSwapForSplit short-circuits on source.id === target.id
+    // hover on source's own panel (multi-tab) — tileryResolveSplitInteraction short-circuits on source.id === target.id
     const calls: { tabId: TileryTabId; target: unknown }[] = [];
     const swapCalls: { a: string; b: string }[] = [];
     const controller = {
@@ -479,7 +479,7 @@ describe('tileryCommitDrag — every branch', () => {
     });
   });
   it('directional zone splits when target has 2+ tabs even with single-tab source', () => {
-    // target.tabs.length !== 1 short-circuit in shouldSwapForSplit
+    // target.tabs.length !== 1 short-circuit in tileryResolveSplitInteraction
     const calls: { tabId: TileryTabId; target: unknown }[] = [];
     const controller = {
       getPanel(id: string) {
@@ -525,7 +525,7 @@ describe('tileryCommitDrag — every branch', () => {
     });
   });
   it('directional zone splits when source and target are not adjacent', () => {
-    // tileryAdjacencySide returns null → shouldSwapForSplit short-circuits on !side
+    // tileryAdjacencySide returns null → tileryResolveSplitInteraction short-circuits on !side
     const { controller, calls, swapCalls } = swapController(
       { top: 0, right: 80, bottom: 0, left: 0 },
       { top: 0, right: 0, bottom: 0, left: 80 },

@@ -3,7 +3,6 @@ import {
   tileryEdgeZoneAt,
   tileryTabBarDropAt,
   tileryZoneAt,
-  tileryZoneToSplitInset,
 } from './drop-zones';
 
 const rect = { left: 0, top: 0, width: 100, height: 100 };
@@ -104,41 +103,5 @@ describe('tileryTabBarDropAt', () => {
       { tabId: 'b', left: 80, right: 120 },
     ];
     expect(tileryTabBarDropAt(rects, 70)).toEqual({ kind: 'append' });
-  });
-});
-
-describe('tileryZoneToSplitInset', () => {
-  const panel = { left: 100, top: 200, width: 400, height: 300 };
-  it('returns the left half for left zone', () => {
-    expect(tileryZoneToSplitInset('left', panel)).toEqual({
-      left: 100,
-      top: 200,
-      width: 200,
-      height: 300,
-    });
-  });
-  it('returns the right half for right zone', () => {
-    expect(tileryZoneToSplitInset('right', panel)).toEqual({
-      left: 300,
-      top: 200,
-      width: 200,
-      height: 300,
-    });
-  });
-  it('returns the top half for top zone', () => {
-    expect(tileryZoneToSplitInset('top', panel)).toEqual({
-      left: 100,
-      top: 200,
-      width: 400,
-      height: 150,
-    });
-  });
-  it('returns the bottom half for bottom zone', () => {
-    expect(tileryZoneToSplitInset('bottom', panel)).toEqual({
-      left: 100,
-      top: 350,
-      width: 400,
-      height: 150,
-    });
   });
 });

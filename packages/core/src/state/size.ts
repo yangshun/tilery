@@ -1,11 +1,25 @@
 /**
- * Resolve TilerySize values (number / '%' / 'px') to percentages.
+ * Resolve TilerySize values (number / '%' / 'px') to percentages, plus the
+ * shared numeric primitives (epsilon comparison, min/max resolution) used
+ * across the geometry modules.
  */
 import type { TilerySize, TilerySizeResolutionContext } from '../types';
 
 type Axis = 'horizontal' | 'vertical';
 
 const SIZE_RE = /^(-?(?:\d+|\d*\.\d+))\s*(%|px)$/;
+
+/**
+ * Shared tolerance for percentage-geometry float comparisons (0–100 scale).
+ * Defined once here so every module that builds, derives, or clamps layout
+ * coordinates agrees on the same epsilon.
+ */
+export const TILERY_EPSILON = 0.0001;
+
+/** Returns `true` when `a` and `b` are equal within {@link TILERY_EPSILON}. */
+export function tileryApproxEqual(a: number, b: number): boolean {
+  return Math.abs(a - b) < TILERY_EPSILON;
+}
 
 /**
  * Converts a `TilerySize` value to a percentage of the containing axis.
@@ -47,4 +61,33 @@ export function tileryAxisPixels(
   const rootPixels = axis === 'horizontal' ? context?.width : context?.height;
   if (!rootPixels || rootPixels <= 0) return undefined;
   return (rootPixels * Math.max(0, spanPercent)) / 100;
+}
+
+/**
+ * Resolve a panel's effective minimum size to a percentage. Tries the panel's
+ * own `minSize`, then the resolved `fallback`, then `fallbackMin` when neither
+ * resolves (e.g. a `px` size supplied without an axis-pixel context).
+ */
+export function tileryResolveMinSizePercent(
+  minSize: TilerySize | undefined,
+  fallback: TilerySize,
+  axisPixels: number | undefined,
+  fallbackMin = 0,
+): number {
+  const fallbackSize =
+    tileryResolveSizePercent(fallback, axisPixels) ?? fallbackMin;
+  return tileryResolveSizePercent(minSize, axisPixels) ?? fallbackSize;
+}
+
+/**
+ * Resolve a panel's effective maximum size to a percentage, falling back to
+ * `fallbackMax` (`Infinity` for tiled panels, `100` for edge panels) when no
+ * `maxSize` is configured or it cannot be resolved.
+ */
+export function tileryResolveMaxSizePercent(
+  maxSize: TilerySize | undefined,
+  axisPixels: number | undefined,
+  fallbackMax = Infinity,
+): number {
+  return tileryResolveSizePercent(maxSize, axisPixels) ?? fallbackMax;
 }

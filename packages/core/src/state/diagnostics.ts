@@ -14,9 +14,12 @@ import {
   tileryDeriveDividers,
   tileryGetDividerConstraintRange,
 } from './layout-math';
-import { tileryAxisPixels, tileryResolveSizePercent } from './size';
+import {
+  tileryAxisPixels,
+  tileryResolveSizePercent,
+  TILERY_EPSILON as EPSILON,
+} from './size';
 
-const EPSILON = 0.0001;
 const SIZE_RE = /^(-?(?:\d+|\d*\.\d+))\s*(%|px)$/;
 const warnedKeys = new Set<string>();
 

@@ -26,9 +26,14 @@ import {
   tileryEdgePanelOrderFromState,
   tileryNormalizeEdgePanelOrders,
 } from './edges';
-import { tileryAxisPixels, tileryResolveSizePercent } from './size';
+import {
+  tileryApproxEqual as eq,
+  tileryAxisPixels,
+  tileryResolveMaxSizePercent,
+  tileryResolveMinSizePercent,
+  TILERY_EPSILON as EPSILON,
+} from './size';
 
-const EPSILON = 0.0001;
 const ROOT_RECT: Rect = { left: 0, right: 100, top: 0, bottom: 100 };
 
 /** Axis-aligned rectangle expressed in 0–100 percentage coordinates. */
@@ -69,8 +74,6 @@ export type TileryLayoutDividerConstraintRange = {
   min: number;
   max: number;
 };
-
-const eq = (a: number, b: number) => Math.abs(a - b) < EPSILON;
 
 /** Convert a panel inset (edges away from each side, 0–100) to an absolute percentage rect. */
 export function tileryInsetToRect(inset: TileryInset): Rect {
@@ -1124,12 +1127,9 @@ function layoutChildMinSize(
   fallback: TilerySize,
   axisPixels: number | undefined,
 ): number {
-  const fallbackSize = tileryResolveSizePercent(fallback, axisPixels) ?? 0;
-  if (child.kind !== 'panel') return fallbackSize;
-  return (
-    tileryResolveSizePercent(panels[child.panelId]?.minSize, axisPixels) ??
-    fallbackSize
-  );
+  const minSize =
+    child.kind === 'panel' ? panels[child.panelId]?.minSize : undefined;
+  return tileryResolveMinSizePercent(minSize, fallback, axisPixels);
 }
 
 function layoutChildMaxSize(
@@ -1138,10 +1138,7 @@ function layoutChildMaxSize(
   axisPixels: number | undefined,
 ): number {
   if (child.kind !== 'panel') return Infinity;
-  return (
-    tileryResolveSizePercent(panels[child.panelId]?.maxSize, axisPixels) ??
-    Infinity
-  );
+  return tileryResolveMaxSizePercent(panels[child.panelId]?.maxSize, axisPixels);
 }
 
 function layoutChildDefaultSize(child: TileryLayoutTree, fallback: number) {
