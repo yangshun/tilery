@@ -4,7 +4,7 @@
  * T-junction handle resizing two dividers at once.
  */
 
-import { useCallback } from 'react';
+import { memo, useCallback } from 'react';
 import type {
   TileryJunction as JunctionType,
   TilerySizeResolutionContext,
@@ -50,7 +50,7 @@ const noop = () => {};
  * horizontal and a vertical divider. Dragging it simultaneously adjusts
  * both dividers, keyed to the `junction.kind` layout topology.
  */
-export function TileryJunction({
+export const TileryJunction = memo(function TileryJunction({
   junction,
   disabled = false,
   hitSize = DEFAULT_HIT_SIZE_PX,
@@ -108,7 +108,7 @@ export function TileryJunction({
       aria-hidden="true"
     />
   );
-}
+});
 
 function normalizeHitSize(value: number): number {
   return Number.isFinite(value) && value > 0 ? value : DEFAULT_HIT_SIZE_PX;

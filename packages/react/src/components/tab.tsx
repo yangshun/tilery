@@ -4,7 +4,7 @@
  * A single tab trigger + close control.
  */
 
-import { useCallback } from 'react';
+import { memo, useCallback } from 'react';
 import type { TileryTab } from 'tilery/internal';
 import type {
   TileryTabTriggerProps,
@@ -49,7 +49,7 @@ export type TabProps = {
  * trigger or a fully custom trigger via `renderTrigger`, and appends a close
  * button when `tab.closable` is true.
  */
-export function Tab({
+export const Tab = memo(function Tab({
   tab,
   isActive,
   renderHeader,
@@ -138,4 +138,4 @@ export function Tab({
       )}
     </div>
   );
-}
+});

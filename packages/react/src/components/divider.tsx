@@ -4,7 +4,7 @@
  * Draggable split divider between two tiled panels.
  */
 
-import { useCallback } from 'react';
+import { memo, useCallback } from 'react';
 import type {
   TileryDivider as DividerType,
   TilerySizeResolutionContext,
@@ -89,7 +89,7 @@ const noop = () => {};
  * between two tiled panels. Supports pointer drag and keyboard arrow keys,
  * with double-click to reset to the default position.
  */
-export function TileryDivider({
+export const TileryDivider = memo(function TileryDivider({
   divider,
   accessibility,
   disabled = false,
@@ -252,7 +252,7 @@ export function TileryDivider({
       }
     />
   );
-}
+});
 
 function normalizeHitSize(value: number): number {
   return Number.isFinite(value) && value > 0 ? value : DEFAULT_HIT_SIZE_PX;

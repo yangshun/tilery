@@ -4,7 +4,7 @@
  * The tab strip for a panel.
  */
 
-import { useCallback, useLayoutEffect, useRef, useState } from 'react';
+import { memo, useCallback, useLayoutEffect, useRef, useState } from 'react';
 import type { TileryController, TileryPanel, TileryTab } from 'tilery/internal';
 import { tileryPanelBehaviorFromState } from 'tilery/internal';
 import { PanelActions, type PanelActionsProps } from './panel-actions';
@@ -75,7 +75,7 @@ export type TabBarProps = {
   | 'renderActionsButtonIcon'
 >;
 
-function TabRow({
+const TabRow = memo(function TabRow({
   tab,
   isActive,
   renderHeader,
@@ -127,7 +127,7 @@ function TabRow({
       onClose={handleClose}
     />
   );
-}
+});
 
 function TabOverflowIcon() {
   return (

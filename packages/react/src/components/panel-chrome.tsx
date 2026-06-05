@@ -4,6 +4,7 @@
  * Panel frame: tab bar + content host.
  */
 
+import { memo } from 'react';
 import {
   tileryPanelBehaviorFromState,
   type TileryFloatingResizeEdge,
@@ -70,7 +71,7 @@ const floatingResizeEdges: TileryFloatingResizeEdge[] = [
  * renders the {@link TabBar} and an empty content slot, and attaches floating
  * resize handles when the panel is in floating mode.
  */
-export function PanelChrome({
+export const PanelChrome = memo(function PanelChrome({
   panel,
   tilery,
   renderHeader,
@@ -159,4 +160,4 @@ export function PanelChrome({
         : null}
     </div>
   );
-}
+});
