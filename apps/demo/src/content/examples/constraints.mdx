@@ -1,0 +1,35 @@
+---
+title: Size Constraints
+description: Panels with percentage and pixel minSize/maxSize limits.
+category: Panel & Tab Behavior
+---
+
+import { Demo } from '../../components/demo';
+import {
+  PanelConstraintsExample,
+  ContainerResizeExample,
+  DefaultResetExample,
+} from './constraints/example';
+
+Use size constraints when a panel has a real lower or upper bound, like a navigator that should not collapse past its content. Drag handles toward the constrained panels until they stop moving.
+
+Double-click a divider when you want to send adjacent panels back to their `defaultSize` ratio. The reset still runs through the same `minSize` and `maxSize` constraints as normal dragging.
+
+The container resize demo shows the same rules applying when the available area changes: proportions are preserved where possible, then min and max sizes clamp the result.
+
+<Demo source="constraints/example.tsx" region="panel-constraints" surface="plain">
+  <PanelConstraintsExample />
+</Demo>
+
+<Demo source="constraints/example.tsx" region="container-resize" surface="plain">
+  <ContainerResizeExample />
+</Demo>
+
+<Demo source="constraints/example.tsx" region="default-reset" surface="plain">
+  <DefaultResetExample />
+</Demo>
+
+## Related
+
+- [Layouts & Snapshots](/docs/api/layout) — Define minSize and maxSize in layout items.
+- [Styling API](/docs/api/styling) — Style active, disabled, min, and max resize states.

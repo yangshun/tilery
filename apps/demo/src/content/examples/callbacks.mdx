@@ -1,0 +1,28 @@
+---
+title: Lifecycle Callbacks
+description: Track structural and resize lifecycle events.
+category: App Integration
+---
+
+import { Demo } from '../../components/demo';
+import {
+  StructuralCallbacksExample,
+  ResizeCallbacksExample,
+} from './callbacks/example';
+
+Lifecycle callbacks let your app observe workspace changes without taking over the reducer. Move tabs, split panels, close tabs, and watch the event log.
+
+Resize callbacks are split between continuous updates and resize-end notifications, so you can update live UI during dragging while saving expensive work until the gesture finishes.
+
+<Demo source="callbacks/example.tsx" region="structural" surface="plain">
+  <StructuralCallbacksExample />
+</Demo>
+
+<Demo source="callbacks/example.tsx" region="resize" surface="plain">
+  <ResizeCallbacksExample />
+</Demo>
+
+## Related
+
+- [Events & Callbacks](/docs/api/events) — Pick the right callback and payload for app state or analytics.
+- [Component Props](/docs/api/component) — Wire callbacks on the Tilery component.

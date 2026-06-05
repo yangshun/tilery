@@ -1,0 +1,21 @@
+---
+title: Panel Locking
+description: Lock panel resizing, dragging, and drop targets.
+category: Panel & Tab Behavior
+---
+
+import { Demo } from '../../components/demo';
+import { Example as PanelLockingExample } from './panel-locking/example';
+
+Panel locking separates resize, drag, and drop behavior so app chrome can stay fixed while other regions remain flexible. Try resizing, dragging from, and dropping into locked panels.
+
+`locked: true` disables all three interactions, while `resizable`, `draggable`, and `droppable` let you model more specific restrictions.
+
+<Demo source="panel-locking/example.tsx">
+  <PanelLockingExample />
+</Demo>
+
+## Related
+
+- [Concepts](/docs/concepts) — See how panel behavior fits the workspace model.
+- [Layouts & Snapshots](/docs/api/layout) — Use layout behavior fields on panels and groups.

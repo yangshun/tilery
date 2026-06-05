@@ -1,0 +1,28 @@
+---
+title: Layout Persistence
+description: Save, restore, and replace layout snapshots.
+category: App Integration
+---
+
+import { Demo } from '../../components/demo';
+import {
+  LocalStorageExample,
+  SnapshotControlsExample,
+} from './persistence/example';
+
+Persistence is built around snapshots: save the current layout, store it in your app, and pass it back later. Move tabs or resize panels in the `localStorage` demo, then reload the page.
+
+The snapshot controls show the same flow manually, which is useful when you want explicit save, reset, or restore actions instead of automatic persistence.
+
+<Demo source="persistence/example.tsx" region="local-storage" surface="plain">
+  <LocalStorageExample />
+</Demo>
+
+<Demo source="persistence/example.tsx" region="snapshot-controls" surface="plain">
+  <SnapshotControlsExample />
+</Demo>
+
+## Related
+
+- [Concepts](/docs/concepts) — Understand snapshots versus runtime layout state.
+- [Layouts & Snapshots](/docs/api/layout) — See the persisted snapshot shape.

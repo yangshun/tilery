@@ -1,0 +1,33 @@
+---
+title: Programmatic Control
+description: Use the Tilery controller plus panel and tab objects for imperative workflows.
+category: App Integration
+---
+
+import { Demo } from '../../components/demo';
+import {
+  PanelApiExample,
+  TabApiExample,
+  WorkflowApiExample,
+} from './controlled/example';
+
+Programmatic control is for workflows that start outside a drag gesture, such as opening a resource from search or splitting a panel from a toolbar. Use the controls here to append tabs, split panels, and reopen an existing resource tab.
+
+The controller gives app-level operations, while panel and tab objects are convenient when your renderer already knows which part of the workspace it is acting on.
+
+<Demo source="controlled/example.tsx" region="panel-objects" surface="plain">
+  <PanelApiExample />
+</Demo>
+
+<Demo source="controlled/example.tsx" region="tab-objects" surface="plain">
+  <TabApiExample />
+</Demo>
+
+<Demo source="controlled/example.tsx" region="tab-workflows" surface="plain">
+  <WorkflowApiExample />
+</Demo>
+
+## Related
+
+- [Programmatic Control](/docs/api/control) — Choose the right controller, panel, or tab method.
+- [Events & Callbacks](/docs/api/events) — React to the structural changes made here.

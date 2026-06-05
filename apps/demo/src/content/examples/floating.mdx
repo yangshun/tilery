@@ -1,0 +1,43 @@
+---
+title: Floating Panels
+description: Detach panels into movable overlays and dock them back.
+category: Advanced UI
+---
+
+import { Demo } from '../../components/demo';
+import {
+  InitialFloatingExample,
+  RuntimeFloatingExample,
+  TabFloatingExample,
+  NativePopoutExample,
+  PopoutStylingExample,
+} from './floating/example';
+
+Floating panels let users pull part of the workspace out of the tiled layout while keeping it in the same Tilery state. Move and resize a floating panel, then dock it back into the main layout.
+
+This page also shows the difference between floating a whole panel, floating one tab, and opening a native popout window with copied document-head styles.
+
+<Demo source="floating/example.tsx" region="initial-floating" surface="plain">
+  <InitialFloatingExample />
+</Demo>
+
+<Demo source="floating/example.tsx" region="runtime-floating" surface="plain">
+  <RuntimeFloatingExample />
+</Demo>
+
+<Demo source="floating/example.tsx" region="tab-floating" surface="plain">
+  <TabFloatingExample />
+</Demo>
+
+<Demo source="floating/example.tsx" region="native-popout" surface="plain">
+  <NativePopoutExample />
+</Demo>
+
+<Demo source="floating/example.tsx" region="popout-styling" surface="plain">
+  <PopoutStylingExample />
+</Demo>
+
+## Related
+
+- [Programmatic Control](/docs/api/control) — Use float, dock, popout, and bounds APIs.
+- [Styling](/docs/styling) — Make native popout styles survive the separate document.

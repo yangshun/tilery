@@ -1,0 +1,25 @@
+---
+title: Panel Actions
+description: Built-in panel actions, custom menu items, and new-tab hooks.
+category: Panel & Tab Behavior
+---
+
+import { Demo } from '../../components/demo';
+import { PanelMenuExample, NewTabExample } from './collapse/example';
+
+Panel actions are for commands that belong to the panel shell: menus, maximize and minimize controls, and app-defined new-tab behavior. Open the menu and use the new-tab demo to see how Tilery leaves product-specific commands to your app.
+
+The tab bar stays built in, but `renderPanelActions` and `onNewTab` let you extend the controls without replacing the whole header.
+
+<Demo source="collapse/example.tsx" region="panel-menu" surface="plain">
+  <PanelMenuExample />
+</Demo>
+
+<Demo source="collapse/example.tsx" region="new-tab" surface="plain">
+  <NewTabExample />
+</Demo>
+
+## Related
+
+- [Component Props](/docs/api/component) — See action button and new-tab props.
+- [Programmatic Control](/docs/api/control) — Open and manage tabs from app workflows.

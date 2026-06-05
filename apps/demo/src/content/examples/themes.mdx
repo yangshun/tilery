@@ -1,0 +1,53 @@
+---
+title: Themes
+description: A gallery of Tilery workspaces styled with CSS variables.
+category: Advanced UI
+---
+
+import { Demo } from '../../components/demo';
+import {
+  AbyssThemeExample,
+  VisualStudioThemeExample,
+  DraculaThemeExample,
+  LightThemeExample,
+  ReplitThemeExample,
+  AbyssSpacedThemeExample,
+  PillTabsThemeExample,
+} from './themes/example';
+
+These demos keep the same workspace but swap the visual system around it. Compare dark, light, editor-inspired, and spaced themes to see how far CSS variables can take you.
+
+The pill tab theme intentionally uses class overrides as well, because changing component shape is usually clearer in CSS than adding more variables.
+
+<Demo source="themes/example.tsx" region="abyss" surface="plain">
+  <AbyssThemeExample />
+</Demo>
+
+<Demo source="themes/example.tsx" region="visual-studio" surface="plain">
+  <VisualStudioThemeExample />
+</Demo>
+
+<Demo source="themes/example.tsx" region="dracula" surface="plain">
+  <DraculaThemeExample />
+</Demo>
+
+<Demo source="themes/example.tsx" region="light" surface="plain">
+  <LightThemeExample />
+</Demo>
+
+<Demo source="themes/example.tsx" region="replit" surface="plain">
+  <ReplitThemeExample />
+</Demo>
+
+<Demo source="themes/example.tsx" region="abyss-spaced" surface="plain">
+  <AbyssSpacedThemeExample />
+</Demo>
+
+<Demo source="themes/example.tsx" region="pill-tabs" surface="plain">
+  <PillTabsThemeExample />
+</Demo>
+
+## Related
+
+- [Styling](/docs/styling) — Choose between variables and scoped class overrides.
+- [Styling API](/docs/api/styling) — Look up supported variables, selectors, and data attributes.

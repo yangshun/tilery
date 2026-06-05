@@ -1,0 +1,21 @@
+---
+title: Nested Instances
+description: A Tilery instance rendered inside a tab of another Tilery.
+category: Layout Patterns
+---
+
+import { Demo } from '../../components/demo';
+import { Example as NestedExample } from './nested/example';
+
+Nested instances are useful when a tab contains a self-contained tool with its own workspace. Resize the inner layout, then resize the outer panel to see that each Tilery root manages its own state.
+
+The inner workspace is just tab content from the outer workspace, so it can use a separate controller, callbacks, and persistence model.
+
+<Demo source="nested/example.tsx">
+  <NestedExample />
+</Demo>
+
+## Related
+
+- [Concepts](/docs/concepts) — Understand how each Tilery root owns its own state.
+- [Component Props](/docs/api/component) — Render nested content through tab content renderers.

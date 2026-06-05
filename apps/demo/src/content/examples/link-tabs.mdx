@@ -1,0 +1,21 @@
+---
+title: Link Tabs
+description: Render tab triggers as anchors or router links.
+category: App Integration
+---
+
+import { Demo } from '../../components/demo';
+import { Example as LinkTabsExample } from './link-tabs/example';
+
+Link tabs are a rendering concern: keep hrefs and router metadata in tab data, then use `renderTabTrigger` to render the tab trigger as an anchor or router component.
+
+Tilery keeps the close button outside the trigger, so link tabs do not wrap button controls and can still close without triggering navigation or activation.
+
+<Demo source="link-tabs/example.tsx" region="link-tabs" surface="plain">
+  <LinkTabsExample />
+</Demo>
+
+## Related
+
+- [Component Props](/docs/api/component) — See the `renderTabTrigger` API and related render props.
+- [Programmatic Control](/docs/api/control) — Coordinate route changes with tab activation.

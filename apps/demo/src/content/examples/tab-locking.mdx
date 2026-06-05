@@ -1,0 +1,28 @@
+---
+title: Tab Locking
+description: Lock tabs or toggle whether they can be closed and dragged.
+category: Panel & Tab Behavior
+---
+
+import { Demo } from '../../components/demo';
+import {
+  InitialTabLocksExample,
+  RuntimeTabBehaviorExample,
+} from './tab-locking/example';
+
+Tab locking is for tabs that represent protected resources or app-owned surfaces. Try closing and dragging the locked tabs, then use the runtime controls to change behavior without remounting tab content.
+
+`locked: true` maps to non-closable and non-draggable; `tab.setBehavior()` applies the same behavior after the workspace is already running.
+
+<Demo source="tab-locking/example.tsx" region="initial-locks" surface="plain">
+  <InitialTabLocksExample />
+</Demo>
+
+<Demo source="tab-locking/example.tsx" region="runtime-behavior" surface="plain">
+  <RuntimeTabBehaviorExample />
+</Demo>
+
+## Related
+
+- [Layouts & Snapshots](/docs/api/layout) — Declare tab behavior in the initial layout.
+- [Programmatic Control](/docs/api/control) — Update tab behavior through tab objects.
