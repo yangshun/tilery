@@ -93,7 +93,7 @@ const registry: Record<string, Record<string, React.ComponentType>> = {
     'tab-objects': TabApiExample,
     'tab-workflows': WorkflowApiExample,
   },
-  'link-tabs': { default: LinkTabsExample, 'link-tabs': LinkTabsExample },
+  'link-tabs': { default: LinkTabsExample },
   floating: {
     default: FloatingExample,
     'initial-floating': InitialFloatingExample,
