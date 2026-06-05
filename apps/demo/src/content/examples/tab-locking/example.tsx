@@ -220,14 +220,14 @@ const statusGridStyle: React.CSSProperties = {
 
 const statusLabelStyle: React.CSSProperties = {
   margin: 0,
-  color: '#6f7785',
+  color: 'var(--example-demo-muted-soft)',
   fontFamily: 'var(--site-mono)',
   fontSize: 11,
 };
 
 const statusValueStyle: React.CSSProperties = {
   margin: '2px 0 0',
-  color: '#d9dde3',
+  color: 'var(--example-demo-fg)',
   fontFamily: 'var(--site-mono)',
   fontSize: 12,
 };

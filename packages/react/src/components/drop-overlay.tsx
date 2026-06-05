@@ -23,8 +23,6 @@ export type DropOverlayProps = {
   ghostLabel?: React.ReactNode;
 };
 
-const INSERTION_BAR_WIDTH = 3;
-
 /**
  * Absolute-positioned overlay layer rendered on top of the layout during a
  * drag operation. Displays a highlighted zone (root edge, panel half, or tab
@@ -157,9 +155,8 @@ function renderTabBarInsertion(
       className="tilery__drop-insertion"
       aria-hidden="true"
       style={{
-        left: x - cRect.left - INSERTION_BAR_WIDTH / 2,
+        left: x - cRect.left,
         top: barRect.top - cRect.top,
-        width: INSERTION_BAR_WIDTH,
         height: barRect.height,
       }}
     />

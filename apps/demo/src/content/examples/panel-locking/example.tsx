@@ -2,7 +2,7 @@
 
 import { Tilery } from '@tilery/react';
 import type { TileryInitialLayout, TileryTab } from '@tilery/react';
-import { TabContent } from '../example-ui';
+import { ExampleSection, TabContent } from '../example-ui';
 
 type TabData = {
   title: string;
@@ -105,16 +105,20 @@ const layout: TileryInitialLayout<TabData> = {
 
 export function Example() {
   return (
-    <Tilery<TabData>
-      initialLayout={layout}
-      renderTabHeader={(tab: TileryTab<TabData>) => (
-        <span>{tab.data.title}</span>
-      )}
-      renderTabContent={(tab: TileryTab<TabData>) => (
-        <TabContent meta={tab.data.behavior}>
-          <p style={{ margin: 0 }}>{tab.data.body}</p>
-        </TabContent>
-      )}
-    />
+    <ExampleSection
+      title="Panel behavior locks"
+      description="Different panels opt out of resizing, dragging, or drop targets while the rest stays interactive.">
+      <Tilery<TabData>
+        initialLayout={layout}
+        renderTabHeader={(tab: TileryTab<TabData>) => (
+          <span>{tab.data.title}</span>
+        )}
+        renderTabContent={(tab: TileryTab<TabData>) => (
+          <TabContent meta={tab.data.behavior}>
+            <p style={{ margin: 0 }}>{tab.data.body}</p>
+          </TabContent>
+        )}
+      />
+    </ExampleSection>
   );
 }

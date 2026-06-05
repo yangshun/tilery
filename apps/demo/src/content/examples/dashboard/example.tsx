@@ -2,7 +2,7 @@
 
 import { Tilery } from '@tilery/react';
 import type { TileryInitialLayout, TileryTab } from '@tilery/react';
-import { TabContent } from '../example-ui';
+import { ExampleSection, TabContent } from '../example-ui';
 
 type TabData = { title: string; color: string };
 
@@ -74,28 +74,32 @@ const layout: TileryInitialLayout<TabData> = {
 
 export function Example() {
   return (
-    <Tilery<TabData>
-      initialLayout={layout}
-      renderTabHeader={(tab: TileryTab<TabData>) => (
-        <>
-          <span
-            style={{
-              display: 'inline-block',
-              width: 8,
-              height: 8,
-              borderRadius: '50%',
-              background: tab.data.color,
-            }}
-          />
-          <span>{tab.data.title}</span>
-        </>
-      )}
-      renderTabContent={(tab: TileryTab<TabData>) => (
-        <TabContent>
-          <div style={widgetStyle}>{tab.data.title} widget</div>
-        </TabContent>
-      )}
-    />
+    <ExampleSection
+      title="Analytics workspace"
+      description="Nested row and column groups create a dashboard without switching to a separate grid primitive.">
+      <Tilery<TabData>
+        initialLayout={layout}
+        renderTabHeader={(tab: TileryTab<TabData>) => (
+          <>
+            <span
+              style={{
+                display: 'inline-block',
+                width: 8,
+                height: 8,
+                borderRadius: '50%',
+                background: tab.data.color,
+              }}
+            />
+            <span>{tab.data.title}</span>
+          </>
+        )}
+        renderTabContent={(tab: TileryTab<TabData>) => (
+          <TabContent>
+            <div style={widgetStyle}>{tab.data.title} widget</div>
+          </TabContent>
+        )}
+      />
+    </ExampleSection>
   );
 }
 
@@ -103,7 +107,7 @@ const widgetStyle: React.CSSProperties = {
   height: 76,
   display: 'grid',
   placeItems: 'center',
-  border: '1px solid rgba(255, 255, 255, 0.08)',
+  border: '1px solid var(--example-demo-border-soft)',
   borderRadius: 6,
-  color: '#9aa1ab',
+  color: 'var(--example-demo-muted)',
 };

@@ -452,9 +452,11 @@
   position: absolute;
   z-index: var(--tilery-drop-overlay-z-index, 1000);
   pointer-events: none;
+  width: var(--tilery-drop-insertion-width, 1px);
   background: var(--tilery-drop-border, var(--tilery-accent, #3884ff));
   border-radius: 1px;
   box-shadow: 0 0 6px var(--tilery-drop-border, rgba(56, 132, 255, 0.5));
+  transform: translateX(-50%);
 }
 
 .tilery__drag-ghost {

@@ -2,7 +2,7 @@
 
 import { Tilery } from '@tilery/react';
 import type { TileryInitialLayout, TileryTab } from '@tilery/react';
-import { TabContent } from '../example-ui';
+import { ExampleSection, TabContent } from '../example-ui';
 
 type TabData = { title: string; nested?: boolean };
 
@@ -67,19 +67,23 @@ function InnerTilery() {
 
 export function Example() {
   return (
-    <Tilery<TabData>
-      initialLayout={outerLayout}
-      renderTabHeader={(tab: TileryTab<TabData>) => (
-        <span>{tab.data.title}</span>
-      )}
-      renderTabContent={(tab: TileryTab<TabData>) => {
-        if (tab.data.nested) return <InnerTilery />;
-        return (
-          <TabContent>
-            <p style={{ margin: 0 }}>{tab.data.title} content.</p>
-          </TabContent>
-        );
-      }}
-    />
+    <ExampleSection
+      title="Nested workspace roots"
+      description="The outer workspace owns the shell while a tab hosts a separate Tilery instance.">
+      <Tilery<TabData>
+        initialLayout={outerLayout}
+        renderTabHeader={(tab: TileryTab<TabData>) => (
+          <span>{tab.data.title}</span>
+        )}
+        renderTabContent={(tab: TileryTab<TabData>) => {
+          if (tab.data.nested) return <InnerTilery />;
+          return (
+            <TabContent>
+              <p style={{ margin: 0 }}>{tab.data.title} content.</p>
+            </TabContent>
+          );
+        }}
+      />
+    </ExampleSection>
   );
 }

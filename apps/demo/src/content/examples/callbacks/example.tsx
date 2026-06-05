@@ -386,16 +386,16 @@ const logStyle: React.CSSProperties = {
   width: 260,
   display: 'flex',
   flexDirection: 'column',
-  borderLeft: '1px solid #2a2d33',
-  background: '#111318',
+  borderLeft: '1px solid var(--example-demo-border)',
+  background: 'var(--example-demo-panel-bg)',
 };
 
 const logHeaderStyle: React.CSSProperties = {
   padding: '9px 10px',
-  color: '#f3f4f7',
+  color: 'var(--example-demo-fg-strong)',
   fontSize: 12,
   fontWeight: 650,
-  borderBottom: '1px solid #2a2d33',
+  borderBottom: '1px solid var(--example-demo-border)',
 };
 
 const logListStyle: React.CSSProperties = {
@@ -407,18 +407,18 @@ const logListStyle: React.CSSProperties = {
 
 const eventStyle: React.CSSProperties = {
   padding: '7px 0',
-  borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+  borderBottom: '1px solid var(--example-demo-border-soft)',
 };
 
 const eventTypeStyle: React.CSSProperties = {
-  color: '#f3f4f7',
+  color: 'var(--example-demo-fg-strong)',
   fontFamily: 'var(--site-mono)',
   fontSize: 11,
 };
 
 const eventDetailsStyle: React.CSSProperties = {
   marginTop: 3,
-  color: '#9aa1ab',
+  color: 'var(--example-demo-muted)',
   fontSize: 12,
   lineHeight: 1.35,
   overflowWrap: 'anywhere',

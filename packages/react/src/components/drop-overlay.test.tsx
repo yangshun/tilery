@@ -418,8 +418,8 @@ describe('DropOverlay — tab bar insertion bar', () => {
     );
     const bar = t.host.querySelector<HTMLElement>('.tilery__drop-insertion');
     expect(bar).not.toBeNull();
-    // T2 starts at x=600. Insertion bar centred on x=600 minus half-width=1.5.
-    expect(bar!.style.left).toBe('598.5px');
+    // T2 starts at x=600. CSS translates the bar by half its own width.
+    expect(bar!.style.left).toBe('600px');
     t.cleanup();
   });
 
@@ -437,7 +437,7 @@ describe('DropOverlay — tab bar insertion bar', () => {
     );
     const bar = t.host.querySelector<HTMLElement>('.tilery__drop-insertion')!;
     // T2 ends at x=700.
-    expect(bar.style.left).toBe('698.5px');
+    expect(bar.style.left).toBe('700px');
     t.cleanup();
   });
 
@@ -458,7 +458,7 @@ describe('DropOverlay — tab bar insertion bar', () => {
     );
     const bar = t.host.querySelector<HTMLElement>('.tilery__drop-insertion')!;
     // Last tab T2 ends at x=700.
-    expect(bar.style.left).toBe('698.5px');
+    expect(bar.style.left).toBe('700px');
     t.cleanup();
   });
 
@@ -475,8 +475,8 @@ describe('DropOverlay — tab bar insertion bar', () => {
       new Map([['P', panel]]),
     );
     const bar = t.host.querySelector<HTMLElement>('.tilery__drop-insertion')!;
-    // barRect.left (500) + 2 = 502, minus half-width 1.5 = 500.5.
-    expect(bar.style.left).toBe('500.5px');
+    // barRect.left (500) + 2 = 502.
+    expect(bar.style.left).toBe('502px');
     t.cleanup();
   });
 
@@ -499,8 +499,8 @@ describe('DropOverlay — tab bar insertion bar', () => {
       new Map([['P', panel]]),
     );
     const bar = t.host.querySelector<HTMLElement>('.tilery__drop-insertion')!;
-    // barRect.left = 500 → centered minus half-width 1.5 = 498.5.
-    expect(bar.style.left).toBe('498.5px');
+    // barRect.left = 500.
+    expect(bar.style.left).toBe('500px');
     t.cleanup();
   });
 
@@ -520,7 +520,7 @@ describe('DropOverlay — tab bar insertion bar', () => {
       new Map([['P', panel]]),
     );
     const bar = t.host.querySelector<HTMLElement>('.tilery__drop-insertion')!;
-    expect(bar.style.left).toBe('498.5px');
+    expect(bar.style.left).toBe('500px');
     t.cleanup();
   });
 

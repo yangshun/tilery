@@ -39,19 +39,25 @@ export function ExampleSection({
   const hasHeader = title || description || actions;
 
   return (
-    <section style={sectionStyle}>
+    <section className="example-section">
       {hasHeader ? (
-        <div style={sectionHeaderStyle}>
-          <div style={sectionTitleGroupStyle}>
-            {title ? <div style={sectionTitleStyle}>{title}</div> : null}
+        <div className="example-section__header">
+          <div className="example-section__title-group">
+            {title ? (
+              <div className="example-section__title">{title}</div>
+            ) : null}
             {description ? (
-              <p style={sectionDescriptionStyle}>{description}</p>
+              <p className="example-section__description">{description}</p>
             ) : null}
           </div>
-          {actions ? <div style={sectionActionsStyle}>{actions}</div> : null}
+          {actions ? (
+            <div className="example-section__actions">{actions}</div>
+          ) : null}
         </div>
       ) : null}
-      <div style={{ ...frameStyleBase, ...frameStyle }}>{children}</div>
+      <div className="example-section__frame" style={frameStyle}>
+        {children}
+      </div>
     </section>
   );
 }
@@ -68,10 +74,15 @@ export function ExampleButton({
   return (
     <button
       {...props}
+      className={['example-button', props.className].filter(Boolean).join(' ')}
       style={{
         ...buttonStyle,
-        background: active ? 'rgba(255, 255, 255, 0.1)' : '#1f2127',
-        color: active ? '#f3f4f7' : '#d9dde3',
+        background: active
+          ? 'var(--example-button-active-bg, var(--site-overlay))'
+          : 'var(--example-button-bg, var(--site-chrome-bg))',
+        color: active
+          ? 'var(--example-button-active-fg, var(--site-fg))'
+          : 'var(--example-button-fg, var(--site-chrome-fg))',
         ...style,
       }}
     />
@@ -104,79 +115,27 @@ export const stackStyle: CSSProperties = {
   minHeight: 0,
   display: 'grid',
   gap: 12,
-  background: '#0e0f12',
-};
-
-export const sectionStyle: CSSProperties = {
-  height: '100%',
-  minHeight: 0,
-  display: 'grid',
-  gridTemplateRows: 'auto minmax(0, 1fr)',
-  gap: 16,
-};
-
-export const sectionHeaderStyle: CSSProperties = {
-  minWidth: 0,
-  display: 'flex',
-  alignItems: 'flex-end',
-  justifyContent: 'space-between',
-  gap: 18,
-};
-
-export const sectionTitleGroupStyle: CSSProperties = {
-  minWidth: 0,
-  display: 'grid',
-  gap: 5,
-};
-
-export const sectionTitleStyle: CSSProperties = {
-  color: '#f3f4f7',
-  fontSize: 15,
-  fontWeight: 650,
-};
-
-export const sectionDescriptionStyle: CSSProperties = {
-  margin: 0,
-  color: '#8f98a6',
-  fontSize: 14,
-  lineHeight: 1.35,
-};
-
-export const sectionActionsStyle: CSSProperties = {
-  flexShrink: 0,
-  display: 'inline-flex',
-  flexWrap: 'wrap',
-  justifyContent: 'flex-end',
-  gap: 6,
-};
-
-export const frameStyleBase: CSSProperties = {
-  height: '100%',
-  minHeight: 0,
-  overflow: 'hidden',
-  border: '1px solid #2a2d33',
-  borderRadius: 6,
-  background: '#111318',
+  background: 'transparent',
 };
 
 export const buttonStyle: CSSProperties = {
   minHeight: 26,
   padding: '0 9px',
-  border: '1px solid #2a2d33',
+  border: '1px solid var(--example-button-border, var(--site-chrome-border))',
   borderRadius: 4,
   fontSize: 13,
   cursor: 'pointer',
 };
 
 export const emptyStateStyle: CSSProperties = {
-  color: '#6f7785',
+  color: 'var(--example-demo-muted-soft)',
   fontSize: 13,
 };
 
 export const tabContentStyle: CSSProperties = {
   height: '100%',
   padding: 16,
-  color: '#9aa1ab',
+  color: 'var(--example-demo-fg)',
   fontSize: 15,
   lineHeight: 1.5,
 };
@@ -187,8 +146,8 @@ export const tabMetaStyle: CSSProperties = {
   marginBottom: 10,
   padding: '3px 7px',
   borderRadius: 4,
-  background: 'rgba(255, 255, 255, 0.07)',
-  color: '#9aa1ab',
+  background: 'var(--example-demo-meta-bg)',
+  color: 'var(--example-demo-muted)',
   fontFamily: 'var(--site-mono)',
   fontSize: 11,
 };

@@ -1115,6 +1115,14 @@ describe('Tilery — rendering', () => {
     );
   });
 
+  it('exposes the drop insertion line width as a CSS variable with a 1px default', () => {
+    const tileryCss = readFileSync('packages/core/src/tilery.css', 'utf8');
+
+    expect(tileryCss).toMatch(
+      /\.tilery__drop-insertion\s*\{[^}]*width:\s*var\(--tilery-drop-insertion-width,\s*1px\);[^}]*transform:\s*translateX\(-50%\);/s,
+    );
+  });
+
   it('marks locked panel and tab-bar affordance state in the DOM', () => {
     const t = mount({
       type: 'group',

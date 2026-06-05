@@ -289,6 +289,6 @@ function isOptionalBoolean(value: unknown) {
 }
 
 const disabledButtonStyle: React.CSSProperties = {
-  color: '#6f7785',
+  color: 'var(--example-demo-muted-soft)',
   cursor: 'not-allowed',
 };

@@ -2,7 +2,7 @@
 
 import { Tilery } from '@tilery/react';
 import type { TileryInitialLayout, TileryTab } from '@tilery/react';
-import { TabContent } from '../example-ui';
+import { ExampleSection, TabContent } from '../example-ui';
 
 type TabData = {
   title: string;
@@ -58,7 +58,13 @@ const layout: TileryInitialLayout<TabData> = {
 };
 
 export function Example() {
-  return <IdeDemo layout={layout} />;
+  return (
+    <IdeDemo
+      layout={layout}
+      title="Nested terminal column"
+      description="The sidebar sits beside an editor column that owns its own terminal split."
+    />
+  );
 }
 // end-source-region nested-terminal
 
@@ -104,51 +110,67 @@ const rootBottomRowLayout: TileryInitialLayout<TabData> = {
 };
 
 export function RootBottomRowExample() {
-  return <IdeDemo layout={rootBottomRowLayout} />;
+  return (
+    <IdeDemo
+      layout={rootBottomRowLayout}
+      title="Full-width bottom row"
+      description="Editor, terminal, and sidebar panels become sibling rows under the root group."
+    />
+  );
 }
 // end-source-region root-bottom-row
 
-function IdeDemo({ layout }: { layout: TileryInitialLayout<TabData> }) {
+function IdeDemo({
+  layout,
+  title,
+  description,
+}: {
+  layout: TileryInitialLayout<TabData>;
+  title: string;
+  description: string;
+}) {
   return (
-    <Tilery<TabData>
-      initialLayout={layout}
-      renderTabHeader={(tab: TileryTab<TabData>) => (
-        <span>{tab.data.title}</span>
-      )}
-      renderTabContent={(tab: TileryTab<TabData>) => (
-        <TabContent>
-          {tab.data.kind === 'explorer' && (
-            <div style={monoBlockStyle}>
-              <div>src/</div>
-              <div style={{ paddingLeft: 12 }}>index.ts</div>
-              <div style={{ paddingLeft: 12 }}>app.tsx</div>
-              <div>package.json</div>
-            </div>
-          )}
-          {tab.data.kind === 'editor' && (
-            <pre style={codeBlockStyle}>
-              {`export function ${tab.data.title.replace(/\.\w+$/, '')}() {\n  return 'hello';\n}`}
-            </pre>
-          )}
-          {tab.data.kind === 'terminal' && (
-            <pre style={monoBlockStyle}>
-              {'$ npm run dev\n> ready on http://localhost:3000'}
-            </pre>
-          )}
-        </TabContent>
-      )}
-    />
+    <ExampleSection title={title} description={description}>
+      <Tilery<TabData>
+        initialLayout={layout}
+        renderTabHeader={(tab: TileryTab<TabData>) => (
+          <span>{tab.data.title}</span>
+        )}
+        renderTabContent={(tab: TileryTab<TabData>) => (
+          <TabContent>
+            {tab.data.kind === 'explorer' && (
+              <div style={monoBlockStyle}>
+                <div>src/</div>
+                <div style={{ paddingLeft: 12 }}>index.ts</div>
+                <div style={{ paddingLeft: 12 }}>app.tsx</div>
+                <div>package.json</div>
+              </div>
+            )}
+            {tab.data.kind === 'editor' && (
+              <pre style={codeBlockStyle}>
+                {`export function ${tab.data.title.replace(/\.\w+$/, '')}() {\n  return 'hello';\n}`}
+              </pre>
+            )}
+            {tab.data.kind === 'terminal' && (
+              <pre style={monoBlockStyle}>
+                {'$ npm run dev\n> ready on http://localhost:3000'}
+              </pre>
+            )}
+          </TabContent>
+        )}
+      />
+    </ExampleSection>
   );
 }
 
 const monoBlockStyle: React.CSSProperties = {
   margin: 0,
-  color: '#9aa1ab',
+  color: 'var(--example-demo-muted)',
   fontFamily: 'var(--site-mono)',
   fontSize: 12,
 };
 
 const codeBlockStyle: React.CSSProperties = {
   ...monoBlockStyle,
-  color: '#d9dde3',
+  color: 'var(--example-demo-fg)',
 };

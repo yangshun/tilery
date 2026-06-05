@@ -2,7 +2,7 @@
 
 import { Tilery } from '@tilery/react';
 import type { TileryInitialLayout, TileryTab } from '@tilery/react';
-import { TabContent } from '../example-ui';
+import { ExampleSection, TabContent } from '../example-ui';
 
 type TabData = {
   title: string;
@@ -76,17 +76,21 @@ const layout: TileryInitialLayout<TabData> = {
 
 export function Example() {
   return (
-    <Tilery<TabData>
-      initialLayout={layout}
-      renderTabHeader={(tab: TileryTab<TabData>) => (
-        <span>{tab.data.title}</span>
-      )}
-      renderTabContent={(tab: TileryTab<TabData>) => (
-        <TabContent meta={panelKindLabel(tab.panel.kind)}>
-          {renderContent(tab)}
-        </TabContent>
-      )}
-    />
+    <ExampleSection
+      title="Pinned edge workspace"
+      description="Left, right, and bottom edge panels stay anchored around the center tiled grid.">
+      <Tilery<TabData>
+        initialLayout={layout}
+        renderTabHeader={(tab: TileryTab<TabData>) => (
+          <span>{tab.data.title}</span>
+        )}
+        renderTabContent={(tab: TileryTab<TabData>) => (
+          <TabContent meta={panelKindLabel(tab.panel.kind)}>
+            {renderContent(tab)}
+          </TabContent>
+        )}
+      />
+    </ExampleSection>
   );
 }
 
@@ -137,16 +141,16 @@ function panelKindLabel(kind: string) {
 
 const monoBlockStyle: React.CSSProperties = {
   margin: 0,
-  color: '#a9b0bd',
+  color: 'var(--example-demo-muted)',
   fontFamily: 'var(--site-mono)',
   fontSize: 13,
 };
 
 const codeBlockStyle: React.CSSProperties = {
   ...monoBlockStyle,
-  color: '#d9dde3',
+  color: 'var(--example-demo-fg)',
 };
 
 const listStyle: React.CSSProperties = {
-  color: '#a9b0bd',
+  color: 'var(--example-demo-muted)',
 };

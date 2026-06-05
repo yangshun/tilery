@@ -308,7 +308,7 @@ function renderContent(tab: TileryTab<TabData>) {
 const resizerTrackStyle: React.CSSProperties = {
   display: 'flex',
   justifyContent: 'center',
-  background: '#101318',
+  background: 'var(--example-demo-code-bg)',
 };
 
 const resizerFrameStyle: React.CSSProperties = {
