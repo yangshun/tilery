@@ -1092,11 +1092,11 @@ describe('Tilery — rendering', () => {
       '.tilery__tab-overflow-menu',
     )!;
     act(() => {
-      reactProps(menu).onKeyDown({ key: 'Enter' });
+      reactProps(menu).onKeyDown({ key: 'Enter', preventDefault() {} });
     });
     expect(t.host.querySelector('.tilery__tab-overflow-menu')).not.toBeNull();
     act(() => {
-      reactProps(menu).onKeyDown({ key: 'Escape' });
+      reactProps(menu).onKeyDown({ key: 'Escape', preventDefault() {} });
     });
     expect(t.host.querySelector('.tilery__tab-overflow-menu')).toBeNull();
     t.cleanup();
@@ -2987,12 +2987,60 @@ describe('Tilery — panel action UI', () => {
     });
     const menu = t.host.querySelector<HTMLElement>('.tilery__panel-menu')!;
     act(() => {
-      reactProps(menu).onKeyDown({ key: 'Enter' });
+      reactProps(menu).onKeyDown({ key: 'Enter', preventDefault() {} });
     });
     expect(t.host.querySelector('.tilery__panel-menu')).not.toBeNull();
     act(() => {
-      reactProps(menu).onKeyDown({ key: 'Escape' });
+      reactProps(menu).onKeyDown({ key: 'Escape', preventDefault() {} });
     });
+    expect(t.host.querySelector('.tilery__panel-menu')).toBeNull();
+    t.cleanup();
+  });
+
+  it('roves menu focus with arrows and closes on outside pointer-down', () => {
+    const t = mount(lShapeLayout(), undefined, { showActionsButton: true });
+    const button = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="sidebar"] .tilery__panel-action-button[aria-label="Panel actions"]',
+    )!;
+    act(() => {
+      reactProps(button).onClick({});
+    });
+    const menu = t.host.querySelector<HTMLElement>('.tilery__panel-menu')!;
+    const items = Array.from(
+      menu.querySelectorAll<HTMLElement>('[role="menuitem"]'),
+    );
+    const last = items.length - 1;
+    // Focus moves into the menu on open.
+    expect(document.activeElement).toBe(items[0]);
+    const press = (key: string) =>
+      act(() => {
+        reactProps(menu).onKeyDown({ key, preventDefault() {} });
+      });
+    press('ArrowDown');
+    expect(document.activeElement).toBe(items[1]);
+    press('ArrowUp');
+    expect(document.activeElement).toBe(items[0]);
+    press('ArrowUp'); // wraps to the last item
+    expect(document.activeElement).toBe(items[last]);
+    press('ArrowDown'); // wraps back to the first
+    expect(document.activeElement).toBe(items[0]);
+    press('End');
+    expect(document.activeElement).toBe(items[last]);
+    press('Home');
+    expect(document.activeElement).toBe(items[0]);
+    press('PageUp'); // unhandled key — focus unchanged
+    expect(document.activeElement).toBe(items[0]);
+    const pointerDown = (el: Element) =>
+      act(() => {
+        el.dispatchEvent(new Event('pointerdown', { bubbles: true }));
+      });
+    // Pointer-down inside the menu or on the trigger keeps it open.
+    pointerDown(items[0]);
+    expect(t.host.querySelector('.tilery__panel-menu')).not.toBeNull();
+    pointerDown(button);
+    expect(t.host.querySelector('.tilery__panel-menu')).not.toBeNull();
+    // Pointer-down elsewhere closes it.
+    pointerDown(document.body);
     expect(t.host.querySelector('.tilery__panel-menu')).toBeNull();
     t.cleanup();
   });

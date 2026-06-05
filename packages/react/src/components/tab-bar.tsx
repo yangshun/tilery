@@ -11,6 +11,7 @@ import { PanelActions, type PanelActionsProps } from './panel-actions';
 import { Tab } from './tab';
 import type { TileryTabTriggerRenderer } from '../tilery';
 import { tileryCssEscape as cssEscape } from '../css-escape';
+import { useTileryMenu } from '../use-menu';
 
 /**
  * Props for the {@link TabBar} component.
@@ -188,7 +189,7 @@ export function TabBar({
   const tabIdsKey = panel.tabs.map((tab) => tab.id).join('\u001f');
   const tabListRef = useRef<HTMLDivElement | null>(null);
   const [hiddenTabIds, setHiddenTabIds] = useState<string[]>([]);
-  const [isOverflowMenuOpen, setIsOverflowMenuOpen] = useState(false);
+  const overflowMenu = useTileryMenu();
   const behavior = tileryPanelBehaviorFromState(tilery.getState(), panelId);
   const canDragPanel =
     behavior.draggable &&
@@ -230,7 +231,7 @@ export function TabBar({
     /* v8 ignore next 4 -- callers only run after the tab-list ref is registered. */
     if (!tabList) {
       setHiddenTabIds((previous) => (previous.length === 0 ? previous : []));
-      setIsOverflowMenuOpen(false);
+      overflowMenu.close(false);
       return;
     }
 
@@ -238,8 +239,8 @@ export function TabBar({
     setHiddenTabIds((previous) =>
       areStringArraysEqual(previous, next) ? previous : next,
     );
-    if (next.length === 0) setIsOverflowMenuOpen(false);
-  }, [tabIdsKey]);
+    if (next.length === 0) overflowMenu.close(false);
+  }, [tabIdsKey, overflowMenu.close]);
   const handleTabListWheel = useCallback(
     (e: React.WheelEvent) => {
       const tabList = tabListRef.current;
@@ -301,8 +302,8 @@ export function TabBar({
     [panel.tabs, activeTabId, onTabClick],
   );
   const closeOverflowMenu = useCallback(() => {
-    setIsOverflowMenuOpen(false);
-  }, []);
+    overflowMenu.close(false);
+  }, [overflowMenu.close]);
   const activateOverflowTab = useCallback(
     (tabId: string) => {
       const tabList = tabListRef.current;
@@ -396,21 +397,21 @@ export function TabBar({
             e.stopPropagation();
           }}>
           <button
+            ref={overflowMenu.triggerRef}
             type="button"
             className="tilery__panel-action-button tilery__tab-overflow-button"
             aria-label="Show hidden tabs"
             aria-haspopup="menu"
-            aria-expanded={isOverflowMenuOpen}
-            onClick={() => setIsOverflowMenuOpen((open) => !open)}>
+            aria-expanded={overflowMenu.isOpen}
+            onClick={overflowMenu.toggle}>
             <TabOverflowIcon />
           </button>
-          {isOverflowMenuOpen && (
+          {overflowMenu.isOpen && (
             <div
+              ref={overflowMenu.menuRef}
               className="tilery__panel-menu tilery__tab-overflow-menu"
               role="menu"
-              onKeyDown={(e) => {
-                if (e.key === 'Escape') closeOverflowMenu();
-              }}>
+              onKeyDown={overflowMenu.onKeyDown}>
               {hiddenTabs.map((tab) => {
                 const isActive = activeTabId === tab.id;
                 return (

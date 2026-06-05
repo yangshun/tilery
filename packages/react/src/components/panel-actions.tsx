@@ -4,7 +4,8 @@
  * Panel action menu (maximize, close, app-defined actions).
  */
 
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
+import { useTileryMenu } from '../use-menu';
 import type {
   TileryDirection,
   TileryController,
@@ -116,8 +117,9 @@ export function PanelActions({
   renderPanelActions,
   renderActionsButtonIcon,
 }: PanelActionsProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const closeMenu = useCallback(() => setIsOpen(false), []);
+  const menu = useTileryMenu();
+  const isOpen = menu.isOpen;
+  const closeMenu = useCallback(() => menu.close(false), [menu.close]);
   const runAction = useCallback(
     (fn: () => void) => {
       fn();
@@ -177,21 +179,21 @@ export function PanelActions({
       {showActionsButton && (
         <div className="tilery__panel-menu-shell">
           <button
+            ref={menu.triggerRef}
             type="button"
             className="tilery__panel-action-button"
             aria-label="Panel actions"
             aria-haspopup="menu"
             aria-expanded={isOpen}
-            onClick={() => setIsOpen((open) => !open)}>
+            onClick={menu.toggle}>
             {renderActionsButtonIcon?.(panel) ?? <EllipsisIcon />}
           </button>
           {isOpen && (
             <div
+              ref={menu.menuRef}
               className="tilery__panel-menu"
               role="menu"
-              onKeyDown={(e) => {
-                if (e.key === 'Escape') closeMenu();
-              }}>
+              onKeyDown={menu.onKeyDown}>
               {!panel.floating && (
                 <div className="tilery__panel-menu-section">
                   {splitDirections.map(({ direction, label }) => (
