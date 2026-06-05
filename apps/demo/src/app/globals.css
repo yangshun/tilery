@@ -3022,3 +3022,361 @@ td code {
     height: 100%;
   }
 }
+
+/* ===========================================================================
+   Design Page — hidden internal showcase for demo-site UI primitives.
+   =========================================================================== */
+.site-main > .design-page {
+  max-width: 1180px;
+  padding: 40px 48px 72px;
+}
+
+.design-page__header {
+  max-width: 760px;
+  margin-bottom: 48px;
+}
+
+.design-page__header h1 {
+  margin-bottom: 10px;
+}
+
+.design-label {
+  display: block;
+  margin: 0 0 6px;
+  color: var(--site-accent);
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.25;
+}
+
+.design-page__description {
+  max-width: 720px;
+  margin: 0;
+  color: var(--site-fg-soft);
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.design-section {
+  margin-top: 72px;
+}
+
+.design-section__header {
+  max-width: 760px;
+  margin-bottom: 18px;
+}
+
+.design-section__header h2 {
+  margin-top: 0;
+  margin-bottom: 4px;
+}
+
+.design-section__header p {
+  margin: 0;
+  color: var(--site-muted);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.design-specimen-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: 16px;
+}
+
+.design-specimen-grid--two {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+}
+
+.design-specimen {
+  min-width: 0;
+  display: grid;
+  gap: 18px;
+  padding: 18px;
+  border-radius: 8px;
+  background: var(--site-overlay-weak);
+}
+
+.design-specimen--wide {
+  max-width: none;
+}
+
+.design-specimen__header {
+  display: grid;
+  gap: 5px;
+}
+
+.design-specimen__header h3 {
+  margin: 0;
+  color: var(--site-fg);
+  font-size: 16px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.design-specimen__header p {
+  margin: 0;
+  color: var(--site-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.design-specimen__body {
+  min-width: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.design-button-row,
+.design-icon-row,
+.design-accent-row,
+.design-status-grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.design-icon-row {
+  gap: 6px;
+}
+
+.design-accent-row {
+  padding-top: 4px;
+}
+
+.design-accent-row .accent-picker__swatch {
+  cursor: default;
+}
+
+.design-token-list {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.design-token {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 34px minmax(140px, 0.8fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--site-border);
+  color: var(--site-muted);
+  font-size: 13px;
+}
+
+.design-token:last-child {
+  border-bottom: 0;
+}
+
+.design-token__swatch {
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--site-shell-border);
+  border-radius: 6px;
+  background: var(--design-token-sample);
+}
+
+.design-token code {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--site-fg);
+}
+
+.design-type-stack {
+  display: grid;
+  gap: 16px;
+}
+
+.design-type-stack p {
+  margin: 0;
+  color: var(--site-muted);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.design-type-sample {
+  color: var(--site-fg);
+  line-height: 1.3;
+}
+
+.design-type-sample--title {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.design-type-sample--section {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.design-example-surface.example-preview__demo-surface {
+  height: 330px;
+  margin: 0;
+  padding: 16px;
+}
+
+.design-example-content {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--example-demo-panel-bg);
+}
+
+.design-example-tabbar {
+  flex-shrink: 0;
+  display: flex;
+  min-width: 0;
+  gap: 1px;
+  padding: 6px 6px 0;
+  border-bottom: 1px solid var(--example-demo-border);
+  background: var(--tilery-tabbar-bg);
+}
+
+.design-example-tabbar span {
+  min-width: 0;
+  padding: 7px 10px;
+  border: 1px solid transparent;
+  border-bottom: 0;
+  border-radius: 5px 5px 0 0;
+  color: var(--tilery-tab-fg);
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.design-example-tabbar span[data-active='true'] {
+  border-color: var(--example-demo-border);
+  background: var(--tilery-tab-active-bg);
+  color: var(--tilery-tab-active-fg);
+}
+
+.design-example-content > :last-child {
+  flex: 1;
+  min-height: 0;
+}
+
+.design-example-content p {
+  margin: 0 0 10px;
+  color: inherit;
+}
+
+.design-playground-panel {
+  max-width: 720px;
+  overflow: hidden;
+  border: 1px solid var(--site-shell-border);
+  border-radius: 8px;
+  background: var(--site-sidebar-bg);
+}
+
+[data-theme='light'] .design-playground-panel {
+  background: #fff;
+}
+
+.design-playground-panel .playground-section:last-child {
+  border-bottom: 0;
+}
+
+.design-playground-panel .site-button {
+  gap: 6px;
+}
+
+.design-playground-panel .site-button svg {
+  flex-shrink: 0;
+  font-size: 14px;
+}
+
+.design-page-nav-specimen .page-navigation {
+  margin-top: 0;
+}
+
+.design-specimen .code-block {
+  margin: 0;
+}
+
+.design-status {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  padding: 0 10px;
+  border: 1px solid var(--site-border);
+  border-radius: 6px;
+  color: var(--site-fg);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.design-status--success {
+  border-color: var(--site-success-border);
+  background: var(--site-success-bg);
+  color: var(--site-success-fg);
+}
+
+.design-status--danger {
+  border-color: var(--site-danger-border);
+  background: var(--site-danger-bg);
+  color: var(--site-danger-fg);
+}
+
+.design-status--neutral {
+  background: var(--site-surface);
+  color: var(--site-muted);
+}
+
+@media (max-width: 720px) {
+  .site-main > .design-page {
+    padding: 28px 18px 52px;
+  }
+
+  .design-page__header {
+    margin-bottom: 36px;
+  }
+
+  .design-section {
+    margin-top: 44px;
+  }
+
+  .design-specimen {
+    padding: 14px;
+  }
+
+  .design-token {
+    grid-template-columns: 30px minmax(0, 1fr);
+    gap: 6px 10px;
+  }
+
+  .design-token > span:last-child {
+    grid-column: 2;
+  }
+
+  .design-button-row .site-button {
+    flex: 1 1 auto;
+  }
+
+  .design-example-surface.example-preview__demo-surface {
+    height: 410px;
+    padding: 12px;
+  }
+
+  .design-playground-panel {
+    max-width: none;
+  }
+
+  .design-playground-panel .playground-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .design-playground-panel .playground-row__control,
+  .design-playground-panel .playground-select-wrap,
+  .design-playground-panel .playground-select,
+  .design-playground-panel .playground-text {
+    width: 100%;
+    max-width: none;
+  }
+}
