@@ -860,6 +860,7 @@ td code {
 }
 
 .home-page {
+  --home-cap-card-hover-shadow: 0 0 0 8px rgba(107, 114, 128, 0.26);
   position: relative;
   width: 100%;
   isolation: isolate;
@@ -1276,7 +1277,14 @@ td code {
   background: #1a1c20;
   border: 1px solid #2a2d33;
   border-radius: 6px;
+  box-shadow: none;
   color-scheme: dark;
+  transition: box-shadow 160ms ease;
+}
+
+.home-cap-card:hover,
+.home-cap-card:focus-within {
+  box-shadow: var(--home-cap-card-hover-shadow);
 }
 
 .home-cap-card__body {
