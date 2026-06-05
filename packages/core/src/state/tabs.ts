@@ -49,7 +49,8 @@ type MoveTabToRootSplitAction = MoveTabAction & {
 /**
  * Appends a new tab to the end of the panel's tab list and optionally makes
  * it the active tab.
- * @returns The input state unchanged when the target panel does not exist.
+ * @returns The input state unchanged when the target panel does not exist or a
+ *   tab with `action.tab.id` already exists.
  */
 export function tileryAppendTab(
   current: TileryLayoutState,
@@ -57,6 +58,7 @@ export function tileryAppendTab(
 ): TileryLayoutState {
   const panel = current.panels[action.panelId];
   if (!panel) return current;
+  if (current.tabs[action.tab.id]) return current;
   return {
     ...current,
     panels: {
@@ -83,7 +85,8 @@ export function tileryAppendTab(
  * Inserts a new tab at the given index within the panel's tab list and
  * optionally makes it the active tab. The index is clamped to the valid
  * range `[0, panel.tabs.length]`.
- * @returns The input state unchanged when the target panel does not exist.
+ * @returns The input state unchanged when the target panel does not exist or a
+ *   tab with `action.tab.id` already exists.
  */
 export function tileryInsertTab(
   current: TileryLayoutState,
@@ -91,6 +94,7 @@ export function tileryInsertTab(
 ): TileryLayoutState {
   const panel = current.panels[action.panelId];
   if (!panel) return current;
+  if (current.tabs[action.tab.id]) return current;
   const idx = Math.max(0, Math.min(panel.tabs.length, action.index));
   const nextTabs = [...panel.tabs];
   nextTabs.splice(idx, 0, action.tab.id);

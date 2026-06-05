@@ -49,6 +49,9 @@ export function useTileryPointerDrag({
   const onPointerDown = useCallback(
     (e: React.PointerEvent) => {
       if (e.button !== 0) return;
+      // Ignore secondary pointers (e.g. a 2nd touch point during a gesture).
+      // `=== false` so events that omit the field still count as primary.
+      if (e.isPrimary === false) return;
       e.preventDefault();
       if (stopPropagationOnDown) e.stopPropagation();
       const el = e.currentTarget as HTMLElement;

@@ -14,6 +14,7 @@ import {
   tileryPanelRight,
   tileryPanelTop,
   tileryPanelWidth,
+  tileryRectEdgePercent,
   tileryRectsOverlap,
   tilerySplitFitsPanelConstraints,
   tilerySplitFitsMin,
@@ -1520,6 +1521,14 @@ describe('constraint diagnostics', () => {
     expect(warn).toHaveBeenCalledWith(
       '[Tilery] Panel "A" has minSize 70 greater than maxSize 40.',
     );
+  });
+});
+
+describe('tileryRectEdgePercent', () => {
+  it('returns 0 for a collapsed (zero-size) container', () => {
+    const rect = { left: 0, right: 0, top: 0, bottom: 0, width: 0, height: 0 };
+    expect(tileryRectEdgePercent(rect, 5, 5, 'left')).toBe(0);
+    expect(tileryRectEdgePercent(rect, 5, 5, 'top')).toBe(0);
   });
 });
 

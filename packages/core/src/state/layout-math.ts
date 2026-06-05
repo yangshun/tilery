@@ -92,6 +92,9 @@ export function tileryRectEdgePercent(
   clientY: number,
   side: 'left' | 'right' | 'top' | 'bottom',
 ): number {
+  const length = side === 'left' || side === 'right' ? rect.width : rect.height;
+  // Guard against a momentarily-collapsed (0px) container to avoid NaN/Infinity.
+  if (length <= 0) return 0;
   switch (side) {
     case 'left':
       return ((clientX - rect.left) / rect.width) * 100;

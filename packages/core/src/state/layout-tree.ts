@@ -553,6 +553,11 @@ export function tileryResizeLayoutDivider(
       ? rect.right - rect.left
       : rect.bottom - rect.top;
   const start = node.direction === 'horizontal' ? rect.left : rect.top;
+  // Defensive: a zero-span split would divide by zero below. Unreachable today
+  // (normalization flattens same-axis zero-size splits before they reach here),
+  // so this only guards future/hand-built degenerate trees from NaN corruption.
+  /* v8 ignore next -- defensive; normalization prevents zero-span splits. */
+  if (span <= EPSILON) return layout;
   const targetPercent = ((newPosition - start) / span) * 100;
   const pairStart = sum(childSizes.slice(0, boundaryIndex));
   const pairEnd =

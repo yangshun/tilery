@@ -36,8 +36,8 @@ type SplitPanelAction = Extract<TileryReducerAction, { type: 'PANEL_SPLIT' }>;
  * Splits an existing tiled panel in the given direction, inserting a new
  * sibling panel at `action.newPanelId` populated with `action.tabs`.
  * @returns The input state unchanged when the source panel is missing,
- *   non-tiled, full-screen, non-droppable, or the split violates size
- *   constraints.
+ *   non-tiled, full-screen, non-droppable, the split violates size
+ *   constraints, or any of `action.tabs` reuses an existing tab id.
  */
 export function tilerySplitPanel(
   current: TileryLayoutState,
@@ -62,6 +62,7 @@ export function tilerySplitPanel(
   ) {
     return current;
   }
+  if (action.tabs.some((t) => current.tabs[t.id])) return current;
   const { source: sourceInset, created: createdInset } = tilerySplitInset(
     source.inset,
     action.direction,

@@ -771,6 +771,19 @@ describe('tileryReducer dispatch matrix', () => {
     });
     expect(next).toBe(state);
   });
+  it('PANEL_SPLIT is a no-op when a new tab reuses an existing id', () => {
+    const state = twoSideBySide();
+    const next = tileryReducer(state, {
+      type: 'PANEL_SPLIT',
+      panelId: 'L',
+      direction: 'right',
+      sizePercent: 50,
+      newPanelId: 'NEW',
+      tabs: [{ id: 'L1', data: {} }],
+      activate: true,
+    });
+    expect(next).toBe(state);
+  });
   it('PANEL_SPLIT with no tabs creates an empty new panel', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, {
@@ -1966,6 +1979,16 @@ describe('tileryReducer dispatch matrix', () => {
     });
     expect(next.panels.R!.activeTabId).toBe('NEW');
   });
+  it('TAB_APPEND is a no-op when the tab id already exists', () => {
+    const state = twoSideBySide();
+    const next = tileryReducer(state, {
+      type: 'TAB_APPEND',
+      panelId: 'R',
+      tab: { id: 'L1', data: {} },
+      activate: true,
+    });
+    expect(next).toBe(state);
+  });
 
   it('TAB_INSERT is a no-op if panel missing', () => {
     const state = twoSideBySide();
@@ -1973,6 +1996,17 @@ describe('tileryReducer dispatch matrix', () => {
       type: 'TAB_INSERT',
       panelId: 'phantom',
       tab: { id: 'X', data: {} },
+      index: 0,
+      activate: true,
+    });
+    expect(next).toBe(state);
+  });
+  it('TAB_INSERT is a no-op when the tab id already exists', () => {
+    const state = twoSideBySide();
+    const next = tileryReducer(state, {
+      type: 'TAB_INSERT',
+      panelId: 'R',
+      tab: { id: 'L1', data: {} },
       index: 0,
       activate: true,
     });

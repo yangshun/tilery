@@ -492,7 +492,8 @@ export function tileryMakeTab<TData = unknown>(
       return state.panels[tab.panelId]?.tabs.indexOf(id) ?? -1;
     },
     get data() {
-      return (getState().tabs[id]?.data as TData) ?? (undefined as TData);
+      const tab = getState().tabs[id];
+      return (tab ? tab.data : undefined) as TData;
     },
     get closable() {
       return getState().tabs[id]?.closable ?? true;

@@ -41,6 +41,7 @@ function setup(options: Partial<TileryPointerDragOptions> = {}) {
       pointerType: string;
       clientX: number;
       clientY: number;
+      isPrimary: boolean;
     }> = {},
   ): React.PointerEvent => {
     const calls = {
@@ -55,6 +56,7 @@ function setup(options: Partial<TileryPointerDragOptions> = {}) {
       pointerType: 'mouse' as const,
       clientX: 10,
       clientY: 10,
+      isPrimary: true,
       ...overrides,
       preventDefault() {
         calls.preventDefault++;
@@ -96,6 +98,18 @@ describe('useTileryPointerDrag — gating', () => {
       t.handlers().onPointerDown(e);
     });
     // pointermove afterwards is a no-op because dragging never started.
+    t.handlers().onPointerMove(t.fakeEvent({ clientX: 50, clientY: 50 }));
+    expect(t.moves).toHaveLength(0);
+    t.cleanup();
+  });
+
+  it('ignores non-primary pointers on pointerdown', () => {
+    const t = setup();
+    const e = t.fakeEvent({ isPrimary: false });
+    act(() => {
+      t.handlers().onPointerDown(e);
+    });
+    // A secondary touch point must not start a drag.
     t.handlers().onPointerMove(t.fakeEvent({ clientX: 50, clientY: 50 }));
     expect(t.moves).toHaveLength(0);
     t.cleanup();
