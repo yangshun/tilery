@@ -801,6 +801,19 @@ describe('Tilery — rendering', () => {
     t.cleanup();
   });
 
+  it('uses getTabLabel for the close button accessible name', () => {
+    const t = mount(overflowTabsLayout(), undefined, {
+      getTabLabel: (tab) => tab.data.title,
+    });
+    const closeBtn = t.host.querySelector<HTMLElement>(
+      '.tilery__tab[data-tab-id="tab-1"] .tilery__tab-close',
+    )!;
+    expect(closeBtn.getAttribute('aria-label')).toBe(
+      'Close Very long tab title 1',
+    );
+    t.cleanup();
+  });
+
   it('renders custom tab triggers without wrapping the close button', () => {
     const t = mount(linkTabsLayout(), undefined, {
       renderTabTrigger: ({ tab, props, children }) => (

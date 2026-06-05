@@ -43,6 +43,11 @@ export type TabProps = {
   registerTab: (tabId: string, el: HTMLElement | null) => void;
   /** Called when the close button is clicked. */
   onClose: () => void;
+  /**
+   * Optional resolver for a tab's accessible label, used for the close
+   * button's `aria-label`. Falls back to a generic label when absent.
+   */
+  getTabLabel?: (tab: TileryTab) => string;
 };
 
 /**
@@ -61,10 +66,13 @@ export const Tab = memo(function Tab({
   onPointerCancel,
   registerTab,
   onClose,
+  getTabLabel,
 }: TabProps) {
   const tabId = tab.id;
   const tabDomId = tileryTabDomId(tabId);
   const tabPanelDomId = tileryTabPanelDomId(tabId);
+  const tabLabel = getTabLabel?.(tab);
+  const closeLabel = tabLabel ? `Close ${tabLabel}` : 'Close tab';
   const handleRef = useCallback(
     (el: HTMLElement | null) => registerTab(tabId, el),
     [registerTab, tabId],
@@ -134,7 +142,7 @@ export const Tab = memo(function Tab({
         <button
           type="button"
           className="tilery__tab-close"
-          aria-label="Close tab"
+          aria-label={closeLabel}
           onPointerDown={(e) => {
             e.stopPropagation();
           }}
@@ -142,7 +150,7 @@ export const Tab = memo(function Tab({
             e.stopPropagation();
             onClose();
           }}>
-          ×
+          <span aria-hidden="true">×</span>
         </button>
       )}
     </div>

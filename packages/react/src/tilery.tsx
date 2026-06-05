@@ -235,6 +235,11 @@ export type TileryProps<TData = unknown> = {
   renderTabTrigger?: TileryTabTriggerRenderer<TData>;
   /** Renders the panel content displayed for a tab. */
   renderTabContent: (tab: TileryTab<TData>) => React.ReactNode;
+  /**
+   * Optional resolver for a tab's accessible label. Gives icon-only tabs and
+   * their close buttons a meaningful name for screen readers.
+   */
+  getTabLabel?: (tab: TileryTab<TData>) => string;
   /** Called after every state change; use it to persist or inspect layout. */
   onChange?: (state: TileryLayoutState) => void;
   /**
@@ -323,6 +328,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
     renderTabHeader,
     renderTabTrigger,
     renderTabContent,
+    getTabLabel,
     onChange,
     onResize,
     onResizeEnd,
@@ -797,6 +803,13 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
       renderTabHeader(tab as TileryTab<TData>, ctx),
     [renderTabHeader],
   );
+  const getTabLabelAdapter = useMemo<((tab: TileryTab) => string) | undefined>(
+    () =>
+      getTabLabel
+        ? (tab: TileryTab) => getTabLabel(tab as TileryTab<TData>)
+        : undefined,
+    [getTabLabel],
+  );
   const renderTabTriggerAdapter = useCallback<TileryTabTriggerRenderer>(
     (ctx) =>
       renderTabTrigger!({
@@ -936,6 +949,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
         panel={panel}
         tilery={tileryRef.current!}
         renderHeader={renderHeaderAdapter}
+        getTabLabel={getTabLabelAdapter}
         renderTabTrigger={
           renderTabTrigger ? renderTabTriggerAdapter : undefined
         }

@@ -66,6 +66,8 @@ export type TabBarProps = {
   onTabClick: (tabId: string) => void;
   /** Called when the close button on a tab is clicked. */
   onTabClose: (tabId: string) => void;
+  /** Optional resolver for a tab's accessible label (used for close buttons). */
+  getTabLabel?: (tab: TileryTab) => string;
 } & Pick<
   PanelActionsProps,
   | 'showActionsButton'
@@ -87,6 +89,7 @@ const TabRow = memo(function TabRow({
   onTabPointerCancel,
   onTabClick,
   onTabClose,
+  getTabLabel,
 }: {
   tab: TileryTab;
   isActive: boolean;
@@ -101,6 +104,7 @@ const TabRow = memo(function TabRow({
   | 'onTabPointerCancel'
   | 'onTabClick'
   | 'onTabClose'
+  | 'getTabLabel'
 >) {
   const tabId = tab.id;
   const handleDown = useCallback(
@@ -125,6 +129,7 @@ const TabRow = memo(function TabRow({
       onPointerUp={handleUp}
       onPointerCancel={onTabPointerCancel}
       onClose={handleClose}
+      getTabLabel={getTabLabel}
     />
   );
 });
@@ -171,6 +176,7 @@ export function TabBar({
   onTabBarPointerUp,
   onTabClick,
   onTabClose,
+  getTabLabel,
   showActionsButton,
   showNewTabButton,
   onNewTab,
@@ -378,6 +384,7 @@ export function TabBar({
             onTabPointerCancel={onTabPointerCancel}
             onTabClick={onTabClick}
             onTabClose={onTabClose}
+            getTabLabel={getTabLabel}
           />
         ))}
       </div>
