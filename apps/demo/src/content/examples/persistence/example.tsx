@@ -170,8 +170,7 @@ export function SnapshotControlsExample() {
           <ExampleButton
             type="button"
             onClick={restoreSnapshot}
-            disabled={!snapshot}
-            style={!snapshot ? disabledButtonStyle : undefined}>
+            disabled={!snapshot}>
             Restore
           </ExampleButton>
           <ExampleButton type="button" onClick={resetLayout}>
@@ -287,8 +286,3 @@ function isOptionalSize(value: unknown) {
 function isOptionalBoolean(value: unknown) {
   return value === undefined || typeof value === 'boolean';
 }
-
-const disabledButtonStyle: React.CSSProperties = {
-  color: 'var(--example-demo-muted-soft)',
-  cursor: 'not-allowed',
-};

@@ -19,7 +19,7 @@ export function DemoScene() {
         </h2>
         <button
           type="button"
-          className="home-demo-scene__reset"
+          className="site-button home-demo-scene__reset"
           onClick={() => setResetKey((key) => key + 1)}>
           Reset workspace
         </button>

@@ -94,7 +94,10 @@ const defaultLayout: Layout = {
           id: 'terminal',
           size: 32,
           tabs: [
-            { id: 'terminal-tab', data: { title: 'Terminal', kind: 'terminal' } },
+            {
+              id: 'terminal-tab',
+              data: { title: 'Terminal', kind: 'terminal' },
+            },
           ],
         },
       ],
@@ -139,7 +142,12 @@ const ideLayout: Layout = {
         type: 'panel',
         id: 'ide-preview',
         size: 36,
-        tabs: [{ id: 'ide-preview-tab', data: { title: 'Preview', kind: 'preview' } }],
+        tabs: [
+          {
+            id: 'ide-preview-tab',
+            data: { title: 'Preview', kind: 'preview' },
+          },
+        ],
       },
     ],
   },
@@ -158,13 +166,17 @@ const dashboardLayout: Layout = {
           type: 'panel',
           id: 'metrics',
           size: 50,
-          tabs: [{ id: 'metrics-tab', data: { title: 'Metrics', kind: 'preview' } }],
+          tabs: [
+            { id: 'metrics-tab', data: { title: 'Metrics', kind: 'preview' } },
+          ],
         },
         {
           type: 'panel',
           id: 'traffic',
           size: 50,
-          tabs: [{ id: 'traffic-tab', data: { title: 'Traffic', kind: 'preview' } }],
+          tabs: [
+            { id: 'traffic-tab', data: { title: 'Traffic', kind: 'preview' } },
+          ],
         },
       ],
     },
@@ -183,7 +195,9 @@ const dashboardLayout: Layout = {
           type: 'panel',
           id: 'activity',
           size: 40,
-          tabs: [{ id: 'activity-tab', data: { title: 'Activity', kind: 'notes' } }],
+          tabs: [
+            { id: 'activity-tab', data: { title: 'Activity', kind: 'notes' } },
+          ],
         },
       ],
     },
@@ -215,7 +229,12 @@ const floatingLayout: Layout = {
       type: 'floatingPanel',
       id: 'float-inspector',
       bounds: { x: 52, y: 14, width: 38, height: 48 },
-      tabs: [{ id: 'float-inspect-tab', data: { title: 'Inspector', kind: 'notes' } }],
+      tabs: [
+        {
+          id: 'float-inspect-tab',
+          data: { title: 'Inspector', kind: 'notes' },
+        },
+      ],
     },
   ],
 };
@@ -239,8 +258,22 @@ export type PgThemeStyle = CSSProperties & Record<`--${string}`, string>;
 
 export type PgTheme = { id: string; label: string; style: PgThemeStyle };
 
+const pageAccentVars = {
+  '--tilery-accent': 'var(--site-workspace-accent)',
+  '--tilery-drop-bg':
+    'color-mix(in srgb, var(--site-workspace-accent), transparent 84%)',
+  '--tilery-drop-border':
+    'color-mix(in srgb, var(--site-workspace-accent), transparent 42%)',
+  '--tilery-resize-handle-active-bg':
+    'color-mix(in srgb, var(--site-workspace-accent), transparent 82%)',
+} satisfies Record<`--${string}`, string>;
+
 export const PG_THEMES: PgTheme[] = [
-  { id: 'default', label: 'Default', style: { colorScheme: 'dark' } },
+  {
+    id: 'default',
+    label: 'Default',
+    style: { colorScheme: 'dark', ...pageAccentVars },
+  },
   {
     id: 'light',
     label: 'Light',
@@ -257,10 +290,7 @@ export const PG_THEMES: PgTheme[] = [
       '--tilery-tab-hover-bg': '#e2e8f2',
       '--tilery-menu-bg': '#ffffff',
       '--tilery-action-hover-bg': '#e5ebf4',
-      '--tilery-accent': '#2563eb',
-      '--tilery-drop-bg': 'rgba(37, 99, 235, 0.14)',
-      '--tilery-drop-border': 'rgba(37, 99, 235, 0.55)',
-      '--tilery-resize-handle-active-bg': 'rgba(37, 99, 235, 0.18)',
+      ...pageAccentVars,
     },
   },
   {
@@ -279,10 +309,7 @@ export const PG_THEMES: PgTheme[] = [
       '--tilery-tab-hover-bg': '#303241',
       '--tilery-menu-bg': '#282a36',
       '--tilery-action-hover-bg': '#3a3d4f',
-      '--tilery-accent': '#ff79c6',
-      '--tilery-drop-bg': 'rgba(255, 121, 198, 0.18)',
-      '--tilery-drop-border': 'rgba(255, 121, 198, 0.72)',
-      '--tilery-resize-handle-active-bg': 'rgba(255, 121, 198, 0.2)',
+      ...pageAccentVars,
     },
   },
   {
@@ -301,10 +328,7 @@ export const PG_THEMES: PgTheme[] = [
       '--tilery-tab-hover-bg': '#26314a',
       '--tilery-menu-bg': '#1c2333',
       '--tilery-action-hover-bg': '#2a344a',
-      '--tilery-accent': '#f26207',
-      '--tilery-drop-bg': 'rgba(242, 98, 7, 0.16)',
-      '--tilery-drop-border': 'rgba(242, 98, 7, 0.65)',
-      '--tilery-resize-handle-active-bg': 'rgba(242, 98, 7, 0.2)',
+      ...pageAccentVars,
     },
   },
   {
@@ -323,10 +347,7 @@ export const PG_THEMES: PgTheme[] = [
       '--tilery-tab-hover-bg': '#052b4a',
       '--tilery-menu-bg': '#02243f',
       '--tilery-action-hover-bg': '#0b3555',
-      '--tilery-accent': '#4db8ff',
-      '--tilery-drop-bg': 'rgba(77, 184, 255, 0.18)',
-      '--tilery-drop-border': 'rgba(77, 184, 255, 0.72)',
-      '--tilery-resize-handle-active-bg': 'rgba(77, 184, 255, 0.22)',
+      ...pageAccentVars,
     },
   },
 ];

@@ -25,7 +25,9 @@ export function LiveIdeDemo({
       {inView ? (
         <IdeExample key={resetKey} />
       ) : (
-        <div className="home-demo__placeholder">Loading interactive preview…</div>
+        <div className="home-demo__placeholder">
+          Loading interactive preview…
+        </div>
       )}
     </div>
   );

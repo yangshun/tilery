@@ -10,6 +10,7 @@ import { useEffect, useState, type RefObject } from 'react';
 import Link from 'next/link';
 import { RiGithubFill } from 'react-icons/ri';
 import { Input } from '@base-ui-components/react/input';
+import { AccentSelector } from '../../components/accent-selector';
 import { ThemeToggle } from '../../components/theme-toggle';
 import type {
   TileryController,
@@ -127,13 +128,17 @@ export function PlaygroundInspector({
   // ---- workspace ops ----
   const addTab = () => {
     if (!selectedPanelId) return;
-    tilery()?.getPanel(selectedPanelId)?.appendTab(makeTab(), { activate: true });
+    tilery()
+      ?.getPanel(selectedPanelId)
+      ?.appendTab(makeTab(), { activate: true });
   };
   const splitPanel = () => {
     if (!selectedPanelId) return;
     // No explicit `size`: Tilery splits the slot evenly, which always fits.
     // A fixed size can exceed a narrow panel's slot and be rejected silently.
-    tilery()?.getPanel(selectedPanelId)?.split(splitDir, { tabs: [makeTab()] });
+    tilery()
+      ?.getPanel(selectedPanelId)
+      ?.split(splitDir, { tabs: [makeTab()] });
   };
   const removePanel = () => {
     if (!selectedPanelId) return;
@@ -220,7 +225,10 @@ export function PlaygroundInspector({
     if (selectedTabId)
       tilery()
         ?.getTab(selectedTabId)
-        ?.float({ panelId: uid('float'), bounds: { x: 20, y: 18, width: 38, height: 46 } });
+        ?.float({
+          panelId: uid('float'),
+          bounds: { x: 20, y: 18, width: 38, height: 46 },
+        });
   };
   const popoutTab = () => {
     if (selectedTabId)
@@ -244,12 +252,11 @@ export function PlaygroundInspector({
             Tilery
           </Link>
           <div className="playground-inspector__head-actions">
-            <ThemeToggle />
             <a
               href="https://github.com/yangshun/tilery"
               target="_blank"
               rel="noopener noreferrer"
-              className="playground-inspector__icon"
+              className="site-icon-button playground-inspector__icon"
               aria-label="GitHub repository">
               <RiGithubFill aria-hidden="true" />
             </a>
@@ -259,263 +266,264 @@ export function PlaygroundInspector({
 
       <div className="playground-inspector__scroll">
         <Sections defaultOpen={['workspace', 'panel', 'tab']}>
-        <Section value="workspace" title="Workspace">
-          <SelectRow
-            label="Preset"
-            hint="Replace the whole workspace"
-            value=""
-            onChange={loadPreset}
-            options={[
-              { value: '', label: 'Load preset…' },
-              ...PG_PRESETS.map((p) => ({ value: p.id, label: p.label })),
-            ]}
-          />
-          <ButtonGrid>
-            <PgButton onClick={saveLayout}>Save</PgButton>
-            <PgButton onClick={restoreLayout} disabled={!hasSaved}>
-              Restore
-            </PgButton>
-            <PgButton onClick={exportLayout}>
-              {copied ? 'Copied!' : 'Export JSON'}
-            </PgButton>
-            <PgButton variant="danger" onClick={reset}>
-              Reset
-            </PgButton>
-          </ButtonGrid>
-          <ToggleRow
-            label="Resizable"
-            hint="All dividers"
-            checked={global.resizable}
-            onChange={(v) => onGlobalChange({ resizable: v })}
-          />
-          <ToggleRow
-            label="Action menu button"
-            checked={global.showActionsButton}
-            onChange={(v) => onGlobalChange({ showActionsButton: v })}
-          />
-          <ToggleRow
-            label="New-tab button"
-            checked={global.showNewTabButton}
-            onChange={(v) => onGlobalChange({ showNewTabButton: v })}
-          />
-          <NumberRow
-            label="Handle hit size"
-            hint="px"
-            value={global.resizeHandleHitSize}
-            onChange={(v) => onGlobalChange({ resizeHandleHitSize: v ?? 24 })}
-          />
-          <NumberRow
-            label="Default min %"
-            value={global.minSize}
-            onChange={(v) => onGlobalChange({ minSize: v ?? 10 })}
-          />
-          <SelectRow
-            label="Theme"
-            value={themeId}
-            onChange={onThemeChange}
-            options={PG_THEMES.map((t) => ({ value: t.id, label: t.label }))}
-          />
-        </Section>
+          <Section value="workspace" title="Workspace">
+            <SelectRow
+              label="Preset"
+              hint="Replace the whole workspace"
+              value=""
+              onChange={loadPreset}
+              options={[
+                { value: '', label: 'Load preset…' },
+                ...PG_PRESETS.map((p) => ({ value: p.id, label: p.label })),
+              ]}
+            />
+            <ButtonGrid>
+              <PgButton onClick={saveLayout}>Save</PgButton>
+              <PgButton onClick={restoreLayout} disabled={!hasSaved}>
+                Restore
+              </PgButton>
+              <PgButton onClick={exportLayout}>
+                {copied ? 'Copied!' : 'Export JSON'}
+              </PgButton>
+              <PgButton variant="danger" onClick={reset}>
+                Reset
+              </PgButton>
+            </ButtonGrid>
+            <ToggleRow
+              label="Resizable"
+              hint="All dividers"
+              checked={global.resizable}
+              onChange={(v) => onGlobalChange({ resizable: v })}
+            />
+            <ToggleRow
+              label="Action menu button"
+              checked={global.showActionsButton}
+              onChange={(v) => onGlobalChange({ showActionsButton: v })}
+            />
+            <ToggleRow
+              label="New-tab button"
+              checked={global.showNewTabButton}
+              onChange={(v) => onGlobalChange({ showNewTabButton: v })}
+            />
+            <NumberRow
+              label="Handle hit size (px)"
+              value={global.resizeHandleHitSize}
+              onChange={(v) => onGlobalChange({ resizeHandleHitSize: v ?? 24 })}
+            />
+            <NumberRow
+              label="Default min %"
+              value={global.minSize}
+              onChange={(v) => onGlobalChange({ minSize: v ?? 10 })}
+            />
+            <SelectRow
+              label="Theme"
+              value={themeId}
+              onChange={onThemeChange}
+              options={PG_THEMES.map((t) => ({ value: t.id, label: t.label }))}
+            />
+          </Section>
 
-        <Section value="panel" title="Selected panel">
-          {panels.length === 0 ? (
-            <p className="playground-empty">
-              No panels. Load a preset or reset the workspace.
-            </p>
-          ) : (
-            <>
-              <SelectRow
-                label="Panel"
-                value={selectedPanelId ?? ''}
-                onChange={onSelectPanel}
-                options={panelOptions}
-              />
-              {panel ? (
-                <>
-                  <ControlRow
-                    label="Add tab"
-                    control={
-                      <PgButton variant="primary" onClick={addTab}>
-                        Add tab
-                      </PgButton>
-                    }
-                  />
-                  <ControlRow
-                    label="Split panel"
-                    control={
-                      <div className="playground-inline">
-                        <PgSelect
-                          ariaLabel="Split direction"
-                          value={splitDir}
-                          onChange={(v) => setSplitDir(v as TileryDirection)}
-                          options={DIRECTIONS}
-                        />
-                        <PgButton onClick={splitPanel}>Split</PgButton>
-                      </div>
-                    }
-                  />
-                  <ToggleRow
-                    label="Resizable"
-                    checked={panel.resizable}
-                    onChange={(v) => patchPanel({ resizable: v })}
-                  />
-                  <ToggleRow
-                    label="Draggable"
-                    checked={panel.draggable}
-                    onChange={(v) => patchPanel({ draggable: v })}
-                  />
-                  <ToggleRow
-                    label="Droppable"
-                    checked={panel.droppable}
-                    onChange={(v) => patchPanel({ droppable: v })}
-                  />
-                  <ToggleRow
-                    label="Locked"
-                    hint="Resize + drag + drop off"
-                    checked={
-                      !panel.resizable && !panel.draggable && !panel.droppable
-                    }
-                    onChange={(v) =>
-                      patchPanel({
-                        resizable: !v,
-                        draggable: !v,
-                        droppable: !v,
-                      })
-                    }
-                  />
-                  <NumberRow
-                    label="Min size %"
-                    value={
-                      typeof panel.minSize === 'number' ? panel.minSize : ''
-                    }
-                    placeholder="auto"
-                    onChange={(v) => patchPanel({ minSize: v })}
-                  />
-                  <NumberRow
-                    label="Max size %"
-                    value={
-                      typeof panel.maxSize === 'number' ? panel.maxSize : ''
-                    }
-                    placeholder="auto"
-                    onChange={(v) => patchPanel({ maxSize: v })}
-                  />
-                  <ButtonGrid>
-                    <PgButton active={panel.fullScreen} onClick={toggleMaximize}>
-                      {panel.fullScreen ? 'Restore' : 'Maximize'}
-                    </PgButton>
-                    <PgButton
-                      active={panel.container === 'floating'}
-                      onClick={toggleFloat}>
-                      {panel.container === 'floating' ? 'Dock' : 'Float'}
-                    </PgButton>
-                    <PgButton active={panel.poppedOut} onClick={togglePopout}>
-                      {panel.poppedOut ? 'Return' : 'Pop out'}
-                    </PgButton>
-                    <PgButton
-                      onClick={focusPanel}
-                      disabled={panel.container !== 'floating'}>
-                      Focus
-                    </PgButton>
-                    <PgButton variant="danger" onClick={removePanel}>
-                      Remove panel
-                    </PgButton>
-                  </ButtonGrid>
-                  <p className="playground-note">
-                    Pop out opens a real browser window; popup blockers may stop
-                    it.
-                  </p>
-                </>
-              ) : null}
-            </>
-          )}
-        </Section>
-
-        <Section value="tab" title="Selected tab">
-          {!panel || panel.tabs.length === 0 ? (
-            <p className="playground-empty">This panel has no tabs.</p>
-          ) : (
-            <>
-              <SelectRow
-                label="Tab"
-                value={selectedTabId ?? ''}
-                onChange={onSelectTab}
-                options={tabOptions}
-              />
-              {tab ? (
-                <>
-                  <RenameField
-                    key={tab.id}
-                    initialTitle={tab.title}
-                    onRename={renameTab}
-                  />
-                  <ToggleRow
-                    label="Closable"
-                    checked={tab.closable}
-                    onChange={(v) => setTabBehavior({ closable: v })}
-                  />
-                  <ToggleRow
-                    label="Draggable"
-                    checked={tab.draggable}
-                    onChange={(v) => setTabBehavior({ draggable: v })}
-                  />
-                  <ToggleRow
-                    label="Locked"
-                    hint="Close + drag off"
-                    checked={tabLocked}
-                    onChange={(v) =>
-                      setTabBehavior(
-                        v ? { locked: true } : { closable: true, draggable: true },
-                      )
-                    }
-                  />
-                  {moveTargets.length > 0 ? (
-                    <SelectRow
-                      label="Move to"
-                      value=""
-                      onChange={moveTab}
-                      options={[
-                        { value: '', label: 'Move to panel…' },
-                        ...moveTargets,
-                      ]}
+          <Section value="panel" title="Selected panel">
+            {panels.length === 0 ? (
+              <p className="playground-empty">
+                No panels. Load a preset or reset the workspace.
+              </p>
+            ) : (
+              <>
+                <SelectRow
+                  label="Panel"
+                  value={selectedPanelId ?? ''}
+                  onChange={onSelectPanel}
+                  options={panelOptions}
+                />
+                {panel ? (
+                  <>
+                    <ControlRow
+                      label="Add tab"
+                      control={<PgButton onClick={addTab}>Add tab</PgButton>}
                     />
-                  ) : null}
-                  <ButtonGrid>
-                    <PgButton onClick={floatTab}>Float tab</PgButton>
-                    <PgButton onClick={popoutTab}>Pop out tab</PgButton>
-                    <PgButton
-                      variant="danger"
-                      onClick={removeTab}
-                      disabled={!tab.closable}>
-                      Close tab
-                    </PgButton>
-                  </ButtonGrid>
-                </>
-              ) : null}
-            </>
-          )}
-        </Section>
+                    <ControlRow
+                      label="Split panel"
+                      control={
+                        <div className="playground-inline">
+                          <PgSelect
+                            ariaLabel="Split direction"
+                            value={splitDir}
+                            onChange={(v) => setSplitDir(v as TileryDirection)}
+                            options={DIRECTIONS}
+                          />
+                          <PgButton onClick={splitPanel}>Split</PgButton>
+                        </div>
+                      }
+                    />
+                    <ToggleRow
+                      label="Resizable"
+                      checked={panel.resizable}
+                      onChange={(v) => patchPanel({ resizable: v })}
+                    />
+                    <ToggleRow
+                      label="Draggable"
+                      checked={panel.draggable}
+                      onChange={(v) => patchPanel({ draggable: v })}
+                    />
+                    <ToggleRow
+                      label="Droppable"
+                      checked={panel.droppable}
+                      onChange={(v) => patchPanel({ droppable: v })}
+                    />
+                    <ToggleRow
+                      label="Locked"
+                      hint="Resize + drag + drop off"
+                      checked={
+                        !panel.resizable && !panel.draggable && !panel.droppable
+                      }
+                      onChange={(v) =>
+                        patchPanel({
+                          resizable: !v,
+                          draggable: !v,
+                          droppable: !v,
+                        })
+                      }
+                    />
+                    <NumberRow
+                      label="Min size %"
+                      value={
+                        typeof panel.minSize === 'number' ? panel.minSize : ''
+                      }
+                      placeholder="auto"
+                      onChange={(v) => patchPanel({ minSize: v })}
+                    />
+                    <NumberRow
+                      label="Max size %"
+                      value={
+                        typeof panel.maxSize === 'number' ? panel.maxSize : ''
+                      }
+                      placeholder="auto"
+                      onChange={(v) => patchPanel({ maxSize: v })}
+                    />
+                    <ButtonGrid>
+                      <PgButton
+                        active={panel.fullScreen}
+                        onClick={toggleMaximize}>
+                        {panel.fullScreen ? 'Restore' : 'Maximize'}
+                      </PgButton>
+                      <PgButton
+                        active={panel.container === 'floating'}
+                        onClick={toggleFloat}>
+                        {panel.container === 'floating' ? 'Dock' : 'Float'}
+                      </PgButton>
+                      <PgButton active={panel.poppedOut} onClick={togglePopout}>
+                        {panel.poppedOut ? 'Return' : 'Pop out'}
+                      </PgButton>
+                      <PgButton
+                        onClick={focusPanel}
+                        disabled={panel.container !== 'floating'}>
+                        Focus
+                      </PgButton>
+                      <PgButton variant="danger" onClick={removePanel}>
+                        Remove panel
+                      </PgButton>
+                    </ButtonGrid>
+                  </>
+                ) : null}
+              </>
+            )}
+          </Section>
 
-        <Section value="activity" title="Activity">
-          <div className="playground-activity-head">
-            <span className="playground-row__hint">Recent events</span>
-            <PgButton onClick={onClearEvents} disabled={events.length === 0}>
-              Clear
-            </PgButton>
-          </div>
-          {events.length === 0 ? (
-            <p className="playground-empty">No events yet. Interact above.</p>
-          ) : (
-            <ul className="playground-log">
-              {events.map((event) => (
-                <li key={event.id} className="playground-log__row">
-                  <span className="playground-log__type">{event.type}</span>
-                  <span className="playground-log__detail">{event.detail}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Section>
+          <Section value="tab" title="Selected tab">
+            {!panel || panel.tabs.length === 0 ? (
+              <p className="playground-empty">This panel has no tabs.</p>
+            ) : (
+              <>
+                <SelectRow
+                  label="Tab"
+                  value={selectedTabId ?? ''}
+                  onChange={onSelectTab}
+                  options={tabOptions}
+                />
+                {tab ? (
+                  <>
+                    <RenameField
+                      key={tab.id}
+                      initialTitle={tab.title}
+                      onRename={renameTab}
+                    />
+                    <ToggleRow
+                      label="Closable"
+                      checked={tab.closable}
+                      onChange={(v) => setTabBehavior({ closable: v })}
+                    />
+                    <ToggleRow
+                      label="Draggable"
+                      checked={tab.draggable}
+                      onChange={(v) => setTabBehavior({ draggable: v })}
+                    />
+                    <ToggleRow
+                      label="Locked"
+                      hint="Close + drag off"
+                      checked={tabLocked}
+                      onChange={(v) =>
+                        setTabBehavior(
+                          v
+                            ? { locked: true }
+                            : { closable: true, draggable: true },
+                        )
+                      }
+                    />
+                    {moveTargets.length > 0 ? (
+                      <SelectRow
+                        label="Move to"
+                        value=""
+                        onChange={moveTab}
+                        options={[
+                          { value: '', label: 'Move to panel…' },
+                          ...moveTargets,
+                        ]}
+                      />
+                    ) : null}
+                    <ButtonGrid>
+                      <PgButton onClick={floatTab}>Float tab</PgButton>
+                      <PgButton onClick={popoutTab}>Pop out tab</PgButton>
+                      <PgButton
+                        variant="danger"
+                        onClick={removeTab}
+                        disabled={!tab.closable}>
+                        Close tab
+                      </PgButton>
+                    </ButtonGrid>
+                  </>
+                ) : null}
+              </>
+            )}
+          </Section>
+
+          <Section value="activity" title="Activity">
+            <div className="playground-activity-head">
+              <span className="playground-row__hint">Recent events</span>
+              <PgButton onClick={onClearEvents} disabled={events.length === 0}>
+                Clear
+              </PgButton>
+            </div>
+            {events.length === 0 ? (
+              <p className="playground-empty">No events yet. Interact above.</p>
+            ) : (
+              <ul className="playground-log">
+                {events.map((event) => (
+                  <li key={event.id} className="playground-log__row">
+                    <span className="playground-log__type">{event.type}</span>
+                    <span className="playground-log__detail">
+                      {event.detail}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Section>
         </Sections>
+      </div>
+      <div className="playground-inspector__appearance">
+        <ThemeToggle />
+        <AccentSelector />
       </div>
     </aside>
   );

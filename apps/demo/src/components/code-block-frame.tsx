@@ -86,7 +86,7 @@ export function CodeBlockFrame({ code, html }: { code: string; html: string }) {
       />
       <button
         type="button"
-        className="code-block__copy"
+        className="site-icon-button code-block__copy"
         aria-label={
           copyState === 'copied'
             ? 'Copied code'
@@ -108,7 +108,7 @@ export function CodeBlockFrame({ code, html }: { code: string; html: string }) {
       {canExpand ? (
         <button
           type="button"
-          className="code-block__toggle"
+          className="site-button code-block__toggle"
           aria-expanded={expanded}
           onClick={() => setExpanded((value) => !value)}>
           {expanded ? 'Collapse' : 'Show full code'}

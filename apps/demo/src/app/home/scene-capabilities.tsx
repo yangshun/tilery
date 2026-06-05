@@ -77,7 +77,9 @@ function CapDemo({ type }: { type: HomeCapability['demo'] }) {
         <>
           <i className="home-capx home-capx-persist-pane home-capx-persist-pane--l" />
           <i className="home-capx home-capx-persist-pane home-capx-persist-pane--r" />
-          <pre className="home-capx home-capx-persist-token">{'{ "panels": 2,\n  "tabs": 7 }'}</pre>
+          <pre className="home-capx home-capx-persist-token">
+            {'{ "panels": 2,\n  "tabs": 7 }'}
+          </pre>
         </>
       );
     case 'lock':
@@ -99,12 +101,16 @@ export function CapabilitiesScene() {
   const { container, isDesktopScroller } = useHomeScroll();
   const gridRef = useRef<HTMLDivElement>(null);
   const inView = useInView(gridRef, {
-    root: isDesktopScroller ? (container as React.RefObject<Element>) : undefined,
+    root: isDesktopScroller
+      ? (container as React.RefObject<Element>)
+      : undefined,
     margin: '0px 0px -10% 0px',
   });
 
   return (
-    <section className="home-capabilities-scene" aria-labelledby="capabilities-title">
+    <section
+      className="home-capabilities-scene"
+      aria-labelledby="capabilities-title">
       <header className="home-scene-head">
         <h2 id="capabilities-title" className="home-scene-head__title">
           The primitives for panel-based apps.
@@ -120,7 +126,8 @@ export function CapabilitiesScene() {
               </div>
             </div>
             <div className="home-cap-card__body">
-              <div className={`home-cap-demo home-cap-demo--${cap.demo} home-workspace`}>
+              <div
+                className={`home-cap-demo home-cap-demo--${cap.demo} home-workspace`}>
                 <CapDemo type={cap.demo} />
               </div>
               <p className="home-cap-card__desc">{cap.body}</p>

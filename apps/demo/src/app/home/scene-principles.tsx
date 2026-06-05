@@ -19,7 +19,9 @@ const principleTabs = ['workspace.tsx', 'core.ts', 'package.json'];
 function PrinciplesHead() {
   return (
     <header className="home-scene-head">
-      <h2 className="home-scene-head__title">Window management, effortlessly.</h2>
+      <h2 className="home-scene-head__title">
+        Window management, effortlessly.
+      </h2>
     </header>
   );
 }
@@ -98,11 +100,15 @@ function ScrubPrinciples() {
               </div>
 
               {/* Panel C — the second split */}
-              <motion.div className="home-pp__term-wrap" style={{ flexGrow: tGrow }}>
+              <motion.div
+                className="home-pp__term-wrap"
+                style={{ flexGrow: tGrow }}>
                 <div className="home-panel home-pp__panel home-pp__terminal">
                   <div className="home-tabbar">
                     <div className="home-tab home-tab--active">
-                      <span className="home-tab__label">{principleTabs[2]}</span>
+                      <span className="home-tab__label">
+                        {principleTabs[2]}
+                      </span>
                     </div>
                   </div>
                   <motion.div className="home-pp__body" style={{ opacity: p3 }}>

@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
 // Runs before paint to set the theme from a saved choice or the system
 // preference, avoiding a flash of the wrong theme. Kept inline and minimal.
-const themeScript = `(function(){try{var t=localStorage.getItem('tilery-theme');if(t!=='light'&&t!=='dark'){t=window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';}document.documentElement.dataset.theme=t;}catch(e){document.documentElement.dataset.theme='dark';}})();`;
+const themeScript = `(function(){try{var t=localStorage.getItem('tilery-theme');if(t!=='light'&&t!=='dark'){t=window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';}document.documentElement.dataset.theme=t;var a=localStorage.getItem('tilery-accent');if(a==='rose'){a='red';}if(!/^(lime|teal|sky|red|orange|purple|amber|white)$/.test(a||'')){a='lime';}document.documentElement.dataset.accent=a;}catch(e){document.documentElement.dataset.theme='dark';document.documentElement.dataset.accent='lime';}})();`;
 
 export default function RootLayout({
   children,

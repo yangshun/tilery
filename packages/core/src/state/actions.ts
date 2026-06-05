@@ -5,7 +5,6 @@
 import type {
   TileryDockPanelTarget,
   TileryDirection,
-  TileryFloatingPanelBounds,
   TileryFloatingPanelBoundsInit,
   TileryLayoutBehaviorConfig,
   TileryLayoutState,

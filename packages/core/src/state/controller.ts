@@ -7,7 +7,6 @@ import type {
   TileryDirection,
   TileryFloatPanelOptions,
   TileryFloatTabOptions,
-  TileryFloatingPanelBounds,
   TileryFloatingPanelBoundsInit,
   TileryLayoutBehaviorConfig,
   TileryLayoutState,

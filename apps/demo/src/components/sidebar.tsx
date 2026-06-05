@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { RiCloseLine, RiGithubFill, RiMenuLine } from 'react-icons/ri';
+import { AccentSelector } from './accent-selector';
 import { ThemeToggle } from './theme-toggle';
 
 export type SidebarItem = {
@@ -47,18 +48,17 @@ export function Sidebar({ groups }: { groups: SidebarGroup[] }) {
           Tilery
         </Link>
         <div className="sidebar__header-actions">
-          <ThemeToggle />
           <a
             href="https://github.com/yangshun/tilery"
             target="_blank"
             rel="noopener noreferrer"
-            className="sidebar__icon-button sidebar__github"
+            className="site-icon-button sidebar__icon-button sidebar__github"
             aria-label="GitHub repository">
             <RiGithubFill aria-hidden="true" />
           </a>
           <button
             type="button"
-            className="sidebar__icon-button sidebar__toggle"
+            className="site-icon-button sidebar__icon-button sidebar__toggle"
             aria-expanded={isOpen}
             aria-controls="site-sidebar-nav"
             aria-label={
@@ -87,6 +87,10 @@ export function Sidebar({ groups }: { groups: SidebarGroup[] }) {
           </div>
         ))}
       </nav>
+      <div className="sidebar__appearance">
+        <ThemeToggle />
+        <AccentSelector />
+      </div>
     </aside>
   );
 }

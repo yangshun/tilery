@@ -1143,7 +1143,10 @@ function layoutChildMaxSize(
   axisPixels: number | undefined,
 ): number {
   if (child.kind !== 'panel') return Infinity;
-  return tileryResolveMaxSizePercent(panels[child.panelId]?.maxSize, axisPixels);
+  return tileryResolveMaxSizePercent(
+    panels[child.panelId]?.maxSize,
+    axisPixels,
+  );
 }
 
 function layoutChildDefaultSize(child: TileryLayoutTree, fallback: number) {

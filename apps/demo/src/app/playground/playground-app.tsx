@@ -147,7 +147,8 @@ export function PlaygroundApp() {
         'activeTab',
         event.changes
           .map(
-            (c) => `${c.panelId}: ${c.previousTabId ?? '∅'} → ${c.tabId ?? '∅'}`,
+            (c) =>
+              `${c.panelId}: ${c.previousTabId ?? '∅'} → ${c.tabId ?? '∅'}`,
           )
           .join(', '),
       );
@@ -219,9 +220,7 @@ export function PlaygroundApp() {
         onClearEvents={() => setEvents([])}
       />
       <div className="playground-stage" ref={stageRef}>
-        <div
-          className="playground-browser"
-          style={frameSize ?? undefined}>
+        <div className="playground-browser" style={frameSize ?? undefined}>
           <div className="playground-browser__bar">
             <span className="playground-browser__lights">
               <span className="playground-browser__light playground-browser__light--red" />
@@ -245,12 +244,20 @@ export function PlaygroundApp() {
                 onChange={refresh}
                 onActiveTabChange={onActiveTabChange}
                 onPanelSplit={(e) =>
-                  log('panelSplit', `${e.splitPanelId} ${e.direction} → ${e.createdPanelId}`)
+                  log(
+                    'panelSplit',
+                    `${e.splitPanelId} ${e.direction} → ${e.createdPanelId}`,
+                  )
                 }
                 onTabsMove={(e) =>
-                  log('tabsMove', e.tabs.map((t) => `${t.id} → ${t.panelId}`).join(', '))
+                  log(
+                    'tabsMove',
+                    e.tabs.map((t) => `${t.id} → ${t.panelId}`).join(', '),
+                  )
                 }
-                onTabsOpen={(e) => log('tabsOpen', e.tabs.map((t) => t.id).join(', '))}
+                onTabsOpen={(e) =>
+                  log('tabsOpen', e.tabs.map((t) => t.id).join(', '))
+                }
                 onTabsClose={(e) =>
                   log('tabsClose', e.tabs.map((t) => t.id).join(', '))
                 }
@@ -351,19 +358,52 @@ export function App() {
         </pre>
       );
     case 'terminal':
-      return <pre style={mono}>{'$ pnpm dev\nready in 312ms\n› local http://localhost:3000'}</pre>;
+      return (
+        <pre style={mono}>
+          {'$ pnpm dev\nready in 312ms\n› local http://localhost:3000'}
+        </pre>
+      );
     case 'output':
-      return <pre style={mono}>{'[info] build started\n[info] compiled 42 modules\n[done] no errors'}</pre>;
+      return (
+        <pre style={mono}>
+          {'[info] build started\n[info] compiled 42 modules\n[done] no errors'}
+        </pre>
+      );
     case 'files':
       return (
-        <pre style={mono}>{'src/\n  app/\n  components/\n  index.ts\npackage.json'}</pre>
+        <pre style={mono}>
+          {'src/\n  app/\n  components/\n  index.ts\npackage.json'}
+        </pre>
       );
     case 'preview':
       return (
         <div style={{ display: 'grid', gap: 8 }}>
-          <div style={{ width: 90, height: 10, borderRadius: 999, background: 'var(--tilery-accent, #3884ff)' }} />
-          <div style={{ width: '100%', height: 8, borderRadius: 999, background: 'currentColor', opacity: 0.25 }} />
-          <div style={{ width: '70%', height: 8, borderRadius: 999, background: 'currentColor', opacity: 0.25 }} />
+          <div
+            style={{
+              width: 90,
+              height: 10,
+              borderRadius: 999,
+              background: 'var(--tilery-accent, #3884ff)',
+            }}
+          />
+          <div
+            style={{
+              width: '100%',
+              height: 8,
+              borderRadius: 999,
+              background: 'currentColor',
+              opacity: 0.25,
+            }}
+          />
+          <div
+            style={{
+              width: '70%',
+              height: 8,
+              borderRadius: 999,
+              background: 'currentColor',
+              opacity: 0.25,
+            }}
+          />
         </div>
       );
     case 'notes':

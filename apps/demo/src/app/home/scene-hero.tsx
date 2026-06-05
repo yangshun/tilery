@@ -17,12 +17,12 @@ export function HeroScene() {
         </p>
         <div className="home-actions">
           <Link
-            className="home-button home-button--primary"
+            className="site-button site-button--hero site-button--primary home-button"
             href="/docs/getting-started">
             Start building
           </Link>
           <Link
-            className="home-button home-button--secondary"
+            className="site-button site-button--hero site-button--secondary home-button"
             href="/examples/ide">
             Open the IDE example
           </Link>

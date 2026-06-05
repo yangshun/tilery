@@ -48,7 +48,8 @@ export function HomeScrollProvider({ children }: { children: ReactNode }) {
   useLayoutEffect(() => {
     const resolve = () => {
       const main =
-        (sentinelRef.current?.closest('.site-main') as HTMLElement | null) ?? null;
+        (sentinelRef.current?.closest('.site-main') as HTMLElement | null) ??
+        null;
       const mobile = window.matchMedia(MOBILE_QUERY).matches;
       const desktopScroller = !mobile && main !== null;
       // null => useScroll falls back to the window (correct on mobile).

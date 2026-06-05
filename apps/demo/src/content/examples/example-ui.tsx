@@ -74,17 +74,16 @@ export function ExampleButton({
   return (
     <button
       {...props}
-      className={['example-button', props.className].filter(Boolean).join(' ')}
-      style={{
-        ...buttonStyle,
-        background: active
-          ? 'var(--example-button-active-bg, var(--site-overlay))'
-          : 'var(--example-button-bg, var(--site-chrome-bg))',
-        color: active
-          ? 'var(--example-button-active-fg, var(--site-fg))'
-          : 'var(--example-button-fg, var(--site-chrome-fg))',
-        ...style,
-      }}
+      data-active={active}
+      className={[
+        'site-button',
+        'site-button--compact',
+        'example-button',
+        props.className,
+      ]
+        .filter(Boolean)
+        .join(' ')}
+      style={style}
     />
   );
 }
@@ -116,15 +115,6 @@ export const stackStyle: CSSProperties = {
   display: 'grid',
   gap: 12,
   background: 'transparent',
-};
-
-export const buttonStyle: CSSProperties = {
-  minHeight: 26,
-  padding: '0 9px',
-  border: '1px solid var(--example-button-border, var(--site-chrome-border))',
-  borderRadius: 4,
-  fontSize: 13,
-  cursor: 'pointer',
 };
 
 export const emptyStateStyle: CSSProperties = {

@@ -41,7 +41,10 @@ export function Section({
       <Accordion.Header className="playground-section__header">
         <Accordion.Trigger className="playground-section__head">
           <span>{title}</span>
-          <RiArrowDownSLine className="playground-section__chevron" aria-hidden="true" />
+          <RiArrowDownSLine
+            className="playground-section__chevron"
+            aria-hidden="true"
+          />
         </Accordion.Trigger>
       </Accordion.Header>
       <Accordion.Panel className="playground-section__panel" keepMounted>
@@ -147,7 +150,10 @@ export function PgSelect({
           </option>
         ))}
       </select>
-      <RiArrowDownSLine className="playground-select__icon" aria-hidden="true" />
+      <RiArrowDownSLine
+        className="playground-select__icon"
+        aria-hidden="true"
+      />
     </div>
   );
 }
@@ -218,7 +224,9 @@ export function NumberRow({
           min={min}
           max={max}
           onChange={(event) =>
-            onChange(event.target.value === '' ? null : Number(event.target.value))
+            onChange(
+              event.target.value === '' ? null : Number(event.target.value),
+            )
           }
         />
       }
@@ -236,13 +244,28 @@ export function PgButton({
   variant = 'default',
   ...props
 }: PgButtonProps) {
+  const variantClass =
+    variant === 'danger'
+      ? 'site-button--danger'
+      : variant === 'primary'
+        ? 'site-button--strong'
+        : '';
+
   return (
     <button
       {...props}
       type={props.type ?? 'button'}
       data-active={active}
       data-variant={variant}
-      className={`playground-btn ${props.className ?? ''}`}
+      className={[
+        'site-button',
+        'site-button--compact',
+        variantClass,
+        'playground-btn',
+        props.className,
+      ]
+        .filter(Boolean)
+        .join(' ')}
     />
   );
 }

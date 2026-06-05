@@ -27,6 +27,8 @@ export function useSceneProgress(
 }
 
 /** Adds weight to raw scroll progress so scrubbing feels deliberate, not twitchy. */
-export function useSmoothProgress(value: MotionValue<number>): MotionValue<number> {
+export function useSmoothProgress(
+  value: MotionValue<number>,
+): MotionValue<number> {
   return useSpring(value, { stiffness: 90, damping: 26, mass: 0.4 });
 }

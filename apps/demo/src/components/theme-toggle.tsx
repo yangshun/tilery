@@ -20,7 +20,7 @@ export function ThemeToggle() {
   return (
     <button
       type="button"
-      className="sidebar__icon-button sidebar__theme-toggle"
+      className="site-icon-button sidebar__icon-button sidebar__theme-toggle"
       aria-label="Toggle color theme"
       title="Toggle color theme"
       onClick={toggleTheme}>
