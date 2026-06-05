@@ -401,7 +401,11 @@
   z-index: 2;
 }
 
-.tilery__divider:focus-visible {
+.tilery__divider:focus-visible,
+.tilery__tab-trigger:focus-visible,
+.tilery__tab-close:focus-visible,
+.tilery__panel-action-button:focus-visible,
+.tilery__panel-menu-item:focus-visible {
   outline: 2px solid var(--tilery-accent, #3884ff);
   outline-offset: -2px;
 }
@@ -430,6 +434,12 @@
     left 120ms ease-out,
     width 120ms ease-out,
     height 120ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tilery__drop-overlay {
+    transition: none;
+  }
 }
 
 .tilery__drop-overlay[data-zone='center'] {
