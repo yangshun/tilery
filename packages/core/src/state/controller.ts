@@ -451,7 +451,7 @@ export function tileryMakePanel(
     focus() {
       tilery.focusPanel(id);
     },
-    setFloatingBounds(bounds: TileryFloatingPanelBounds) {
+    setFloatingBounds(bounds: TileryFloatingPanelBoundsInit) {
       tilery.setFloatingPanelBounds(id, bounds);
     },
     setPopoutWindowBounds(bounds: TileryPopoutWindowBounds) {

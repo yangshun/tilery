@@ -96,7 +96,7 @@ export type TileryReducerAction =
   | {
       type: 'PANEL_FLOATING_BOUNDS_SET';
       panelId: TileryPanelId;
-      bounds: TileryFloatingPanelBounds;
+      bounds: TileryFloatingPanelBoundsInit;
     }
   | {
       type: 'PANEL_POPOUT_WINDOW_BOUNDS_SET';

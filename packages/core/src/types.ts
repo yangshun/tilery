@@ -235,20 +235,10 @@ export type TileryTabBehaviorConfig =
     };
 
 /**
- * Behavior patch passed to `setTabBehavior()` / `tab.setBehavior()`. Accepts the
- * same `locked` shorthand as authoring, expanded to explicit booleans.
+ * Behavior patch passed to `setTabBehavior()` / `tab.setBehavior()`. Identical
+ * to {@link TileryTabBehaviorConfig} — the same `locked` shorthand as authoring.
  */
-export type TileryTabBehaviorUpdate =
-  | {
-      locked: true;
-      closable?: never;
-      draggable?: never;
-    }
-  | {
-      locked?: false;
-      closable?: boolean;
-      draggable?: boolean;
-    };
+export type TileryTabBehaviorUpdate = TileryTabBehaviorConfig;
 
 /** Resolved layout behavior: explicit resize, drag, and drop permissions. */
 export type TileryLayoutBehavior = {
@@ -718,10 +708,13 @@ export type TileryController = {
   dockPanel(panelId: TileryPanelId, target?: TileryDockPanelTarget): void;
   /** Raises a floating panel above its peers. */
   focusPanel(panelId: TileryPanelId): void;
-  /** Sets a floating panel's position and size. */
+  /**
+   * Sets a floating panel's position and size. Accepts a partial bounds —
+   * omitted fields keep their current value.
+   */
   setFloatingPanelBounds(
     panelId: TileryPanelId,
-    bounds: TileryFloatingPanelBounds,
+    bounds: TileryFloatingPanelBoundsInit,
   ): void;
   /** Stores the native window position and size for a popped-out panel. */
   setPopoutWindowBounds(
@@ -864,7 +857,7 @@ export type TileryPanel = {
   /** Shorthand for controller.focusPanel(this.id). */
   focus(): void;
   /** Shorthand for controller.setFloatingPanelBounds(this.id, bounds). */
-  setFloatingBounds(bounds: TileryFloatingPanelBounds): void;
+  setFloatingBounds(bounds: TileryFloatingPanelBoundsInit): void;
   /** Shorthand for controller.setPopoutWindowBounds(this.id, bounds). */
   setPopoutWindowBounds(bounds: TileryPopoutWindowBounds): void;
   /** Shorthand for controller.setActiveTab(id) scoped to this panel. */

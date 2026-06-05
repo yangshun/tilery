@@ -541,7 +541,7 @@ export function tileryFocusFloatingPanel(
 export function tilerySetFloatingPanelBounds(
   state: TileryLayoutState,
   panelId: TileryPanelId,
-  boundsInit: TileryFloatingPanelBounds,
+  boundsInit: TileryFloatingPanelBoundsInit,
 ): TileryLayoutState {
   const panel = state.panels[panelId];
   if (!panel || panel.kind !== 'floating') return state;
