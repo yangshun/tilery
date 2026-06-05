@@ -73,11 +73,11 @@ export function AccentSelector() {
       <button
         type="button"
         className="site-icon-button accent-picker__trigger"
-        aria-label={`Accent color: ${current.label}`}
+        aria-label={`Accent color: ${current.label.toLowerCase()}`}
         aria-haspopup="menu"
         aria-expanded={isOpen}
         aria-controls={menuId}
-        title={`Accent color: ${current.label}`}
+        title={`Accent color: ${current.label.toLowerCase()}`}
         onClick={() => setIsOpen((open) => !open)}>
         <RiPaletteLine
           className="accent-picker__trigger-icon"
@@ -95,7 +95,7 @@ export function AccentSelector() {
               key={option.id}
               type="button"
               className={`accent-picker__swatch accent-picker__swatch--${option.id}`}
-              aria-label={`Use ${option.label} accent color`}
+              aria-label={`Use ${option.label.toLowerCase()} accent color`}
               aria-checked={accent === option.id}
               role="menuitemradio"
               title={option.label}

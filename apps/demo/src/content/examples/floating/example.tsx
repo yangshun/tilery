@@ -255,13 +255,13 @@ export function RuntimeFloatingExample() {
       actions={
         <>
           <ExampleButton type="button" onClick={floatExplorer}>
-            Float Explorer
+            Float explorer
           </ExampleButton>
           <ExampleButton type="button" onClick={focusExplorer}>
-            Focus Explorer
+            Focus explorer
           </ExampleButton>
           <ExampleButton type="button" onClick={dockExplorer}>
-            Dock Explorer
+            Dock explorer
           </ExampleButton>
         </>
       }>
@@ -310,13 +310,13 @@ export function TabFloatingExample() {
       actions={
         <>
           <ExampleButton type="button" onClick={floatNotes}>
-            Float Notes
+            Float notes
           </ExampleButton>
           <ExampleButton type="button" onClick={popoutNotes}>
-            Pop Out Notes
+            Pop out notes
           </ExampleButton>
           <ExampleButton type="button" onClick={moveNotesBack}>
-            Move Notes Back
+            Move notes back
           </ExampleButton>
         </>
       }>
@@ -362,13 +362,13 @@ export function NativePopoutExample() {
       actions={
         <>
           <ExampleButton type="button" onClick={popoutWorkspace}>
-            Pop Out Workspace
+            Pop out workspace
           </ExampleButton>
           <ExampleButton type="button" onClick={returnWorkspace}>
-            Return Floating
+            Return floating
           </ExampleButton>
           <ExampleButton type="button" onClick={dockWorkspace}>
-            Dock Workspace
+            Dock workspace
           </ExampleButton>
         </>
       }>
@@ -418,10 +418,10 @@ export function PopoutStylingExample() {
       actions={
         <>
           <ExampleButton type="button" onClick={popoutWorkspace}>
-            Pop Out Workspace
+            Pop out workspace
           </ExampleButton>
           <ExampleButton type="button" onClick={returnWorkspace}>
-            Return Floating
+            Return floating
           </ExampleButton>
         </>
       }>

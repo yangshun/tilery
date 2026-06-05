@@ -187,19 +187,19 @@ export function StructuralCallbacksExample() {
       actions={
         <>
           <ExampleButton type="button" onClick={addTab}>
-            Add Tab
+            Add tab
           </ExampleButton>
           <ExampleButton type="button" onClick={activateNext}>
-            Activate Next
+            Activate next
           </ExampleButton>
           <ExampleButton type="button" onClick={moveActiveToTerminal}>
-            Move Active
+            Move active
           </ExampleButton>
           <ExampleButton type="button" onClick={splitEditor}>
-            Split Editor
+            Split editor
           </ExampleButton>
           <ExampleButton type="button" onClick={closeActive}>
-            Close Active
+            Close active
           </ExampleButton>
           <ExampleButton type="button" onClick={() => setEvents([])}>
             Clear

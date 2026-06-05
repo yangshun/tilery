@@ -16,7 +16,7 @@ export function PageNavigation({
         <Link
           href={previous.href}
           className="page-navigation__link page-navigation__link--previous">
-          <span className="page-navigation__eyebrow">Previous</span>
+          <span className="page-navigation__eyebrow">Previous page</span>
           <span className="page-navigation__title">{previous.label}</span>
         </Link>
       ) : (
@@ -26,7 +26,7 @@ export function PageNavigation({
         <Link
           href={next.href}
           className="page-navigation__link page-navigation__link--next">
-          <span className="page-navigation__eyebrow">Next</span>
+          <span className="page-navigation__eyebrow">Next page</span>
           <span className="page-navigation__title">{next.label}</span>
         </Link>
       ) : (

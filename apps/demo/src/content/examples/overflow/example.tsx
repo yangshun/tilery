@@ -72,6 +72,7 @@ export function TabOverflowExample() {
     <ExampleSection
       title="Overflowing editor tabs"
       description="Use the mouse wheel, hidden-tab menu, or jump buttons; the active tab is kept visible in the row."
+      onReset={() => setActiveId('file-1')}
       actions={jumpTargets.map((target) => (
         <ExampleButton
           key={target.tabId}

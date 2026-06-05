@@ -112,18 +112,14 @@ export function LocalStorageExample() {
 
   const reset = () => {
     localStorage.removeItem(STORAGE_KEY);
-    tileryRef.current?.setLayout(defaultLayout);
+    initialLayoutRef.current = defaultLayout;
   };
 
   return (
     <ExampleSection
       title="localStorage restore"
       description="Persist every layout change as a snapshot and use it as the next initialLayout."
-      actions={
-        <ExampleButton type="button" onClick={reset}>
-          Reset
-        </ExampleButton>
-      }>
+      onReset={reset}>
       <Tilery<TabData>
         ref={tileryRef as React.Ref<TileryController>}
         initialLayout={initialLayoutRef.current}
@@ -150,10 +146,6 @@ export function SnapshotControlsExample() {
     if (snapshot) tileryRef.current?.setLayout(snapshot);
   };
 
-  const resetLayout = () => {
-    tileryRef.current?.setLayout(snapshotLayout);
-  };
-
   return (
     <ExampleSection
       title="Snapshot controls"
@@ -172,9 +164,6 @@ export function SnapshotControlsExample() {
             onClick={restoreSnapshot}
             disabled={!snapshot}>
             Restore
-          </ExampleButton>
-          <ExampleButton type="button" onClick={resetLayout}>
-            Reset
           </ExampleButton>
         </>
       }>

@@ -48,14 +48,6 @@ export function Sidebar({ groups }: { groups: SidebarGroup[] }) {
           Tilery
         </Link>
         <div className="sidebar__header-actions">
-          <a
-            href="https://github.com/yangshun/tilery"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="site-icon-button sidebar__icon-button sidebar__github"
-            aria-label="GitHub repository">
-            <RiGithubFill aria-hidden="true" />
-          </a>
           <button
             type="button"
             className="site-icon-button sidebar__icon-button sidebar__toggle"
@@ -88,6 +80,14 @@ export function Sidebar({ groups }: { groups: SidebarGroup[] }) {
         ))}
       </nav>
       <div className="sidebar__appearance">
+        <a
+          href="https://github.com/yangshun/tilery"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="site-icon-button sidebar__icon-button sidebar__github"
+          aria-label="GitHub repository">
+          <RiGithubFill aria-hidden="true" />
+        </a>
         <ThemeToggle />
         <AccentSelector />
       </div>

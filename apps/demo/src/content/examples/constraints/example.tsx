@@ -244,6 +244,8 @@ export function ContainerResizeExample() {
       title="Container resize"
       description="Shrink the wrapper to see split proportions normalize only when measured constraints require it."
       frameStyle={resizerTrackStyle}
+      isDirty={width !== widths[2]!.value}
+      onReset={() => setWidth(widths[2]!.value)}
       actions={widths.map((item) => (
         <ExampleButton
           key={item.value}

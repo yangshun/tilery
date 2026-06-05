@@ -175,13 +175,13 @@ export function PanelApiExample() {
       actions={
         <>
           <ExampleButton type="button" onClick={addTab}>
-            Add Tab
+            Add tab
           </ExampleButton>
           <ExampleButton type="button" onClick={splitRight}>
-            Split Right
+            Split right
           </ExampleButton>
           <ExampleButton type="button" onClick={removeActive}>
-            Remove Active
+            Remove active
           </ExampleButton>
         </>
       }>
@@ -236,13 +236,13 @@ export function TabApiExample() {
       actions={
         <>
           <ExampleButton type="button" onClick={renameActive}>
-            Rename Active
+            Rename active
           </ExampleButton>
           <ExampleButton type="button" onClick={moveActiveToTerminal}>
-            Move Active
+            Move active
           </ExampleButton>
           <ExampleButton type="button" onClick={activateSearch}>
-            Activate Search
+            Activate search
           </ExampleButton>
         </>
       }>
@@ -308,7 +308,7 @@ export function WorkflowApiExample() {
             Preview
           </ExampleButton>
           <ExampleButton type="button" onClick={toggleScratchId}>
-            Toggle Scratch ID
+            Toggle scratch ID
           </ExampleButton>
         </>
       }>

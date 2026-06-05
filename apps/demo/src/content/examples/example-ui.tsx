@@ -1,6 +1,18 @@
+'use client';
+
+import {
+  Children,
+  cloneElement,
+  isValidElement,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import type {
   ButtonHTMLAttributes,
   CSSProperties,
+  ReactElement,
   PropsWithChildren,
   ReactNode,
 } from 'react';
@@ -27,6 +39,9 @@ type ExampleSectionProps = PropsWithChildren<{
   description?: string;
   actions?: ReactNode;
   frameStyle?: CSSProperties;
+  isDirty?: boolean;
+  onReset?: () => void;
+  resettable?: boolean;
 }>;
 
 export function ExampleSection({
@@ -35,11 +50,55 @@ export function ExampleSection({
   actions,
   children,
   frameStyle,
+  isDirty = false,
+  onReset,
+  resettable = true,
 }: ExampleSectionProps) {
-  const hasHeader = title || description || actions;
+  const [resetKey, setResetKey] = useState(0);
+  const initialLayoutStateRef = useRef<string | null>(null);
+  const hasUserInteractedRef = useRef(false);
+  const [hasChangedLayout, setHasChangedLayout] = useState(false);
+  const hasHeader = title || description || actions || resettable;
+  const showReset = resettable && (isDirty || hasChangedLayout);
+
+  const trackLayoutChange = useCallback((state: unknown) => {
+    const serialized = serializeLayoutState(state);
+    if (initialLayoutStateRef.current === null) {
+      initialLayoutStateRef.current = serialized;
+      setHasChangedLayout(false);
+      return;
+    }
+    if (!hasUserInteractedRef.current) {
+      initialLayoutStateRef.current = serialized;
+      setHasChangedLayout(false);
+      return;
+    }
+    setHasChangedLayout(serialized !== initialLayoutStateRef.current);
+  }, []);
+
+  function resetWorkspace() {
+    onReset?.();
+    initialLayoutStateRef.current = null;
+    hasUserInteractedRef.current = false;
+    setHasChangedLayout(false);
+    setResetKey((key) => key + 1);
+  }
+
+  function markUserInteracted() {
+    hasUserInteractedRef.current = true;
+  }
+
+  const trackedChildren = useMemo(
+    () =>
+      resettable ? trackTileryChanges(children, trackLayoutChange) : children,
+    [children, resettable, trackLayoutChange],
+  );
 
   return (
-    <section className="example-section">
+    <section
+      className="example-section"
+      onKeyDownCapture={markUserInteracted}
+      onPointerDownCapture={markUserInteracted}>
       {hasHeader ? (
         <div className="example-section__header">
           <div className="example-section__title-group">
@@ -50,16 +109,84 @@ export function ExampleSection({
               <p className="example-section__description">{description}</p>
             ) : null}
           </div>
-          {actions ? (
-            <div className="example-section__actions">{actions}</div>
+          {actions || resettable ? (
+            <div className="example-section__actions">
+              {actions}
+              {resettable ? (
+                <ExampleButton
+                  type="button"
+                  className="example-section__reset"
+                  data-visible={showReset}
+                  aria-hidden={!showReset}
+                  tabIndex={showReset ? undefined : -1}
+                  onClick={resetWorkspace}>
+                  Reset
+                </ExampleButton>
+              ) : null}
+            </div>
           ) : null}
         </div>
       ) : null}
-      <div className="example-section__frame" style={frameStyle}>
-        {children}
+      <div key={resetKey} className="example-section__frame" style={frameStyle}>
+        {trackedChildren}
       </div>
     </section>
   );
+}
+
+type ElementWithProps = ReactElement<
+  Record<string, unknown> & { children?: ReactNode; onChange?: unknown }
+>;
+
+function trackTileryChanges(
+  children: ReactNode,
+  onChange: (state: unknown) => void,
+): ReactNode {
+  return Children.map(children, (child) => {
+    if (!isValidElement(child)) return child;
+
+    const element = child as ElementWithProps;
+    const props = element.props;
+    const nextProps: Record<string, unknown> = {};
+    let changed = false;
+
+    if (props.children) {
+      nextProps.children = trackTileryChanges(props.children, onChange);
+      changed = true;
+    }
+
+    if (isTileryElement(props)) {
+      const originalOnChange = props.onChange;
+      nextProps.onChange = (state: unknown) => {
+        if (typeof originalOnChange === 'function') originalOnChange(state);
+        onChange(state);
+      };
+      changed = true;
+    }
+
+    return changed ? cloneElement(element, nextProps) : child;
+  });
+}
+
+function isTileryElement(props: Record<string, unknown>): props is Record<
+  string,
+  unknown
+> & {
+  onChange?: (state: unknown) => void;
+} {
+  return (
+    'initialLayout' in props &&
+    typeof props.renderTabHeader === 'function' &&
+    typeof props.renderTabContent === 'function'
+  );
+}
+
+function serializeLayoutState(state: unknown) {
+  try {
+    return JSON.stringify(state);
+  } catch {
+    return String(state);
+  }
 }
 
 type ExampleButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
