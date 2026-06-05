@@ -89,6 +89,7 @@ export const Tab = memo(function Tab({
     onPointerCancel,
     role: 'tab',
     'aria-selected': isActive,
+    tabIndex: isActive ? 0 : -1,
   };
   const triggerChildren = (
     <span className="tilery__tab-header">
@@ -114,6 +115,7 @@ export const Tab = memo(function Tab({
         onPointerCancel,
         role: 'tab',
         'aria-selected': isActive,
+        tabIndex: isActive ? 0 : -1,
         id: tabDomId,
         'aria-controls': tabPanelDomId,
       };

@@ -259,6 +259,41 @@ export function TabBar({
   const handleTabListScroll = useCallback(() => {
     updateHiddenTabs();
   }, [updateHiddenTabs]);
+  const handleTabListKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        const focused = (e.target as HTMLElement).closest<HTMLElement>(
+          '[data-tab-id]',
+        );
+        const id = focused?.getAttribute('data-tab-id');
+        if (!id) return;
+        e.preventDefault();
+        onTabClick(id);
+        return;
+      }
+      const tabs = panel.tabs;
+      /* v8 ignore next -- the tab-list only receives key events via a focused tab. */
+      if (tabs.length === 0) return;
+      const currentIndex = tabs.findIndex((tab) => tab.id === activeTabId);
+      let nextIndex: number;
+      if (e.key === 'ArrowRight') nextIndex = currentIndex + 1;
+      else if (e.key === 'ArrowLeft') nextIndex = currentIndex - 1;
+      else if (e.key === 'Home') nextIndex = 0;
+      else if (e.key === 'End') nextIndex = tabs.length - 1;
+      else return;
+      if (nextIndex < 0) nextIndex = tabs.length - 1;
+      else if (nextIndex >= tabs.length) nextIndex = 0;
+      const nextTab = tabs[nextIndex]!;
+      e.preventDefault();
+      onTabClick(nextTab.id);
+      const nextEl = tabListRef.current?.querySelector<HTMLElement>(
+        `[role="tab"][data-tab-id="${cssEscape(nextTab.id)}"]`,
+      );
+      /* v8 ignore next -- the navigated-to tab is always present in the row. */
+      nextEl?.focus();
+    },
+    [panel.tabs, activeTabId, onTabClick],
+  );
   const closeOverflowMenu = useCallback(() => {
     setIsOverflowMenuOpen(false);
   }, []);
@@ -325,6 +360,8 @@ export function TabBar({
         className="tilery__tab-list"
         data-overflowing={hasHiddenTabs}
         role="tablist"
+        aria-orientation="horizontal"
+        onKeyDown={handleTabListKeyDown}
         onScroll={handleTabListScroll}
         onWheel={handleTabListWheel}>
         {panel.tabs.map((tab) => (

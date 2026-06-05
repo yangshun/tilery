@@ -402,6 +402,7 @@
 }
 
 .tilery__divider:focus-visible,
+.tilery__tab:focus-visible,
 .tilery__tab-trigger:focus-visible,
 .tilery__tab-close:focus-visible,
 .tilery__panel-action-button:focus-visible,

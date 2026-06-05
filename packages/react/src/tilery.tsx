@@ -109,6 +109,8 @@ export type TileryTabTriggerProps = React.HTMLAttributes<HTMLElement> & {
   role: 'tab';
   /** Whether this tab is the panel's active tab. */
   'aria-selected': boolean;
+  /** Roving tab index: `0` for the active tab, `-1` for the rest. */
+  tabIndex: number;
   /** Active-state hook for styling. */
   'data-active': boolean;
   /** Whether the tab can be closed. */

@@ -687,6 +687,89 @@ function createPopoutWindowMock(
   return win;
 }
 
+describe('Tilery — tab keyboard navigation', () => {
+  const pressKey = (el: Element, key: string) => {
+    const event = new KeyboardEvent('keydown', {
+      key,
+      bubbles: true,
+      cancelable: true,
+    });
+    act(() => {
+      el.dispatchEvent(event);
+    });
+    return event;
+  };
+  const activeId = (t: ReturnType<typeof mount>) =>
+    t.controller().getPanel('overflow')!.activeTab?.id;
+  const tabList = (t: ReturnType<typeof mount>) =>
+    t.host.querySelector<HTMLElement>('.tilery__tab-list')!;
+
+  it('ArrowRight activates and focuses the next tab', () => {
+    const t = mount(overflowTabsLayout());
+    const event = pressKey(tabList(t), 'ArrowRight');
+    expect(activeId(t)).toBe('tab-2');
+    expect(event.defaultPrevented).toBe(true);
+    expect(document.activeElement?.getAttribute('data-tab-id')).toBe('tab-2');
+    t.cleanup();
+  });
+
+  it('ArrowRight wraps from the last tab back to the first', () => {
+    const t = mount(overflowTabsLayout());
+    act(() => {
+      t.controller().setActiveTab('tab-8');
+    });
+    pressKey(tabList(t), 'ArrowRight');
+    expect(activeId(t)).toBe('tab-1');
+    t.cleanup();
+  });
+
+  it('ArrowLeft wraps from the first tab to the last', () => {
+    const t = mount(overflowTabsLayout());
+    pressKey(tabList(t), 'ArrowLeft');
+    expect(activeId(t)).toBe('tab-8');
+    t.cleanup();
+  });
+
+  it('Home and End jump to the first and last tabs', () => {
+    const t = mount(overflowTabsLayout());
+    act(() => {
+      t.controller().setActiveTab('tab-4');
+    });
+    pressKey(tabList(t), 'Home');
+    expect(activeId(t)).toBe('tab-1');
+    pressKey(tabList(t), 'End');
+    expect(activeId(t)).toBe('tab-8');
+    t.cleanup();
+  });
+
+  it('Enter activates the focused tab', () => {
+    const t = mount(overflowTabsLayout());
+    const tab3 = t.host.querySelector<HTMLElement>(
+      '.tilery__tab[data-tab-id="tab-3"]',
+    )!;
+    const event = pressKey(tab3, 'Enter');
+    expect(activeId(t)).toBe('tab-3');
+    expect(event.defaultPrevented).toBe(true);
+    t.cleanup();
+  });
+
+  it('Enter with no tab under focus is a no-op', () => {
+    const t = mount(overflowTabsLayout());
+    const event = pressKey(tabList(t), 'Enter');
+    expect(activeId(t)).toBe('tab-1');
+    expect(event.defaultPrevented).toBe(false);
+    t.cleanup();
+  });
+
+  it('ignores keys it does not handle', () => {
+    const t = mount(overflowTabsLayout());
+    const event = pressKey(tabList(t), 'x');
+    expect(activeId(t)).toBe('tab-1');
+    expect(event.defaultPrevented).toBe(false);
+    t.cleanup();
+  });
+});
+
 describe('Tilery — rendering', () => {
   it('renders one panel per initial layout tree leaf with the right tab strip', () => {
     const t = mount(lShapeLayout());
