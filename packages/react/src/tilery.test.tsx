@@ -1107,6 +1107,14 @@ describe('Tilery — rendering', () => {
     expect(tileryCss).toMatch(/\.tilery\s*\{[^}]*isolation:\s*isolate;/);
   });
 
+  it('exposes the active tab line as CSS variables with a 1px default', () => {
+    const tileryCss = readFileSync('packages/core/src/tilery.css', 'utf8');
+
+    expect(tileryCss).toMatch(
+      /\.tilery__tab\[data-active='true'\]\s*\{[^}]*box-shadow:\s*inset 0 var\(--tilery-tab-active-line-height,\s*1px\) 0 0\s*var\(--tilery-tab-active-line-color,\s*var\(--tilery-accent,\s*#3884ff\)\);/s,
+    );
+  });
+
   it('marks locked panel and tab-bar affordance state in the DOM', () => {
     const t = mount({
       type: 'group',

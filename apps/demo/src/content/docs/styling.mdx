@@ -17,6 +17,8 @@ Use CSS variables for ordinary theming: colors, borders, gaps, tab sizing, menu 
   --tilery-tab-fg: #6b7280;
   --tilery-tab-active-bg: #ffffff;
   --tilery-tab-active-fg: #1a1a1a;
+  --tilery-tab-active-line-height: 1px;
+  --tilery-tab-active-line-color: #2563eb;
   --tilery-tab-hover-bg: #e5e7eb;
   --tilery-action-hover-bg: #e5e7eb;
   --tilery-accent: #2563eb;
@@ -50,6 +52,7 @@ Reach for scoped class overrides when the component shape or interaction treatme
 }
 
 .pill-tabs .tilery__tab[data-active='true'] {
+  --tilery-tab-active-line-height: 0;
   box-shadow: inset 0 0 0 1px var(--tilery-accent);
 }
 ```

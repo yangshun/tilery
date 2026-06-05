@@ -216,7 +216,8 @@
 .tilery__tab[data-active='true'] {
   background: var(--tilery-tab-active-bg, var(--tilery-panel-bg, #1a1c20));
   color: var(--tilery-tab-active-fg, #f3f4f7);
-  box-shadow: inset 0 2px 0 0 var(--tilery-accent, #3884ff);
+  box-shadow: inset 0 var(--tilery-tab-active-line-height, 1px) 0 0
+    var(--tilery-tab-active-line-color, var(--tilery-accent, #3884ff));
 }
 
 .tilery__tab:hover {
