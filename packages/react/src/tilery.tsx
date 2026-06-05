@@ -22,7 +22,11 @@ import { TileryDivider, type DividerAccessibility } from './components/divider';
 import { EdgeResizeHandle } from './components/edge-resize-handle';
 import { TileryJunction } from './components/junction';
 import { DropOverlay } from './components/drop-overlay';
-import { tileryPanelDomId } from './dom-ids';
+import {
+  tileryPanelDomId,
+  tileryTabDomId,
+  tileryTabPanelDomId,
+} from './dom-ids';
 import {
   makeLifecycleEvents,
   type TileryActiveTabChangeEvent,
@@ -900,7 +904,13 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
       /* v8 ignore next */
       if (!tab) return null;
       return createPortal(
-        <div className="tilery__tab-content" data-active={isActive}>
+        <div
+          className="tilery__tab-content"
+          data-active={isActive}
+          role="tabpanel"
+          id={tileryTabPanelDomId(tabState.id)}
+          aria-labelledby={tileryTabDomId(tabState.id)}
+          tabIndex={0}>
           {renderTabContent(tab as TileryTab<TData>)}
         </div>,
         host,

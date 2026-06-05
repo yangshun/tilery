@@ -704,6 +704,20 @@ describe('Tilery — rendering', () => {
     t.cleanup();
   });
 
+  it('relates each tab to its content panel (tab/tabpanel ARIA)', () => {
+    const t = mount(lShapeLayout());
+    const tab = t.host.querySelector<HTMLElement>('.tilery__tab[role="tab"]')!;
+    const controls = tab.getAttribute('aria-controls') ?? '';
+    expect(tab.id).toBeTruthy();
+    expect(controls).toBeTruthy();
+    const tabpanel = t.host.querySelector<HTMLElement>(
+      `[role="tabpanel"][id="${controls}"]`,
+    )!;
+    expect(tabpanel).not.toBeNull();
+    expect(tabpanel.getAttribute('aria-labelledby')).toBe(tab.id);
+    t.cleanup();
+  });
+
   it('renders custom tab triggers without wrapping the close button', () => {
     const t = mount(linkTabsLayout(), undefined, {
       renderTabTrigger: ({ tab, props, children }) => (

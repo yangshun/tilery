@@ -10,6 +10,7 @@ import type {
   TileryTabTriggerProps,
   TileryTabTriggerRenderer,
 } from '../tilery';
+import { tileryTabDomId, tileryTabPanelDomId } from '../dom-ids';
 
 /**
  * Props for the {@link Tab} component.
@@ -62,6 +63,8 @@ export const Tab = memo(function Tab({
   onClose,
 }: TabProps) {
   const tabId = tab.id;
+  const tabDomId = tileryTabDomId(tabId);
+  const tabPanelDomId = tileryTabPanelDomId(tabId);
   const handleRef = useCallback(
     (el: HTMLElement | null) => registerTab(tabId, el),
     [registerTab, tabId],
@@ -78,6 +81,8 @@ export const Tab = memo(function Tab({
     'data-closable': tab.closable,
     'data-draggable': tab.draggable,
     'data-tab-id': tab.id,
+    id: tabDomId,
+    'aria-controls': tabPanelDomId,
     onPointerDown,
     onPointerMove,
     onPointerUp,
@@ -109,6 +114,8 @@ export const Tab = memo(function Tab({
         onPointerCancel,
         role: 'tab',
         'aria-selected': isActive,
+        id: tabDomId,
+        'aria-controls': tabPanelDomId,
       };
 
   return (
