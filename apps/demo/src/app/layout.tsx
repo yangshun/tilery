@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
 import '@tilery/react/style.css';
+import '@fontsource-variable/mona-sans';
 import './globals.css';
 import { Sidebar } from '../components/sidebar';
 import {

@@ -227,7 +227,8 @@ button {
 
   --site-nav-height: 48px;
   --site-sidebar-width: 248px;
-  --site-font: system-ui, -apple-system, sans-serif;
+  --site-font:
+    'Mona Sans Variable', 'Mona Sans', system-ui, -apple-system, sans-serif;
   --site-mono: ui-monospace, 'SF Mono', 'Cascadia Code', monospace;
 }
 
