@@ -1435,10 +1435,6 @@ td code {
   max-width: none;
 }
 
-.home-demo-scene__reset {
-  flex: 0 0 auto;
-}
-
 .home-demo-scene__shell {
   margin-top: 24px;
 }
