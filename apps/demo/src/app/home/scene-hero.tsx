@@ -23,8 +23,8 @@ export function HeroScene() {
           </Link>
           <Link
             className="site-button site-button--hero site-button--secondary home-button"
-            href="/examples/ide">
-            Open the IDE example
+            href="/playground">
+            Open playground
           </Link>
         </div>
       </div>

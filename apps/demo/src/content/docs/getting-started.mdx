@@ -3,6 +3,48 @@ title: Getting Started
 description: Build a two-panel app shell and learn the first layout shape.
 ---
 
+import { DemoMount } from '../../components/demo-mount';
+import { DemoSurface } from '../../components/demo-surface';
+import { CodeBlock } from '../../components/code-block';
+import { Example as BasicExample } from '../examples/basic/example';
+
+export const finishedLayoutCode = `import { Tilery } from '@tilery/react';
+import '@tilery/react/style.css';
+import type { TileryInitialLayout } from '@tilery/react';
+
+type MyTab = { title: string };
+
+const layout: TileryInitialLayout<MyTab> = {
+type: 'group',
+direction: 'horizontal',
+children: [
+{
+type: 'panel',
+id: 'left',
+size: 50,
+tabs: [{ id: 'a', data: { title: 'Panel A' } }],
+},
+{
+type: 'panel',
+id: 'right',
+size: 50,
+tabs: [{ id: 'b', data: { title: 'Panel B' } }],
+},
+],
+};
+
+export function App() {
+  return (
+    <div style={{ width: '100%', height: '100vh' }}>
+      <Tilery
+        initialLayout={layout}
+        renderTabHeader={(tab) => <span>{tab.data.title}</span>}
+        renderTabContent={(tab) => <div>{tab.data.title} content</div>}
+      />
+    </div>
+  );
+}`;
+
 ## Build a two-panel app shell
 
 Start here when you want a working Tilery layout in an application. This page builds the smallest useful workspace: two resizable panels, each with one tab.
@@ -77,6 +119,16 @@ function App() {
   );
 }
 ```
+
+## Try the finished layout
+
+<DemoSurface surface="plain">
+  <DemoMount>
+    <BasicExample />
+  </DemoMount>
+</DemoSurface>
+
+<CodeBlock code={finishedLayoutCode} />
 
 ## Where to go next
 

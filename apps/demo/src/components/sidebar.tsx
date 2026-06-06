@@ -10,7 +10,6 @@ import { ThemeToggle } from './theme-toggle';
 export type SidebarItem = {
   href: string;
   label: string;
-  depth?: number;
 };
 
 export type SidebarGroup = {
@@ -22,7 +21,13 @@ export type SidebarGroup = {
   }>;
 };
 
-export function Sidebar({ groups }: { groups: SidebarGroup[] }) {
+export function Sidebar({
+  groups,
+  utilityItem,
+}: {
+  groups: SidebarGroup[];
+  utilityItem: SidebarItem;
+}) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -35,7 +40,7 @@ export function Sidebar({ groups }: { groups: SidebarGroup[] }) {
       <Link
         key={item.href}
         href={item.href}
-        className={`sidebar__link ${item.depth ? 'sidebar__link--nested' : ''} ${pathname === item.href ? 'sidebar__link--active' : ''}`}>
+        className={`sidebar__link ${pathname === item.href ? 'sidebar__link--active' : ''}`}>
         {item.label}
       </Link>
     );
@@ -79,6 +84,14 @@ export function Sidebar({ groups }: { groups: SidebarGroup[] }) {
           </div>
         ))}
       </nav>
+      <div className="sidebar__footer">
+        <Link
+          href={utilityItem.href}
+          className="site-button site-button--secondary sidebar__utility-link"
+          data-active={pathname === utilityItem.href}>
+          {utilityItem.label}
+        </Link>
+      </div>
       <div className="sidebar__appearance">
         <a
           href="https://github.com/yangshun/tilery"

@@ -10,22 +10,22 @@ export const metadata: Metadata = {
 };
 
 const designCodeSample = [
-  "type DemoToken = {",
-  "  name: string;",
-  "  value: string;",
-  "  usage: string;",
-  "};",
-  "",
-  "export function TokenRow({ token }: { token: DemoToken }) {",
-  "  return (",
+  'type DemoToken = {',
+  '  name: string;',
+  '  value: string;',
+  '  usage: string;',
+  '};',
+  '',
+  'export function TokenRow({ token }: { token: DemoToken }) {',
+  '  return (',
   '    <div className="design-token">',
   '      <span className="design-token__swatch" />',
-  "      <code>{token.name}</code>",
-  "      <span>{token.usage}</span>",
-  "    </div>",
-  "  );",
-  "}",
-  "",
+  '      <code>{token.name}</code>',
+  '      <span>{token.usage}</span>',
+  '    </div>',
+  '  );',
+  '}',
+  '',
   ...Array.from(
     { length: 28 },
     (_, index) =>
@@ -59,9 +59,7 @@ export default async function DesignPage() {
             and long-code expansion treatment.
           </p>
         </div>
-        <div className="design-specimen design-specimen--wide">
-          {codeBlock}
-        </div>
+        <div className="design-specimen design-specimen--wide">{codeBlock}</div>
       </section>
 
       <section

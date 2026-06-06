@@ -4,7 +4,6 @@ import { exampleCategoryOrder, examples } from './examples';
 export type SiteNavigationItem = {
   href: string;
   label: string;
-  depth?: number;
 };
 
 export type SiteNavigationGroup = {
@@ -40,18 +39,20 @@ const exampleNavigationSections = exampleCategoryOrder.map((category) => ({
     })),
 }));
 
+export const playgroundNavigationItem = {
+  href: '/playground',
+  label: 'Playground',
+} satisfies SiteNavigationItem;
+
 export const siteNavigationGroups: SiteNavigationGroup[] = [
   {
     title: 'Guide',
-    items: [
-      ...docs
-        .filter((d) => d.group === 'Guide')
-        .map((d) => ({
-          href: `/docs/${d.slug}`,
-          label: d.title,
-        })),
-      { href: '/playground', label: 'Playground' },
-    ],
+    items: docs
+      .filter((d) => d.group === 'Guide')
+      .map((d) => ({
+        href: `/docs/${d.slug}`,
+        label: d.title,
+      })),
   },
   {
     title: 'Examples',
@@ -67,15 +68,17 @@ export const siteNavigationGroups: SiteNavigationGroup[] = [
       .map((d) => ({
         href: `/docs/${d.slug}`,
         label: d.title,
-        depth: d.slug.includes('/') ? 1 : 0,
       })),
   },
 ];
 
-export const siteNavigationItems = siteNavigationGroups.flatMap((group) => [
-  ...(group.items ?? []),
-  ...(group.sections ?? []).flatMap((section) => section.items),
-]);
+export const siteNavigationItems = [
+  ...siteNavigationGroups.flatMap((group) => [
+    ...(group.items ?? []),
+    ...(group.sections ?? []).flatMap((section) => section.items),
+  ]),
+  playgroundNavigationItem,
+];
 
 export function getAdjacentSiteNavigation(href: string) {
   const index = siteNavigationItems.findIndex((item) => item.href === href);

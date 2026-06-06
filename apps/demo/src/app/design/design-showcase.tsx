@@ -161,7 +161,9 @@ export function DesignShowcase() {
               <button type="button" className="site-button">
                 Default
               </button>
-              <button type="button" className="site-button site-button--primary">
+              <button
+                type="button"
+                className="site-button site-button--primary">
                 Primary
               </button>
               <button
@@ -183,9 +185,7 @@ export function DesignShowcase() {
               <button type="button" className="site-button" disabled>
                 Disabled
               </button>
-              <button
-                type="button"
-                className="site-button site-button--danger">
+              <button type="button" className="site-button site-button--danger">
                 Danger
               </button>
             </div>
@@ -287,7 +287,9 @@ export function DesignShowcase() {
                   {exampleDirty ? (
                     <p>Reset returns the specimen to its original state.</p>
                   ) : (
-                    <EmptyState>Select Modified to reveal reset behavior.</EmptyState>
+                    <EmptyState>
+                      Select Modified to reveal reset behavior.
+                    </EmptyState>
                   )}
                 </TabContent>
               </div>
@@ -384,9 +386,7 @@ export function DesignShowcase() {
         </div>
       </section>
 
-      <section
-        className="design-section"
-        aria-labelledby="design-status-title">
+      <section className="design-section" aria-labelledby="design-status-title">
         <div className="design-section__header">
           <h2 id="design-status-title">Status states</h2>
           <p>

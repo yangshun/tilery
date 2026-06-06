@@ -29,7 +29,7 @@ button {
   --site-button-padding-x: 12px;
   --site-button-radius: 6px;
   --site-button-font-size: 13px;
-  --site-button-font-weight: 600;
+  --site-button-font-weight: 500;
 
   display: inline-flex;
   align-items: center;
@@ -81,7 +81,7 @@ button {
   --site-button-height: 40px;
   --site-button-padding-x: 16px;
   --site-button-radius: 8px;
-  --site-button-font-weight: 640;
+  --site-button-font-weight: 600;
 }
 
 .site-button--primary {
@@ -658,7 +658,6 @@ td code {
   flex-shrink: 0;
   margin-top: auto;
   padding: 8px 12px;
-  border-top: 1px solid var(--site-sidebar-border);
   display: flex;
   align-items: center;
   gap: 4px;
@@ -790,6 +789,17 @@ td code {
   --site-icon-button-font-size: 18px;
 }
 
+.sidebar__github {
+  --site-icon-button-radius: 7px;
+  --site-icon-button-fg: color-mix(in srgb, var(--site-fg), transparent 25%);
+  --site-icon-button-hover-bg: color-mix(
+    in srgb,
+    var(--site-fg),
+    transparent 90%
+  );
+  --site-icon-button-font-size: 17px;
+}
+
 .sidebar__theme-icon {
   display: inline-flex;
 }
@@ -823,7 +833,7 @@ td code {
 
 .sidebar__nav {
   flex: 1;
-  padding: 4px 8px;
+  padding: 8px 4px 4px;
   overflow-y: auto;
 }
 
@@ -850,11 +860,11 @@ td code {
 }
 
 .sidebar__subgroup-title {
-  padding: 4px 8px 3px;
+  padding: 6px 8px;
   margin-bottom: 2px;
   color: var(--site-fg);
-  font-size: 12px;
-  font-weight: 650;
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .sidebar__subgroup .sidebar__link {
@@ -877,10 +887,6 @@ td code {
   margin-top: 2px;
 }
 
-.sidebar__link--nested {
-  padding-left: 18px;
-}
-
 .sidebar__link:hover {
   color: var(--site-fg);
   background: var(--site-overlay);
@@ -890,6 +896,16 @@ td code {
 .sidebar__link--active {
   color: var(--site-fg);
   background: var(--site-overlay);
+}
+
+.sidebar__footer {
+  flex-shrink: 0;
+  padding: 12px 12px 0;
+  border-top: 1px solid var(--site-sidebar-border);
+}
+
+.sidebar__utility-link {
+  width: 100%;
 }
 
 /* Doc Page */
@@ -2795,12 +2811,12 @@ td code {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 18px;
+  padding: 12px;
   border: 0;
   background: none;
   font: inherit;
-  font-size: 11px;
-  font-weight: 650;
+  font-size: 13px;
+  font-weight: 500;
   letter-spacing: 0;
   text-align: left;
   color: color-mix(in srgb, var(--site-fg), transparent 35%);
@@ -2845,7 +2861,7 @@ td code {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 4px 18px 16px;
+  padding: 4px 12px 16px;
   transition: opacity 0.2s ease;
 }
 

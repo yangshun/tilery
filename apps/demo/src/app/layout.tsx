@@ -3,7 +3,10 @@ import Script from 'next/script';
 import '@tilery/react/style.css';
 import './globals.css';
 import { Sidebar } from '../components/sidebar';
-import { siteNavigationGroups } from '../content/navigation';
+import {
+  playgroundNavigationItem,
+  siteNavigationGroups,
+} from '../content/navigation';
 
 export const metadata: Metadata = {
   title: {
@@ -30,7 +33,10 @@ export default function RootLayout({
         </Script>
         <div className="site-layout">
           <div className="sidebar-container">
-            <Sidebar groups={siteNavigationGroups} />
+            <Sidebar
+              groups={siteNavigationGroups}
+              utilityItem={playgroundNavigationItem}
+            />
           </div>
           <main className="site-main">{children}</main>
         </div>
