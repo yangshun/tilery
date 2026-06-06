@@ -800,12 +800,6 @@ td code {
 
 .sidebar__github {
   --site-icon-button-radius: 7px;
-  --site-icon-button-fg: color-mix(in srgb, var(--site-fg), transparent 25%);
-  --site-icon-button-hover-bg: color-mix(
-    in srgb,
-    var(--site-fg),
-    transparent 90%
-  );
   --site-icon-button-font-size: 17px;
 }
 
