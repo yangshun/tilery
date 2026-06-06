@@ -249,8 +249,8 @@ button {
   --site-overlay: rgba(15, 23, 42, 0.07);
   --site-overlay-soft: rgba(15, 23, 42, 0.045);
   --site-overlay-weak: rgba(15, 23, 42, 0.025);
-  --site-sidebar-bg: rgba(15, 23, 42, 0.035);
-  --site-sidebar-border: rgba(15, 23, 42, 0.09);
+  --site-sidebar-bg: #ffffff;
+  --site-sidebar-border: rgba(15, 23, 42, 0.12);
   --site-shell-border: rgba(15, 23, 42, 0.1);
   --site-nav-hover-border: rgba(77, 124, 15, 0.5);
   --site-shadow: 0 24px 70px rgba(15, 23, 42, 0.14);
@@ -1429,6 +1429,7 @@ td code {
   flex-wrap: wrap;
   gap: 10px;
   margin-top: 28px;
+  text-shadow: none;
 }
 
 .home-hero__principles {
