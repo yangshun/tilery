@@ -1216,32 +1216,32 @@ function edgePanelPlacementStyle(
 ): React.CSSProperties {
   if (side === 'left') {
     return {
-      top: `${sizes.top}%`,
-      bottom: `${sizes.bottom}%`,
+      top: '0%',
+      bottom: '0%',
       left: '0%',
       width: `${sizes.left}%`,
     };
   }
   if (side === 'right') {
     return {
-      top: `${sizes.top}%`,
+      top: '0%',
       right: '0%',
-      bottom: `${sizes.bottom}%`,
+      bottom: '0%',
       width: `${sizes.right}%`,
     };
   }
   if (side === 'top') {
     return {
       top: '0%',
-      right: '0%',
-      left: '0%',
+      right: `${sizes.right}%`,
+      left: `${sizes.left}%`,
       height: `${sizes.top}%`,
     };
   }
   return {
-    right: '0%',
+    right: `${sizes.right}%`,
     bottom: '0%',
-    left: '0%',
+    left: `${sizes.left}%`,
     height: `${sizes.bottom}%`,
   };
 }
@@ -1255,8 +1255,8 @@ function edgeResizeHandleStyle(
   const resolvedHitSize = normalizeResizeHitSize(hitSize);
   if (side === 'left') {
     return {
-      top: `${sizes.top}%`,
-      bottom: `${sizes.bottom}%`,
+      top: '0%',
+      bottom: '0%',
       left: `calc(${sizes.left}% - ${resolvedHitSize / 2}px)`,
       width: resolvedHitSize,
       cursor: 'col-resize',
@@ -1264,8 +1264,8 @@ function edgeResizeHandleStyle(
   }
   if (side === 'right') {
     return {
-      top: `${sizes.top}%`,
-      bottom: `${sizes.bottom}%`,
+      top: '0%',
+      bottom: '0%',
       left: `calc(${100 - sizes.right}% - ${resolvedHitSize / 2}px)`,
       width: resolvedHitSize,
       cursor: 'col-resize',
@@ -1274,16 +1274,16 @@ function edgeResizeHandleStyle(
   if (side === 'top') {
     return {
       top: `calc(${sizes.top}% - ${resolvedHitSize / 2}px)`,
-      right: '0%',
-      left: '0%',
+      right: `${sizes.right}%`,
+      left: `${sizes.left}%`,
       height: resolvedHitSize,
       cursor: 'row-resize',
     };
   }
   return {
     top: `calc(${100 - sizes.bottom}% - ${resolvedHitSize / 2}px)`,
-    right: '0%',
-    left: '0%',
+    right: `${sizes.right}%`,
+    left: `${sizes.left}%`,
     height: resolvedHitSize,
     cursor: 'row-resize',
   };
