@@ -16,6 +16,7 @@ import {
 
 type TabData = { title: string; body: string };
 
+// source-region panel-objects-layout
 const panelApiLayout: TileryInitialLayout<TabData> = {
   type: 'panel',
   id: 'main',
@@ -29,7 +30,9 @@ const panelApiLayout: TileryInitialLayout<TabData> = {
     },
   ],
 };
+// end-source-region panel-objects-layout
 
+// source-region tab-objects-layout
 const tabApiLayout: TileryInitialLayout<TabData> = {
   type: 'group',
   direction: 'horizontal',
@@ -71,7 +74,9 @@ const tabApiLayout: TileryInitialLayout<TabData> = {
     },
   ],
 };
+// end-source-region tab-objects-layout
 
+// source-region tab-workflows-layout
 const workflowApiLayout: TileryInitialLayout<TabData> = {
   type: 'group',
   direction: 'horizontal',
@@ -115,6 +120,7 @@ const workflowApiLayout: TileryInitialLayout<TabData> = {
     },
   ],
 };
+// end-source-region tab-workflows-layout
 
 export function Example() {
   return (
@@ -126,8 +132,8 @@ export function Example() {
   );
 }
 
-// source-region panel-objects
 export function PanelApiExample() {
+  // source-region panel-objects-controller
   const tileryRef = useRef<TileryController | null>(null);
   const counterRef = useRef(0);
 
@@ -167,6 +173,7 @@ export function PanelApiExample() {
   const removeActive = () => {
     getFirstPanel()?.activeTab?.remove();
   };
+  // end-source-region panel-objects-controller
 
   return (
     <ExampleSection
@@ -185,19 +192,20 @@ export function PanelApiExample() {
           </ExampleButton>
         </>
       }>
+      {/* source-region panel-objects-tilery */}
       <Tilery<TabData>
         ref={tileryRef as Ref<TileryController>}
         initialLayout={panelApiLayout}
         renderTabHeader={renderHeader}
         renderTabContent={renderContent}
       />
+      {/* end-source-region panel-objects-tilery */}
     </ExampleSection>
   );
 }
-// end-source-region panel-objects
 
-// source-region tab-objects
 export function TabApiExample() {
+  // source-region tab-objects-controller
   const tileryRef = useRef<TileryController | null>(null);
   const renameCounterRef = useRef(0);
 
@@ -228,6 +236,7 @@ export function TabApiExample() {
   const activateSearch = () => {
     tileryRef.current?.getTab('search')?.activate();
   };
+  // end-source-region tab-objects-controller
 
   return (
     <ExampleSection
@@ -246,19 +255,20 @@ export function TabApiExample() {
           </ExampleButton>
         </>
       }>
+      {/* source-region tab-objects-tilery */}
       <Tilery<TabData>
         ref={tileryRef as Ref<TileryController>}
         initialLayout={tabApiLayout}
         renderTabHeader={renderHeader}
         renderTabContent={renderContent}
       />
+      {/* end-source-region tab-objects-tilery */}
     </ExampleSection>
   );
 }
-// end-source-region tab-objects
 
-// source-region tab-workflows
 export function WorkflowApiExample() {
+  // source-region tab-workflows-controller
   const tileryRef = useRef<TileryController | null>(null);
 
   const openOrActivateSettings = () => {
@@ -294,6 +304,7 @@ export function WorkflowApiExample() {
     const newId = oldId === 'scratch' ? 'scratch-renamed' : 'scratch';
     tilery.changeTabId(oldId, newId)?.activate();
   };
+  // end-source-region tab-workflows-controller
 
   return (
     <ExampleSection
@@ -312,16 +323,17 @@ export function WorkflowApiExample() {
           </ExampleButton>
         </>
       }>
+      {/* source-region tab-workflows-tilery */}
       <Tilery<TabData>
         ref={tileryRef as Ref<TileryController>}
         initialLayout={workflowApiLayout}
         renderTabHeader={renderHeader}
         renderTabContent={renderContent}
       />
+      {/* end-source-region tab-workflows-tilery */}
     </ExampleSection>
   );
 }
-// end-source-region tab-workflows
 
 function renderHeader(tab: TileryTab<TabData>) {
   return <span>{tab.data.title}</span>;

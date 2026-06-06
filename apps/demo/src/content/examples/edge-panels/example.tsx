@@ -9,6 +9,7 @@ type TabData = {
   kind: 'explorer' | 'search' | 'outline' | 'editor' | 'terminal' | 'problems';
 };
 
+// source-region edge-panels-layout
 const layout: TileryInitialLayout<TabData> = {
   type: 'root',
   main: {
@@ -73,12 +74,14 @@ const layout: TileryInitialLayout<TabData> = {
     },
   },
 };
+// end-source-region edge-panels-layout
 
 export function Example() {
   return (
     <ExampleSection
       title="Pinned edge workspace"
       description="Left, right, and bottom edge panels stay anchored around the center tiled grid.">
+      {/* source-region edge-panels-tilery */}
       <Tilery<TabData>
         initialLayout={layout}
         renderTabHeader={(tab: TileryTab<TabData>) => (
@@ -90,6 +93,7 @@ export function Example() {
           </TabContent>
         )}
       />
+      {/* end-source-region edge-panels-tilery */}
     </ExampleSection>
   );
 }

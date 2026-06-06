@@ -14,6 +14,7 @@ type TabData = {
   section: string;
 };
 
+// source-region tab-overflow-layout
 const tabs = Array.from({ length: 16 }, (_, index) => {
   const n = index + 1;
   return {
@@ -50,13 +51,14 @@ const layout: TileryInitialLayout<TabData> = {
     },
   ],
 };
+// end-source-region tab-overflow-layout
 
 export function Example() {
   return <TabOverflowExample />;
 }
 
-// source-region tab-overflow
 export function TabOverflowExample() {
+  // source-region tab-overflow-controller
   const tileryRef = useRef<TileryController | null>(null);
   const [activeId, setActiveId] = useState('file-1');
   const jumpTargets = useMemo(
@@ -67,6 +69,10 @@ export function TabOverflowExample() {
     ],
     [],
   );
+  const jumpToTab = (tabId: string) => {
+    tileryRef.current?.setActiveTab(tabId);
+  };
+  // end-source-region tab-overflow-controller
 
   return (
     <ExampleSection
@@ -77,10 +83,11 @@ export function TabOverflowExample() {
         <ExampleButton
           key={target.tabId}
           active={activeId === target.tabId}
-          onClick={() => tileryRef.current?.setActiveTab(target.tabId)}>
+          onClick={() => jumpToTab(target.tabId)}>
           {target.label}
         </ExampleButton>
       ))}>
+      {/* source-region tab-overflow-tilery */}
       <Tilery<TabData>
         ref={tileryRef}
         initialLayout={layout}
@@ -103,7 +110,7 @@ export function TabOverflowExample() {
           </TabContent>
         )}
       />
+      {/* end-source-region tab-overflow-tilery */}
     </ExampleSection>
   );
 }
-// end-source-region tab-overflow

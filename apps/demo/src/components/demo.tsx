@@ -4,7 +4,10 @@ import type { ReactNode } from 'react';
 import { CodeBlock } from './code-block';
 import { DemoMount } from './demo-mount';
 import { DemoSurface, type DemoSurfaceMode } from './demo-surface';
-import { extractSourceRegion } from '../lib/source-region';
+import {
+  extractSourceRegion,
+  extractSourceRegions,
+} from '../lib/source-region';
 
 /**
  * Renders a live example demo beside its source code.
@@ -19,37 +22,27 @@ import { extractSourceRegion } from '../lib/source-region';
  * </Demo>
  * ```
  *
- * `source` is relative to `src/content/examples/`. Omit `region` to show the
- * whole file; otherwise it must match a `// source-region <region>` marker
- * pair (a missing region throws, to fail loudly on authoring typos). The live
- * demo is passed as `children` and rendered through a client mount gate.
+ * `source` is relative to `src/content/examples/`. Prefer `region` or
+ * `regions` so displayed snippets stay focused on usage code. A missing region
+ * throws, to fail loudly on authoring typos. The live demo is passed as
+ * `children` and rendered through a client mount gate.
  */
 export function Demo({
   source,
   region,
+  regions,
   surface = 'boxed',
   children,
 }: {
   source: string;
   region?: string;
+  regions?: readonly string[];
   surface?: DemoSurfaceMode;
   children: ReactNode;
 }) {
   const filePath = resolve(process.cwd(), 'src/content/examples', source);
   const fileSource = readFileSync(filePath, 'utf-8');
-
-  let code: string;
-  if (region) {
-    const extracted = extractSourceRegion(fileSource, region);
-    if (extracted === null) {
-      throw new Error(
-        `<Demo>: source-region "${region}" not found in ${source}`,
-      );
-    }
-    code = extracted;
-  } else {
-    code = fileSource.trim();
-  }
+  const code = resolveDemoSourceCode({ fileSource, region, regions, source });
 
   return (
     <section className="example-preview__case">
@@ -61,4 +54,46 @@ export function Demo({
       </div>
     </section>
   );
+}
+
+export function resolveDemoSourceCode({
+  fileSource,
+  source,
+  region,
+  regions,
+}: {
+  fileSource: string;
+  source: string;
+  region?: string;
+  regions?: readonly string[];
+}) {
+  if (region && regions) {
+    throw new Error('<Demo>: use either `region` or `regions`, not both');
+  }
+
+  if (region) {
+    const extracted = extractSourceRegion(fileSource, region);
+    if (extracted === null) {
+      throw new Error(
+        `<Demo>: source-region "${region}" not found in ${source}`,
+      );
+    }
+    return extracted;
+  }
+
+  if (regions) {
+    const extracted = extractSourceRegions(fileSource, regions);
+    if (extracted === null) {
+      const missing = regions.find(
+        (currentRegion) =>
+          extractSourceRegion(fileSource, currentRegion) === null,
+      );
+      throw new Error(
+        `<Demo>: source-region "${missing ?? regions.join(', ')}" not found in ${source}`,
+      );
+    }
+    return extracted;
+  }
+
+  return fileSource.trim();
 }

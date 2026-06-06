@@ -26,6 +26,7 @@ type LogEntry = {
   details: string;
 };
 
+// source-region structural-layout
 const structuralLayout: TileryInitialLayout<TabData> = {
   type: 'group',
   direction: 'horizontal',
@@ -67,7 +68,9 @@ const structuralLayout: TileryInitialLayout<TabData> = {
     },
   ],
 };
+// end-source-region structural-layout
 
+// source-region resize-layout
 const resizeLayout: TileryInitialLayout<TabData> = {
   type: 'group',
   direction: 'horizontal',
@@ -102,6 +105,7 @@ const resizeLayout: TileryInitialLayout<TabData> = {
     },
   ],
 };
+// end-source-region resize-layout
 
 export function Example() {
   return (
@@ -112,8 +116,8 @@ export function Example() {
   );
 }
 
-// source-region structural
 export function StructuralCallbacksExample() {
+  // source-region structural-controller
   const tileryRef = useRef<TileryController | null>(null);
   const eventIdRef = useRef(0);
   const tabCounterRef = useRef(0);
@@ -179,6 +183,7 @@ export function StructuralCallbacksExample() {
   const closeActive = () => {
     tileryRef.current?.getPanel('editor')?.activeTab?.remove();
   };
+  // end-source-region structural-controller
 
   return (
     <ExampleSection
@@ -208,6 +213,7 @@ export function StructuralCallbacksExample() {
       }>
       <div style={demoWithLogStyle}>
         <div style={tileryWrapStyle}>
+          {/* source-region structural-tilery */}
           <Tilery<TabData>
             ref={tileryRef as React.Ref<TileryController>}
             initialLayout={structuralLayout}
@@ -239,16 +245,16 @@ export function StructuralCallbacksExample() {
             renderTabHeader={renderHeader}
             renderTabContent={renderContent}
           />
+          {/* end-source-region structural-tilery */}
         </div>
         <EventLog title="Events" events={events} />
       </div>
     </ExampleSection>
   );
 }
-// end-source-region structural
 
-// source-region resize
 export function ResizeCallbacksExample() {
+  // source-region resize-controller
   const eventIdRef = useRef(0);
   const [events, setEvents] = useState<LogEntry[]>([]);
 
@@ -265,6 +271,7 @@ export function ResizeCallbacksExample() {
       ].slice(0, 6),
     );
   }, []);
+  // end-source-region resize-controller
 
   return (
     <ExampleSection
@@ -277,6 +284,7 @@ export function ResizeCallbacksExample() {
       }>
       <div style={demoWithLogStyle}>
         <div style={tileryWrapStyle}>
+          {/* source-region resize-tilery */}
           <Tilery<TabData>
             initialLayout={resizeLayout}
             onResize={(event) => logResize('onResize', event)}
@@ -284,13 +292,13 @@ export function ResizeCallbacksExample() {
             renderTabHeader={renderHeader}
             renderTabContent={renderContent}
           />
+          {/* end-source-region resize-tilery */}
         </div>
         <EventLog title="Resize Events" events={events} />
       </div>
     </ExampleSection>
   );
 }
-// end-source-region resize
 
 function EventLog({ title, events }: { title: string; events: LogEntry[] }) {
   return (

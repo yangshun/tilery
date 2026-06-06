@@ -16,6 +16,7 @@ import {
 
 type TabData = { title: string; body: string; meta?: string };
 
+// source-region initial-floating-layout
 const initialFloatingLayout: TileryInitialLayout<TabData> = {
   type: 'root',
   main: {
@@ -72,7 +73,9 @@ const initialFloatingLayout: TileryInitialLayout<TabData> = {
     },
   ],
 };
+// end-source-region initial-floating-layout
 
+// source-region runtime-floating-layout
 const runtimeFloatingLayout: TileryInitialLayout<TabData> = {
   type: 'group',
   direction: 'horizontal',
@@ -109,7 +112,9 @@ const runtimeFloatingLayout: TileryInitialLayout<TabData> = {
     },
   ],
 };
+// end-source-region runtime-floating-layout
 
+// source-region popout-styling-layout
 const popoutStylingLayout: TileryInitialLayout<TabData> = {
   type: 'group',
   direction: 'horizontal',
@@ -146,7 +151,9 @@ const popoutStylingLayout: TileryInitialLayout<TabData> = {
     },
   ],
 };
+// end-source-region popout-styling-layout
 
+// source-region tab-floating-layout
 const tabFloatingLayout: TileryInitialLayout<TabData> = {
   type: 'group',
   direction: 'horizontal',
@@ -192,6 +199,7 @@ const tabFloatingLayout: TileryInitialLayout<TabData> = {
     },
   ],
 };
+// end-source-region tab-floating-layout
 
 export function Example() {
   return (
@@ -205,25 +213,25 @@ export function Example() {
   );
 }
 
-// source-region initial-floating
 export function InitialFloatingExample() {
   return (
     <ExampleSection
       title="Initial floating layout"
       description="Use a root layout when the workspace starts with detached panels.">
+      {/* source-region initial-floating-tilery */}
       <Tilery<TabData>
         initialLayout={initialFloatingLayout}
         renderTabHeader={renderHeader}
         renderTabContent={renderContent}
         showActionsButton
       />
+      {/* end-source-region initial-floating-tilery */}
     </ExampleSection>
   );
 }
-// end-source-region initial-floating
 
-// source-region runtime-floating
 export function RuntimeFloatingExample() {
+  // source-region runtime-floating-controller
   const tileryRef = useRef<TileryController | null>(null);
 
   const floatExplorer = () => {
@@ -247,6 +255,7 @@ export function RuntimeFloatingExample() {
   const focusExplorer = () => {
     tileryRef.current?.focusPanel('explorer');
   };
+  // end-source-region runtime-floating-controller
 
   return (
     <ExampleSection
@@ -265,6 +274,7 @@ export function RuntimeFloatingExample() {
           </ExampleButton>
         </>
       }>
+      {/* source-region runtime-floating-tilery */}
       <Tilery<TabData>
         ref={tileryRef as React.Ref<TileryController>}
         initialLayout={runtimeFloatingLayout}
@@ -272,13 +282,13 @@ export function RuntimeFloatingExample() {
         renderTabContent={renderContent}
         showActionsButton
       />
+      {/* end-source-region runtime-floating-tilery */}
     </ExampleSection>
   );
 }
-// end-source-region runtime-floating
 
-// source-region tab-floating
 export function TabFloatingExample() {
+  // source-region tab-floating-controller
   const tileryRef = useRef<TileryController | null>(null);
 
   const floatNotes = () => {
@@ -302,6 +312,7 @@ export function TabFloatingExample() {
       index: 1,
     });
   };
+  // end-source-region tab-floating-controller
 
   return (
     <ExampleSection
@@ -320,6 +331,7 @@ export function TabFloatingExample() {
           </ExampleButton>
         </>
       }>
+      {/* source-region tab-floating-tilery */}
       <Tilery<TabData>
         ref={tileryRef as React.Ref<TileryController>}
         initialLayout={tabFloatingLayout}
@@ -327,13 +339,13 @@ export function TabFloatingExample() {
         renderTabContent={renderContent}
         showActionsButton
       />
+      {/* end-source-region tab-floating-tilery */}
     </ExampleSection>
   );
 }
-// end-source-region tab-floating
 
-// source-region native-popout
 export function NativePopoutExample() {
+  // source-region native-popout-controller
   const tileryRef = useRef<TileryController | null>(null);
 
   const popoutWorkspace = () => {
@@ -354,6 +366,7 @@ export function NativePopoutExample() {
       size: 68,
     });
   };
+  // end-source-region native-popout-controller
 
   return (
     <ExampleSection
@@ -372,6 +385,7 @@ export function NativePopoutExample() {
           </ExampleButton>
         </>
       }>
+      {/* source-region native-popout-tilery */}
       <Tilery<TabData>
         ref={tileryRef as React.Ref<TileryController>}
         initialLayout={runtimeFloatingLayout}
@@ -379,12 +393,12 @@ export function NativePopoutExample() {
         renderTabContent={renderContent}
         showActionsButton
       />
+      {/* end-source-region native-popout-tilery */}
     </ExampleSection>
   );
 }
-// end-source-region native-popout
 
-// source-region popout-styling
+// source-region popout-styling-theme
 const popoutScopedThemeStyle = {
   height: '100%',
   '--tilery-bg': '#10201f',
@@ -396,8 +410,10 @@ const popoutScopedThemeStyle = {
   '--tilery-drop-bg': 'rgba(56, 199, 166, 0.16)',
   '--tilery-drop-border': 'rgba(56, 199, 166, 0.55)',
 } as CSSProperties;
+// end-source-region popout-styling-theme
 
 export function PopoutStylingExample() {
+  // source-region popout-styling-controller
   const tileryRef = useRef<TileryController | null>(null);
 
   const popoutWorkspace = () => {
@@ -410,6 +426,7 @@ export function PopoutStylingExample() {
   const returnWorkspace = () => {
     tileryRef.current?.returnPanelToFloating('scoped-workspace');
   };
+  // end-source-region popout-styling-controller
 
   return (
     <ExampleSection
@@ -426,6 +443,7 @@ export function PopoutStylingExample() {
         </>
       }>
       <div style={popoutScopedThemeStyle}>
+        {/* source-region popout-styling-tilery */}
         <Tilery<TabData>
           ref={tileryRef as React.Ref<TileryController>}
           initialLayout={popoutStylingLayout}
@@ -433,11 +451,11 @@ export function PopoutStylingExample() {
           renderTabContent={renderContent}
           showActionsButton
         />
+        {/* end-source-region popout-styling-tilery */}
       </div>
     </ExampleSection>
   );
 }
-// end-source-region popout-styling
 
 function renderHeader(tab: TileryTab<TabData>) {
   return <span>{tab.data.title}</span>;

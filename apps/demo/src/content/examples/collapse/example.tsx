@@ -12,6 +12,7 @@ import { ExampleSection, ExampleStack, TabContent } from '../example-ui';
 
 type TabData = { title: string; body: string };
 
+// source-region panel-menu-layout
 const actionsLayout: TileryInitialLayout<TabData> = {
   type: 'group',
   direction: 'horizontal',
@@ -74,7 +75,9 @@ const actionsLayout: TileryInitialLayout<TabData> = {
     },
   ],
 };
+// end-source-region panel-menu-layout
 
+// source-region new-tab-layout
 const newTabLayout: TileryInitialLayout<TabData> = {
   type: 'group',
   direction: 'horizontal',
@@ -109,6 +112,7 @@ const newTabLayout: TileryInitialLayout<TabData> = {
     },
   ],
 };
+// end-source-region new-tab-layout
 
 export function Example() {
   return (
@@ -119,12 +123,12 @@ export function Example() {
   );
 }
 
-// source-region panel-menu
 export function PanelMenuExample() {
   return (
     <ExampleSection
       title="Panel menu"
       description="Use built-in split/fullscreen commands and add app-specific menu items.">
+      {/* source-region panel-menu-tilery */}
       <Tilery<TabData>
         initialLayout={actionsLayout}
         showActionsButton={true}
@@ -145,20 +149,22 @@ export function PanelMenuExample() {
         renderTabHeader={renderHeader}
         renderTabContent={renderContent}
       />
+      {/* end-source-region panel-menu-tilery */}
     </ExampleSection>
   );
 }
-// end-source-region panel-menu
 
-// source-region new-tab
 export function NewTabExample() {
+  // source-region new-tab-controller
   const newTabCounterRef = useRef(0);
   const tileryRef = useRef<TileryController | null>(null);
+  // end-source-region new-tab-controller
 
   return (
     <ExampleSection
       title="New-tab hook"
       description="Choose which panels expose the plus button and return the tab data from onNewTab.">
+      {/* source-region new-tab-tilery */}
       <Tilery<TabData>
         ref={tileryRef as React.Ref<TileryController>}
         initialLayout={newTabLayout}
@@ -176,10 +182,10 @@ export function NewTabExample() {
         renderTabHeader={renderHeader}
         renderTabContent={renderContent}
       />
+      {/* end-source-region new-tab-tilery */}
     </ExampleSection>
   );
 }
-// end-source-region new-tab
 
 function renderHeader(tab: TileryTab<TabData>) {
   return <span>{tab.data.title}</span>;

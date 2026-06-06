@@ -6,6 +6,7 @@ import { ExampleSection, TabContent } from '../example-ui';
 
 type TabData = { title: string; color: string };
 
+// source-region dashboard-layout
 const layout: TileryInitialLayout<TabData> = {
   type: 'group',
   direction: 'vertical',
@@ -71,12 +72,14 @@ const layout: TileryInitialLayout<TabData> = {
     },
   ],
 };
+// end-source-region dashboard-layout
 
 export function Example() {
   return (
     <ExampleSection
       title="Analytics workspace"
       description="Nested row and column groups create a dashboard without switching to a separate grid primitive.">
+      {/* source-region dashboard-tilery */}
       <Tilery<TabData>
         initialLayout={layout}
         renderTabHeader={(tab: TileryTab<TabData>) => (
@@ -99,6 +102,7 @@ export function Example() {
           </TabContent>
         )}
       />
+      {/* end-source-region dashboard-tilery */}
     </ExampleSection>
   );
 }

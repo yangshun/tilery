@@ -10,6 +10,7 @@ type TabData = {
   body: string;
 };
 
+// source-region link-tabs-layout
 const layout: TileryInitialLayout<TabData> = {
   type: 'panel',
   id: 'routes',
@@ -42,6 +43,7 @@ const layout: TileryInitialLayout<TabData> = {
     },
   ],
 };
+// end-source-region link-tabs-layout
 
 export function Example() {
   return (
@@ -51,12 +53,12 @@ export function Example() {
   );
 }
 
-// source-region link-tabs
 export function LinkTabsExample() {
   return (
     <ExampleSection
       title="Link tabs"
       description="Render tab triggers as anchors while keeping link metadata in tab data.">
+      {/* source-region link-tabs-tilery */}
       <Tilery<TabData>
         initialLayout={layout}
         renderTabHeader={(tab: TileryTab<TabData>) => (
@@ -80,7 +82,7 @@ export function LinkTabsExample() {
           </TabContent>
         )}
       />
+      {/* end-source-region link-tabs-tilery */}
     </ExampleSection>
   );
 }
-// end-source-region link-tabs

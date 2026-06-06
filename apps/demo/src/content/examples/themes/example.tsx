@@ -351,6 +351,7 @@ function ThemeDemo({
 
   return (
     <ExampleSection title={theme.name} description={theme.description}>
+      {/* source-region theme-demo-tilery */}
       <div className={className} style={{ ...themeShellStyle, ...theme.style }}>
         {children}
         <Tilery<TabData>
@@ -360,6 +361,7 @@ function ThemeDemo({
           renderTabContent={renderContent}
         />
       </div>
+      {/* end-source-region theme-demo-tilery */}
     </ExampleSection>
   );
 }

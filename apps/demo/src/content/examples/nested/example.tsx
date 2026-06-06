@@ -6,6 +6,7 @@ import { ExampleSection, TabContent } from '../example-ui';
 
 type TabData = { title: string; nested?: boolean };
 
+// source-region nested-inner-layout
 const innerLayout: TileryInitialLayout<TabData> = {
   type: 'group',
   direction: 'horizontal',
@@ -24,7 +25,9 @@ const innerLayout: TileryInitialLayout<TabData> = {
     },
   ],
 };
+// end-source-region nested-inner-layout
 
+// source-region nested-outer-layout
 const outerLayout: TileryInitialLayout<TabData> = {
   type: 'group',
   direction: 'horizontal',
@@ -46,10 +49,12 @@ const outerLayout: TileryInitialLayout<TabData> = {
     },
   ],
 };
+// end-source-region nested-outer-layout
 
 function InnerTilery() {
   return (
     <div style={{ width: '100%', height: '100%' }}>
+      {/* source-region nested-inner-tilery */}
       <Tilery<TabData>
         initialLayout={innerLayout}
         renderTabHeader={(tab: TileryTab<TabData>) => (
@@ -61,6 +66,7 @@ function InnerTilery() {
           </TabContent>
         )}
       />
+      {/* end-source-region nested-inner-tilery */}
     </div>
   );
 }
@@ -70,6 +76,7 @@ export function Example() {
     <ExampleSection
       title="Nested workspace roots"
       description="The outer workspace owns the shell while a tab hosts a separate Tilery instance.">
+      {/* source-region nested-outer-tilery */}
       <Tilery<TabData>
         initialLayout={outerLayout}
         renderTabHeader={(tab: TileryTab<TabData>) => (
@@ -84,6 +91,7 @@ export function Example() {
           );
         }}
       />
+      {/* end-source-region nested-outer-tilery */}
     </ExampleSection>
   );
 }

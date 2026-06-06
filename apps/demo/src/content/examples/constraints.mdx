@@ -19,19 +19,26 @@ The container resize demo shows the same rules applying when the available area 
 
 <Demo
   source="constraints/example.tsx"
-  region="panel-constraints"
+  regions={['panel-constraints-layout', 'panel-constraints-tilery']}
   surface="plain">
   <PanelConstraintsExample />
 </Demo>
 
 <Demo
   source="constraints/example.tsx"
-  region="container-resize"
+  regions={[
+    'container-resize-layout',
+    'container-resize-state',
+    'container-resize-tilery',
+  ]}
   surface="plain">
   <ContainerResizeExample />
 </Demo>
 
-<Demo source="constraints/example.tsx" region="default-reset" surface="plain">
+<Demo
+  source="constraints/example.tsx"
+  regions={['default-reset-layout', 'default-reset-tilery']}
+  surface="plain">
   <DefaultResetExample />
 </Demo>
 

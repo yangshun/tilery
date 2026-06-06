@@ -14,6 +14,7 @@ type TabData = {
   note?: string;
 };
 
+// source-region initial-locks-layout
 const initialLocksLayout: TileryInitialLayout<TabData> = {
   type: 'group',
   direction: 'horizontal',
@@ -65,7 +66,9 @@ const initialLocksLayout: TileryInitialLayout<TabData> = {
     },
   ],
 };
+// end-source-region initial-locks-layout
 
+// source-region runtime-behavior-layout
 const runtimeLayout: TileryInitialLayout<TabData> = {
   type: 'group',
   direction: 'horizontal',
@@ -98,6 +101,7 @@ const runtimeLayout: TileryInitialLayout<TabData> = {
     },
   ],
 };
+// end-source-region runtime-behavior-layout
 
 export function Example() {
   return (
@@ -108,28 +112,28 @@ export function Example() {
   );
 }
 
-// source-region initial-locks
 export function InitialTabLocksExample() {
   return (
     <ExampleSection
       title="Initial tab locks"
       description="Use locked, closable, and draggable on individual tabs.">
+      {/* source-region initial-locks-tilery */}
       <Tilery<TabData>
         initialLayout={initialLocksLayout}
         renderTabHeader={renderHeader}
         renderTabContent={renderStatusContent}
       />
+      {/* end-source-region initial-locks-tilery */}
     </ExampleSection>
   );
 }
-// end-source-region initial-locks
 
-// source-region runtime-behavior
 export function RuntimeTabBehaviorExample() {
   return (
     <ExampleSection
       title="Runtime tab behavior"
       description="Use a tab object to update close and drag behavior while the tab is mounted.">
+      {/* source-region runtime-behavior-tilery */}
       <Tilery<TabData>
         initialLayout={runtimeLayout}
         renderTabHeader={renderHeader}
@@ -139,10 +143,10 @@ export function RuntimeTabBehaviorExample() {
           </TabContent>
         )}
       />
+      {/* end-source-region runtime-behavior-tilery */}
     </ExampleSection>
   );
 }
-// end-source-region runtime-behavior
 
 function renderHeader(tab: TileryTab<TabData>) {
   return <span>{tab.data.title}</span>;
@@ -156,31 +160,47 @@ function renderStatusContent(tab: TileryTab<TabData>) {
   );
 }
 
+// source-region runtime-behavior-methods
+function isTabLocked(tab: TileryTab<TabData>) {
+  return !tab.closable && !tab.draggable;
+}
+
+function toggleTabLock(tab: TileryTab<TabData>) {
+  tab.setBehavior(
+    isTabLocked(tab) ? { closable: true, draggable: true } : { locked: true },
+  );
+}
+
+function toggleTabClosable(tab: TileryTab<TabData>) {
+  tab.setBehavior({ closable: !tab.closable });
+}
+
+function toggleTabDraggable(tab: TileryTab<TabData>) {
+  tab.setBehavior({ draggable: !tab.draggable });
+}
+// end-source-region runtime-behavior-methods
+
 function TabBehaviorControls({ tab }: { tab: TileryTab<TabData> }) {
-  const locked = !tab.closable && !tab.draggable;
+  const locked = isTabLocked(tab);
 
   return (
     <div style={controlsStyle}>
       <ExampleButton
         type="button"
         active={locked}
-        onClick={() =>
-          tab.setBehavior(
-            locked ? { closable: true, draggable: true } : { locked: true },
-          )
-        }>
+        onClick={() => toggleTabLock(tab)}>
         {locked ? 'Unlock tab' : 'Lock tab'}
       </ExampleButton>
       <ExampleButton
         type="button"
         active={!tab.closable}
-        onClick={() => tab.setBehavior({ closable: !tab.closable })}>
+        onClick={() => toggleTabClosable(tab)}>
         {tab.closable ? 'Disable close' : 'Enable close'}
       </ExampleButton>
       <ExampleButton
         type="button"
         active={!tab.draggable}
-        onClick={() => tab.setBehavior({ draggable: !tab.draggable })}>
+        onClick={() => toggleTabDraggable(tab)}>
         {tab.draggable ? 'Disable drag' : 'Enable drag'}
       </ExampleButton>
       <StatusGrid tab={tab} />

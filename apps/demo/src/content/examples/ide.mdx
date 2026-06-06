@@ -13,11 +13,17 @@ The first demo keeps the terminal inside the right-hand editor column. Drag the 
 
 Explorer is modeled as non-closable app chrome, while the editor and terminal are ordinary tabbed panels inside nested groups.
 
-<Demo source="ide/example.tsx" region="nested-terminal" surface="plain">
+<Demo
+  source="ide/example.tsx"
+  regions={['nested-terminal', 'ide-tilery']}
+  surface="plain">
   <IdeExample />
 </Demo>
 
-<Demo source="ide/example.tsx" region="root-bottom-row" surface="plain">
+<Demo
+  source="ide/example.tsx"
+  regions={['root-bottom-row', 'ide-tilery']}
+  surface="plain">
   <RootBottomRowExample />
 </Demo>
 

@@ -15,15 +15,36 @@ Programmatic control is for workflows that start outside a drag gesture, such as
 
 The controller gives app-level operations, while panel and tab objects are convenient when your renderer already knows which part of the workspace it is acting on.
 
-<Demo source="controlled/example.tsx" region="panel-objects" surface="plain">
+<Demo
+  source="controlled/example.tsx"
+  regions={[
+    'panel-objects-layout',
+    'panel-objects-controller',
+    'panel-objects-tilery',
+  ]}
+  surface="plain">
   <PanelApiExample />
 </Demo>
 
-<Demo source="controlled/example.tsx" region="tab-objects" surface="plain">
+<Demo
+  source="controlled/example.tsx"
+  regions={[
+    'tab-objects-layout',
+    'tab-objects-controller',
+    'tab-objects-tilery',
+  ]}
+  surface="plain">
   <TabApiExample />
 </Demo>
 
-<Demo source="controlled/example.tsx" region="tab-workflows" surface="plain">
+<Demo
+  source="controlled/example.tsx"
+  regions={[
+    'tab-workflows-layout',
+    'tab-workflows-controller',
+    'tab-workflows-tilery',
+  ]}
+  surface="plain">
   <WorkflowApiExample />
 </Demo>
 

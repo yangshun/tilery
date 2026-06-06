@@ -11,7 +11,15 @@ Nested instances are useful when a tab contains a self-contained tool with its o
 
 The inner workspace is just tab content from the outer workspace, so it can use a separate controller, callbacks, and persistence model.
 
-<Demo source="nested/example.tsx" surface="plain">
+<Demo
+  source="nested/example.tsx"
+  regions={[
+    'nested-inner-layout',
+    'nested-outer-layout',
+    'nested-inner-tilery',
+    'nested-outer-tilery',
+  ]}
+  surface="plain">
   <NestedExample />
 </Demo>
 

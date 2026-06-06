@@ -17,6 +17,7 @@ type TabData = {
   constraints: string;
 };
 
+// source-region panel-constraints-layout
 const constraintsLayout: TileryInitialLayout<TabData> = {
   type: 'group',
   direction: 'horizontal',
@@ -112,7 +113,9 @@ const constraintsLayout: TileryInitialLayout<TabData> = {
     },
   ],
 };
+// end-source-region panel-constraints-layout
 
+// source-region container-resize-layout
 const containerResizeLayout: TileryInitialLayout<TabData> = {
   type: 'group',
   direction: 'horizontal',
@@ -155,7 +158,9 @@ const containerResizeLayout: TileryInitialLayout<TabData> = {
     },
   ],
 };
+// end-source-region container-resize-layout
 
+// source-region default-reset-layout
 const defaultResetLayout: TileryInitialLayout<TabData> = {
   type: 'group',
   direction: 'horizontal',
@@ -201,6 +206,7 @@ const defaultResetLayout: TileryInitialLayout<TabData> = {
     },
   ],
 };
+// end-source-region default-reset-layout
 
 const widths = [
   { label: 'Narrow', value: 480 },
@@ -218,26 +224,27 @@ export function Example() {
   );
 }
 
-// source-region panel-constraints
 export function PanelConstraintsExample() {
   return (
     <ExampleSection
       title="Panel constraints"
       description="Drag the dividers to see per-panel minSize and maxSize limits clamp resizing.">
+      {/* source-region panel-constraints-tilery */}
       <Tilery<TabData>
         initialLayout={constraintsLayout}
         minSize={10}
         renderTabHeader={renderHeader}
         renderTabContent={renderContent}
       />
+      {/* end-source-region panel-constraints-tilery */}
     </ExampleSection>
   );
 }
-// end-source-region panel-constraints
 
-// source-region container-resize
 export function ContainerResizeExample() {
+  // source-region container-resize-state
   const [width, setWidth] = useState(widths[2]!.value);
+  // end-source-region container-resize-state
 
   return (
     <ExampleSection
@@ -256,34 +263,35 @@ export function ContainerResizeExample() {
         </ExampleButton>
       ))}>
       <div style={{ ...resizerFrameStyle, width }}>
+        {/* source-region container-resize-tilery */}
         <Tilery<TabData>
           initialLayout={containerResizeLayout}
           minSize={10}
           renderTabHeader={renderHeader}
           renderTabContent={renderContent}
         />
+        {/* end-source-region container-resize-tilery */}
       </div>
     </ExampleSection>
   );
 }
-// end-source-region container-resize
 
-// source-region default-reset
 export function DefaultResetExample() {
   return (
     <ExampleSection
       title="Default reset"
       description="Drag the divider, then double-click it. Tilery restores the defaultSize ratio and still applies minSize/maxSize limits.">
+      {/* source-region default-reset-tilery */}
       <Tilery<TabData>
         initialLayout={defaultResetLayout}
         minSize={10}
         renderTabHeader={renderHeader}
         renderTabContent={renderContent}
       />
+      {/* end-source-region default-reset-tilery */}
     </ExampleSection>
   );
 }
-// end-source-region default-reset
 
 function renderHeader(tab: TileryTab<TabData>) {
   return (

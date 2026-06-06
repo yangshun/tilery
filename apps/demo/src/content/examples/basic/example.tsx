@@ -6,6 +6,7 @@ import { ExampleSection, TabContent } from '../example-ui';
 
 type TabData = { title: string };
 
+// source-region basic-layout
 const layout: TileryInitialLayout<TabData> = {
   type: 'group',
   direction: 'horizontal',
@@ -24,12 +25,14 @@ const layout: TileryInitialLayout<TabData> = {
     },
   ],
 };
+// end-source-region basic-layout
 
 export function Example() {
   return (
     <ExampleSection
       title="Basic horizontal split"
       description="Two equal panels share the workspace and resize from the divider between them.">
+      {/* source-region basic-tilery */}
       <Tilery<TabData>
         initialLayout={layout}
         renderTabHeader={(tab: TileryTab<TabData>) => (
@@ -43,6 +46,7 @@ export function Example() {
           </TabContent>
         )}
       />
+      {/* end-source-region basic-tilery */}
     </ExampleSection>
   );
 }

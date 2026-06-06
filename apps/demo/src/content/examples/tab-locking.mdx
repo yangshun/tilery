@@ -14,13 +14,20 @@ Tab locking is for tabs that represent protected resources or app-owned surfaces
 
 `locked: true` maps to non-closable and non-draggable; `tab.setBehavior()` applies the same behavior after the workspace is already running.
 
-<Demo source="tab-locking/example.tsx" region="initial-locks" surface="plain">
+<Demo
+  source="tab-locking/example.tsx"
+  regions={['initial-locks-layout', 'initial-locks-tilery']}
+  surface="plain">
   <InitialTabLocksExample />
 </Demo>
 
 <Demo
   source="tab-locking/example.tsx"
-  region="runtime-behavior"
+  regions={[
+    'runtime-behavior-layout',
+    'runtime-behavior-methods',
+    'runtime-behavior-tilery',
+  ]}
   surface="plain">
   <RuntimeTabBehaviorExample />
 </Demo>

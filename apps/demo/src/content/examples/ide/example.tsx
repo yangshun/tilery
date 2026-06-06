@@ -56,6 +56,7 @@ const layout: TileryInitialLayout<TabData> = {
     },
   ],
 };
+// end-source-region nested-terminal
 
 export function Example() {
   return (
@@ -66,7 +67,6 @@ export function Example() {
     />
   );
 }
-// end-source-region nested-terminal
 
 // source-region root-bottom-row
 const rootBottomRowLayout: TileryInitialLayout<TabData> = {
@@ -108,6 +108,7 @@ const rootBottomRowLayout: TileryInitialLayout<TabData> = {
     },
   ],
 };
+// end-source-region root-bottom-row
 
 export function RootBottomRowExample() {
   return (
@@ -118,7 +119,6 @@ export function RootBottomRowExample() {
     />
   );
 }
-// end-source-region root-bottom-row
 
 function IdeDemo({
   layout,
@@ -131,6 +131,7 @@ function IdeDemo({
 }) {
   return (
     <ExampleSection title={title} description={description}>
+      {/* source-region ide-tilery */}
       <Tilery<TabData>
         initialLayout={layout}
         renderTabHeader={(tab: TileryTab<TabData>) => (
@@ -159,6 +160,7 @@ function IdeDemo({
           </TabContent>
         )}
       />
+      {/* end-source-region ide-tilery */}
     </ExampleSection>
   );
 }

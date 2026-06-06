@@ -17,6 +17,7 @@ import {
 
 type TabData = { title: string; body: string };
 
+// source-region local-storage-layout
 const defaultLayout: TileryInitialLayout<TabData> = {
   type: 'group',
   direction: 'horizontal',
@@ -51,7 +52,9 @@ const defaultLayout: TileryInitialLayout<TabData> = {
     },
   ],
 };
+// end-source-region local-storage-layout
 
+// source-region snapshot-controls-layout
 const snapshotLayout: TileryInitialLayout<TabData> = {
   type: 'group',
   direction: 'horizontal',
@@ -87,8 +90,11 @@ const snapshotLayout: TileryInitialLayout<TabData> = {
     },
   ],
 };
+// end-source-region snapshot-controls-layout
 
+// source-region local-storage-key
 const STORAGE_KEY = 'tilery-example-persistence';
+// end-source-region local-storage-key
 
 export function Example() {
   return (
@@ -99,8 +105,8 @@ export function Example() {
   );
 }
 
-// source-region local-storage
 export function LocalStorageExample() {
+  // source-region local-storage-controller
   const tileryRef = useRef<TileryController | null>(null);
   const initialLayoutRef = useRef(getInitialLayout());
 
@@ -114,12 +120,14 @@ export function LocalStorageExample() {
     localStorage.removeItem(STORAGE_KEY);
     initialLayoutRef.current = defaultLayout;
   };
+  // end-source-region local-storage-controller
 
   return (
     <ExampleSection
       title="localStorage restore"
       description="Persist every layout change as a snapshot and use it as the next initialLayout."
       onReset={reset}>
+      {/* source-region local-storage-tilery */}
       <Tilery<TabData>
         ref={tileryRef as React.Ref<TileryController>}
         initialLayout={initialLayoutRef.current}
@@ -127,13 +135,13 @@ export function LocalStorageExample() {
         renderTabHeader={renderHeader}
         renderTabContent={renderContent}
       />
+      {/* end-source-region local-storage-tilery */}
     </ExampleSection>
   );
 }
-// end-source-region local-storage
 
-// source-region snapshot-controls
 export function SnapshotControlsExample() {
+  // source-region snapshot-controls-controller
   const tileryRef = useRef<TileryController | null>(null);
   const [snapshot, setSnapshot] =
     useState<TileryLayoutSnapshot<TabData> | null>(null);
@@ -145,6 +153,7 @@ export function SnapshotControlsExample() {
   const restoreSnapshot = () => {
     if (snapshot) tileryRef.current?.setLayout(snapshot);
   };
+  // end-source-region snapshot-controls-controller
 
   return (
     <ExampleSection
@@ -167,6 +176,7 @@ export function SnapshotControlsExample() {
           </ExampleButton>
         </>
       }>
+      {/* source-region snapshot-controls-tilery */}
       <Tilery<TabData>
         ref={tileryRef as React.Ref<TileryController>}
         initialLayout={snapshotLayout}
@@ -174,11 +184,12 @@ export function SnapshotControlsExample() {
         renderTabHeader={renderHeader}
         renderTabContent={renderContent}
       />
+      {/* end-source-region snapshot-controls-tilery */}
     </ExampleSection>
   );
 }
-// end-source-region snapshot-controls
 
+// source-region local-storage-restore
 function getInitialLayout(): TileryInitialLayout<TabData> {
   if (typeof window === 'undefined') return defaultLayout;
   const saved = localStorage.getItem(STORAGE_KEY);
@@ -190,6 +201,7 @@ function getInitialLayout(): TileryInitialLayout<TabData> {
     return defaultLayout;
   }
 }
+// end-source-region local-storage-restore
 
 function renderHeader(tab: TileryTab<TabData>) {
   return <span>{tab.data.title}</span>;

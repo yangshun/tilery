@@ -11,11 +11,17 @@ Panel actions are for commands that belong to the panel shell: menus, maximize a
 
 The tab bar stays built in, but `renderPanelActions` and `onNewTab` let you extend the controls without replacing the whole header.
 
-<Demo source="collapse/example.tsx" region="panel-menu" surface="plain">
+<Demo
+  source="collapse/example.tsx"
+  regions={['panel-menu-layout', 'panel-menu-tilery']}
+  surface="plain">
   <PanelMenuExample />
 </Demo>
 
-<Demo source="collapse/example.tsx" region="new-tab" surface="plain">
+<Demo
+  source="collapse/example.tsx"
+  regions={['new-tab-layout', 'new-tab-controller', 'new-tab-tilery']}
+  surface="plain">
   <NewTabExample />
 </Demo>
 

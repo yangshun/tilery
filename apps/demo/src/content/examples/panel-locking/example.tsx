@@ -10,6 +10,7 @@ type TabData = {
   body: string;
 };
 
+// source-region panel-locking-layout
 const layout: TileryInitialLayout<TabData> = {
   type: 'group',
   direction: 'horizontal',
@@ -102,12 +103,14 @@ const layout: TileryInitialLayout<TabData> = {
     },
   ],
 };
+// end-source-region panel-locking-layout
 
 export function Example() {
   return (
     <ExampleSection
       title="Panel behavior locks"
       description="Different panels opt out of resizing, dragging, or drop targets while the rest stays interactive.">
+      {/* source-region panel-locking-tilery */}
       <Tilery<TabData>
         initialLayout={layout}
         renderTabHeader={(tab: TileryTab<TabData>) => (
@@ -119,6 +122,7 @@ export function Example() {
           </TabContent>
         )}
       />
+      {/* end-source-region panel-locking-tilery */}
     </ExampleSection>
   );
 }

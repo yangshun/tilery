@@ -17,23 +17,55 @@ Floating panels let users pull part of the workspace out of the tiled layout whi
 
 This page also shows the difference between floating a whole panel, floating one tab, and opening a native popout window with copied document-head styles.
 
-<Demo source="floating/example.tsx" region="initial-floating" surface="plain">
+<Demo
+  source="floating/example.tsx"
+  regions={['initial-floating-layout', 'initial-floating-tilery']}
+  surface="plain">
   <InitialFloatingExample />
 </Demo>
 
-<Demo source="floating/example.tsx" region="runtime-floating" surface="plain">
+<Demo
+  source="floating/example.tsx"
+  regions={[
+    'runtime-floating-layout',
+    'runtime-floating-controller',
+    'runtime-floating-tilery',
+  ]}
+  surface="plain">
   <RuntimeFloatingExample />
 </Demo>
 
-<Demo source="floating/example.tsx" region="tab-floating" surface="plain">
+<Demo
+  source="floating/example.tsx"
+  regions={[
+    'tab-floating-layout',
+    'tab-floating-controller',
+    'tab-floating-tilery',
+  ]}
+  surface="plain">
   <TabFloatingExample />
 </Demo>
 
-<Demo source="floating/example.tsx" region="native-popout" surface="plain">
+<Demo
+  source="floating/example.tsx"
+  regions={[
+    'runtime-floating-layout',
+    'native-popout-controller',
+    'native-popout-tilery',
+  ]}
+  surface="plain">
   <NativePopoutExample />
 </Demo>
 
-<Demo source="floating/example.tsx" region="popout-styling" surface="plain">
+<Demo
+  source="floating/example.tsx"
+  regions={[
+    'popout-styling-layout',
+    'popout-styling-theme',
+    'popout-styling-controller',
+    'popout-styling-tilery',
+  ]}
+  surface="plain">
   <PopoutStylingExample />
 </Demo>
 

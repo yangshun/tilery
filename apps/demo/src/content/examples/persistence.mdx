@@ -14,13 +14,26 @@ Persistence is built around snapshots: save the current layout, store it in your
 
 The snapshot controls show the same flow manually, which is useful when you want explicit save, reset, or restore actions instead of automatic persistence.
 
-<Demo source="persistence/example.tsx" region="local-storage" surface="plain">
+<Demo
+  source="persistence/example.tsx"
+  regions={[
+    'local-storage-layout',
+    'local-storage-key',
+    'local-storage-controller',
+    'local-storage-tilery',
+    'local-storage-restore',
+  ]}
+  surface="plain">
   <LocalStorageExample />
 </Demo>
 
 <Demo
   source="persistence/example.tsx"
-  region="snapshot-controls"
+  regions={[
+    'snapshot-controls-layout',
+    'snapshot-controls-controller',
+    'snapshot-controls-tilery',
+  ]}
   surface="plain">
   <SnapshotControlsExample />
 </Demo>

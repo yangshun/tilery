@@ -11,7 +11,14 @@ Use overflow behavior when a panel can collect more tabs than fit onscreen. Scro
 
 Tabs keep natural widths while the row handles scrolling and menu access, so large workspaces do not need compressed tab labels.
 
-<Demo source="overflow/example.tsx" region="tab-overflow" surface="plain">
+<Demo
+  source="overflow/example.tsx"
+  regions={[
+    'tab-overflow-layout',
+    'tab-overflow-controller',
+    'tab-overflow-tilery',
+  ]}
+  surface="plain">
   <TabOverflowExample />
 </Demo>
 
