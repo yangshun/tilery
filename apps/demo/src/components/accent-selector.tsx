@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { Menu } from '@base-ui-components/react/menu';
 import { RiPaletteLine } from 'react-icons/ri';
 
 const ACCENTS = [
@@ -24,33 +25,11 @@ function isAccentId(value: string | undefined | null): value is AccentId {
 
 export function AccentSelector() {
   const [accent, setAccent] = useState<AccentId>('lime');
-  const [isOpen, setIsOpen] = useState(false);
-  const menuId = useId();
-  const pickerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const current = document.documentElement.dataset.accent;
     if (isAccentId(current)) setAccent(current);
   }, []);
-
-  useEffect(() => {
-    if (!isOpen) return;
-
-    function closeOnOutsidePointer(event: PointerEvent) {
-      if (!pickerRef.current?.contains(event.target as Node)) setIsOpen(false);
-    }
-
-    function closeOnEscape(event: KeyboardEvent) {
-      if (event.key === 'Escape') setIsOpen(false);
-    }
-
-    document.addEventListener('pointerdown', closeOnOutsidePointer);
-    document.addEventListener('keydown', closeOnEscape);
-    return () => {
-      document.removeEventListener('pointerdown', closeOnOutsidePointer);
-      document.removeEventListener('keydown', closeOnEscape);
-    };
-  }, [isOpen]);
 
   function chooseAccent(next: AccentId) {
     document.documentElement.dataset.accent = next;
@@ -65,20 +44,11 @@ export function AccentSelector() {
   const current = ACCENTS.find((option) => option.id === accent) ?? ACCENTS[0];
 
   return (
-    <div
-      ref={pickerRef}
-      className="accent-picker"
-      role="group"
-      aria-label="Accent color">
-      <button
-        type="button"
+    <Menu.Root modal={false}>
+      <Menu.Trigger
         className="site-icon-button accent-picker__trigger"
         aria-label={`Accent color: ${current.label.toLowerCase()}`}
-        aria-haspopup="menu"
-        aria-expanded={isOpen}
-        aria-controls={menuId}
-        title={`Accent color: ${current.label.toLowerCase()}`}
-        onClick={() => setIsOpen((open) => !open)}>
+        title={`Accent color: ${current.label.toLowerCase()}`}>
         <RiPaletteLine
           className="accent-picker__trigger-icon"
           aria-hidden="true"
@@ -87,23 +57,24 @@ export function AccentSelector() {
           className={`accent-picker__trigger-dot accent-picker__swatch--${current.id}`}
           aria-hidden="true"
         />
-      </button>
-      {isOpen ? (
-        <div id={menuId} className="accent-picker__menu" role="menu">
-          {ACCENTS.map((option) => (
-            <button
-              key={option.id}
-              type="button"
-              className={`accent-picker__swatch accent-picker__swatch--${option.id}`}
-              aria-label={`Use ${option.label.toLowerCase()} accent color`}
-              aria-checked={accent === option.id}
-              role="menuitemradio"
-              title={option.label}
-              onClick={() => chooseAccent(option.id)}
-            />
-          ))}
-        </div>
-      ) : null}
-    </div>
+      </Menu.Trigger>
+      <Menu.Portal>
+        <Menu.Positioner sideOffset={8}>
+          <Menu.Popup>
+            <Menu.RadioGroup className="accent-picker__menu" value={accent} onValueChange={chooseAccent}>
+              {ACCENTS.map((option) => (
+                <Menu.RadioItem
+                  key={option.id}
+                  value={option.id}
+                  className={`accent-picker__swatch accent-picker__swatch--${option.id}`}
+                  aria-label={`Use ${option.label.toLowerCase()} accent color`}
+                  title={option.label}
+                />
+              ))}
+            </Menu.RadioGroup>
+          </Menu.Popup>
+        </Menu.Positioner>
+      </Menu.Portal>
+    </Menu.Root>
   );
 }

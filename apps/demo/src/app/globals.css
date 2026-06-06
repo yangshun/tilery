@@ -677,18 +677,11 @@ td code {
   --site-icon-button-size: 28px;
 }
 
-.accent-picker {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-start;
-}
-
 .accent-picker__trigger {
   position: relative;
 }
 
-.accent-picker__trigger[aria-expanded='true'] {
+.accent-picker__trigger[data-popup-open] {
   background: var(--site-icon-button-hover-bg);
   color: var(--site-icon-button-hover-fg);
 }
@@ -710,9 +703,6 @@ td code {
 }
 
 .accent-picker__menu {
-  position: absolute;
-  left: 0;
-  bottom: calc(100% + 8px);
   z-index: 40;
   display: grid;
   grid-template-columns: repeat(4, 24px);
@@ -743,7 +733,7 @@ td code {
   transform: translateY(-1px);
 }
 
-.accent-picker__swatch[aria-checked='true'] {
+.accent-picker__swatch[data-checked] {
   border-color: var(--site-fg);
   box-shadow:
     0 0 0 2px var(--site-bg),
@@ -787,7 +777,7 @@ td code {
   border-color: rgba(15, 23, 42, 0.32);
 }
 
-[data-theme='light'] .accent-picker__swatch[aria-checked='true'] {
+[data-theme='light'] .accent-picker__swatch[data-checked] {
   border-color: #111827;
   box-shadow:
     0 0 0 2px #fff,
