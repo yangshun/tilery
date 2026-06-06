@@ -84,25 +84,25 @@ export function Sidebar({
           </div>
         ))}
       </nav>
-      <div className="sidebar__footer">
+      <div className="sidebar__appearance">
+        <div className="sidebar__appearance-actions">
+          <a
+            href="https://github.com/yangshun/tilery"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="site-icon-button sidebar__icon-button sidebar__github"
+            aria-label="GitHub repository">
+            <RiGithubFill aria-hidden="true" />
+          </a>
+          <ThemeToggle />
+          <AccentSelector />
+        </div>
         <Link
           href={utilityItem.href}
           className="site-button site-button--secondary sidebar__utility-link"
           data-active={pathname === utilityItem.href}>
           {utilityItem.label}
         </Link>
-      </div>
-      <div className="sidebar__appearance">
-        <a
-          href="https://github.com/yangshun/tilery"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="site-icon-button sidebar__icon-button sidebar__github"
-          aria-label="GitHub repository">
-          <RiGithubFill aria-hidden="true" />
-        </a>
-        <ThemeToggle />
-        <AccentSelector />
       </div>
     </aside>
   );

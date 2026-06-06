@@ -5,6 +5,7 @@
 // usable live demo.
 
 import Link from 'next/link';
+import { HeroPrinciplesVisual } from './scene-principles';
 
 export function HeroScene() {
   return (
@@ -28,6 +29,7 @@ export function HeroScene() {
           </Link>
         </div>
       </div>
+      <HeroPrinciplesVisual />
     </section>
   );
 }

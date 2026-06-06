@@ -1,16 +1,14 @@
 'use client';
 
-// Resolves which element actually scrolls the homepage and exposes it to every
-// scene. This is the crux of the cinematic-scroll wiring: above 720px the page
-// scrolls inside `.site-main` (globals.css:339), but at <=720px the layout flips
-// to `overflow: visible` (globals.css:896) and the WINDOW scrolls instead. A
-// scroll hook bound to the wrong scroller silently reads 0 forever.
+// Resolves which element actually scrolls the homepage and exposes it to scenes
+// that need viewport-aware playback. Above 720px the page scrolls inside
+// `.site-main` (globals.css:339), but at <=720px the layout flips to
+// `overflow: visible` (globals.css:896) and the WINDOW scrolls instead.
 //
 // Strategy: render a `display:contents` sentinel, walk up to `.site-main`, and
-// decide per-breakpoint whether `.site-main` is the scroller. Scenes only mount
-// their scroll-scrubbed variant when `isDesktopScroller` is true, so we never
-// hand a null container to `useScroll`. `ready` gates the first paint to the
-// static state, which keeps SSR/hydration in sync and is the graceful fallback.
+// decide per-breakpoint whether `.site-main` is the scroller. Capability cards
+// use this as their in-view root, and every animated scene shares the reduced
+// motion preference from here.
 
 import {
   createContext,
