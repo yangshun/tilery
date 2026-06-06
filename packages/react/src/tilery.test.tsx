@@ -3736,6 +3736,74 @@ describe('Tilery — drag flow covers the drop overlay path', () => {
     t.cleanup();
   });
 
+  it('does not initiate a panel drag from an edge panel empty tab bar', () => {
+    const t = mount({
+      type: 'root',
+      main: {
+        type: 'panel',
+        id: 'main',
+        tabs: [{ id: 'm1', data: { title: 'M1' } }],
+      },
+      edges: {
+        left: {
+          type: 'edgePanel',
+          id: 'explorer',
+          size: 22,
+          tabs: [
+            { id: 'files', data: { title: 'Files' } },
+            { id: 'search', data: { title: 'Search' } },
+          ],
+        },
+      },
+    });
+    const explorerBar = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="explorer"] .tilery__tab-bar',
+    )!;
+    explorerBar.setPointerCapture = () => {};
+    explorerBar.releasePointerCapture = () => {};
+    const down = pointerEvent({ clientX: 20, clientY: 10, pointerId: 20 });
+    Object.assign(down as unknown as Record<string, unknown>, {
+      currentTarget: explorerBar,
+      target: explorerBar,
+    });
+
+    act(() => {
+      reactProps(explorerBar).onPointerDown(down);
+      reactProps(explorerBar).onPointerMove(
+        pointerEvent({ clientX: 400, clientY: 200, pointerId: 20 }),
+      );
+    });
+
+    expect(t.host.querySelector('.tilery__drag-ghost')).toBeNull();
+    t.cleanup();
+  });
+
+  it('still allows panel-dragging from tiled panel tab bars', () => {
+    const t = mount(lShapeLayout());
+    const editorBar = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="editor"] .tilery__tab-bar',
+    )!;
+    editorBar.setPointerCapture = () => {};
+    editorBar.releasePointerCapture = () => {};
+    const down = pointerEvent({ clientX: 250, clientY: 10, pointerId: 21 });
+    Object.assign(down as unknown as Record<string, unknown>, {
+      currentTarget: editorBar,
+      target: editorBar,
+    });
+
+    act(() => {
+      reactProps(editorBar).onPointerDown(down);
+      reactProps(editorBar).onPointerMove(
+        pointerEvent({ clientX: 260, clientY: 80, pointerId: 21 }),
+      );
+    });
+
+    const ghost = t.host.querySelector<HTMLElement>('.tilery__drag-ghost')!;
+    expect(ghost).not.toBeNull();
+    expect(ghost.getAttribute('data-drag-kind')).toBe('panel');
+    t.cleanup();
+  });
+
   it('lets a floating panel tab start a root split', () => {
     const t = mount(floatingLayout());
     const tab = t.host.querySelector<HTMLElement>(

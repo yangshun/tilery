@@ -192,6 +192,7 @@ export function TabBar({
   const overflowMenu = useTileryMenu();
   const behavior = tileryPanelBehaviorFromState(tilery.getState(), panelId);
   const canDragPanel =
+    panel.kind !== 'edge' &&
     behavior.draggable &&
     panel.tabs.length > 0 &&
     panel.tabs.every((tab) => tab.draggable);
@@ -209,12 +210,14 @@ export function TabBar({
         onFloatingTabBarPointerDown?.(e, panelId);
         return;
       }
+      if (panel.kind === 'edge') return;
       onTabBarPointerDown(e, panelId);
     },
     [
       onFloatingTabBarPointerDown,
       onTabBarPointerDown,
       panel.floating,
+      panel.kind,
       panel.poppedOut,
       panelId,
     ],
