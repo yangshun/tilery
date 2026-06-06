@@ -377,6 +377,7 @@ export function useTileryDragController(
         startY: pending.startY,
         x: e.clientX,
         y: e.clientY,
+        dragKind: panelDragRef.current ? 'panel' : 'tab',
         ...hover,
       });
       pendingRef.current = null;

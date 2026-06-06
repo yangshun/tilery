@@ -33,6 +33,7 @@ export type TileryDragState = {
   startY: number;
   x: number;
   y: number;
+  dragKind?: 'tab' | 'panel';
   hoverPanelId: TileryPanelId | null;
   hoverZone: TileryPanelZone | null;
   hoverRootZone?: TileryDirection | null;

@@ -109,6 +109,7 @@ function mount(
   containerEl: HTMLElement,
   panelEls: Map<string, HTMLElement>,
   ghostLabel?: React.ReactNode,
+  ghostKind?: 'tab' | 'panel',
 ) {
   const host = document.createElement('div');
   document.body.appendChild(host);
@@ -121,6 +122,7 @@ function mount(
       containerRef: ref,
       panelEls,
       ghostLabel,
+      ghostKind,
     });
   }
   act(() => {
@@ -174,18 +176,33 @@ describe('DropOverlay — drag ghost', () => {
     const ghost = t.host.querySelector<HTMLElement>('.tilery__drag-ghost')!;
     expect(ghost).not.toBeNull();
     expect(ghost.textContent).toBe('foo.ts');
+    expect(ghost.getAttribute('data-drag-kind')).toBe('tab');
     expect(ghost.style.left).toBe('212px'); // 200 - 0 (container left) + 12
     expect(ghost.style.top).toBe('312px');
     t.cleanup();
   });
 
-  it('falls back to "Tab" when no ghostLabel is provided', () => {
+  it('falls back to a label for the active drag kind', () => {
     const { container } = buildContainer({ panelId: 'P', tabIds: [] });
-    const t = mount(dragWith({}), container, new Map());
-    expect(t.host.querySelector('.tilery__drag-ghost')!.textContent).toBe(
+    const tabDrag = mount(dragWith({}), container, new Map());
+    expect(tabDrag.host.querySelector('.tilery__drag-ghost')!.textContent).toBe(
       'Tab',
     );
-    t.cleanup();
+    tabDrag.cleanup();
+
+    const panelDrag = mount(
+      dragWith({}),
+      container,
+      new Map(),
+      undefined,
+      'panel',
+    );
+    const ghost = panelDrag.host.querySelector<HTMLElement>(
+      '.tilery__drag-ghost',
+    )!;
+    expect(ghost.textContent).toBe('Panel');
+    expect(ghost.getAttribute('data-drag-kind')).toBe('panel');
+    panelDrag.cleanup();
   });
 });
 

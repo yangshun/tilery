@@ -19,6 +19,8 @@ export type DropOverlayProps = {
   /** Map from panel ID to its root DOM element, used to locate panel
    *  drop zones. */
   panelEls: Map<string, HTMLElement>;
+  /** Whether the floating preview represents one tab or a whole panel. */
+  ghostKind?: 'tab' | 'panel';
   /** Content rendered inside the floating drag ghost element. */
   ghostLabel?: React.ReactNode;
 };
@@ -33,6 +35,7 @@ export function DropOverlay({
   drag,
   containerRef,
   panelEls,
+  ghostKind = 'tab',
   ghostLabel,
 }: DropOverlayProps) {
   const container = containerRef.current;
@@ -57,12 +60,13 @@ export function DropOverlay({
       {overlay}
       <div
         className="tilery__drag-ghost"
+        data-drag-kind={ghostKind}
         aria-hidden="true"
         style={{
           left: drag.x - cRect.left + 12,
           top: drag.y - cRect.top + 12,
         }}>
-        {ghostLabel ?? 'Tab'}
+        {ghostLabel ?? (ghostKind === 'panel' ? 'Panel' : 'Tab')}
       </div>
     </>
   );

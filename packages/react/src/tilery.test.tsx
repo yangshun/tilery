@@ -3248,6 +3248,7 @@ describe('Tilery — drag flow covers the drop overlay path', () => {
     const ghost = t.host.querySelector('.tilery__drag-ghost');
     expect(ghost).not.toBeNull();
     expect(ghost?.textContent).toBe('foo.ts');
+    expect(ghost?.getAttribute('data-drag-kind')).toBe('tab');
     // pointerup releases; drop overlay disappears.
     act(() => {
       reactProps(fooTab).onPointerUp(
@@ -3481,14 +3482,14 @@ describe('Tilery — drag flow covers the drop overlay path', () => {
         pointerEvent({ clientX: 260, clientY: 80, pointerId: 12 }),
       );
     });
-    expect(t.host.querySelector('.tilery__drag-ghost')?.textContent).toBe(
-      'foo.ts+1',
-    );
+    const ghost = t.host.querySelector<HTMLElement>('.tilery__drag-ghost')!;
+    expect(ghost.textContent).toBe('foo.ts+1');
+    expect(ghost.getAttribute('data-drag-kind')).toBe('panel');
     act(() => {
       t.controller().getTab('foo')!.remove();
     });
     expect(t.host.querySelector('.tilery__drag-ghost')?.textContent).toBe(
-      'Tab',
+      'Panel',
     );
     t.cleanup();
   });

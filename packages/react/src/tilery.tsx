@@ -1069,28 +1069,30 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
         {drag.dragState &&
           (() => {
             const draggedTab = getCachedTab(drag.dragState.tabId);
-            const siblingCount = drag.panelDragRef.current
+            const isPanelDrag = drag.dragState.dragKind === 'panel';
+            const siblingCount = isPanelDrag
               ? draggedTab
                 ? draggedTab.panel.tabs.length - 1
                 : 0
               : 0;
             const ghostLabel = draggedTab ? (
               <>
-                {renderHeaderAdapter(draggedTab, { isActive: false })}
+                <span className="tilery__drag-ghost-header">
+                  {renderHeaderAdapter(draggedTab, { isActive: false })}
+                </span>
                 {siblingCount > 0 && (
                   <span className="tilery__drag-ghost-count">
                     +{siblingCount}
                   </span>
                 )}
               </>
-            ) : (
-              'Tab'
-            );
+            ) : undefined;
             return (
               <DropOverlay
                 drag={drag.dragState}
                 containerRef={rootContainerRef}
                 panelEls={panelEls.current}
+                ghostKind={isPanelDrag ? 'panel' : 'tab'}
                 ghostLabel={ghostLabel}
               />
             );
