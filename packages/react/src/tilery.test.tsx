@@ -2163,6 +2163,66 @@ describe('Tilery — divider drag dispatch', () => {
     t.cleanup();
   });
 
+  it('highlights both connected divider lines while dragging a T-junction', () => {
+    const t = mount(lShapeLayout());
+    const junction = t.host.querySelector<HTMLElement>('.tilery__junction')!;
+    expect(
+      t.host.querySelectorAll('.tilery__junction-resize-line'),
+    ).toHaveLength(0);
+
+    act(() => {
+      reactProps(junction).onPointerDown(pointerEvent());
+    });
+
+    const lines = Array.from(
+      t.host.querySelectorAll<HTMLElement>('.tilery__junction-resize-line'),
+    );
+    expect(lines).toHaveLength(2);
+    const verticalLine = lines.find(
+      (line) => line.getAttribute('data-orientation') === 'vertical',
+    )!;
+    const horizontalLine = lines.find(
+      (line) => line.getAttribute('data-orientation') === 'horizontal',
+    )!;
+    expect(verticalLine.style.left).toBe('40%');
+    expect(verticalLine.style.top).toBe('0%');
+    expect(verticalLine.style.height).toBe('100%');
+    expect(horizontalLine.style.top).toBe('50%');
+    expect(horizontalLine.style.left).toBe('40%');
+    expect(horizontalLine.style.width).toBe('60%');
+
+    act(() => {
+      reactProps(junction).onPointerMove(
+        pointerEvent({ clientX: 300, clientY: 560 }),
+      );
+    });
+
+    const movedLines = Array.from(
+      t.host.querySelectorAll<HTMLElement>('.tilery__junction-resize-line'),
+    );
+    expect(movedLines).toHaveLength(2);
+    const movedVerticalLine = movedLines.find(
+      (line) => line.getAttribute('data-orientation') === 'vertical',
+    )!;
+    const movedHorizontalLine = movedLines.find(
+      (line) => line.getAttribute('data-orientation') === 'horizontal',
+    )!;
+    expect(movedVerticalLine.style.left).toBe('30%');
+    expect(movedVerticalLine.style.top).toBe('0%');
+    expect(movedVerticalLine.style.height).toBe('100%');
+    expect(movedHorizontalLine.style.top).toBe('70%');
+    expect(movedHorizontalLine.style.left).toBe('30%');
+    expect(movedHorizontalLine.style.width).toBe('70%');
+
+    act(() => {
+      reactProps(junction).onPointerUp(pointerEvent());
+    });
+    expect(
+      t.host.querySelectorAll('.tilery__junction-resize-line'),
+    ).toHaveLength(0);
+    t.cleanup();
+  });
+
   it('reports junction resize lifecycle events across both dimensions', () => {
     const resizeEvents: TileryResizeEvent[] = [];
     const resizeEndEvents: TileryResizeEvent[] = [];

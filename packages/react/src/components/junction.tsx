@@ -36,6 +36,8 @@ export type JunctionProps = {
     input: 'pointer',
     sizeContext?: TilerySizeResolutionContext,
   ) => boolean | void;
+  /** Called when this junction's pointer resize starts or ends. */
+  onActiveChange?: (junction: JunctionType, active: boolean) => void;
   /** Called after a drag interaction ends. */
   onDragEnd?: () => void;
   /** Ref to the layout container used to compute percentage positions. */
@@ -55,6 +57,7 @@ export const TileryJunction = memo(function TileryJunction({
   disabled = false,
   hitSize = DEFAULT_HIT_SIZE_PX,
   onDrag,
+  onActiveChange,
   onDragEnd = noop,
   containerRef,
 }: JunctionProps) {
@@ -80,12 +83,23 @@ export const TileryJunction = memo(function TileryJunction({
   const handlers = useTileryPointerDrag({ onMove });
   const isActive = handlers.isDragging && !disabled;
 
+  const onPointerDown = useCallback(
+    (e: React.PointerEvent) => {
+      handlers.onPointerDown(e);
+      if (e.button === 0 && e.isPrimary !== false) {
+        onActiveChange?.(junction, true);
+      }
+    },
+    [handlers, junction, onActiveChange],
+  );
+
   const onPointerUp = useCallback(
     (e: React.PointerEvent) => {
       handlers.onPointerUp(e);
+      onActiveChange?.(junction, false);
       onDragEnd();
     },
-    [handlers, onDragEnd],
+    [handlers, junction, onActiveChange, onDragEnd],
   );
 
   return (
@@ -101,7 +115,7 @@ export const TileryJunction = memo(function TileryJunction({
         height: `${resolvedHitSize}px`,
         cursor: disabled ? 'default' : 'move',
       }}
-      onPointerDown={disabled ? undefined : handlers.onPointerDown}
+      onPointerDown={disabled ? undefined : onPointerDown}
       onPointerMove={disabled ? undefined : handlers.onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}

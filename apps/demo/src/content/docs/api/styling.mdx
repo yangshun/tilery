@@ -59,6 +59,7 @@ Use these selectors when variables are not enough, such as pill-shaped tabs or a
 | `.tilery__panel-menu-item`        | Panel action menu item                        |
 | `.tilery__divider`                | One-dimensional resize divider                |
 | `.tilery__junction`               | T-junction resize control                     |
+| `.tilery__junction-resize-line`   | Active T-junction divider line highlight      |
 | `.tilery__edge-resize-handle`     | Pinned edge panel resize control              |
 | `.tilery__floating-resize-handle` | Floating panel resize control                 |
 | `.tilery__drop-overlay`           | Panel drop preview                            |
@@ -89,7 +90,7 @@ Hover and keyboard focus are normal browser interaction states, so style them wi
 | `data-resizable`            | `.tilery__panel`                                                   | Whether the panel participates in resize interactions          |
 | `data-drag-kind`            | `.tilery__drag-ghost`                                              | Whether the drag preview represents a tab or panel             |
 | `data-zone`                 | `.tilery__drop-overlay`                                            | Current panel drop preview zone                                |
-| `data-orientation`          | `.tilery__divider`                                                 | Divider orientation: horizontal or vertical                    |
+| `data-orientation`          | `.tilery__divider, .tilery__junction-resize-line`                  | Divider or highlight orientation: horizontal or vertical       |
 | `data-resize-active`        | `.tilery__divider, .tilery__junction, .tilery__edge-resize-handle` | Set while the resize control is being dragged                  |
 | `data-resize-disabled`      | `.tilery__divider, .tilery__junction, .tilery__edge-resize-handle` | Set when the resize control cannot resize its adjacent panels  |
 | `data-resize-at-min`        | `.tilery__divider, .tilery__junction`                              | Set when a resize boundary is clamped at a minimum size        |

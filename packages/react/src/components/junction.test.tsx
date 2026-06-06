@@ -23,6 +23,7 @@ function mountWithRef({
   hitSize,
   populateRef,
   onDrag,
+  onActiveChange,
 }: {
   disabled?: boolean;
   hitSize?: number;
@@ -33,6 +34,7 @@ function mountWithRef({
     y: number,
     input: 'pointer',
   ) => boolean | void;
+  onActiveChange?: (junction: JunctionType, active: boolean) => void;
 }) {
   const host = document.createElement('div');
   document.body.appendChild(host);
@@ -67,6 +69,7 @@ function mountWithRef({
         disabled,
         hitSize,
         onDrag,
+        onActiveChange,
         containerRef: ref,
       }),
     );
@@ -114,10 +117,14 @@ function pointerEvent(
 describe('TileryJunction', () => {
   it('uses both pointer axes when dragging a junction', () => {
     const recorded: Array<{ id: string; x: number; y: number }> = [];
+    const activeChanges: Array<{ id: string; active: boolean }> = [];
     const t = mountWithRef({
       populateRef: true,
       onDrag: (id, x, y) => {
         recorded.push({ id, x, y });
+      },
+      onActiveChange: (junction, active) => {
+        activeChanges.push({ id: junction.id, active });
       },
     });
     act(() => {
@@ -134,6 +141,10 @@ describe('TileryJunction', () => {
       t.handlers.onPointerUp(pointerEvent());
     });
     expect(t.el.hasAttribute('data-resize-active')).toBe(false);
+    expect(activeChanges).toEqual([
+      { id: 'j|v|h', active: true },
+      { id: 'j|v|h', active: false },
+    ]);
     t.cleanup();
   });
 

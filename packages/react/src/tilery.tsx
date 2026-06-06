@@ -60,6 +60,7 @@ import {
   type TileryInitialLayout,
   type TileryDivider as TileryDividerState,
   type TileryDividerOrientation,
+  type TileryJunction as TileryJunctionState,
   type TileryLayoutState,
   type TileryController,
   type TileryPanel,
@@ -218,6 +219,14 @@ type TileryResizeAction = Extract<
   }
 >;
 
+type ActiveJunctionResize = {
+  id: string;
+  verticalDividerId: string;
+  horizontalDividerId: string;
+  verticalDivider: TileryDividerState;
+  horizontalDivider: TileryDividerState;
+};
+
 /** Props for the {@link Tilery} component. */
 export type TileryProps<TData = unknown> = {
   /** Initial panel and tab configuration that seeds the workspace. */
@@ -361,6 +370,8 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
   const lifecycleStateRef = useRef(state);
   lifecycleStateRef.current = state;
   const lastResizeEventRef = useRef<TileryResizeEvent | null>(null);
+  const [activeJunctionResize, setActiveJunctionResize] =
+    useState<ActiveJunctionResize | null>(null);
   const lifecycleCallbacksRef = useRef<
     Pick<
       TileryProps<TData>,
@@ -481,6 +492,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
   );
 
   const commitResize = useCallback(() => {
+    setActiveJunctionResize(null);
     const event = lastResizeEventRef.current;
     if (!event) return;
     lastResizeEventRef.current = null;
@@ -678,6 +690,58 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
 
   const dividers = useMemo(() => tileryDeriveDividers(state), [state]);
   const junctions = useMemo(() => tileryDeriveJunctions(state), [state]);
+  const onJunctionActiveChange = useCallback(
+    (junction: TileryJunctionState, active: boolean) => {
+      if (!active) {
+        setActiveJunctionResize((current) =>
+          current?.id === junction.id ? null : current,
+        );
+        return;
+      }
+      const verticalDivider = dividers.find(
+        (divider) => divider.id === junction.verticalDividerId,
+      );
+      const horizontalDivider = dividers.find(
+        (divider) => divider.id === junction.horizontalDividerId,
+      );
+      if (!verticalDivider || !horizontalDivider) return;
+      setActiveJunctionResize({
+        id: junction.id,
+        verticalDividerId: junction.verticalDividerId,
+        horizontalDividerId: junction.horizontalDividerId,
+        verticalDivider,
+        horizontalDivider,
+      });
+    },
+    [dividers],
+  );
+  const activeJunctionLines = useMemo(() => {
+    if (!activeJunctionResize) return null;
+    const verticalDivider =
+      dividers.find(
+        (divider) => divider.id === activeJunctionResize.verticalDividerId,
+      ) ?? activeJunctionResize.verticalDivider;
+    const horizontalDivider =
+      dividers.find(
+        (divider) => divider.id === activeJunctionResize.horizontalDividerId,
+      ) ?? activeJunctionResize.horizontalDivider;
+    return (
+      <>
+        <div
+          className="tilery__junction-resize-line"
+          data-orientation="vertical"
+          aria-hidden="true"
+          style={junctionResizeLineStyle(verticalDivider)}
+        />
+        <div
+          className="tilery__junction-resize-line"
+          data-orientation="horizontal"
+          aria-hidden="true"
+          style={junctionResizeLineStyle(horizontalDivider)}
+        />
+      </>
+    );
+  }, [activeJunctionResize, dividers]);
   const dividerAccessibility = useMemo(
     () => makeDividerAccessibilityMap(state, dividers, minSize, sizeContext),
     [dividers, minSize, sizeContext, state],
@@ -1022,6 +1086,8 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
               />
             ))}
 
+          {!fullScreenPanelId && activeJunctionLines}
+
           {!fullScreenPanelId &&
             junctions.map((junction) => (
               <TileryJunction
@@ -1030,6 +1096,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
                 disabled={!resizable || junction.disabled}
                 hitSize={resizeHandleHitSize}
                 onDrag={onJunctionDrag}
+                onActiveChange={onJunctionActiveChange}
                 onDragEnd={commitResize}
                 containerRef={mainContainerRef}
               />
@@ -1110,6 +1177,24 @@ function resolvePanelVisibility(
   panel: TileryPanel,
 ): boolean {
   return typeof value === 'function' ? value(panel) : value;
+}
+
+/** Positions active T-junction line highlights on their connected dividers. */
+function junctionResizeLineStyle(
+  divider: TileryDividerState,
+): React.CSSProperties {
+  if (divider.orientation === 'vertical') {
+    return {
+      left: `${divider.position}%`,
+      top: `${divider.start}%`,
+      height: `${divider.end - divider.start}%`,
+    };
+  }
+  return {
+    top: `${divider.position}%`,
+    left: `${divider.start}%`,
+    width: `${divider.end - divider.start}%`,
+  };
 }
 
 /** Insets the main layer so edge panels occupy the container's margins. */
