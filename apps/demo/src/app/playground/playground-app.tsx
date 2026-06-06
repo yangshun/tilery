@@ -167,39 +167,55 @@ export function PlaygroundApp() {
     [themeId],
   );
 
-  // Resize the browser frame symmetrically about the stage centre, so it stays
-  // centred while the bottom-right corner tracks the cursor exactly.
-  const startResize = useCallback((event: ReactPointerEvent<HTMLElement>) => {
-    event.preventDefault();
-    const stage = stageRef.current;
-    if (!stage) return;
-    const handle = event.currentTarget;
-    const { pointerId } = event;
-    try {
-      handle.setPointerCapture(pointerId);
-    } catch {
-      /* pointer no longer active — fine, the listeners still work */
-    }
-    const onMove = (e: PointerEvent) => {
-      const rect = stage.getBoundingClientRect();
-      const cx = rect.left + rect.width / 2;
-      const cy = rect.top + rect.height / 2;
-      const width = Math.max(360, Math.min(rect.width, 2 * (e.clientX - cx)));
-      const height = Math.max(280, Math.min(rect.height, 2 * (e.clientY - cy)));
-      setFrameSize({ width, height });
-    };
-    const onUp = () => {
+  // Resize the browser frame symmetrically about the stage centre.
+  const startResize = useCallback(
+    (
+      event: ReactPointerEvent<HTMLElement>,
+      direction: 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw',
+    ) => {
+      event.preventDefault();
+      const stage = stageRef.current;
+      if (!stage) return;
+      const browser = stage.querySelector<HTMLElement>('.playground-browser');
+      if (!browser) return;
+      const initialRect = browser.getBoundingClientRect();
+      const initialWidth = initialRect.width;
+      const initialHeight = initialRect.height;
+      const handle = event.currentTarget;
+      const { pointerId } = event;
       try {
-        handle.releasePointerCapture(pointerId);
+        handle.setPointerCapture(pointerId);
       } catch {
-        /* ignore */
+        /* pointer no longer active */
       }
-      handle.removeEventListener('pointermove', onMove);
-      handle.removeEventListener('pointerup', onUp);
-    };
-    handle.addEventListener('pointermove', onMove);
-    handle.addEventListener('pointerup', onUp);
-  }, []);
+      const onMove = (e: PointerEvent) => {
+        const rect = stage.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        const horiz = direction.includes('e') || direction.includes('w');
+        const vert = direction.includes('n') || direction.includes('s');
+        const width = horiz
+          ? Math.max(360, Math.min(rect.width, 2 * Math.abs(e.clientX - cx)))
+          : initialWidth;
+        const height = vert
+          ? Math.max(280, Math.min(rect.height, 2 * Math.abs(e.clientY - cy)))
+          : initialHeight;
+        setFrameSize({ width: Math.round(width), height: Math.round(height) });
+      };
+      const onUp = () => {
+        try {
+          handle.releasePointerCapture(pointerId);
+        } catch {
+          /* ignore */
+        }
+        handle.removeEventListener('pointermove', onMove);
+        handle.removeEventListener('pointerup', onUp);
+      };
+      handle.addEventListener('pointermove', onMove);
+      handle.addEventListener('pointerup', onUp);
+    },
+    [],
+  );
 
   return (
     <>
@@ -218,6 +234,7 @@ export function PlaygroundApp() {
         onThemeChange={setThemeId}
         events={events}
         onClearEvents={() => setEvents([])}
+        onResetFrame={() => setFrameSize(null)}
       />
       <div className="playground-stage" ref={stageRef}>
         <div className="playground-browser" style={frameSize ?? undefined}>
@@ -273,8 +290,43 @@ export function PlaygroundApp() {
             ) : null}
           </div>
           <span
-            className="playground-browser__resize"
-            onPointerDown={startResize}
+            className="playground-browser__resize playground-browser__resize--n"
+            onPointerDown={(e) => startResize(e, 'n')}
+            aria-hidden="true"
+          />
+          <span
+            className="playground-browser__resize playground-browser__resize--s"
+            onPointerDown={(e) => startResize(e, 's')}
+            aria-hidden="true"
+          />
+          <span
+            className="playground-browser__resize playground-browser__resize--e"
+            onPointerDown={(e) => startResize(e, 'e')}
+            aria-hidden="true"
+          />
+          <span
+            className="playground-browser__resize playground-browser__resize--w"
+            onPointerDown={(e) => startResize(e, 'w')}
+            aria-hidden="true"
+          />
+          <span
+            className="playground-browser__resize playground-browser__resize--ne"
+            onPointerDown={(e) => startResize(e, 'ne')}
+            aria-hidden="true"
+          />
+          <span
+            className="playground-browser__resize playground-browser__resize--nw"
+            onPointerDown={(e) => startResize(e, 'nw')}
+            aria-hidden="true"
+          />
+          <span
+            className="playground-browser__resize playground-browser__resize--se"
+            onPointerDown={(e) => startResize(e, 'se')}
+            aria-hidden="true"
+          />
+          <span
+            className="playground-browser__resize playground-browser__resize--sw"
+            onPointerDown={(e) => startResize(e, 'sw')}
             aria-hidden="true"
           />
         </div>

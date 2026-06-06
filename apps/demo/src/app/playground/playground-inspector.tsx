@@ -73,6 +73,7 @@ type Props = {
   onThemeChange: (id: string) => void;
   events: PgEvent[];
   onClearEvents: () => void;
+  onResetFrame: () => void;
 };
 
 export function PlaygroundInspector({
@@ -90,6 +91,7 @@ export function PlaygroundInspector({
   onThemeChange,
   events,
   onClearEvents,
+  onResetFrame,
 }: Props) {
   const [splitDir, setSplitDir] = useState<TileryDirection>('right');
   const [copied, setCopied] = useState(false);
@@ -144,7 +146,10 @@ export function PlaygroundInspector({
     if (!selectedPanelId) return;
     tilery()?.getPanel(selectedPanelId)?.remove();
   };
-  const reset = () => tilery()?.setLayout(PG_DEFAULT_LAYOUT);
+  const reset = () => {
+    tilery()?.setLayout(PG_DEFAULT_LAYOUT);
+    onResetFrame();
+  };
   const loadPreset = (id: string) => {
     const preset = PG_PRESETS.find((p) => p.id === id);
     if (preset) tilery()?.setLayout(preset.layout);

@@ -32,12 +32,14 @@ export function Demo({
   region,
   regions,
   surface = 'boxed',
+  height,
   children,
 }: {
   source: string;
   region?: string;
   regions?: readonly string[];
   surface?: DemoSurfaceMode;
+  height?: number;
   children: ReactNode;
 }) {
   const filePath = resolve(process.cwd(), 'src/content/examples', source);
@@ -46,7 +48,7 @@ export function Demo({
 
   return (
     <section className="example-preview__case">
-      <DemoSurface surface={surface}>
+      <DemoSurface surface={surface} height={height}>
         <DemoMount>{children}</DemoMount>
       </DemoSurface>
       <div className="example-preview__source">

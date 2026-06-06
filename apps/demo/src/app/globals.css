@@ -1089,7 +1089,8 @@ td code {
 }
 
 .example-preview__demo-surface,
-.home-demo__shell {
+.home-demo__shell,
+.example-preview__demo-surface-wrap {
   --example-demo-bg: #0e0f12;
   --example-demo-fg: #d9dde3;
   --example-demo-fg-strong: #f3f4f7;
@@ -1137,15 +1138,52 @@ td code {
   font-size: 16px;
 }
 
-.example-preview__demo-surface {
-  height: 500px;
-  overflow: hidden;
+.example-preview__demo-surface-wrap {
+  position: relative;
   margin-bottom: 24px;
+}
+
+.example-preview__demo-surface {
+  position: relative;
+  height: 500px;
+  min-height: 240px;
+  min-width: 360px;
+  overflow: hidden;
 }
 
 .example-preview__demo-surface .tilery,
 .home-demo__shell .tilery {
   font-size: 16px;
+}
+
+.example-preview__demo-surface__resize {
+  position: absolute;
+  z-index: 6;
+  touch-action: none;
+}
+
+.example-preview__demo-surface__resize--bottom {
+  bottom: -4px;
+  left: 0;
+  right: 0;
+  height: 8px;
+  cursor: ns-resize;
+}
+
+.example-preview__demo-surface__resize--right {
+  right: -4px;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  cursor: ew-resize;
+}
+
+.example-preview__demo-surface__resize--corner {
+  right: calc(100% - var(--demo-frame-width, 100%) - 7px);
+  bottom: -7px;
+  width: 24px;
+  height: 24px;
+  cursor: nwse-resize;
 }
 
 .example-section {
@@ -1159,14 +1197,14 @@ td code {
 .example-section__header {
   min-width: 0;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: flex-end;
   justify-content: space-between;
   gap: 12px 18px;
 }
 
 .example-section__title-group {
-  min-width: min(100%, 260px);
+  min-width: 0;
   flex: 1 1 320px;
   display: grid;
   gap: 5px;
@@ -1231,6 +1269,7 @@ td code {
   --site-button-active-border: var(--example-demo-border);
   --site-button-active-fg: var(--example-demo-fg-strong);
 
+  width: min(var(--demo-frame-width, 100%), 100%);
   height: 100%;
   min-height: 0;
   overflow: hidden;
@@ -2917,33 +2956,76 @@ td code {
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.42);
 }
 
-/* Custom corner grip: resizes the frame symmetrically about the stage centre
-   (JS), so the frame stays centred while the corner tracks the cursor. */
 .playground-browser__resize {
   position: absolute;
-  right: 0;
-  bottom: 0;
   z-index: 6;
-  width: 20px;
-  height: 20px;
-  cursor: nwse-resize;
   touch-action: none;
 }
 
-.playground-browser__resize::after {
-  content: '';
-  position: absolute;
-  right: 4px;
-  bottom: 4px;
-  width: 9px;
-  height: 9px;
-  border-right: 2px solid color-mix(in srgb, var(--site-fg), transparent 55%);
-  border-bottom: 2px solid color-mix(in srgb, var(--site-fg), transparent 55%);
-  transition: border-color 0.15s ease;
+/* Edge handles */
+.playground-browser__resize--n {
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  cursor: ns-resize;
 }
 
-.playground-browser__resize:hover::after {
-  border-color: color-mix(in srgb, var(--site-fg), transparent 25%);
+.playground-browser__resize--s {
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  cursor: ns-resize;
+}
+
+.playground-browser__resize--e {
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  cursor: ew-resize;
+}
+
+.playground-browser__resize--w {
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  cursor: ew-resize;
+}
+
+/* Corner handles */
+.playground-browser__resize--nw {
+  left: 0;
+  top: 0;
+  width: 14px;
+  height: 14px;
+  cursor: nwse-resize;
+}
+
+.playground-browser__resize--ne {
+  right: 0;
+  top: 0;
+  width: 14px;
+  height: 14px;
+  cursor: nesw-resize;
+}
+
+.playground-browser__resize--sw {
+  left: 0;
+  bottom: 0;
+  width: 14px;
+  height: 14px;
+  cursor: nesw-resize;
+}
+
+.playground-browser__resize--se {
+  right: 0;
+  bottom: 0;
+  width: 14px;
+  height: 14px;
+  cursor: nwse-resize;
 }
 
 .playground-browser__bar {

@@ -16,6 +16,7 @@ import type {
   PropsWithChildren,
   ReactNode,
 } from 'react';
+import { useDemoSurfaceResize } from '../../components/demo-surface';
 
 type ExampleStackProps = PropsWithChildren<{
   rows?: string;
@@ -59,7 +60,9 @@ export function ExampleSection({
   const hasUserInteractedRef = useRef(false);
   const [hasChangedLayout, setHasChangedLayout] = useState(false);
   const hasHeader = title || description || actions || resettable;
-  const showReset = resettable && (isDirty || hasChangedLayout);
+  const { resized: frameResized, reset: resetFrameSize } =
+    useDemoSurfaceResize();
+  const showReset = resettable && (isDirty || hasChangedLayout || frameResized);
 
   const trackLayoutChange = useCallback((state: unknown) => {
     const serialized = serializeLayoutState(state);
@@ -78,6 +81,7 @@ export function ExampleSection({
 
   function resetWorkspace() {
     onReset?.();
+    resetFrameSize();
     initialLayoutStateRef.current = null;
     hasUserInteractedRef.current = false;
     setHasChangedLayout(false);
