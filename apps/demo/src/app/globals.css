@@ -1087,7 +1087,7 @@ td code {
 
 .example-preview__case {
   min-width: 0;
-  margin-top: 32px;
+  margin-top: 72px;
 }
 
 .example-preview__case + .example-preview__case {
