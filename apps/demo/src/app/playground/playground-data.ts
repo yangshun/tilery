@@ -265,7 +265,7 @@ const pageAccentVars = {
   '--tilery-drop-border':
     'color-mix(in srgb, var(--site-workspace-accent), transparent 42%)',
   '--tilery-resize-handle-active-bg':
-    'color-mix(in srgb, var(--site-workspace-accent), transparent 82%)',
+    'color-mix(in srgb, var(--site-workspace-accent), transparent 40%)',
 } satisfies Record<`--${string}`, string>;
 
 export const PG_THEMES: PgTheme[] = [

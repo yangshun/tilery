@@ -9,32 +9,33 @@ Use this table when building a theme. Tilery reads visual tokens from CSS custom
 
 For native popout windows, prefer variables that match `.tilery` or `.tilery__popout` directly. Wrapper-scoped variables are not available in the popup unless the copied stylesheet can still match the popup root.
 
-| Variable                           | Default                  | Description                                          |
-| ---------------------------------- | ------------------------ | ---------------------------------------------------- |
-| `--tilery-bg`                      | `#0e0f12`                | Root background                                      |
-| `--tilery-fg`                      | `#d9dde3`                | Root text color                                      |
-| `--tilery-font`                    | `inherit`                | Font family                                          |
-| `--tilery-panel-bg`                | `#1a1c20`                | Panel background                                     |
-| `--tilery-panel-border`            | `#2a2d33`                | Panel and tab-bar borders                            |
-| `--tilery-panel-gap`               | `4px`                    | Gap between panels                                   |
-| `--tilery-outer-gap`               | `(panel-gap)`            | Gap around the outer edge                            |
-| `--tilery-tabbar-bg`               | `#16181c`                | Tab bar background                                   |
-| `--tilery-tabbar-height`           | `32px`                   | Tab bar height                                       |
-| `--tilery-tab-font-size`           | `12px`                   | Tab label font size                                  |
-| `--tilery-tab-fg`                  | `#9aa1ab`                | Inactive tab text color                              |
-| `--tilery-tab-active-bg`           | `(panel-bg)`             | Active tab background                                |
-| `--tilery-tab-active-fg`           | `#f3f4f7`                | Active tab text color                                |
-| `--tilery-tab-active-line-height`  | `1px`                    | Active tab top indicator height                      |
-| `--tilery-tab-active-line-color`   | `(accent)`               | Active tab top indicator color                       |
-| `--tilery-tab-hover-bg`            | `transparent`            | Inactive tab hover background                        |
-| `--tilery-menu-bg`                 | `#1f2228`                | Panel action menu background                         |
-| `--tilery-menu-shadow`             | `0 8px 24px rgba(...)`   | Panel action menu shadow                             |
-| `--tilery-action-hover-bg`         | `rgba(255,255,255,0.08)` | Action, close button, and menu item hover background |
-| `--tilery-accent`                  | `#3884ff`                | Accent (active indicator, focus)                     |
-| `--tilery-drop-bg`                 | `rgba(56,132,255,0.18)`  | Drop overlay background                              |
-| `--tilery-drop-border`             | `rgba(56,132,255,0.6)`   | Drop overlay border and insertion marker             |
-| `--tilery-drop-insertion-width`    | `1px`                    | Tab-row drop insertion marker width                  |
-| `--tilery-resize-handle-active-bg` | `transparent`            | Active resize handle background                      |
+| Variable                                  | Default                  | Description                                          |
+| ----------------------------------------- | ------------------------ | ---------------------------------------------------- |
+| `--tilery-bg`                             | `#0e0f12`                | Root background                                      |
+| `--tilery-fg`                             | `#d9dde3`                | Root text color                                      |
+| `--tilery-font`                           | `inherit`                | Font family                                          |
+| `--tilery-panel-bg`                       | `#1a1c20`                | Panel background                                     |
+| `--tilery-panel-border`                   | `#2a2d33`                | Panel and tab-bar borders                            |
+| `--tilery-panel-gap`                      | `4px`                    | Gap between panels                                   |
+| `--tilery-outer-gap`                      | `(panel-gap)`            | Gap around the outer edge                            |
+| `--tilery-tabbar-bg`                      | `#16181c`                | Tab bar background                                   |
+| `--tilery-tabbar-height`                  | `32px`                   | Tab bar height                                       |
+| `--tilery-tab-font-size`                  | `12px`                   | Tab label font size                                  |
+| `--tilery-tab-fg`                         | `#9aa1ab`                | Inactive tab text color                              |
+| `--tilery-tab-active-bg`                  | `(panel-bg)`             | Active tab background                                |
+| `--tilery-tab-active-fg`                  | `#f3f4f7`                | Active tab text color                                |
+| `--tilery-tab-active-line-height`         | `1px`                    | Active tab top indicator height                      |
+| `--tilery-tab-active-line-color`          | `(accent)`               | Active tab top indicator color                       |
+| `--tilery-tab-hover-bg`                   | `transparent`            | Inactive tab hover background                        |
+| `--tilery-menu-bg`                        | `#1f2228`                | Panel action menu background                         |
+| `--tilery-menu-shadow`                    | `0 8px 24px rgba(...)`   | Panel action menu shadow                             |
+| `--tilery-action-hover-bg`                | `rgba(255,255,255,0.08)` | Action, close button, and menu item hover background |
+| `--tilery-accent`                         | `#3884ff`                | Accent (active indicator, focus)                     |
+| `--tilery-drop-bg`                        | `rgba(56,132,255,0.18)`  | Drop overlay background                              |
+| `--tilery-drop-border`                    | `rgba(56,132,255,0.6)`   | Drop overlay border and insertion marker             |
+| `--tilery-drop-insertion-width`           | `1px`                    | Tab-row drop insertion marker width                  |
+| `--tilery-resize-handle-active-bg`        | `(accent)`               | Active resize divider line color                     |
+| `--tilery-resize-handle-active-line-size` | `2px`                    | Active resize divider line thickness                 |
 
 ## Stable Selectors
 
@@ -101,9 +102,12 @@ Hover and keyboard focus are normal browser interaction states, so style them wi
 Resize dividers and T-junction controls expose active, disabled, and min/max clamp states.
 
 ```css
-.tilery__divider[data-resize-active],
-.tilery__junction[data-resize-active] {
-  background: color-mix(in srgb, var(--tilery-accent), transparent 70%);
+.tilery {
+  --tilery-resize-handle-active-bg: color-mix(
+    in srgb,
+    var(--tilery-accent),
+    transparent 38%
+  );
 }
 
 .tilery__divider[data-resize-disabled],
@@ -112,14 +116,16 @@ Resize dividers and T-junction controls expose active, disabled, and min/max cla
   opacity: 0.45;
 }
 
-.tilery__divider[data-resize-at-min],
-.tilery__divider[data-resize-at-max] {
-  background: color-mix(in srgb, var(--tilery-accent), transparent 84%);
+.tilery__divider[data-resize-at-min]::before,
+.tilery__divider[data-resize-at-max]::before {
+  background: color-mix(in srgb, var(--tilery-accent), transparent 58%);
+  opacity: 1;
 }
 
-.tilery__divider:hover,
-.tilery__junction:hover {
-  background: color-mix(in srgb, var(--tilery-accent), transparent 86%);
+.tilery__divider:hover::before,
+.tilery__junction:hover::before,
+.tilery__junction:hover::after {
+  opacity: 1;
 }
 
 .tilery__divider:focus-visible {

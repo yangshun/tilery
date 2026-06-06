@@ -1131,7 +1131,7 @@ td code {
   --tilery-resize-handle-active-bg: color-mix(
     in srgb,
     var(--site-workspace-accent),
-    transparent 80%
+    transparent 38%
   );
   --home-demo-accent: var(--site-workspace-accent);
   --home-demo-drop-bg: var(--tilery-drop-bg);

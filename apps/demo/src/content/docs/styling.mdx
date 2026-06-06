@@ -65,9 +65,12 @@ Use this for treatments like pill tabs, denser toolbar spacing, or app-specific 
 Use data attributes when Tilery exposes structural state, such as active tabs, disabled resize handles, floating panels, or drop zones. Use normal pseudo-classes for transient browser interaction states like hover and keyboard focus.
 
 ```css
-.tilery__divider[data-resize-active],
-.tilery__junction[data-resize-active] {
-  background: color-mix(in srgb, var(--tilery-accent), transparent 70%);
+.tilery {
+  --tilery-resize-handle-active-bg: color-mix(
+    in srgb,
+    var(--tilery-accent),
+    transparent 38%
+  );
 }
 
 .tilery__divider[data-resize-disabled],
