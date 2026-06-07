@@ -1,12 +1,8 @@
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
 import { examples, examplesBySlug } from '../../../content/examples';
-import { PageNavigation } from '../../../components/page-navigation';
-import { getAdjacentSiteNavigation } from '../../../content/navigation';
+import { ContentPage } from '../../../components/content-page';
 
-type ExampleRouteProps = {
-  params: Promise<{ slug: string }>;
-};
+type ExamplePageParams = { slug: string };
 
 export function generateStaticParams() {
   return examples.map((e) => ({ slug: e.slug }));
@@ -14,10 +10,12 @@ export function generateStaticParams() {
 
 export async function generateMetadata({
   params,
-}: ExampleRouteProps): Promise<Metadata> {
+}: {
+  params: Promise<ExamplePageParams>;
+}): Promise<Metadata> {
   const { slug } = await params;
   const page = examplesBySlug.get(slug);
-  if (!page) notFound();
+  if (!page) return {};
 
   return {
     title: page.title,
@@ -25,19 +23,18 @@ export async function generateMetadata({
   };
 }
 
-export default async function Page({ params }: ExampleRouteProps) {
-  const { slug } = await params;
-  const page = examplesBySlug.get(slug);
-  if (!page) notFound();
-  const navigation = getAdjacentSiteNavigation(`/examples/${slug}`);
-  const Content = page.Content;
-
+export default function ExamplePage({
+  params,
+}: {
+  params: Promise<ExamplePageParams>;
+}) {
   return (
-    <div className="example-preview">
-      <h1>{page.title}</h1>
-      <p className="example-preview__description">{page.description}</p>
-      <Content />
-      <PageNavigation previous={navigation.previous} next={navigation.next} />
-    </div>
+    <ContentPage
+      params={params}
+      dataMap={examplesBySlug}
+      resolveSlug={(p) => p.slug}
+      hrefPrefix="/examples"
+      wrapperClassName="example-preview"
+    />
   );
 }

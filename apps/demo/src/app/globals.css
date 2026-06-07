@@ -792,7 +792,7 @@ td code {
 }
 
 /* Doc Page */
-.doc-description {
+.doc-page__description {
   font-size: 15px;
   color: var(--site-muted);
   margin-bottom: 24px;
