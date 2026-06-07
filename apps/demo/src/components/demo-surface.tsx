@@ -11,6 +11,7 @@ import {
   type PointerEvent,
   type ReactNode,
 } from 'react';
+import { usePointerDrag } from '../hooks/use-pointer-drag';
 
 /** Whether a demo renders inside a bordered box or flush (full-bleed). */
 export type DemoSurfaceMode = 'boxed' | 'plain';
@@ -88,60 +89,49 @@ export function DemoSurface({
     return () => observer.disconnect();
   }, [size]);
 
+  const directionRef = useRef<'bottom' | 'right' | 'corner'>('bottom');
+
+  const { startDrag } = usePointerDrag({
+    onMove: (e) => {
+      const container = containerRef.current;
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
+      const parentWidth =
+        container.parentElement?.getBoundingClientRect().width ?? rect.width;
+      const next: Partial<Size> = {};
+      const direction = directionRef.current;
+      if (direction === 'right' || direction === 'corner') {
+        const clampedWidth = Math.max(
+          MIN_WIDTH,
+          Math.min(parentWidth, e.clientX - rect.left),
+        );
+        next.width = clampedWidth;
+        next.maxed = clampedWidth >= parentWidth - 1;
+      }
+      if (direction === 'bottom' || direction === 'corner') {
+        next.height = Math.max(MIN_HEIGHT, e.clientY - rect.top);
+      }
+      setSize((prev) => {
+        const base = prev ?? {
+          width: parentWidth,
+          height: container.getBoundingClientRect().height,
+          maxed: true,
+        };
+        return { ...base, ...next };
+      });
+    },
+  });
+
   const startResize = useCallback(
     (
       event: PointerEvent<HTMLElement>,
       direction: 'bottom' | 'right' | 'corner',
     ) => {
       event.preventDefault();
-      const handle = event.currentTarget;
-      const { pointerId } = event;
-      try {
-        handle.setPointerCapture(pointerId);
-      } catch {
-        /* ignore */
-      }
-
-      const onMove = (e: globalThis.PointerEvent) => {
-        const container = containerRef.current;
-        if (!container) return;
-        const rect = container.getBoundingClientRect();
-        const parentWidth =
-          container.parentElement?.getBoundingClientRect().width ?? rect.width;
-        const next: Partial<Size> = {};
-        if (direction === 'right' || direction === 'corner') {
-          const clampedWidth = Math.max(
-            MIN_WIDTH,
-            Math.min(parentWidth, e.clientX - rect.left),
-          );
-          next.width = clampedWidth;
-          next.maxed = clampedWidth >= parentWidth - 1;
-        }
-        if (direction === 'bottom' || direction === 'corner') {
-          next.height = Math.max(MIN_HEIGHT, e.clientY - rect.top);
-        }
-        setSize((prev) => {
-          const base = prev ?? {
-            width: parentWidth,
-            height: container.getBoundingClientRect().height,
-            maxed: true,
-          };
-          return { ...base, ...next };
-        });
-      };
-      const onUp = () => {
-        try {
-          handle.releasePointerCapture(pointerId);
-        } catch {
-          /* ignore */
-        }
-        handle.removeEventListener('pointermove', onMove);
-        handle.removeEventListener('pointerup', onUp);
-      };
-      handle.addEventListener('pointermove', onMove);
-      handle.addEventListener('pointerup', onUp);
+      directionRef.current = direction;
+      startDrag(event.currentTarget, event.pointerId);
     },
-    [],
+    [startDrag],
   );
 
   return (

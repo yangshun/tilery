@@ -17,6 +17,7 @@ import {
   type Ref,
 } from 'react';
 import { Tilery } from '@tilery/react';
+import { usePointerDrag } from '../../hooks/use-pointer-drag';
 import type {
   TileryActiveTabChangeEvent,
   TileryController,
@@ -168,6 +169,32 @@ export function PlaygroundApp() {
   );
 
   // Resize the browser frame symmetrically about the stage centre.
+  const resizeContextRef = useRef<{
+    direction: 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw';
+    initialWidth: number;
+    initialHeight: number;
+  } | null>(null);
+
+  const { startDrag } = usePointerDrag({
+    onMove: (e) => {
+      const stage = stageRef.current;
+      const ctx = resizeContextRef.current;
+      if (!stage || !ctx) return;
+      const rect = stage.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const horiz = ctx.direction.includes('e') || ctx.direction.includes('w');
+      const vert = ctx.direction.includes('n') || ctx.direction.includes('s');
+      const width = horiz
+        ? Math.max(360, Math.min(rect.width, 2 * Math.abs(e.clientX - cx)))
+        : ctx.initialWidth;
+      const height = vert
+        ? Math.max(280, Math.min(rect.height, 2 * Math.abs(e.clientY - cy)))
+        : ctx.initialHeight;
+      setFrameSize({ width: Math.round(width), height: Math.round(height) });
+    },
+  });
+
   const startResize = useCallback(
     (
       event: ReactPointerEvent<HTMLElement>,
@@ -179,42 +206,14 @@ export function PlaygroundApp() {
       const browser = stage.querySelector<HTMLElement>('.playground-browser');
       if (!browser) return;
       const initialRect = browser.getBoundingClientRect();
-      const initialWidth = initialRect.width;
-      const initialHeight = initialRect.height;
-      const handle = event.currentTarget;
-      const { pointerId } = event;
-      try {
-        handle.setPointerCapture(pointerId);
-      } catch {
-        /* pointer no longer active */
-      }
-      const onMove = (e: PointerEvent) => {
-        const rect = stage.getBoundingClientRect();
-        const cx = rect.left + rect.width / 2;
-        const cy = rect.top + rect.height / 2;
-        const horiz = direction.includes('e') || direction.includes('w');
-        const vert = direction.includes('n') || direction.includes('s');
-        const width = horiz
-          ? Math.max(360, Math.min(rect.width, 2 * Math.abs(e.clientX - cx)))
-          : initialWidth;
-        const height = vert
-          ? Math.max(280, Math.min(rect.height, 2 * Math.abs(e.clientY - cy)))
-          : initialHeight;
-        setFrameSize({ width: Math.round(width), height: Math.round(height) });
+      resizeContextRef.current = {
+        direction,
+        initialWidth: initialRect.width,
+        initialHeight: initialRect.height,
       };
-      const onUp = () => {
-        try {
-          handle.releasePointerCapture(pointerId);
-        } catch {
-          /* ignore */
-        }
-        handle.removeEventListener('pointermove', onMove);
-        handle.removeEventListener('pointerup', onUp);
-      };
-      handle.addEventListener('pointermove', onMove);
-      handle.addEventListener('pointerup', onUp);
+      startDrag(event.currentTarget, event.pointerId);
     },
-    [],
+    [startDrag],
   );
 
   return (
