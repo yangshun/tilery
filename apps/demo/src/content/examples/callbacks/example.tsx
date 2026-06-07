@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef } from 'react';
 import { Tilery } from '@tilery/react';
 import type {
   TileryActiveTabChangeEvent,
@@ -10,6 +10,7 @@ import type {
   TileryTab,
   TileryTabsMoveEvent,
 } from '@tilery/react';
+import { useEventLog } from '../../../hooks/use-event-log';
 import {
   EmptyState,
   ExampleButton,
@@ -119,17 +120,12 @@ export function Example() {
 export function StructuralCallbacksExample() {
   // source-region structural-controller
   const tileryRef = useRef<TileryController | null>(null);
-  const eventIdRef = useRef(0);
   const tabCounterRef = useRef(0);
   const splitCounterRef = useRef(0);
-  const [events, setEvents] = useState<LogEntry[]>([]);
-
-  const log = useCallback((type: string, details: string) => {
-    eventIdRef.current += 1;
-    setEvents((current) =>
-      [{ id: eventIdRef.current, type, details }, ...current].slice(0, 8),
-    );
-  }, []);
+  const [events, log, clearEvents] = useEventLog<{
+    type: string;
+    details: string;
+  }>(8);
 
   const addTab = () => {
     const panel = tileryRef.current?.getPanel('editor');
@@ -206,7 +202,7 @@ export function StructuralCallbacksExample() {
           <ExampleButton type="button" onClick={closeActive}>
             Close active
           </ExampleButton>
-          <ExampleButton type="button" onClick={() => setEvents([])}>
+          <ExampleButton type="button" onClick={clearEvents}>
             Clear
           </ExampleButton>
         </>
@@ -218,29 +214,40 @@ export function StructuralCallbacksExample() {
             ref={tileryRef as React.Ref<TileryController>}
             initialLayout={structuralLayout}
             onActiveTabChange={(event) =>
-              log('onActiveTabChange', activeSummary(event))
+              log({ type: 'onActiveTabChange', details: activeSummary(event) })
             }
-            onTabsMove={(event) => log('onTabsMove', moveSummary(event))}
+            onTabsMove={(event) =>
+              log({ type: 'onTabsMove', details: moveSummary(event) })
+            }
             onPanelsOpen={(event) =>
-              log('onPanelsOpen', panelSummary(event.panels.map((p) => p.id)))
+              log({
+                type: 'onPanelsOpen',
+                details: panelSummary(event.panels.map((p) => p.id)),
+              })
             }
             onPanelSplit={(event) =>
-              log(
-                'onPanelSplit',
-                `${event.splitPanelId} ${event.direction} -> ${event.createdPanelId}`,
-              )
+              log({
+                type: 'onPanelSplit',
+                details: `${event.splitPanelId} ${event.direction} -> ${event.createdPanelId}`,
+              })
             }
             onTabsOpen={(event) =>
-              log('onTabsOpen', tabSummary(event.tabs.map((tab) => tab.id)))
+              log({
+                type: 'onTabsOpen',
+                details: tabSummary(event.tabs.map((tab) => tab.id)),
+              })
             }
             onTabsClose={(event) =>
-              log('onTabsClose', tabSummary(event.tabs.map((tab) => tab.id)))
+              log({
+                type: 'onTabsClose',
+                details: tabSummary(event.tabs.map((tab) => tab.id)),
+              })
             }
             onPanelsClose={(event) =>
-              log(
-                'onPanelsClose',
-                panelSummary(event.panels.map((panel) => panel.id)),
-              )
+              log({
+                type: 'onPanelsClose',
+                details: panelSummary(event.panels.map((panel) => panel.id)),
+              })
             }
             renderTabHeader={renderHeader}
             renderTabContent={renderContent}
@@ -255,22 +262,17 @@ export function StructuralCallbacksExample() {
 
 export function ResizeCallbacksExample() {
   // source-region resize-controller
-  const eventIdRef = useRef(0);
-  const [events, setEvents] = useState<LogEntry[]>([]);
+  const [events, logResize, clearResizeEvents] = useEventLog<{
+    type: string;
+    details: string;
+  }>(6);
 
-  const logResize = useCallback((type: string, event: TileryResizeEvent) => {
-    eventIdRef.current += 1;
-    setEvents((current) =>
-      [
-        {
-          id: eventIdRef.current,
-          type,
-          details: resizeSummary(event),
-        },
-        ...current,
-      ].slice(0, 6),
-    );
-  }, []);
+  const logResizeEvent = useCallback(
+    (type: string, event: TileryResizeEvent) => {
+      logResize({ type, details: resizeSummary(event) });
+    },
+    [logResize],
+  );
   // end-source-region resize-controller
 
   return (
@@ -278,7 +280,7 @@ export function ResizeCallbacksExample() {
       title="Resize callbacks"
       description="Drag the divider to compare continuous onResize events with the committed onResizeEnd event."
       actions={
-        <ExampleButton type="button" onClick={() => setEvents([])}>
+        <ExampleButton type="button" onClick={clearResizeEvents}>
           Clear
         </ExampleButton>
       }>
@@ -287,8 +289,8 @@ export function ResizeCallbacksExample() {
           {/* source-region resize-tilery */}
           <Tilery<TabData>
             initialLayout={resizeLayout}
-            onResize={(event) => logResize('onResize', event)}
-            onResizeEnd={(event) => logResize('onResizeEnd', event)}
+            onResize={(event) => logResizeEvent('onResize', event)}
+            onResizeEnd={(event) => logResizeEvent('onResizeEnd', event)}
             renderTabHeader={renderHeader}
             renderTabContent={renderContent}
           />

@@ -18,6 +18,7 @@ import {
 } from 'react';
 import { Tilery } from '@tilery/react';
 import { usePointerDrag } from '../../hooks/use-pointer-drag';
+import { useEventLog } from '../../hooks/use-event-log';
 import type {
   TileryActiveTabChangeEvent,
   TileryController,
@@ -46,7 +47,6 @@ import {
 } from './playground-data';
 import {
   PlaygroundInspector,
-  type PgEvent,
   type PgGlobalProps,
 } from './playground-inspector';
 
@@ -54,7 +54,6 @@ export function PlaygroundApp() {
   const controllerRef = useRef<TileryController | null>(null);
   const idRef = useRef(0);
   const seqRef = useRef(0);
-  const eventIdRef = useRef(0);
 
   const [mounted, setMounted] = useState(false);
   const [browserUrl, setBrowserUrl] = useState('');
@@ -75,7 +74,10 @@ export function PlaygroundApp() {
     minSize: 10,
   });
   const [themeId, setThemeId] = useState('default');
-  const [events, setEvents] = useState<PgEvent[]>([]);
+  const [events, log, clearEvents] = useEventLog<{
+    type: string;
+    detail: string;
+  }>(30);
 
   const uid = useCallback((prefix: string) => {
     idRef.current += 1;
@@ -94,15 +96,6 @@ export function PlaygroundApp() {
   const refresh = useCallback(() => {
     const controller = controllerRef.current;
     if (controller) setSnapshot(controller.getLayout<PgTabData>());
-  }, []);
-
-  const log = useCallback((type: string, detail: string) => {
-    eventIdRef.current += 1;
-    // Capture the id here: when several callbacks fire for one action, the
-    // setEvents updaters are batched and would all read the final ref value,
-    // producing duplicate ids (and duplicate React keys).
-    const id = eventIdRef.current;
-    setEvents((current) => [{ id, type, detail }, ...current].slice(0, 30));
   }, []);
 
   useEffect(() => {
@@ -144,15 +137,15 @@ export function PlaygroundApp() {
         setSelectedPanelId(change.panelId);
         setSelectedTabId(change.tabId);
       }
-      log(
-        'activeTab',
-        event.changes
+      log({
+        type: 'activeTab',
+        detail: event.changes
           .map(
             (c) =>
               `${c.panelId}: ${c.previousTabId ?? '∅'} → ${c.tabId ?? '∅'}`,
           )
           .join(', '),
-      );
+      });
       refresh();
     },
     [log, refresh],
@@ -232,7 +225,7 @@ export function PlaygroundApp() {
         themeId={themeId}
         onThemeChange={setThemeId}
         events={events}
-        onClearEvents={() => setEvents([])}
+        onClearEvents={clearEvents}
         onResetFrame={() => setFrameSize(null)}
       />
       <div className="playground-stage" ref={stageRef}>
@@ -260,28 +253,42 @@ export function PlaygroundApp() {
                 onChange={refresh}
                 onActiveTabChange={onActiveTabChange}
                 onPanelSplit={(e) =>
-                  log(
-                    'panelSplit',
-                    `${e.splitPanelId} ${e.direction} → ${e.createdPanelId}`,
-                  )
+                  log({
+                    type: 'panelSplit',
+                    detail: `${e.splitPanelId} ${e.direction} → ${e.createdPanelId}`,
+                  })
                 }
                 onTabsMove={(e) =>
-                  log(
-                    'tabsMove',
-                    e.tabs.map((t) => `${t.id} → ${t.panelId}`).join(', '),
-                  )
+                  log({
+                    type: 'tabsMove',
+                    detail: e.tabs
+                      .map((t) => `${t.id} → ${t.panelId}`)
+                      .join(', '),
+                  })
                 }
                 onTabsOpen={(e) =>
-                  log('tabsOpen', e.tabs.map((t) => t.id).join(', '))
+                  log({
+                    type: 'tabsOpen',
+                    detail: e.tabs.map((t) => t.id).join(', '),
+                  })
                 }
                 onTabsClose={(e) =>
-                  log('tabsClose', e.tabs.map((t) => t.id).join(', '))
+                  log({
+                    type: 'tabsClose',
+                    detail: e.tabs.map((t) => t.id).join(', '),
+                  })
                 }
                 onPanelsOpen={(e) =>
-                  log('panelsOpen', e.panels.map((p) => p.id).join(', '))
+                  log({
+                    type: 'panelsOpen',
+                    detail: e.panels.map((p) => p.id).join(', '),
+                  })
                 }
                 onPanelsClose={(e) =>
-                  log('panelsClose', e.panels.map((p) => p.id).join(', '))
+                  log({
+                    type: 'panelsClose',
+                    detail: e.panels.map((p) => p.id).join(', '),
+                  })
                 }
                 renderTabHeader={renderTabHeader}
                 renderTabContent={renderTabContent}
