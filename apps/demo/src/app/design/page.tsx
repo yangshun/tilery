@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { CodeBlock } from '../../components/code-block';
+import { CodeBlock } from '../../components/ui/code-block';
 import { PageNavigation } from '../../components/page-navigation';
 import { DesignShowcase } from './design-showcase';
 

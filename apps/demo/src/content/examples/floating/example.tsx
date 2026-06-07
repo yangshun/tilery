@@ -7,12 +7,8 @@ import type {
   TileryInitialLayout,
   TileryTab,
 } from '@tilery/react';
-import {
-  ExampleButton,
-  ExampleSection,
-  ExampleStack,
-  TabContent,
-} from '../example-ui';
+import { ExampleSection, ExampleStack, TabContent } from '../example-ui';
+import { Button } from '../../../components/ui/button';
 
 type TabData = { title: string; body: string; meta?: string };
 
@@ -263,15 +259,15 @@ export function RuntimeFloatingExample() {
       description="Panels can be detached with runtime options, focused, moved, and inserted back into the tiled tree. This Explorer panel floats with resizing disabled."
       actions={
         <>
-          <ExampleButton type="button" onClick={floatExplorer}>
+          <Button type="button" size="compact" onClick={floatExplorer}>
             Float explorer
-          </ExampleButton>
-          <ExampleButton type="button" onClick={focusExplorer}>
+          </Button>
+          <Button type="button" size="compact" onClick={focusExplorer}>
             Focus explorer
-          </ExampleButton>
-          <ExampleButton type="button" onClick={dockExplorer}>
+          </Button>
+          <Button type="button" size="compact" onClick={dockExplorer}>
             Dock explorer
-          </ExampleButton>
+          </Button>
         </>
       }>
       {/* source-region runtime-floating-tilery */}
@@ -320,15 +316,15 @@ export function TabFloatingExample() {
       description="Extract one tab into its own floating panel without detaching the rest of the source panel."
       actions={
         <>
-          <ExampleButton type="button" onClick={floatNotes}>
+          <Button type="button" size="compact" onClick={floatNotes}>
             Float notes
-          </ExampleButton>
-          <ExampleButton type="button" onClick={popoutNotes}>
+          </Button>
+          <Button type="button" size="compact" onClick={popoutNotes}>
             Pop out notes
-          </ExampleButton>
-          <ExampleButton type="button" onClick={moveNotesBack}>
+          </Button>
+          <Button type="button" size="compact" onClick={moveNotesBack}>
             Move notes back
-          </ExampleButton>
+          </Button>
         </>
       }>
       {/* source-region tab-floating-tilery */}
@@ -374,15 +370,15 @@ export function NativePopoutExample() {
       description="Open a panel in a same-origin browser window while keeping its React subtree connected."
       actions={
         <>
-          <ExampleButton type="button" onClick={popoutWorkspace}>
+          <Button type="button" size="compact" onClick={popoutWorkspace}>
             Pop out workspace
-          </ExampleButton>
-          <ExampleButton type="button" onClick={returnWorkspace}>
+          </Button>
+          <Button type="button" size="compact" onClick={returnWorkspace}>
             Return floating
-          </ExampleButton>
-          <ExampleButton type="button" onClick={dockWorkspace}>
+          </Button>
+          <Button type="button" size="compact" onClick={dockWorkspace}>
             Dock workspace
-          </ExampleButton>
+          </Button>
         </>
       }>
       {/* source-region native-popout-tilery */}
@@ -434,12 +430,12 @@ export function PopoutStylingExample() {
       description="Popout windows copy style and stylesheet tags from the document head, but they do not copy wrapper elements, html/body classes, or inline CSS variables."
       actions={
         <>
-          <ExampleButton type="button" onClick={popoutWorkspace}>
+          <Button type="button" size="compact" onClick={popoutWorkspace}>
             Pop out workspace
-          </ExampleButton>
-          <ExampleButton type="button" onClick={returnWorkspace}>
+          </Button>
+          <Button type="button" size="compact" onClick={returnWorkspace}>
             Return floating
-          </ExampleButton>
+          </Button>
         </>
       }>
       <div style={popoutScopedThemeStyle}>

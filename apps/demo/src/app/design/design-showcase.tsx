@@ -16,21 +16,20 @@ import { AccentSelector } from '../../components/accent-selector';
 import { ThemeToggle } from '../../components/theme-toggle';
 import { ACCENT_IDS } from '../../content/accents';
 import {
-  ButtonGrid,
-  ControlRow,
-  NumberRow,
-  PgButton,
-  SelectRow,
-  Section,
-  Sections,
-  ToggleRow,
-} from '../playground/playground-controls';
-import {
-  EmptyState,
-  ExampleButton,
-  ExampleSection,
-  TabContent,
-} from '../../content/examples/example-ui';
+  Button,
+  ButtonGroup,
+  Field,
+  NumberInput,
+  Select,
+  SwitchInput,
+  AccordionItem,
+  AccordionRoot,
+  Input,
+  IconButton,
+  StatusChip,
+} from '../../components/ui';
+import { AppearanceFooter } from '../../components/appearance-footer';
+import { ExampleSection, TabContent, EmptyState } from '../../content/examples/example-ui';
 
 const tokenRows = [
   {
@@ -68,7 +67,7 @@ const tokenRows = [
 export function DesignShowcase() {
   const [toggleOn, setToggleOn] = useState(true);
   const [locked, setLocked] = useState(false);
-  const [theme, setTheme] = useState('Abyss');
+  const [theme, setTheme] = useState('abyss');
   const [size, setSize] = useState<number | ''>(24);
   const [title, setTitle] = useState('Editor');
   const [exampleDirty, setExampleDirty] = useState(false);
@@ -135,253 +134,256 @@ export function DesignShowcase() {
 
       <section
         className="design-section"
-        aria-labelledby="design-buttons-title">
+        aria-labelledby="design-button-title">
         <div className="design-section__header">
-          <h2 id="design-buttons-title">Buttons and icon actions</h2>
+          <h2 id="design-button-title">Button</h2>
           <p>
-            Shared button classes cover page actions, example controls,
-            playground commands, and toolbar icons.
+            Variants cover page actions, primary calls to action, secondary
+            buttons, and active, disabled, and danger states.
           </p>
         </div>
-        <div className="design-specimen-grid">
+        <div className="design-specimen-grid design-specimen-grid--two">
           <DesignSpecimen
-            title="Site buttons"
-            description="Base, emphasis, active, compact, disabled, and danger states.">
-            <div className="design-button-row">
-              <button type="button" className="site-button">
-                Default
-              </button>
-              <button
-                type="button"
-                className="site-button site-button--primary">
-                Primary
-              </button>
-              <button
-                type="button"
-                className="site-button site-button--secondary">
-                Secondary
-              </button>
-              <button type="button" className="site-button site-button--strong">
-                Strong
-              </button>
-              <button
-                type="button"
-                className="site-button site-button--compact">
-                Compact
-              </button>
-              <button type="button" className="site-button" data-active="true">
-                Active
-              </button>
-              <button type="button" className="site-button" disabled>
-                Disabled
-              </button>
-              <button type="button" className="site-button site-button--danger">
-                Danger
-              </button>
-            </div>
+            title="Variants"
+            description="Default, primary, secondary, strong, active, disabled, and danger.">
+            <ButtonGroup>
+              <Button>Default</Button>
+              <Button variant="primary">Primary</Button>
+              <Button variant="secondary">Secondary</Button>
+              <Button variant="strong">Strong</Button>
+              <Button active>Active</Button>
+              <Button disabled>Disabled</Button>
+              <Button tone="danger">Danger</Button>
+            </ButtonGroup>
           </DesignSpecimen>
 
           <DesignSpecimen
-            title="Icon controls"
-            description="Toolbar icons, global theme switching, and accent selection.">
-            <div className="design-icon-row">
-              <button
-                type="button"
-                className="site-icon-button"
-                aria-label="Search"
-                title="Search">
-                <RiSearchLine aria-hidden="true" />
-              </button>
-              <button
-                type="button"
-                className="site-icon-button"
-                aria-label="Settings"
-                title="Settings">
-                <RiSettings3Line aria-hidden="true" />
-              </button>
-              <button
-                type="button"
-                className="site-icon-button"
-                aria-label="More actions"
-                title="More actions">
-                <RiMore2Line aria-hidden="true" />
-              </button>
-              <button
-                type="button"
-                className="site-icon-button"
-                aria-label="Close"
-                title="Close">
-                <RiCloseLine aria-hidden="true" />
-              </button>
-              <ThemeToggle />
-              <AccentSelector />
-            </div>
-            <div className="design-accent-row" aria-label="Accent swatches">
-              {ACCENT_IDS.map((accent) => (
-                <span
-                  key={accent}
-                  className={`accent-picker__swatch accent-picker__swatch--${accent}`}
-                  aria-label={accent}
-                  role="img"
-                />
-              ))}
-            </div>
+            title="Sizes"
+            description="Default, compact, and hero heights for the same button.">
+            <ButtonGroup>
+              <Button size="hero">Hero</Button>
+              <Button>Default</Button>
+              <Button size="compact">Compact</Button>
+            </ButtonGroup>
           </DesignSpecimen>
         </div>
       </section>
 
       <section
         className="design-section"
-        aria-labelledby="design-examples-title">
+        aria-labelledby="design-icon-button-title">
         <div className="design-section__header">
-          <h2 id="design-examples-title">Example frames</h2>
+          <h2 id="design-icon-button-title">IconButton</h2>
           <p>
-            Example pages use a dark workspace surface with site-themed headers,
-            action buttons, and reset handling.
+            Square icon-only controls for toolbars, global theme switching, and
+            accent selection.
           </p>
         </div>
-        <div className="design-specimen design-specimen--wide">
-          <div className="example-preview__demo-surface design-example-surface">
-            <ExampleSection
-              title="Example section"
-              description="A reusable header, action row, frame, and reset control."
-              isDirty={exampleDirty}
-              onReset={() => setExampleDirty(false)}
-              actions={
-                <>
-                  <ExampleButton
-                    type="button"
-                    active={!exampleDirty}
-                    onClick={() => setExampleDirty(false)}>
-                    Stable
-                  </ExampleButton>
-                  <ExampleButton
-                    type="button"
-                    active={exampleDirty}
-                    onClick={() => setExampleDirty(true)}>
-                    Modified
-                  </ExampleButton>
-                </>
-              }>
-              <div className="design-example-content">
-                <div className="design-example-tabbar">
-                  <span data-active="true">Preview</span>
-                  <span>Source</span>
-                  <span>Events</span>
-                </div>
-                <TabContent meta={exampleDirty ? 'dirty' : 'ready'}>
-                  <p>
-                    Example content inherits the demo workspace palette while
-                    the header and controls stay aligned with the site chrome.
-                  </p>
-                  {exampleDirty ? (
-                    <p>Reset returns the specimen to its original state.</p>
-                  ) : (
-                    <EmptyState>
-                      Select Modified to reveal reset behavior.
-                    </EmptyState>
-                  )}
-                </TabContent>
-              </div>
-            </ExampleSection>
+        <DesignSpecimen
+          title="Icon controls"
+          description="Bare icons and live global controls.">
+          <ButtonGroup>
+            <IconButton aria-label="Search" title="Search">
+              <RiSearchLine aria-hidden="true" />
+            </IconButton>
+            <IconButton aria-label="Settings" title="Settings">
+              <RiSettings3Line aria-hidden="true" />
+            </IconButton>
+            <IconButton aria-label="More actions" title="More actions">
+              <RiMore2Line aria-hidden="true" />
+            </IconButton>
+            <IconButton aria-label="Close" title="Close">
+              <RiCloseLine aria-hidden="true" />
+            </IconButton>
+            <ThemeToggle />
+            <AccentSelector />
+          </ButtonGroup>
+          <div className="design-accent-row" aria-label="Accent swatches">
+            {ACCENT_IDS.map((accent) => (
+              <span
+                key={accent}
+                className={`accent-picker__swatch accent-picker__swatch--${accent}`}
+                aria-label={accent}
+                role="img"
+              />
+            ))}
           </div>
-        </div>
+        </DesignSpecimen>
       </section>
 
       <section
         className="design-section"
-        aria-labelledby="design-playground-title">
+        aria-labelledby="design-field-title">
         <div className="design-section__header">
-          <h2 id="design-playground-title">Inspector controls</h2>
+          <h2 id="design-field-title">Field</h2>
           <p>
-            The playground composes a denser control set from shared buttons,
-            rows, selects, toggles, numeric inputs, and text fields.
+            Label-on-left, control-on-right row, with an optional hint line.
+            Pair with Switch, Select, Input, or NumberInput.
           </p>
         </div>
-        <div className="design-specimen design-specimen--wide">
-          <div className="design-playground-panel">
-            <Sections defaultOpen={['workspace', 'panel']}>
-              <Section value="workspace" title="Workspace">
-                <SelectRow
-                  label="Theme"
-                  hint="Preview palette"
+        <DesignSpecimen
+          title="Field primitives"
+          description="Switch, select, text input, and number input in a Field.">
+          <div className="design-stack">
+            <Field
+              label="Resizable"
+              hint="All dividers"
+              control={
+                <SwitchInput checked={toggleOn} onChange={setToggleOn} />
+              }
+            />
+            <Field
+              label="Theme"
+              hint="Preview palette"
+              control={
+                <Select
                   value={theme}
                   onChange={setTheme}
                   options={[
-                    { value: 'Abyss', label: 'Abyss' },
-                    { value: 'Visual Studio', label: 'Visual Studio' },
-                    { value: 'Light', label: 'Light' },
+                    { value: 'abyss', label: 'Abyss' },
+                    { value: 'visual-studio', label: 'Visual Studio' },
+                    { value: 'light', label: 'Light' },
                   ]}
+                  ariaLabel="Theme"
                 />
-                <ToggleRow
-                  label="Resizable"
-                  hint="All dividers"
-                  checked={toggleOn}
-                  onChange={setToggleOn}
+              }
+            />
+            <Field
+              label="Panel title"
+              hint="Text input"
+              control={
+                <Input
+                  aria-label="Panel title"
+                  value={title}
+                  onChange={(event) => setTitle(event.target.value)}
                 />
-                <NumberRow
-                  label="Handle hit size"
-                  hint="Pointer target"
+              }
+            />
+            <Field
+              label="Handle hit size"
+              hint="Pointer target"
+              control={
+                <NumberInput
                   value={size}
                   onChange={(value) => setSize(value ?? '')}
+                  ariaLabel="Handle hit size"
                 />
-                <ButtonGrid>
-                  <PgButton>
+              }
+            />
+          </div>
+        </DesignSpecimen>
+      </section>
+
+      <section
+        className="design-section"
+        aria-labelledby="design-accordion-title">
+        <div className="design-section__header">
+          <h2 id="design-accordion-title">Accordion</h2>
+          <p>
+            Collapsible sections keep dense controls scannable. Each panel
+            keeps its content mounted.
+          </p>
+        </div>
+        <DesignSpecimen
+          title="Composed inspector"
+          description="Accordion with Fields, Selects, and a ButtonGroup inside.">
+          <div className="design-playground-panel">
+            <AccordionRoot defaultOpen={['workspace', 'panel']}>
+              <AccordionItem value="workspace" title="Workspace">
+                <Field
+                  label="Theme"
+                  hint="Preview palette"
+                  control={
+                    <Select
+                      value={theme}
+                      onChange={setTheme}
+                      options={[
+                        { value: 'abyss', label: 'Abyss' },
+                        { value: 'visual-studio', label: 'Visual Studio' },
+                        { value: 'light', label: 'Light' },
+                      ]}
+                      ariaLabel="Theme"
+                    />
+                  }
+                />
+                <Field
+                  label="Resizable"
+                  hint="All dividers"
+                  control={
+                    <SwitchInput checked={toggleOn} onChange={setToggleOn} />
+                  }
+                />
+                <Field
+                  label="Handle hit size"
+                  hint="Pointer target"
+                  control={
+                    <NumberInput
+                      value={size}
+                      onChange={(value) => setSize(value ?? '')}
+                      ariaLabel="Handle hit size"
+                    />
+                  }
+                />
+                <ButtonGroup>
+                  <Button variant="strong" size="compact">
                     <RiSave3Line aria-hidden="true" />
                     Save
-                  </PgButton>
-                  <PgButton>
+                  </Button>
+                  <Button size="compact">
                     <RiDownloadLine aria-hidden="true" />
                     Export
-                  </PgButton>
-                  <PgButton variant="danger">
+                  </Button>
+                  <Button size="compact" tone="danger">
                     <RiRefreshLine aria-hidden="true" />
                     Reset
-                  </PgButton>
-                </ButtonGrid>
-              </Section>
+                  </Button>
+                </ButtonGroup>
+              </AccordionItem>
 
-              <Section value="panel" title="Selected panel">
-                <ControlRow
+              <AccordionItem value="panel" title="Selected panel">
+                <Field
                   label="Panel title"
                   hint="Text input"
                   control={
-                    <input
-                      className="playground-text"
+                    <Input
                       aria-label="Panel title"
                       value={title}
                       onChange={(event) => setTitle(event.target.value)}
                     />
                   }
                 />
-                <ToggleRow
+                <Field
                   label="Locked"
                   hint="Resize and drag"
-                  checked={locked}
-                  onChange={setLocked}
+                  control={
+                    <SwitchInput checked={locked} onChange={setLocked} />
+                  }
                 />
-                <ButtonGrid>
-                  <PgButton variant="primary" active={locked}>
+                <ButtonGroup>
+                  <Button
+                    variant="strong"
+                    size="compact"
+                    active={locked}>
                     <RiCheckLine aria-hidden="true" />
                     Lock
-                  </PgButton>
-                  <PgButton disabled={!title}>
+                  </Button>
+                  <Button size="compact" disabled={!title}>
                     <RiAddLine aria-hidden="true" />
                     Add tab
-                  </PgButton>
-                </ButtonGrid>
-              </Section>
-            </Sections>
+                  </Button>
+                </ButtonGroup>
+              </AccordionItem>
+            </AccordionRoot>
           </div>
-        </div>
+        </DesignSpecimen>
       </section>
 
       <section className="design-section" aria-labelledby="design-status-title">
         <div className="design-section__header">
-          <h2 id="design-status-title">Status states</h2>
+          <h2 id="design-status-title">Status</h2>
           <p>
-            Success and danger colors are used by transient actions such as copy
-            feedback, destructive buttons, and failed commands.
+            Success and danger colors are used by transient actions such as
+            copy feedback, destructive buttons, and failed commands.
           </p>
         </div>
         <div className="design-status-grid">
@@ -389,6 +391,180 @@ export function DesignShowcase() {
           <StatusChip tone="danger" label="Copy failed" />
           <StatusChip tone="neutral" label="Idle" />
         </div>
+      </section>
+
+      <section
+        className="design-section"
+        aria-labelledby="design-compositions-title">
+        <div className="design-section__header">
+          <h2 id="design-compositions-title">Compositions</h2>
+          <p>
+            Real pieces of the demo site built from the primitives above:
+            example frames, footer actions, and a full playground-style
+            inspector.
+          </p>
+        </div>
+        <AccordionRoot defaultOpen={[]}>
+          <AccordionItem value="example-frame" title="Example frame">
+            <DesignSpecimen
+              title="Example section"
+              description="A reusable header, action row, frame, and reset control.">
+              <div className="example-preview__demo-surface design-example-surface">
+                <ExampleSection
+                  title="Example section"
+                  description="A reusable header, action row, frame, and reset control."
+                  isDirty={exampleDirty}
+                  onReset={() => setExampleDirty(false)}
+                  actions={
+                    <>
+                      <Button
+                        size="compact"
+                        active={!exampleDirty}
+                        onClick={() => setExampleDirty(false)}>
+                        Stable
+                      </Button>
+                      <Button
+                        size="compact"
+                        active={exampleDirty}
+                        onClick={() => setExampleDirty(true)}>
+                        Modified
+                      </Button>
+                    </>
+                  }>
+                  <div className="design-example-content">
+                    <div className="design-example-tabbar">
+                      <span data-active="true">Preview</span>
+                      <span>Source</span>
+                      <span>Events</span>
+                    </div>
+                    <TabContent meta={exampleDirty ? 'dirty' : 'ready'}>
+                      <p>
+                        Example content inherits the demo workspace palette
+                        while the header and controls stay aligned with the
+                        site chrome.
+                      </p>
+                      {exampleDirty ? (
+                        <p>Reset returns the specimen to its original state.</p>
+                      ) : (
+                        <EmptyState>
+                          Select Modified to reveal reset behavior.
+                        </EmptyState>
+                      )}
+                    </TabContent>
+                  </div>
+                </ExampleSection>
+              </div>
+            </DesignSpecimen>
+          </AccordionItem>
+
+          <AccordionItem value="appearance-footer" title="Appearance footer">
+            <DesignSpecimen
+              title="Sidebar footer"
+              description="Icon row (GitHub, theme, accent) plus a utility link, used at the bottom of the sidebar.">
+              <div className="design-sidebar-footer">
+                <AppearanceFooter githubClassName="" />
+              </div>
+            </DesignSpecimen>
+          </AccordionItem>
+
+          <AccordionItem value="playground-panel" title="Playground panel">
+            <DesignSpecimen
+              title="Inspector panel"
+              description="A playground-style inspector built from Accordion, Field, Select, Switch, NumberInput, and ButtonGroup.">
+              <div className="design-playground-panel">
+                <AccordionRoot defaultOpen={['workspace', 'panel']}>
+                  <AccordionItem value="workspace" title="Workspace">
+                    <Field
+                      label="Theme"
+                      hint="Preview palette"
+                      control={
+                        <Select
+                          value={theme}
+                          onChange={setTheme}
+                          options={[
+                            { value: 'abyss', label: 'Abyss' },
+                            { value: 'visual-studio', label: 'Visual Studio' },
+                            { value: 'light', label: 'Light' },
+                          ]}
+                          ariaLabel="Theme"
+                        />
+                      }
+                    />
+                    <Field
+                      label="Resizable"
+                      hint="All dividers"
+                      control={
+                        <SwitchInput
+                          checked={toggleOn}
+                          onChange={setToggleOn}
+                        />
+                      }
+                    />
+                    <Field
+                      label="Handle hit size"
+                      hint="Pointer target"
+                      control={
+                        <NumberInput
+                          value={size}
+                          onChange={(value) => setSize(value ?? '')}
+                          ariaLabel="Handle hit size"
+                        />
+                      }
+                    />
+                    <ButtonGroup>
+                      <Button variant="strong" size="compact">
+                        <RiSave3Line aria-hidden="true" />
+                        Save
+                      </Button>
+                      <Button size="compact">
+                        <RiDownloadLine aria-hidden="true" />
+                        Export
+                      </Button>
+                      <Button size="compact" tone="danger">
+                        <RiRefreshLine aria-hidden="true" />
+                        Reset
+                      </Button>
+                    </ButtonGroup>
+                  </AccordionItem>
+
+                  <AccordionItem value="panel" title="Selected panel">
+                    <Field
+                      label="Panel title"
+                      hint="Text input"
+                      control={
+                        <Input
+                          aria-label="Panel title"
+                          value={title}
+                          onChange={(event) => setTitle(event.target.value)}
+                        />
+                      }
+                    />
+                    <Field
+                      label="Locked"
+                      hint="Resize and drag"
+                      control={
+                        <SwitchInput checked={locked} onChange={setLocked} />
+                      }
+                    />
+                    <ButtonGroup>
+                      <Button
+                        variant="strong"
+                        size="compact"
+                        active={locked}>
+                        <RiCheckLine aria-hidden="true" />
+                        Lock
+                      </Button>
+                      <Button size="compact" disabled={!title}>
+                        <RiAddLine aria-hidden="true" />
+                        Add tab
+                      </Button>
+                    </ButtonGroup>
+                  </AccordionItem>
+                </AccordionRoot>
+              </div>
+            </DesignSpecimen>
+          </AccordionItem>
+        </AccordionRoot>
       </section>
     </>
   );
@@ -412,14 +588,4 @@ function DesignSpecimen({
       <div className="design-specimen__body">{children}</div>
     </div>
   );
-}
-
-function StatusChip({
-  tone,
-  label,
-}: {
-  tone: 'danger' | 'neutral' | 'success';
-  label: string;
-}) {
-  return <div className={`design-status design-status--${tone}`}>{label}</div>;
 }

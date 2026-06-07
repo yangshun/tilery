@@ -13,11 +13,11 @@ import type {
 import { useEventLog } from '../../../hooks/use-event-log';
 import {
   EmptyState,
-  ExampleButton,
   ExampleSection,
   ExampleStack,
   TabContent,
 } from '../example-ui';
+import { Button } from '../../../components/ui/button';
 
 type TabData = { title: string; body: string };
 
@@ -187,24 +187,24 @@ export function StructuralCallbacksExample() {
       description="Append, activate, move, split, and close tabs while watching the emitted events."
       actions={
         <>
-          <ExampleButton type="button" onClick={addTab}>
+          <Button type="button" size="compact" onClick={addTab}>
             Add tab
-          </ExampleButton>
-          <ExampleButton type="button" onClick={activateNext}>
+          </Button>
+          <Button type="button" size="compact" onClick={activateNext}>
             Activate next
-          </ExampleButton>
-          <ExampleButton type="button" onClick={moveActiveToTerminal}>
+          </Button>
+          <Button type="button" size="compact" onClick={moveActiveToTerminal}>
             Move active
-          </ExampleButton>
-          <ExampleButton type="button" onClick={splitEditor}>
+          </Button>
+          <Button type="button" size="compact" onClick={splitEditor}>
             Split editor
-          </ExampleButton>
-          <ExampleButton type="button" onClick={closeActive}>
+          </Button>
+          <Button type="button" size="compact" onClick={closeActive}>
             Close active
-          </ExampleButton>
-          <ExampleButton type="button" onClick={clearEvents}>
+          </Button>
+          <Button type="button" size="compact" onClick={clearEvents}>
             Clear
-          </ExampleButton>
+          </Button>
         </>
       }>
       <div style={demoWithLogStyle}>
@@ -280,9 +280,9 @@ export function ResizeCallbacksExample() {
       title="Resize callbacks"
       description="Drag the divider to compare continuous onResize events with the committed onResizeEnd event."
       actions={
-        <ExampleButton type="button" onClick={clearResizeEvents}>
+        <Button type="button" size="compact" onClick={clearResizeEvents}>
           Clear
-        </ExampleButton>
+        </Button>
       }>
       <div style={demoWithLogStyle}>
         <div style={tileryWrapStyle}>

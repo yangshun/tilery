@@ -8,12 +8,8 @@ import type {
   TileryLayoutSnapshot,
   TileryTab,
 } from '@tilery/react';
-import {
-  ExampleButton,
-  ExampleSection,
-  ExampleStack,
-  TabContent,
-} from '../example-ui';
+import { ExampleSection, ExampleStack, TabContent } from '../example-ui';
+import { Button } from '../../../components/ui/button';
 
 type TabData = { title: string; body: string };
 
@@ -165,15 +161,16 @@ export function SnapshotControlsExample() {
       }
       actions={
         <>
-          <ExampleButton type="button" onClick={saveSnapshot}>
+          <Button type="button" size="compact" onClick={saveSnapshot}>
             Save
-          </ExampleButton>
-          <ExampleButton
+          </Button>
+          <Button
             type="button"
+            size="compact"
             onClick={restoreSnapshot}
             disabled={!snapshot}>
             Restore
-          </ExampleButton>
+          </Button>
         </>
       }>
       {/* source-region snapshot-controls-tilery */}

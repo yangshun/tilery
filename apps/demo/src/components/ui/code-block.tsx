@@ -1,4 +1,4 @@
-import { highlightCode } from '../lib/highlight';
+import { highlightCode } from '../../lib/highlight';
 import { CodeBlockFrame } from './code-block-frame';
 
 export async function CodeBlock({

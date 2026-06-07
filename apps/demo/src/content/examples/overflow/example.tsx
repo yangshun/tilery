@@ -7,7 +7,8 @@ import type {
   TileryInitialLayout,
   TileryTab,
 } from '@tilery/react';
-import { ExampleButton, ExampleSection, TabContent } from '../example-ui';
+import { ExampleSection, TabContent } from '../example-ui';
+import { Button } from '../../../components/ui/button';
 
 type TabData = {
   title: string;
@@ -80,12 +81,14 @@ export function TabOverflowExample() {
       description="Use the mouse wheel, hidden-tab menu, or jump buttons; the active tab is kept visible in the row."
       onReset={() => setActiveId('file-1')}
       actions={jumpTargets.map((target) => (
-        <ExampleButton
+        <Button
           key={target.tabId}
+          type="button"
+          size="compact"
           active={activeId === target.tabId}
           onClick={() => jumpToTab(target.tabId)}>
           {target.label}
-        </ExampleButton>
+        </Button>
       ))}>
       {/* source-region tab-overflow-tilery */}
       <Tilery<TabData>

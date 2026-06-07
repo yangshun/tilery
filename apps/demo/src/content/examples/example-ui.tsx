@@ -10,13 +10,13 @@ import {
   useState,
 } from 'react';
 import type {
-  ButtonHTMLAttributes,
   CSSProperties,
   ReactElement,
   PropsWithChildren,
   ReactNode,
 } from 'react';
 import { useDemoSurfaceResize } from '../../components/demo-surface';
+import { Button } from '../../components/ui/button';
 
 type ExampleStackProps = PropsWithChildren<{
   rows?: string;
@@ -117,15 +117,16 @@ export function ExampleSection({
             <div className="example-section__actions">
               {actions}
               {resettable ? (
-                <ExampleButton
+                <Button
                   type="button"
+                  size="compact"
                   className="example-section__reset"
                   data-visible={showReset}
                   aria-hidden={!showReset}
                   tabIndex={showReset ? undefined : -1}
                   onClick={resetWorkspace}>
                   Reset
-                </ExampleButton>
+                </Button>
               ) : null}
             </div>
           ) : null}
@@ -191,32 +192,6 @@ function serializeLayoutState(state: unknown) {
   } catch {
     return String(state);
   }
-}
-
-type ExampleButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  active?: boolean;
-};
-
-export function ExampleButton({
-  active = false,
-  style,
-  ...props
-}: ExampleButtonProps) {
-  return (
-    <button
-      {...props}
-      data-active={active}
-      className={[
-        'site-button',
-        'site-button--compact',
-        'example-button',
-        props.className,
-      ]
-        .filter(Boolean)
-        .join(' ')}
-      style={style}
-    />
-  );
 }
 
 type EmptyStateProps = {

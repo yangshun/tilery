@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Children, isValidElement, type ReactNode } from 'react';
-import { CodeBlock } from './components/code-block';
+import { CodeBlock } from './components/ui/code-block';
 
 type MdxComponentMap = Record<string, unknown>;
 

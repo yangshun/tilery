@@ -3,12 +3,8 @@
 import { useState } from 'react';
 import { Tilery } from '@tilery/react';
 import type { TileryInitialLayout, TileryTab } from '@tilery/react';
-import {
-  ExampleButton,
-  ExampleSection,
-  ExampleStack,
-  TabContent,
-} from '../example-ui';
+import { ExampleSection, ExampleStack, TabContent } from '../example-ui';
+import { Button } from '../../../components/ui/button';
 
 type TabData = {
   title: string;
@@ -245,13 +241,14 @@ export function ContainerResizeExample() {
       isDirty={width !== widths[2]!.value}
       onReset={() => setWidth(widths[2]!.value)}
       actions={widths.map((item) => (
-        <ExampleButton
+        <Button
           key={item.value}
           type="button"
+          size="compact"
           active={width === item.value}
           onClick={() => setWidth(item.value)}>
           {item.label}
-        </ExampleButton>
+        </Button>
       ))}>
       <div style={{ ...resizerFrameStyle, width }}>
         {/* source-region container-resize-tilery */}

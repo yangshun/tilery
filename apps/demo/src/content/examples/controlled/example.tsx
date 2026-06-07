@@ -7,12 +7,8 @@ import type {
   TileryInitialLayout,
   TileryTab,
 } from '@tilery/react';
-import {
-  ExampleButton,
-  ExampleSection,
-  ExampleStack,
-  TabContent,
-} from '../example-ui';
+import { ExampleSection, ExampleStack, TabContent } from '../example-ui';
+import { Button } from '../../../components/ui/button';
 
 type TabData = { title: string; body: string };
 
@@ -181,15 +177,15 @@ export function PanelApiExample() {
       description="Mutate the layout through panel objects returned by the Tilery controller."
       actions={
         <>
-          <ExampleButton type="button" onClick={addTab}>
+          <Button type="button" size="compact" onClick={addTab}>
             Add tab
-          </ExampleButton>
-          <ExampleButton type="button" onClick={splitRight}>
+          </Button>
+          <Button type="button" size="compact" onClick={splitRight}>
             Split right
-          </ExampleButton>
-          <ExampleButton type="button" onClick={removeActive}>
+          </Button>
+          <Button type="button" size="compact" onClick={removeActive}>
             Remove active
-          </ExampleButton>
+          </Button>
         </>
       }>
       {/* source-region panel-objects-tilery */}
@@ -244,15 +240,15 @@ export function TabApiExample() {
       description="Work with a tab directly when the app already knows which tab it wants."
       actions={
         <>
-          <ExampleButton type="button" onClick={renameActive}>
+          <Button type="button" size="compact" onClick={renameActive}>
             Rename active
-          </ExampleButton>
-          <ExampleButton type="button" onClick={moveActiveToTerminal}>
+          </Button>
+          <Button type="button" size="compact" onClick={moveActiveToTerminal}>
             Move active
-          </ExampleButton>
-          <ExampleButton type="button" onClick={activateSearch}>
+          </Button>
+          <Button type="button" size="compact" onClick={activateSearch}>
             Activate search
-          </ExampleButton>
+          </Button>
         </>
       }>
       {/* source-region tab-objects-tilery */}
@@ -312,15 +308,15 @@ export function WorkflowApiExample() {
       description="Use stable tab ids to open-or-activate resources and promote temporary ids when the app learns the final id."
       actions={
         <>
-          <ExampleButton type="button" onClick={openOrActivateSettings}>
+          <Button type="button" size="compact" onClick={openOrActivateSettings}>
             Settings
-          </ExampleButton>
-          <ExampleButton type="button" onClick={openOrActivatePreview}>
+          </Button>
+          <Button type="button" size="compact" onClick={openOrActivatePreview}>
             Preview
-          </ExampleButton>
-          <ExampleButton type="button" onClick={toggleScratchId}>
+          </Button>
+          <Button type="button" size="compact" onClick={toggleScratchId}>
             Toggle scratch ID
-          </ExampleButton>
+          </Button>
         </>
       }>
       {/* source-region tab-workflows-tilery */}

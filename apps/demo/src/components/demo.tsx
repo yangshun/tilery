@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { ReactNode } from 'react';
-import { CodeBlock } from './code-block';
+import { CodeBlock } from './ui/code-block';
 import { DemoMount } from './demo-mount';
 import { DemoSurface, type DemoSurfaceMode } from './demo-surface';
 import {

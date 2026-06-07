@@ -2,12 +2,8 @@
 
 import { Tilery } from '@tilery/react';
 import type { TileryInitialLayout, TileryTab } from '@tilery/react';
-import {
-  ExampleButton,
-  ExampleSection,
-  ExampleStack,
-  TabContent,
-} from '../example-ui';
+import { ExampleSection, ExampleStack, TabContent } from '../example-ui';
+import { Button } from '../../../components/ui/button';
 
 type TabData = {
   title: string;
@@ -185,24 +181,27 @@ function TabBehaviorControls({ tab }: { tab: TileryTab<TabData> }) {
 
   return (
     <div style={controlsStyle}>
-      <ExampleButton
+      <Button
         type="button"
+        size="compact"
         active={locked}
         onClick={() => toggleTabLock(tab)}>
         {locked ? 'Unlock tab' : 'Lock tab'}
-      </ExampleButton>
-      <ExampleButton
+      </Button>
+      <Button
         type="button"
+        size="compact"
         active={!tab.closable}
         onClick={() => toggleTabClosable(tab)}>
         {tab.closable ? 'Disable close' : 'Enable close'}
-      </ExampleButton>
-      <ExampleButton
+      </Button>
+      <Button
         type="button"
+        size="compact"
         active={!tab.draggable}
         onClick={() => toggleTabDraggable(tab)}>
         {tab.draggable ? 'Disable drag' : 'Enable drag'}
-      </ExampleButton>
+      </Button>
       <StatusGrid tab={tab} />
     </div>
   );
