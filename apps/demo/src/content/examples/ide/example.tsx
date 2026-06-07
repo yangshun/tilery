@@ -2,7 +2,12 @@
 
 import { Tilery } from '@tilery/react';
 import type { TileryInitialLayout, TileryTab } from '@tilery/react';
-import { ExampleSection, TabContent } from '../example-ui';
+import {
+  ExampleSection,
+  TabContent,
+  codeBlockStyle,
+  monoBlockStyle,
+} from '../example-ui';
 
 type TabData = {
   title: string;
@@ -164,15 +169,3 @@ function IdeDemo({
     </ExampleSection>
   );
 }
-
-const monoBlockStyle: React.CSSProperties = {
-  margin: 0,
-  color: 'var(--example-demo-muted)',
-  fontFamily: 'var(--site-mono)',
-  fontSize: 12,
-};
-
-const codeBlockStyle: React.CSSProperties = {
-  ...monoBlockStyle,
-  color: 'var(--example-demo-fg)',
-};

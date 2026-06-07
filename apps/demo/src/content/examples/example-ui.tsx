@@ -276,3 +276,15 @@ export const tabMetaStyle: CSSProperties = {
 export const tabBodyStyle: CSSProperties = {
   maxWidth: 560,
 };
+
+export const monoBlockStyle: CSSProperties = {
+  margin: 0,
+  color: 'var(--example-demo-muted)',
+  fontFamily: 'var(--site-mono)',
+  fontSize: 12,
+};
+
+export const codeBlockStyle: CSSProperties = {
+  ...monoBlockStyle,
+  color: 'var(--example-demo-fg)',
+};

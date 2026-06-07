@@ -2,7 +2,12 @@
 
 import { Tilery } from '@tilery/react';
 import type { TileryInitialLayout, TileryTab } from '@tilery/react';
-import { ExampleSection, TabContent } from '../example-ui';
+import {
+  ExampleSection,
+  TabContent,
+  codeBlockStyle,
+  monoBlockStyle,
+} from '../example-ui';
 
 type TabData = {
   title: string;
@@ -142,18 +147,6 @@ function renderContent(tab: TileryTab<TabData>) {
 function panelKindLabel(kind: string) {
   return kind === 'edge' ? 'pinned edge panel' : 'main tiled panel';
 }
-
-const monoBlockStyle: React.CSSProperties = {
-  margin: 0,
-  color: 'var(--example-demo-muted)',
-  fontFamily: 'var(--site-mono)',
-  fontSize: 13,
-};
-
-const codeBlockStyle: React.CSSProperties = {
-  ...monoBlockStyle,
-  color: 'var(--example-demo-fg)',
-};
 
 const listStyle: React.CSSProperties = {
   color: 'var(--example-demo-muted)',
