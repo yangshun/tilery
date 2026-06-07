@@ -1,8 +1,8 @@
 'use client';
 
 // Resolves which element actually scrolls the homepage and exposes it to scenes
-// that need viewport-aware playback. Above 720px the page scrolls inside
-// `.site-main` (globals.css:339), but at <=720px the layout flips to
+// that need viewport-aware playback. Above 1024px the page scrolls inside
+// `.site-main` (globals.css:339), but at <=1024px the layout flips to
 // `overflow: visible` (globals.css:896) and the WINDOW scrolls instead.
 //
 // Strategy: render a `display:contents` sentinel, walk up to `.site-main`, and
@@ -34,7 +34,7 @@ type HomeScrollContextValue = {
 
 const HomeScrollContext = createContext<HomeScrollContextValue | null>(null);
 
-const MOBILE_QUERY = '(max-width: 720px)';
+const MOBILE_QUERY = '(max-width: 1024px)';
 
 export function HomeScrollProvider({ children }: { children: ReactNode }) {
   const sentinelRef = useRef<HTMLDivElement>(null);

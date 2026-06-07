@@ -253,6 +253,14 @@ export function PlaygroundInspector({
           <Link href="/" className="playground-inspector__brand">
             Tilery
           </Link>
+          <Button
+            variant="subtle"
+            size="compact"
+            tone="danger"
+            onClick={reset}
+            className="playground-inspector__reset">
+            Reset
+          </Button>
         </div>
       </header>
 
@@ -287,9 +295,6 @@ export function PlaygroundInspector({
               </Button>
               <Button variant="subtle" size="compact" onClick={exportLayout}>
                 {copied ? 'Copied!' : 'Export JSON'}
-              </Button>
-              <Button variant="subtle" size="compact" tone="danger" onClick={reset}>
-                Reset
               </Button>
             </ButtonGroup>
             <Field
