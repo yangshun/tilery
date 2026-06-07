@@ -14,6 +14,7 @@ import {
 } from 'react-icons/ri';
 import { AccentSelector } from '../../components/accent-selector';
 import { ThemeToggle } from '../../components/theme-toggle';
+import { ACCENT_IDS } from '../../content/accents';
 import {
   ButtonGrid,
   ControlRow,
@@ -62,17 +63,6 @@ const tokenRows = [
     sample: 'var(--site-accent)',
     usage: 'Focus and active states',
   },
-] as const;
-
-const accentIds = [
-  'red',
-  'orange',
-  'amber',
-  'lime',
-  'teal',
-  'sky',
-  'purple',
-  'white',
 ] as const;
 
 export function DesignShowcase() {
@@ -227,7 +217,7 @@ export function DesignShowcase() {
               <AccentSelector />
             </div>
             <div className="design-accent-row" aria-label="Accent swatches">
-              {accentIds.map((accent) => (
+              {ACCENT_IDS.map((accent) => (
                 <span
                   key={accent}
                   className={`accent-picker__swatch accent-picker__swatch--${accent}`}

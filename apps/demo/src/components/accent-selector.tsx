@@ -3,28 +3,16 @@
 import { useEffect, useState } from 'react';
 import { Menu } from '@base-ui-components/react/menu';
 import { RiPaletteLine } from 'react-icons/ri';
-
-const ACCENTS = [
-  { id: 'red', label: 'Red' },
-  { id: 'orange', label: 'Orange' },
-  { id: 'amber', label: 'Amber' },
-  { id: 'lime', label: 'Lime' },
-  { id: 'teal', label: 'Teal' },
-  { id: 'sky', label: 'Sky' },
-  { id: 'purple', label: 'Purple' },
-  { id: 'white', label: 'White' },
-] as const;
-
-type AccentId = (typeof ACCENTS)[number]['id'];
-
-const STORAGE_KEY = 'tilery-accent';
-
-function isAccentId(value: string | undefined | null): value is AccentId {
-  return ACCENTS.some((accent) => accent.id === value);
-}
+import {
+  ACCENTS,
+  DEFAULT_ACCENT,
+  STORAGE_KEY,
+  isAccentId,
+  type AccentId,
+} from '../content/accents';
 
 export function AccentSelector() {
-  const [accent, setAccent] = useState<AccentId>('lime');
+  const [accent, setAccent] = useState<AccentId>(DEFAULT_ACCENT);
 
   useEffect(() => {
     const current = document.documentElement.dataset.accent;
