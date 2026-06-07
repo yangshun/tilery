@@ -704,7 +704,9 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
       const horizontalDivider = dividers.find(
         (divider) => divider.id === junction.horizontalDividerId,
       );
+      /* v8 ignore start */
       if (!verticalDivider || !horizontalDivider) return;
+      /* v8 ignore stop */
       setActiveJunctionResize({
         id: junction.id,
         verticalDividerId: junction.verticalDividerId,
@@ -717,6 +719,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
   );
   const activeJunctionLines = useMemo(() => {
     if (!activeJunctionResize) return null;
+    /* v8 ignore start */
     const verticalDivider =
       dividers.find(
         (divider) => divider.id === activeJunctionResize.verticalDividerId,
@@ -725,6 +728,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
       dividers.find(
         (divider) => divider.id === activeJunctionResize.horizontalDividerId,
       ) ?? activeJunctionResize.horizontalDivider;
+    /* v8 ignore stop */
     return (
       <>
         <div

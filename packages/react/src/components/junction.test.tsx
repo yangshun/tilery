@@ -97,10 +97,16 @@ function mountWithRef({
 }
 
 function pointerEvent(
-  overrides: Partial<{ clientX: number; clientY: number }> = {},
+  overrides: Partial<{
+    clientX: number;
+    clientY: number;
+    button: number;
+    isPrimary: boolean;
+  }> = {},
 ): React.PointerEvent {
   return {
     button: 0,
+    isPrimary: true,
     pointerId: 1,
     clientX: 0,
     clientY: 0,
@@ -227,6 +233,38 @@ describe('TileryJunction', () => {
     });
 
     expect(recorded).toEqual([{ x: 30, y: 75, input: 'pointer' }]);
+    t.cleanup();
+  });
+
+  it('ignores non-primary pointer buttons on down', () => {
+    const activeChanges: Array<{ id: string; active: boolean }> = [];
+    const t = mountWithRef({
+      populateRef: true,
+      onDrag: () => {},
+      onActiveChange: (junction, active) => {
+        activeChanges.push({ id: junction.id, active });
+      },
+    });
+    act(() => {
+      t.handlers.onPointerDown(pointerEvent({ button: 1 }));
+    });
+    expect(activeChanges).toEqual([]);
+    t.cleanup();
+  });
+
+  it('ignores non-primary pointers on down', () => {
+    const activeChanges: Array<{ id: string; active: boolean }> = [];
+    const t = mountWithRef({
+      populateRef: true,
+      onDrag: () => {},
+      onActiveChange: (junction, active) => {
+        activeChanges.push({ id: junction.id, active });
+      },
+    });
+    act(() => {
+      t.handlers.onPointerDown(pointerEvent({ isPrimary: false }));
+    });
+    expect(activeChanges).toEqual([]);
     t.cleanup();
   });
 });
