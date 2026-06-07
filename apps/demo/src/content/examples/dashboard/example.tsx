@@ -4,7 +4,7 @@ import { Tilery } from '@tilery/react';
 import type { TileryInitialLayout, TileryTab } from '@tilery/react';
 import { ExampleSection, TabContent } from '../example-ui';
 
-type TabData = { title: string; color: string };
+type TabData = { title: string };
 
 // source-region dashboard-layout
 const layout: TileryInitialLayout<TabData> = {
@@ -23,7 +23,7 @@ const layout: TileryInitialLayout<TabData> = {
           tabs: [
             {
               id: 'chart',
-              data: { title: 'Revenue Chart', color: '#3aaf6f' },
+              data: { title: 'Revenue Chart' },
               closable: false,
             },
           ],
@@ -35,7 +35,7 @@ const layout: TileryInitialLayout<TabData> = {
           tabs: [
             {
               id: 'metrics',
-              data: { title: 'Key Metrics', color: '#3884ff' },
+              data: { title: 'Key Metrics' },
               closable: false,
             },
           ],
@@ -54,7 +54,7 @@ const layout: TileryInitialLayout<TabData> = {
           tabs: [
             {
               id: 'table',
-              data: { title: 'Data Table', color: '#d28e2a' },
+              data: { title: 'Data Table' },
               closable: false,
             },
           ],
@@ -64,8 +64,8 @@ const layout: TileryInitialLayout<TabData> = {
           id: 'bottom-right',
           size: 50,
           tabs: [
-            { id: 'logs', data: { title: 'Activity Log', color: '#9b5ad6' } },
-            { id: 'alerts', data: { title: 'Alerts', color: '#d6515a' } },
+            { id: 'logs', data: { title: 'Activity Log' } },
+            { id: 'alerts', data: { title: 'Alerts' } },
           ],
         },
       ],
@@ -84,15 +84,6 @@ export function Example() {
         initialLayout={layout}
         renderTabHeader={(tab: TileryTab<TabData>) => (
           <>
-            <span
-              style={{
-                display: 'inline-block',
-                width: 8,
-                height: 8,
-                borderRadius: '50%',
-                background: tab.data.color,
-              }}
-            />
             <span>{tab.data.title}</span>
           </>
         )}

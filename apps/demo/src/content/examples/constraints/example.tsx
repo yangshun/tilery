@@ -13,7 +13,6 @@ import {
 type TabData = {
   title: string;
   summary: string;
-  accent: string;
   constraints: string;
 };
 
@@ -34,7 +33,6 @@ const constraintsLayout: TileryInitialLayout<TabData> = {
           data: {
             title: 'Navigator',
             summary: 'This sidebar can resize, but it stays narrow.',
-            accent: '#3aaf6f',
             constraints: 'minSize: 180px, maxSize: 34%',
           },
           closable: false,
@@ -63,7 +61,6 @@ const constraintsLayout: TileryInitialLayout<TabData> = {
                     title: 'Editor',
                     summary:
                       'The main work area keeps enough room for readable content.',
-                    accent: '#3884ff',
                     constraints: 'minSize: 320px',
                   },
                 },
@@ -81,7 +78,6 @@ const constraintsLayout: TileryInitialLayout<TabData> = {
                   data: {
                     title: 'Inspector',
                     summary: 'The right panel is bounded on both sides.',
-                    accent: '#d28e2a',
                     constraints: 'minSize: 180px, maxSize: 36%',
                   },
                 },
@@ -102,7 +98,6 @@ const constraintsLayout: TileryInitialLayout<TabData> = {
                 title: 'Console',
                 summary:
                   'The bottom panel has vertical constraints independent of the side panels.',
-                accent: '#9b5ad6',
                 constraints: 'minSize: 140px, maxSize: 42%',
               },
               closable: false,
@@ -131,7 +126,6 @@ const containerResizeLayout: TileryInitialLayout<TabData> = {
           data: {
             title: 'Sidebar',
             summary: 'This panel keeps at least 240px as the wrapper narrows.',
-            accent: '#3aaf6f',
             constraints: 'minSize: 240px',
           },
           closable: false,
@@ -150,7 +144,6 @@ const containerResizeLayout: TileryInitialLayout<TabData> = {
             title: 'Workspace',
             summary:
               'Proportions stay stable until a measured constraint needs space.',
-            accent: '#3884ff',
             constraints: 'minSize: 220px',
           },
         },
@@ -178,7 +171,6 @@ const defaultResetLayout: TileryInitialLayout<TabData> = {
             title: 'Navigator',
             summary:
               'Double-click the divider to return this panel to its 30% reset target.',
-            accent: '#3aaf6f',
             constraints: 'size: 50, defaultSize: 30, minSize: 180px',
           },
           closable: false,
@@ -198,7 +190,6 @@ const defaultResetLayout: TileryInitialLayout<TabData> = {
             title: 'Editor',
             summary:
               'Reset keeps the default ratio stable even after several manual resizes.',
-            accent: '#3884ff',
             constraints: 'size: 50, defaultSize: 70, minSize: 220px',
           },
         },
@@ -296,12 +287,6 @@ export function DefaultResetExample() {
 function renderHeader(tab: TileryTab<TabData>) {
   return (
     <>
-      <span
-        style={{
-          ...swatchStyle,
-          background: tab.data.accent,
-        }}
-      />
       <span>{tab.data.title}</span>
     </>
   );
@@ -325,11 +310,4 @@ const resizerFrameStyle: React.CSSProperties = {
   height: '100%',
   maxWidth: '100%',
   transition: 'width 180ms ease',
-};
-
-const swatchStyle: React.CSSProperties = {
-  display: 'inline-block',
-  width: 8,
-  height: 8,
-  borderRadius: '50%',
 };

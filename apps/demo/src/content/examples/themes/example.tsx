@@ -428,7 +428,6 @@ function createThemeLayout(prefix: string): TileryInitialLayout<TabData> {
 function renderHeader(tab: TileryTab<TabData>) {
   return (
     <>
-      <span style={{ ...swatchStyle, background: tab.data.accent }} />
       <span>{tab.data.title}</span>
     </>
   );
@@ -476,13 +475,6 @@ export const tileryTheme: Theme = {
 const themeShellStyle: CSSProperties = {
   height: '100%',
   minHeight: 0,
-};
-
-const swatchStyle: CSSProperties = {
-  display: 'inline-block',
-  width: 8,
-  height: 8,
-  borderRadius: '50%',
 };
 
 const contentStyle: CSSProperties = {
