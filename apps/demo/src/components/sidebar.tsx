@@ -4,28 +4,18 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { RiCloseLine, RiMenuLine } from 'react-icons/ri';
+import type {
+  SiteNavigationGroup,
+  SiteNavigationItem,
+} from '../content/navigation';
 import { AppearanceFooter } from './appearance-footer';
-
-export type SidebarItem = {
-  href: string;
-  label: string;
-};
-
-export type SidebarGroup = {
-  title: string;
-  items?: SidebarItem[];
-  sections?: Array<{
-    title: string;
-    items: SidebarItem[];
-  }>;
-};
 
 export function Sidebar({
   groups,
   utilityItem,
 }: {
-  groups: SidebarGroup[];
-  utilityItem: SidebarItem;
+  groups: SiteNavigationGroup[];
+  utilityItem: SiteNavigationItem;
 }) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
@@ -34,7 +24,7 @@ export function Sidebar({
     setIsOpen(false);
   }, [pathname]);
 
-  function renderLink(item: SidebarItem) {
+  function renderLink(item: SiteNavigationItem) {
     return (
       <Link
         key={item.href}
