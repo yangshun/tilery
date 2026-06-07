@@ -25,12 +25,6 @@ const designCodeSample = [
   '    </div>',
   '  );',
   '}',
-  '',
-  ...Array.from(
-    { length: 28 },
-    (_, index) =>
-      `// Specimen ${index + 1}: keep demo docs aligned with shared site tokens.`,
-  ),
 ].join('\n');
 
 export default async function DesignPage() {
