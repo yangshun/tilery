@@ -3,9 +3,8 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { RiCloseLine, RiGithubFill, RiMenuLine } from 'react-icons/ri';
-import { AccentSelector } from './accent-selector';
-import { ThemeToggle } from './theme-toggle';
+import { RiCloseLine, RiMenuLine } from 'react-icons/ri';
+import { AppearanceFooter } from './appearance-footer';
 
 export type SidebarItem = {
   href: string;
@@ -84,26 +83,15 @@ export function Sidebar({
           </div>
         ))}
       </nav>
-      <div className="sidebar__appearance">
-        <div className="sidebar__appearance-actions">
-          <a
-            href="https://github.com/yangshun/tilery"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="site-icon-button sidebar__icon-button sidebar__github"
-            aria-label="GitHub repository">
-            <RiGithubFill aria-hidden="true" />
-          </a>
-          <ThemeToggle />
-          <AccentSelector />
-        </div>
-        <Link
-          href={utilityItem.href}
-          className="site-button site-button--secondary sidebar__utility-link"
-          data-active={pathname === utilityItem.href}>
-          {utilityItem.label}
-        </Link>
-      </div>
+      <AppearanceFooter
+        className="sidebar__appearance"
+        githubClassName="sidebar__icon-button sidebar__github"
+        utilityItem={{
+          href: utilityItem.href,
+          label: utilityItem.label,
+          active: pathname === utilityItem.href,
+        }}
+      />
     </aside>
   );
 }

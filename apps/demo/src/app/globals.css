@@ -666,7 +666,7 @@ td code {
   border-top: 1px solid var(--site-sidebar-border);
 }
 
-.sidebar__appearance-actions {
+.appearance-footer__actions {
   display: flex;
   align-items: center;
   gap: 4px;

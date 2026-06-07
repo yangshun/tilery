@@ -8,10 +8,8 @@
 
 import { useEffect, useState, type RefObject } from 'react';
 import Link from 'next/link';
-import { RiGithubFill } from 'react-icons/ri';
 import { Input } from '@base-ui-components/react/input';
-import { AccentSelector } from '../../components/accent-selector';
-import { ThemeToggle } from '../../components/theme-toggle';
+import { AppearanceFooter } from '../../components/appearance-footer';
 import type {
   TileryController,
   TileryDirection,
@@ -516,18 +514,10 @@ export function PlaygroundInspector({
           </Section>
         </Sections>
       </div>
-      <div className="playground-inspector__appearance">
-        <a
-          href="https://github.com/yangshun/tilery"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="site-icon-button playground-inspector__icon"
-          aria-label="GitHub repository">
-          <RiGithubFill aria-hidden="true" />
-        </a>
-        <ThemeToggle />
-        <AccentSelector />
-      </div>
+      <AppearanceFooter
+        className="playground-inspector__appearance"
+        githubClassName="playground-inspector__icon"
+      />
     </aside>
   );
 }
