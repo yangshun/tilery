@@ -1,5 +1,6 @@
 import { forwardRef, type ButtonHTMLAttributes } from 'react';
 import { cn } from '../../lib/cn';
+import styles from './icon-button.module.css';
 
 export type IconButtonProps = ButtonHTMLAttributes<HTMLButtonElement>;
 
@@ -9,7 +10,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
       <button
         ref={ref}
         type={type}
-        className={cn('site-icon-button', className)}
+        className={cn(styles.iconButton, className)}
         {...props}
       />
     );

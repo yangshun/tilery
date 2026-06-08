@@ -1,5 +1,6 @@
-import { forwardRef, type ButtonHTMLAttributes } from 'react';
+import { forwardRef, type ButtonHTMLAttributes, type ElementType, type ComponentPropsWithoutRef } from 'react';
 import { cn } from '../../lib/cn';
+import styles from './button.module.css';
 
 export type ButtonVariant =
   | 'default'
@@ -17,21 +18,26 @@ export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   size?: ButtonSize;
   tone?: ButtonTone;
   active?: boolean;
+  asChild?: boolean;
 };
 
 const variantClass: Record<Exclude<ButtonVariant, 'default'>, string> = {
-  primary: 'site-button--primary',
-  secondary: 'site-button--secondary',
-  strong: 'site-button--strong',
-  subtle: 'playground-btn',
-};
+  primary: styles.primary,
+  secondary: styles.secondary,
+  strong: styles.strong,
+  subtle: styles.subtle,
+} as const;
 
 const sizeClass: Record<Exclude<ButtonSize, 'default'>, string> = {
-  compact: 'site-button--compact',
-  hero: 'site-button--hero',
-};
+  compact: styles.compact,
+  hero: styles.hero,
+} as const;
 
-export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+type PolymorphicProps<C extends ElementType> = {
+  as?: C;
+} & Omit<ComponentPropsWithoutRef<C>, keyof ButtonProps>;
+
+export const Button = forwardRef<HTMLButtonElement, ButtonProps & PolymorphicProps<ElementType>>(
   function Button(
     {
       variant = 'default',
@@ -40,22 +46,30 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       active = false,
       type = 'button',
       className,
+      asChild = false,
+      as: Component = 'button',
       ...props
     },
     ref,
   ) {
+    const Comp = asChild ? Component : 'button';
+    const isButton = Comp === 'button';
+
+    const variantKey = variant as Exclude<ButtonVariant, 'default'>;
+    const sizeKey = size as Exclude<ButtonSize, 'default'>;
+
     return (
-      <button
+      <Comp
         ref={ref}
-        type={type}
+        type={isButton ? type : undefined}
         data-active={active}
         data-variant={variant}
         data-tone={tone}
         className={cn(
-          'site-button',
-          variant !== 'default' ? variantClass[variant] : null,
-          size !== 'default' ? sizeClass[size] : null,
-          tone === 'danger' ? 'site-button--danger' : null,
+          styles.button,
+          variant !== 'default' ? variantClass[variantKey] : null,
+          size !== 'default' ? sizeClass[sizeKey] : null,
+          tone === 'danger' ? styles.danger : null,
           className,
         )}
         {...props}

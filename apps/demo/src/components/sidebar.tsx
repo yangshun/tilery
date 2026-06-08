@@ -9,6 +9,8 @@ import type {
   SiteNavigationItem,
 } from '../content/navigation';
 import { AppearanceFooter } from './appearance-footer';
+import { cn } from '../lib/cn';
+import styles from './sidebar.module.css';
 
 export function Sidebar({
   groups,
@@ -25,26 +27,27 @@ export function Sidebar({
   }, [pathname]);
 
   function renderLink(item: SiteNavigationItem) {
+    const isActive = pathname === item.href;
     return (
       <Link
         key={item.href}
         href={item.href}
-        className={`sidebar__link ${pathname === item.href ? 'sidebar__link--active' : ''}`}>
+        className={cn(styles.sidebar__link, isActive && styles['sidebar__link--active'])}>
         {item.label}
       </Link>
     );
   }
 
   return (
-    <aside className={`sidebar ${isOpen ? 'sidebar--open' : ''}`}>
-      <div className="sidebar__header">
-        <Link href="/" className="sidebar__logo">
+    <aside className={cn(styles.sidebar, isOpen && styles['sidebar--open'])}>
+      <div className={styles.sidebar__header}>
+        <Link href="/" className={styles.sidebar__logo}>
           Tilery
         </Link>
-        <div className="sidebar__header-actions">
+        <div className={styles.sidebar__headerActions}>
           <button
             type="button"
-            className="site-icon-button sidebar__icon-button sidebar__toggle"
+            className={cn(styles.sidebar__iconButton, styles.sidebar__toggle)}
             aria-expanded={isOpen}
             aria-controls="site-sidebar-nav"
             aria-label={
@@ -59,14 +62,14 @@ export function Sidebar({
           </button>
         </div>
       </div>
-      <nav id="site-sidebar-nav" className="sidebar__nav">
+      <nav id="site-sidebar-nav" className={styles.sidebar__nav}>
         {groups.map((group) => (
-          <div key={group.title} className="sidebar__group">
-            <div className="sidebar__group-title">{group.title}</div>
+          <div key={group.title} className={styles.sidebar__group}>
+            <div className={styles.sidebar__groupTitle}>{group.title}</div>
             {group.items?.map(renderLink)}
             {group.sections?.map((section) => (
-              <div key={section.title} className="sidebar__subgroup">
-                <div className="sidebar__subgroup-title">{section.title}</div>
+              <div key={section.title} className={styles.sidebar__subgroup}>
+                <div className={styles.sidebar__subgroupTitle}>{section.title}</div>
                 {section.items.map(renderLink)}
               </div>
             ))}
@@ -74,8 +77,8 @@ export function Sidebar({
         ))}
       </nav>
       <AppearanceFooter
-        className="sidebar__appearance"
-        githubClassName="sidebar__icon-button sidebar__github"
+        className={styles.sidebar__appearance}
+        githubClassName={cn(styles.sidebar__iconButton, styles.sidebar__github)}
         utilityItem={{
           href: utilityItem.href,
           label: utilityItem.label,

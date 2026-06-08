@@ -4,6 +4,9 @@ import Link from 'next/link';
 import { RiGithubFill } from 'react-icons/ri';
 import { AccentSelector } from './accent-selector';
 import { ThemeToggle } from './theme-toggle';
+import { cn } from '../lib/cn';
+import styles from './appearance-footer.module.css';
+import { Button } from './ui/button';
 
 export function AppearanceFooter({
   className,
@@ -15,13 +18,13 @@ export function AppearanceFooter({
   utilityItem?: { href: string; label: string; active?: boolean };
 }) {
   return (
-    <div className={className}>
-      <div className="appearance-footer__actions">
+    <div className={cn(styles.appearanceFooter, className)}>
+      <div className={styles.appearanceFooter__actions}>
         <a
           href="https://github.com/yangshun/tilery"
           target="_blank"
           rel="noopener noreferrer"
-          className={`site-icon-button${githubClassName ? ` ${githubClassName}` : ''}`}
+          className={cn(githubClassName)}
           aria-label="GitHub repository">
           <RiGithubFill aria-hidden="true" />
         </a>
@@ -29,12 +32,12 @@ export function AppearanceFooter({
         <AccentSelector />
       </div>
       {utilityItem ? (
-        <Link
-          href={utilityItem.href}
-          className="site-button site-button--secondary"
+        <Button
+          variant="secondary"
+          asChild
           data-active={utilityItem.active}>
-          {utilityItem.label}
-        </Link>
+          <Link href={utilityItem.href}>{utilityItem.label}</Link>
+        </Button>
       ) : null}
     </div>
   );
