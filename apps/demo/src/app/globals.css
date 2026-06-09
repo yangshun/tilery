@@ -317,6 +317,11 @@
     margin: 12px 0 20px;
     padding-left: 1.35rem;
     list-style-position: outside;
+    list-style-type: disc;
+  }
+
+  .doc-page > :where(ol) {
+    list-style-type: decimal;
   }
 
   .doc-page > :where(ul, ol) :where(ul, ol) {
@@ -353,6 +358,11 @@
     margin: 12px 0 20px;
     padding-left: 1.35rem;
     list-style-position: outside;
+    list-style-type: disc;
+  }
+
+  .example-content-wrapper > :where(ol) {
+    list-style-type: decimal;
   }
 
   .example-content-wrapper > :where(ul, ol) :where(ul, ol) {
