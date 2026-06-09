@@ -33,7 +33,7 @@ export function Sidebar({
         key={item.href}
         href={item.href}
         className={cn(
-          'sidebar-link block px-2 py-1.5 text-[13px] text-site-fg no-underline rounded-md transition-[background,color] duration-150 ease-in-out hover:text-site-fg hover:bg-site-overlay hover:no-underline',
+          'sidebar-link block px-2 py-1.5 text-[13px] text-site-fg no-underline rounded-md transition-[background,color] duration-150 ease-in-out hover:text-site-fg hover:bg-site-overlay hover:no-underline [.sidebar-link+&]:mt-0.5',
           isActive && 'bg-site-overlay text-site-fg',
           inSubgroup && 'pl-3.5',
         )}>

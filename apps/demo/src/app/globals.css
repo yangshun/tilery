@@ -309,10 +309,6 @@
     overflow: hidden;
   }
 
-  .sidebar-link + .sidebar-link {
-    margin-top: 2px;
-  }
-
   .doc-page > :where(ul, ol) {
     margin: 12px 0 20px;
     padding-left: 1.35rem;
