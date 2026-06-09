@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { PlaygroundApp } from './playground-app';
+import styles from './playground-page.module.css';
 
 export const metadata: Metadata = {
   title: 'Playground',
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function PlaygroundPage() {
   return (
-    <div className="playground-page">
+    <div className={`playground-page ${styles.page}`}>
       <PlaygroundApp />
     </div>
   );

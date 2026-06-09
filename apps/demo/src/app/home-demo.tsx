@@ -3,11 +3,9 @@
 import { useRef } from 'react';
 import { useInView } from 'motion/react';
 import { Example as IdeExample } from '../content/examples/ide/example';
+import { cn } from '../lib/cn';
+import styles from './home/home-demo.module.css';
 
-// The real, fully-interactive Tilery IDE example. Mounting it sets up portals,
-// pointer-drag controllers and resize handles, so we defer the work until the
-// demo frame nears the viewport instead of doing it on first paint. Changing
-// `resetKey` remounts the example, restoring its default layout.
 export function LiveIdeDemo({
   className,
   resetKey = 0,
@@ -19,13 +17,11 @@ export function LiveIdeDemo({
   const inView = useInView(ref, { once: true, margin: '300px' });
 
   return (
-    <div
-      ref={ref}
-      className={['home-demo__viewport', className].filter(Boolean).join(' ')}>
+    <div ref={ref} className={cn(styles.demoViewport, className)}>
       {inView ? (
         <IdeExample key={resetKey} />
       ) : (
-        <div className="home-demo__placeholder">
+        <div className={styles.demoPlaceholder}>
           Loading interactive preview…
         </div>
       )}

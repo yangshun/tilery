@@ -35,6 +35,8 @@ import {
   AccordionRoot,
   Input,
 } from '../../components/ui';
+import styles from './playground-inspector.module.css';
+import { cn } from '../../lib/cn';
 
 export type PgGlobalProps = {
   resizable: boolean;
@@ -247,10 +249,10 @@ export function PlaygroundInspector({
   };
 
   return (
-    <aside className="playground-inspector" aria-label="Playground controls">
-      <header className="playground-inspector__head">
-        <div className="playground-inspector__brand-row">
-          <Link href="/" className="playground-inspector__brand">
+    <aside className={styles.inspector} aria-label="Playground controls">
+      <header className={styles.inspectorHead}>
+        <div className={styles.inspectorBrandRow}>
+          <Link href="/" className={styles.inspectorBrand}>
             Tilery
           </Link>
           <Button
@@ -258,13 +260,13 @@ export function PlaygroundInspector({
             size="compact"
             tone="danger"
             onClick={reset}
-            className="playground-inspector__reset">
+            className={styles.reset}>
             Reset
           </Button>
         </div>
       </header>
 
-      <div className="playground-inspector__scroll">
+      <div className={styles.inspectorScroll}>
         <AccordionRoot defaultOpen={['workspace', 'panel', 'tab']}>
           <AccordionItem value="workspace" title="Workspace">
             <Field
@@ -353,7 +355,10 @@ export function PlaygroundInspector({
                 <Select
                   value={themeId}
                   onChange={onThemeChange}
-                  options={PG_THEMES.map((t) => ({ value: t.id, label: t.label }))}
+                  options={PG_THEMES.map((t) => ({
+                    value: t.id,
+                    label: t.label,
+                  }))}
                   ariaLabel="Theme"
                 />
               }
@@ -362,7 +367,7 @@ export function PlaygroundInspector({
 
           <AccordionItem value="panel" title="Selected panel">
             {panels.length === 0 ? (
-              <p className="playground-empty">
+              <p className={styles.empty}>
                 No panels. Load a preset or reset the workspace.
               </p>
             ) : (
@@ -394,7 +399,7 @@ export function PlaygroundInspector({
                     <Field
                       label="Split panel"
                       control={
-                        <div className="playground-inline">
+                        <div className={styles.inline}>
                           <Select
                             ariaLabel="Split direction"
                             value={splitDir}
@@ -462,7 +467,9 @@ export function PlaygroundInspector({
                       control={
                         <NumberInput
                           value={
-                            typeof panel.minSize === 'number' ? panel.minSize : ''
+                            typeof panel.minSize === 'number'
+                              ? panel.minSize
+                              : ''
                           }
                           placeholder="auto"
                           onChange={(v) => patchPanel({ minSize: v })}
@@ -475,7 +482,9 @@ export function PlaygroundInspector({
                       control={
                         <NumberInput
                           value={
-                            typeof panel.maxSize === 'number' ? panel.maxSize : ''
+                            typeof panel.maxSize === 'number'
+                              ? panel.maxSize
+                              : ''
                           }
                           placeholder="auto"
                           onChange={(v) => patchPanel({ maxSize: v })}
@@ -528,7 +537,7 @@ export function PlaygroundInspector({
 
           <AccordionItem value="tab" title="Selected tab">
             {!panel || panel.tabs.length === 0 ? (
-              <p className="playground-empty">This panel has no tabs.</p>
+              <p className={styles.empty}>This panel has no tabs.</p>
             ) : (
               <>
                 <Field
@@ -628,8 +637,8 @@ export function PlaygroundInspector({
           </AccordionItem>
 
           <AccordionItem value="activity" title="Activity">
-            <div className="playground-activity-head">
-              <span className="playground-row__hint">Recent events</span>
+            <div className={styles.activityHead}>
+              <span className={styles.hint}>Recent events</span>
               <Button
                 variant="subtle"
                 size="compact"
@@ -639,13 +648,13 @@ export function PlaygroundInspector({
               </Button>
             </div>
             {events.length === 0 ? (
-              <p className="playground-empty">No events yet. Interact above.</p>
+              <p className={styles.empty}>No events yet. Interact above.</p>
             ) : (
-              <ul className="playground-log">
+              <ul className={styles.log}>
                 {events.map((event) => (
-                  <li key={event.id} className="playground-log__row">
-                    <span className="playground-log__type">{event.type}</span>
-                    <span className="playground-log__detail">
+                  <li key={event.id} className={styles['log__row']}>
+                    <span className={styles['log__type']}>{event.type}</span>
+                    <span className={styles['log__detail']}>
                       {event.detail}
                     </span>
                   </li>
@@ -656,8 +665,8 @@ export function PlaygroundInspector({
         </AccordionRoot>
       </div>
       <AppearanceFooter
-        className="playground-inspector__appearance"
-        githubClassName="playground-inspector__icon"
+        className={styles.inspectorAppearance}
+        githubClassName={styles.inspectorIcon}
       />
     </aside>
   );
@@ -676,7 +685,7 @@ function RenameField({
       label="Title"
       control={
         <form
-          className="playground-inline"
+          className={styles.inline}
           onSubmit={(event) => {
             event.preventDefault();
             onRename(draft);

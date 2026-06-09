@@ -154,7 +154,9 @@ export const ACCENT_MIGRATIONS: Readonly<Record<string, AccentId>> = {
 /** Source string for an alternation regex matching every accent id. */
 export const ACCENT_IDS_PATTERN: string = ACCENT_IDS.join('|');
 
-export function isAccentId(value: string | undefined | null): value is AccentId {
+export function isAccentId(
+  value: string | undefined | null,
+): value is AccentId {
   if (value == null) return false;
   return (ACCENT_IDS as readonly string[]).includes(value);
 }
@@ -169,9 +171,7 @@ export const ACCENT_CSS: string = (() => {
     lines.push(`  --site-link-hover: ${accent.dark.linkHover};`);
     lines.push(`  --site-nav-hover-border: ${accent.dark.navHoverBorder};`);
     lines.push(`}`);
-    lines.push(
-      `:root[data-theme='light'][data-accent='${accent.id}'] {`,
-    );
+    lines.push(`:root[data-theme='light'][data-accent='${accent.id}'] {`);
     lines.push(`  --site-accent: ${accent.light.accent};`);
     lines.push(`  --site-link-hover: ${accent.light.linkHover};`);
     lines.push(`  --site-nav-hover-border: ${accent.light.navHoverBorder};`);

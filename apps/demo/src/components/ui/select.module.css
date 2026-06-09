@@ -1,0 +1,29 @@
+.wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.select {
+  height: 28px;
+  max-width: 170px;
+  padding: 0 26px 0 8px;
+  border: 1px solid var(--site-shell-border);
+  border-radius: 6px;
+  background: var(--site-bg);
+  color: var(--site-fg);
+  font-size: 12.5px;
+  font-family: inherit;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.icon {
+  position: absolute;
+  right: 7px;
+  display: inline-flex;
+  font-size: 15px;
+  opacity: 0.55;
+  pointer-events: none;
+}

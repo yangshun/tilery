@@ -1,0 +1,44 @@
+.siteLayout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--site-bg);
+}
+
+.siteMain {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+}
+
+.siteMain:has(:global(.playground-page)) {
+  overflow: hidden;
+}
+
+.sidebarContainer {
+  flex-shrink: 0;
+  width: calc(var(--site-sidebar-width) + 30px);
+  padding: 10px;
+}
+
+@media (max-width: 1024px) {
+  .siteLayout {
+    min-height: 100vh;
+    height: auto;
+    overflow: visible;
+    flex-direction: column;
+  }
+
+  .siteMain {
+    overflow: visible;
+  }
+
+  .sidebarContainer {
+    width: auto;
+    padding: 10px 18px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+}

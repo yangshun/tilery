@@ -1,0 +1,16 @@
+.page {
+  max-width: none;
+  margin: 0;
+  padding: 10px;
+  height: 100dvh;
+  min-height: 0;
+  display: flex;
+  gap: 10px;
+  background: var(--site-bg);
+}
+
+@media (max-width: 1024px) {
+  .page {
+    flex-direction: column;
+  }
+}

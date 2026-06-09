@@ -17,6 +17,7 @@ import type {
 } from 'react';
 import { useDemoSurfaceResize } from '../../components/demo-surface';
 import { Button } from '../../components/ui/button';
+import styles from './example-ui.module.css';
 
 type ExampleStackProps = PropsWithChildren<{
   rows?: string;
@@ -100,27 +101,25 @@ export function ExampleSection({
 
   return (
     <section
-      className="example-section"
+      className={styles.section}
       onKeyDownCapture={markUserInteracted}
       onPointerDownCapture={markUserInteracted}>
       {hasHeader ? (
-        <div className="example-section__header">
-          <div className="example-section__title-group">
-            {title ? (
-              <div className="example-section__title">{title}</div>
-            ) : null}
+        <div className={styles.header}>
+          <div className={styles.titleGroup}>
+            {title ? <div className={styles.title}>{title}</div> : null}
             {description ? (
-              <p className="example-section__description">{description}</p>
+              <p className={styles.description}>{description}</p>
             ) : null}
           </div>
           {actions || resettable ? (
-            <div className="example-section__actions">
+            <div className={styles.actions}>
               {actions}
               {resettable ? (
                 <Button
                   type="button"
                   size="compact"
-                  className="example-section__reset"
+                  className={styles.reset}
                   data-visible={showReset}
                   aria-hidden={!showReset}
                   tabIndex={showReset ? undefined : -1}
@@ -132,7 +131,7 @@ export function ExampleSection({
           ) : null}
         </div>
       ) : null}
-      <div key={resetKey} className="example-section__frame" style={frameStyle}>
+      <div key={resetKey} className={styles.frame} style={frameStyle}>
         {trackedChildren}
       </div>
     </section>

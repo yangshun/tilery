@@ -9,6 +9,7 @@ import type {
   SiteNavigationItem,
 } from '../content/navigation';
 import { AppearanceFooter } from './appearance-footer';
+import { IconButton } from './ui/icon-button';
 import { cn } from '../lib/cn';
 import styles from './sidebar.module.css';
 
@@ -32,7 +33,10 @@ export function Sidebar({
       <Link
         key={item.href}
         href={item.href}
-        className={cn(styles.sidebar__link, isActive && styles['sidebar__link--active'])}>
+        className={cn(
+          styles.sidebar__link,
+          isActive && styles['sidebar__link--active'],
+        )}>
         {item.label}
       </Link>
     );
@@ -45,9 +49,8 @@ export function Sidebar({
           Tilery
         </Link>
         <div className={styles.sidebar__headerActions}>
-          <button
-            type="button"
-            className={cn(styles.sidebar__iconButton, styles.sidebar__toggle)}
+          <IconButton
+            className={styles.sidebar__toggle}
             aria-expanded={isOpen}
             aria-controls="site-sidebar-nav"
             aria-label={
@@ -59,7 +62,7 @@ export function Sidebar({
             ) : (
               <RiMenuLine aria-hidden="true" />
             )}
-          </button>
+          </IconButton>
         </div>
       </div>
       <nav id="site-sidebar-nav" className={styles.sidebar__nav}>
@@ -69,7 +72,9 @@ export function Sidebar({
             {group.items?.map(renderLink)}
             {group.sections?.map((section) => (
               <div key={section.title} className={styles.sidebar__subgroup}>
-                <div className={styles.sidebar__subgroupTitle}>{section.title}</div>
+                <div className={styles.sidebar__subgroupTitle}>
+                  {section.title}
+                </div>
                 {section.items.map(renderLink)}
               </div>
             ))}

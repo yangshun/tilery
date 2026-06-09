@@ -19,9 +19,7 @@ export function useEventLog<T>(
     (data: T) => {
       idRef.current += 1;
       const id = idRef.current;
-      setEvents((current) =>
-        [{ id, ...data }, ...current].slice(0, maxEvents),
-      );
+      setEvents((current) => [{ id, ...data }, ...current].slice(0, maxEvents));
     },
     [maxEvents],
   );

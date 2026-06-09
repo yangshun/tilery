@@ -1,10 +1,10 @@
 'use client';
 
 import { RiMoonLine, RiSunLine } from 'react-icons/ri';
+import { cn } from '../lib/cn';
+import { IconButton } from './ui/icon-button';
+import styles from './theme-toggle.module.css';
 
-// Which icon shows is driven purely by the `data-theme` attribute in CSS, so
-// this renders identically on the server and client (no hydration mismatch and
-// no icon flash). The click handler flips the attribute and persists the choice.
 export function ThemeToggle() {
   function toggleTheme() {
     const root = document.documentElement;
@@ -18,20 +18,18 @@ export function ThemeToggle() {
   }
 
   return (
-    <button
-      type="button"
-      className="site-icon-button sidebar__icon-button sidebar__theme-toggle"
+    <IconButton
       aria-label="Toggle color theme"
       title="Toggle color theme"
       onClick={toggleTheme}>
       <RiSunLine
-        className="sidebar__theme-icon sidebar__theme-icon--sun"
+        className={cn(styles.themeIcon, styles['themeIcon--sun'])}
         aria-hidden="true"
       />
       <RiMoonLine
-        className="sidebar__theme-icon sidebar__theme-icon--moon"
+        className={cn(styles.themeIcon, styles['themeIcon--moon'])}
         aria-hidden="true"
       />
-    </button>
+    </IconButton>
   );
 }

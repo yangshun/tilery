@@ -1,83 +1,125 @@
 'use client';
 
-// Scene 3 — Capabilities. The six primitives as a grid of mini-panels, each
-// crowned by a faux tab-bar and animating a tiny self-contained micro-diagram
-// of that primitive. Cards reveal on scroll via a CSS view() timeline (SSR-safe,
-// auto-bound to the nearest scroller). The micro-diagrams are cheap CSS loops,
-// paused while the section is off-screen and disabled under reduced motion.
-
-import { useRef } from 'react';
-import { useInView } from 'motion/react';
-import { useHomeScroll } from './scroll-container-context';
+import { useEffect, useRef } from 'react';
 import { capabilities, type HomeCapability } from './home-data';
+import { cn } from '../../lib/cn';
+import styles from './home-capabilities.module.css';
 
 function CapDemo({ type }: { type: HomeCapability['demo'] }) {
   switch (type) {
     case 'tab-move':
       return (
         <>
-          <i className="home-capx home-capx-pane home-capx-pane--l" />
-          <i className="home-capx home-capx-pane home-capx-pane--r" />
-          <i className="home-capx home-capx-drop" />
-          <i className="home-capx home-capx-fly" />
+          <i
+            className={cn(styles.capx, styles.capxPane, styles['capxPane--l'])}
+          />
+          <i
+            className={cn(styles.capx, styles.capxPane, styles['capxPane--r'])}
+          />
+          <i className={cn(styles.capx, styles.capxDrop)} />
+          <i className={cn(styles.capx, styles.capxFly)} />
         </>
       );
     case 'resize':
       return (
         <>
-          <i className="home-capx home-capx-rpane home-capx-rpane--l" />
-          <i className="home-capx home-capx-rpane home-capx-rpane--r" />
-          <i className="home-capx home-capx-grip" />
+          <i
+            className={cn(
+              styles.capx,
+              styles.capxRpane,
+              styles['capxRpane--l'],
+            )}
+          />
+          <i
+            className={cn(
+              styles.capx,
+              styles.capxRpane,
+              styles['capxRpane--r'],
+            )}
+          />
+          <i className={cn(styles.capx, styles.capxGrip)} />
         </>
       );
     case 'render':
       return (
         <>
-          <i className="home-capx home-capx-rbar" />
-          <i className="home-capx home-capx-render-a" />
-          <i className="home-capx home-capx-render-icon" />
-          <i className="home-capx home-capx-render-b" />
+          <i className={cn(styles.capx, styles.capxRbar)} />
+          <i className={cn(styles.capx, styles.capxRenderA)} />
+          <i className={cn(styles.capx, styles.capxRenderIcon)} />
+          <i className={cn(styles.capx, styles.capxRenderB)} />
         </>
       );
     case 'styling':
       return (
         <>
-          <i className="home-capx home-capx-style-bar" />
-          <i className="home-capx home-capx-style-accent" />
-          <i className="home-capx home-capx-style-swatch" />
-          <i className="home-capx home-capx-style-line" />
+          <i className={cn(styles.capx, styles.capxStyleBar)} />
+          <i className={cn(styles.capx, styles.capxStyleAccent)} />
+          <i className={cn(styles.capx, styles.capxStyleSwatch)} />
+          <i className={cn(styles.capx, styles.capxStyleLine)} />
         </>
       );
     case 'core':
       return (
         <>
-          <i className="home-capx home-capx-layer home-capx-layer--3" />
-          <i className="home-capx home-capx-layer home-capx-layer--2" />
-          <i className="home-capx home-capx-layer home-capx-layer--1" />
+          <i
+            className={cn(
+              styles.capx,
+              styles.capxLayer,
+              styles['capxLayer--3'],
+            )}
+          />
+          <i
+            className={cn(
+              styles.capx,
+              styles.capxLayer,
+              styles['capxLayer--2'],
+            )}
+          />
+          <i
+            className={cn(
+              styles.capx,
+              styles.capxLayer,
+              styles['capxLayer--1'],
+            )}
+          />
         </>
       );
     case 'imperative':
       return (
         <>
-          <span className="home-capx home-capx-line">panel.split()</span>
-          <i className="home-capx home-capx-imp-pane home-capx-imp-a" />
-          <i className="home-capx home-capx-imp-pane home-capx-imp-b" />
+          <span className={cn(styles.capx, styles.capxLine)}>
+            panel.split()
+          </span>
+          <i className={cn(styles.capx, styles.capxImpPane, styles.capxImpA)} />
+          <i className={cn(styles.capx, styles.capxImpPane, styles.capxImpB)} />
         </>
       );
     case 'floating':
       return (
         <>
-          <i className="home-capx home-capx-float-base" />
-          <i className="home-capx home-capx-float-slot" />
-          <i className="home-capx home-capx-float-panel" />
+          <i className={cn(styles.capx, styles.capxFloatBase)} />
+          <i className={cn(styles.capx, styles.capxFloatSlot)} />
+          <i className={cn(styles.capx, styles.capxFloatPanel)} />
         </>
       );
     case 'persist':
       return (
         <>
-          <i className="home-capx home-capx-persist-pane home-capx-persist-pane--l" />
-          <i className="home-capx home-capx-persist-pane home-capx-persist-pane--r" />
-          <pre className="home-capx home-capx-persist-token">
+          <i
+            className={cn(
+              styles.capx,
+              styles.capxPersistPane,
+              styles['capxPersistPane--l'],
+            )}
+          />
+          <i
+            className={cn(
+              styles.capx,
+              styles.capxPersistPane,
+              styles['capxPersistPane--r'],
+            )}
+          />
+          <pre className={cn(styles.capx, styles.capxPersistToken)}>
             {'{ "panels": 2,\n  "tabs": 7 }'}
           </pre>
         </>
@@ -85,52 +127,85 @@ function CapDemo({ type }: { type: HomeCapability['demo'] }) {
     case 'lock':
       return (
         <>
-          <i className="home-capx home-capx-lock-pane home-capx-lock-pane--l" />
-          <i className="home-capx home-capx-lock-pane home-capx-lock-pane--r" />
-          <i className="home-capx home-capx-lock-divider" />
-          <i className="home-capx home-capx-lock-icon home-capx-lock-icon--l" />
-          <i className="home-capx home-capx-lock-shackle home-capx-lock-shackle--l" />
-          <i className="home-capx home-capx-lock-icon home-capx-lock-icon--r" />
-          <i className="home-capx home-capx-lock-shackle home-capx-lock-shackle--r" />
+          <i
+            className={cn(
+              styles.capx,
+              styles.capxLockPane,
+              styles['capxLockPane--l'],
+            )}
+          />
+          <i
+            className={cn(
+              styles.capx,
+              styles.capxLockPane,
+              styles['capxLockPane--r'],
+            )}
+          />
+          <i className={cn(styles.capx, styles.capxLockDivider)} />
+          <i
+            className={cn(
+              styles.capx,
+              styles.capxLockIcon,
+              styles['capxLockIcon--l'],
+            )}
+          />
+          <i
+            className={cn(
+              styles.capx,
+              styles.capxLockShackle,
+              styles['capxLockShackle--l'],
+            )}
+          />
+          <i
+            className={cn(
+              styles.capx,
+              styles.capxLockIcon,
+              styles['capxLockIcon--r'],
+            )}
+          />
+          <i
+            className={cn(
+              styles.capx,
+              styles.capxLockShackle,
+              styles['capxLockShackle--r'],
+            )}
+          />
         </>
       );
   }
 }
 
 export function CapabilitiesScene() {
-  const { container, isDesktopScroller } = useHomeScroll();
   const gridRef = useRef<HTMLDivElement>(null);
-  const inView = useInView(gridRef, {
-    root: isDesktopScroller
-      ? (container as React.RefObject<Element>)
-      : undefined,
-    margin: '0px 0px -10% 0px',
-  });
+
+  useEffect(() => {
+    gridRef.current?.setAttribute('data-play', 'true');
+  }, []);
 
   return (
     <section
-      className="home-capabilities-scene"
+      className={styles.capabilitiesScene}
       aria-labelledby="capabilities-title">
-      <header className="home-scene-head">
-        <h2 id="capabilities-title" className="home-scene-head__title">
+      <header className={styles.sceneHead}>
+        <h2 id="capabilities-title" className={styles.sceneHeadTitle}>
           The primitives for panel-based apps.
         </h2>
       </header>
 
-      <div ref={gridRef} className="home-cap-grid" data-play={inView}>
+      <div ref={gridRef} className={styles.capGrid} data-play="true">
         {capabilities.map((cap) => (
-          <article key={cap.title} className="home-cap-card">
-            <div className="home-tabbar home-cap-card__bar">
-              <div className="home-tab home-tab--active">
-                <span className="home-tab__label">{cap.title}</span>
+          <article key={cap.title} className={styles.capCard}>
+            <div className={cn(styles.tabbar, 'home-cap-card__bar')}>
+              <div className={cn(styles.tab, styles['tab--active'])}>
+                <span className={styles.tabLabel}>{cap.title}</span>
               </div>
             </div>
-            <div className="home-cap-card__body">
+            <div className={styles.capCardBody}>
               <div
-                className={`home-cap-demo home-cap-demo--${cap.demo} home-workspace`}>
+                className={cn(styles.capDemo, styles[`capDemo--${cap.demo}`])}>
                 <CapDemo type={cap.demo} />
               </div>
-              <p className="home-cap-card__desc">{cap.body}</p>
+              <p className={styles.capCardDesc}>{cap.body}</p>
             </div>
           </article>
         ))}

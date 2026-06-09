@@ -1,3 +1,6 @@
+import { cn } from '../../lib/cn';
+import styles from './status-chip.module.css';
+
 type StatusTone = 'success' | 'danger' | 'neutral';
 
 export type StatusChipProps = {
@@ -8,8 +11,7 @@ export type StatusChipProps = {
 
 export function StatusChip({ tone, label, className }: StatusChipProps) {
   return (
-    <div
-      className={className ? `design-status ${className}` : `design-status design-status--${tone}`}>
+    <div className={cn(styles.status, styles[`status--${tone}`], className)}>
       {label}
     </div>
   );

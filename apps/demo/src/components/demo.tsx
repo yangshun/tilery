@@ -8,25 +8,8 @@ import {
   extractSourceRegion,
   extractSourceRegions,
 } from '../lib/source-region';
+import demoStyles from './demo.module.css';
 
-/**
- * Renders a live example demo beside its source code.
- *
- * The displayed code is read at build time from the *same* `.tsx` file the demo
- * component is imported from, so it can never drift from what renders:
- *
- * ```mdx
- * import { DraculaThemeExample } from './themes/example';
- * <Demo source="themes/example.tsx" region="dracula" surface="plain">
- *   <DraculaThemeExample />
- * </Demo>
- * ```
- *
- * `source` is relative to `src/content/examples/`. Prefer `region` or
- * `regions` so displayed snippets stay focused on usage code. A missing region
- * throws, to fail loudly on authoring typos. The live demo is passed as
- * `children` and rendered through a client mount gate.
- */
 export function Demo({
   source,
   region,
@@ -47,11 +30,11 @@ export function Demo({
   const code = resolveDemoSourceCode({ fileSource, region, regions, source });
 
   return (
-    <section className="example-preview__case">
+    <section className={demoStyles.case}>
       <DemoSurface surface={surface} height={height}>
         <DemoMount>{children}</DemoMount>
       </DemoSurface>
-      <div className="example-preview__source">
+      <div className={demoStyles.source}>
         <CodeBlock code={code} />
       </div>
     </section>

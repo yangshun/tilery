@@ -29,7 +29,12 @@ import {
   StatusChip,
 } from '../../components/ui';
 import { AppearanceFooter } from '../../components/appearance-footer';
-import { ExampleSection, TabContent, EmptyState } from '../../content/examples/example-ui';
+import {
+  ExampleSection,
+  TabContent,
+  EmptyState,
+} from '../../content/examples/example-ui';
+import styles from './design-showcase.module.css';
 
 const tokenRows = [
   {
@@ -75,24 +80,25 @@ export function DesignShowcase() {
   return (
     <>
       <section
-        className="design-section"
+        className={styles.section}
         aria-labelledby="design-foundation-title">
-        <div className="design-section__header">
+        <div className={styles.sectionHeader}>
           <h2 id="design-foundation-title">Tokens and type</h2>
           <p>
             The demo site is driven by theme-aware tokens, compact typography,
             and direct surface states.
           </p>
         </div>
-        <div className="design-specimen-grid design-specimen-grid--two">
+        <div
+          className={styles.specimenGrid + ' ' + styles['specimenGrid--two']}>
           <DesignSpecimen
             title="Theme tokens"
             description="Core values that adapt across dark, light, and accent choices.">
-            <ul className="design-token-list">
+            <ul className={styles.tokenList}>
               {tokenRows.map((token) => (
-                <li key={token.name} className="design-token">
+                <li key={token.name} className={styles.token}>
                   <span
-                    className="design-token__swatch"
+                    className={styles['token__swatch']}
                     style={
                       {
                         '--design-token-sample': token.sample,
@@ -110,16 +116,22 @@ export function DesignShowcase() {
           <DesignSpecimen
             title="Typography"
             description="Content hierarchy used by docs, examples, and controls.">
-            <div className="design-type-stack">
+            <div className={styles.typeStack}>
               <div>
-                <span className="design-label">Page title</span>
-                <div className="design-type-sample design-type-sample--title">
+                <span className={styles.label}>Page title</span>
+                <div
+                  className={
+                    styles.typeSample + ' ' + styles['typeSample--title']
+                  }>
                   Workspace controls
                 </div>
               </div>
               <div>
-                <span className="design-label">Section title</span>
-                <div className="design-type-sample design-type-sample--section">
+                <span className={styles.label}>Section title</span>
+                <div
+                  className={
+                    styles.typeSample + ' ' + styles['typeSample--section']
+                  }>
                   Selected panel
                 </div>
               </div>
@@ -132,17 +144,16 @@ export function DesignShowcase() {
         </div>
       </section>
 
-      <section
-        className="design-section"
-        aria-labelledby="design-button-title">
-        <div className="design-section__header">
+      <section className={styles.section} aria-labelledby="design-button-title">
+        <div className={styles.sectionHeader}>
           <h2 id="design-button-title">Button</h2>
           <p>
             Variants cover page actions, primary calls to action, secondary
             buttons, and active, disabled, and danger states.
           </p>
         </div>
-        <div className="design-specimen-grid design-specimen-grid--two">
+        <div
+          className={styles.specimenGrid + ' ' + styles['specimenGrid--two']}>
           <DesignSpecimen
             title="Variants"
             description="Default, primary, secondary, strong, active, disabled, and danger.">
@@ -170,9 +181,9 @@ export function DesignShowcase() {
       </section>
 
       <section
-        className="design-section"
+        className={styles.section}
         aria-labelledby="design-icon-button-title">
-        <div className="design-section__header">
+        <div className={styles.sectionHeader}>
           <h2 id="design-icon-button-title">IconButton</h2>
           <p>
             Square icon-only controls for toolbars, global theme switching, and
@@ -198,7 +209,7 @@ export function DesignShowcase() {
             <ThemeToggle />
             <AccentSelector />
           </ButtonGroup>
-          <div className="design-accent-row" aria-label="Accent swatches">
+          <div className={styles.accentRow} aria-label="Accent swatches">
             {ACCENT_IDS.map((accent) => (
               <span
                 key={accent}
@@ -211,10 +222,8 @@ export function DesignShowcase() {
         </DesignSpecimen>
       </section>
 
-      <section
-        className="design-section"
-        aria-labelledby="design-field-title">
-        <div className="design-section__header">
+      <section className={styles.section} aria-labelledby="design-field-title">
+        <div className={styles.sectionHeader}>
           <h2 id="design-field-title">Field</h2>
           <p>
             Label-on-left, control-on-right row, with an optional hint line.
@@ -275,19 +284,19 @@ export function DesignShowcase() {
       </section>
 
       <section
-        className="design-section"
+        className={styles.section}
         aria-labelledby="design-accordion-title">
-        <div className="design-section__header">
+        <div className={styles.sectionHeader}>
           <h2 id="design-accordion-title">Accordion</h2>
           <p>
-            Collapsible sections keep dense controls scannable. Each panel
-            keeps its content mounted.
+            Collapsible sections keep dense controls scannable. Each panel keeps
+            its content mounted.
           </p>
         </div>
         <DesignSpecimen
           title="Composed inspector"
           description="Accordion with Fields, Selects, and a ButtonGroup inside.">
-          <div className="design-playground-panel">
+          <div className={styles.playgroundPanel}>
             <AccordionRoot defaultOpen={['workspace', 'panel']}>
               <AccordionItem value="workspace" title="Workspace">
                 <Field
@@ -360,10 +369,7 @@ export function DesignShowcase() {
                   }
                 />
                 <ButtonGroup>
-                  <Button
-                    variant="strong"
-                    size="compact"
-                    active={locked}>
+                  <Button variant="strong" size="compact" active={locked}>
                     <RiCheckLine aria-hidden="true" />
                     Lock
                   </Button>
@@ -378,15 +384,15 @@ export function DesignShowcase() {
         </DesignSpecimen>
       </section>
 
-      <section className="design-section" aria-labelledby="design-status-title">
-        <div className="design-section__header">
+      <section className={styles.section} aria-labelledby="design-status-title">
+        <div className={styles.sectionHeader}>
           <h2 id="design-status-title">Status</h2>
           <p>
-            Success and danger colors are used by transient actions such as
-            copy feedback, destructive buttons, and failed commands.
+            Success and danger colors are used by transient actions such as copy
+            feedback, destructive buttons, and failed commands.
           </p>
         </div>
-        <div className="design-status-grid">
+        <div className={styles.statusGrid}>
           <StatusChip tone="success" label="Copied" />
           <StatusChip tone="danger" label="Copy failed" />
           <StatusChip tone="neutral" label="Idle" />
@@ -394,9 +400,9 @@ export function DesignShowcase() {
       </section>
 
       <section
-        className="design-section"
+        className={styles.section}
         aria-labelledby="design-compositions-title">
-        <div className="design-section__header">
+        <div className={styles.sectionHeader}>
           <h2 id="design-compositions-title">Compositions</h2>
           <p>
             Real pieces of the demo site built from the primitives above:
@@ -409,7 +415,7 @@ export function DesignShowcase() {
             <DesignSpecimen
               title="Example section"
               description="A reusable header, action row, frame, and reset control.">
-              <div className="example-preview__demo-surface design-example-surface">
+              <div className={styles.exampleSurface}>
                 <ExampleSection
                   title="Example section"
                   description="A reusable header, action row, frame, and reset control."
@@ -431,8 +437,8 @@ export function DesignShowcase() {
                       </Button>
                     </>
                   }>
-                  <div className="design-example-content">
-                    <div className="design-example-tabbar">
+                  <div className={styles.exampleContent}>
+                    <div className={styles.exampleTabbar}>
                       <span data-active="true">Preview</span>
                       <span>Source</span>
                       <span>Events</span>
@@ -440,8 +446,8 @@ export function DesignShowcase() {
                     <TabContent meta={exampleDirty ? 'dirty' : 'ready'}>
                       <p>
                         Example content inherits the demo workspace palette
-                        while the header and controls stay aligned with the
-                        site chrome.
+                        while the header and controls stay aligned with the site
+                        chrome.
                       </p>
                       {exampleDirty ? (
                         <p>Reset returns the specimen to its original state.</p>
@@ -471,7 +477,7 @@ export function DesignShowcase() {
             <DesignSpecimen
               title="Inspector panel"
               description="A playground-style inspector built from Accordion, Field, Select, Switch, NumberInput, and ButtonGroup.">
-              <div className="design-playground-panel">
+              <div className={styles.playgroundPanel}>
                 <AccordionRoot defaultOpen={['workspace', 'panel']}>
                   <AccordionItem value="workspace" title="Workspace">
                     <Field
@@ -547,10 +553,7 @@ export function DesignShowcase() {
                       }
                     />
                     <ButtonGroup>
-                      <Button
-                        variant="strong"
-                        size="compact"
-                        active={locked}>
+                      <Button variant="strong" size="compact" active={locked}>
                         <RiCheckLine aria-hidden="true" />
                         Lock
                       </Button>
@@ -580,12 +583,12 @@ function DesignSpecimen({
   children: ReactNode;
 }) {
   return (
-    <div className="design-specimen">
-      <div className="design-specimen__header">
+    <div className={styles.specimen}>
+      <div className={styles.specimenHeader}>
         <h3>{title}</h3>
         <p>{description}</p>
       </div>
-      <div className="design-specimen__body">{children}</div>
+      <div className={styles.specimenBody}>{children}</div>
     </div>
   );
 }

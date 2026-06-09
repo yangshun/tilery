@@ -1,0 +1,125 @@
+.trigger {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--icon-button-size, 30px);
+  height: var(--icon-button-size, 30px);
+  padding: 0;
+  border: 0;
+  border-radius: var(--icon-button-radius, 6px);
+  background: transparent;
+  color: var(--site-fg);
+  font-size: var(--icon-button-font-size, 18px);
+  line-height: 0;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.trigger:hover {
+  background: var(--site-overlay);
+  color: var(--site-fg);
+}
+
+.trigger:focus-visible {
+  outline: 2px solid var(--site-accent);
+  outline-offset: 2px;
+}
+
+.trigger[data-popup-open] {
+  background: var(--icon-button-hover-bg);
+  color: var(--icon-button-hover-fg);
+}
+
+.triggerIcon {
+  display: inline-flex;
+}
+
+.triggerDot {
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  width: 9px;
+  height: 9px;
+  border: 1px solid var(--site-bg);
+  border-radius: 50%;
+  background: var(--accent-picker-color);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--site-fg), transparent 60%);
+}
+
+.menu {
+  z-index: 40;
+  display: grid;
+  grid-template-columns: repeat(4, 24px);
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--site-shell-border);
+  border-radius: 8px;
+  background: var(--site-bg);
+  box-shadow: var(--site-shadow);
+}
+
+.swatch {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--site-fg), transparent 60%);
+  border-radius: 50%;
+  background: var(--accent-picker-color);
+  cursor: pointer;
+  box-shadow: 0 0 0 2px transparent;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
+}
+
+.swatch:hover {
+  transform: translateY(-1px);
+}
+
+.swatch[data-checked] {
+  border-color: var(--site-fg);
+  box-shadow:
+    0 0 0 2px var(--site-bg),
+    0 0 0 4px color-mix(in srgb, var(--site-fg), transparent 46%);
+}
+
+.swatch--lime {
+  --accent-picker-color: #a3e635;
+}
+.swatch--teal {
+  --accent-picker-color: #2dd4bf;
+}
+.swatch--sky {
+  --accent-picker-color: #38bdf8;
+}
+.swatch--red {
+  --accent-picker-color: #ff2d2d;
+}
+.swatch--orange {
+  --accent-picker-color: #f97316;
+}
+.swatch--purple {
+  --accent-picker-color: #a855f7;
+}
+.swatch--amber {
+  --accent-picker-color: #fbbf24;
+}
+.swatch--white {
+  --accent-picker-color: #f8fafc;
+}
+
+:global([data-theme='light']) .triggerDot,
+:global([data-theme='light']) .swatch {
+  border-color: rgba(15, 23, 42, 0.32);
+}
+
+:global([data-theme='light']) .swatch[data-checked] {
+  border-color: #111827;
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 4px rgba(15, 23, 42, 0.42);
+}

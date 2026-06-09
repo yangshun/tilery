@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { docs, docsBySlug } from '../../../content/docs';
 import { ContentPage } from '../../../components/content-page';
+import contentStyles from '../../../components/doc-page.module.css';
 
 type DocPageParams = { slug: string[] };
 
@@ -34,7 +35,7 @@ export default function DocPage({
       dataMap={docsBySlug}
       resolveSlug={(p) => p.slug.join('/')}
       hrefPrefix="/docs"
-      wrapperClassName="doc-page"
+      styles={contentStyles}
     />
   );
 }

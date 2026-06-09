@@ -1,21 +1,18 @@
 'use client';
 
-// The real, fully-interactive Tilery workspace — the second section, where the
-// concept shown by the scroll animation above becomes something you can use. The
-// shell fades in as it scrolls into view; the Tilery instance mounts lazily, and
-// the reset button restores the default layout by remounting it.
-
 import { LiveIdeDemo } from '../home-demo';
+import { cn } from '../../lib/cn';
+import styles from './home-demo-section.module.css';
 
 export function DemoScene() {
   return (
-    <section className="home-demo-scene" aria-labelledby="demo-title">
-      <header className="home-scene-head home-demo-scene__head">
-        <h2 id="demo-title" className="home-scene-head__title">
+    <section className={styles.demoScene} aria-labelledby="demo-title">
+      <header className={cn(styles.sceneHead, styles.demoSceneHead)}>
+        <h2 id="demo-title" className={styles.sceneHeadTitle}>
           Try it — resize, drag, drop.
         </h2>
       </header>
-      <div className="home-demo__shell home-demo-scene__shell home-reveal">
+      <div className={cn(styles.demoShell, styles.demoReveal)}>
         <LiveIdeDemo />
       </div>
     </section>

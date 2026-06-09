@@ -1,0 +1,106 @@
+.demoSurfaceWrap {
+  position: relative;
+  margin-bottom: 24px;
+}
+
+.demoSurface {
+  position: relative;
+  height: 500px;
+  min-height: 240px;
+  min-width: 360px;
+  overflow: hidden;
+  --example-demo-bg: #0e0f12;
+  --example-demo-fg: #d9dde3;
+  --example-demo-fg-strong: #f3f4f7;
+  --example-demo-muted: #9aa1ab;
+  --example-demo-muted-soft: #6f7785;
+  --example-demo-border: #2a2d33;
+  --example-demo-border-soft: rgba(255, 255, 255, 0.08);
+  --example-demo-panel-bg: #111318;
+  --example-demo-panel-bg-raised: #1f2127;
+  --example-demo-control-active-bg: rgba(255, 255, 255, 0.1);
+  --example-demo-code-bg: #101318;
+  --example-demo-meta-bg: rgba(255, 255, 255, 0.07);
+  --tilery-bg: #0e0f12;
+  --tilery-fg: #d9dde3;
+  --tilery-panel-bg: #1a1c20;
+  --tilery-panel-border: #2a2d33;
+  --tilery-tabbar-bg: #16181c;
+  --tilery-tab-fg: #9aa1ab;
+  --tilery-tab-active-bg: #1a1c20;
+  --tilery-tab-active-fg: #f3f4f7;
+  --tilery-tab-hover-bg: rgba(255, 255, 255, 0.04);
+  --tilery-menu-bg: #1f2228;
+  --tilery-action-hover-bg: rgba(255, 255, 255, 0.08);
+  --tilery-accent: var(--site-workspace-accent);
+  --tilery-drop-bg: color-mix(
+    in srgb,
+    var(--site-workspace-accent),
+    transparent 82%
+  );
+  --tilery-drop-border: color-mix(
+    in srgb,
+    var(--site-workspace-accent),
+    transparent 28%
+  );
+  --tilery-resize-handle-active-bg: color-mix(
+    in srgb,
+    var(--site-workspace-accent),
+    transparent 38%
+  );
+  --home-demo-accent: var(--site-workspace-accent);
+  --home-demo-drop-bg: var(--tilery-drop-bg);
+  --home-demo-drop-border: var(--tilery-drop-border);
+  font-size: 16px;
+}
+
+.demoSurface :global(.tilery) {
+  font-size: 16px;
+}
+
+.demoSurface :global(.tilery__tab-content) :where(p, li, dd, dt) {
+  color: inherit;
+}
+
+.demoSurface :global(.tilery__tab-content) code {
+  background: var(--example-demo-code-bg);
+  color: var(--example-demo-fg-strong);
+}
+
+.demoSurface--boxed {
+  border: 1px solid var(--example-demo-border);
+  border-radius: 6px;
+  background: var(--example-demo-bg);
+  color: var(--example-demo-fg);
+  color-scheme: dark;
+}
+
+.demoSurface__resize {
+  position: absolute;
+  z-index: 6;
+  touch-action: none;
+}
+
+.demoSurface__resize--bottom {
+  bottom: -4px;
+  left: 0;
+  right: 0;
+  height: 8px;
+  cursor: ns-resize;
+}
+
+.demoSurface__resize--right {
+  right: -4px;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  cursor: ew-resize;
+}
+
+.demoSurface__resize--corner {
+  right: calc(100% - var(--demo-frame-width, 100%) - 7px);
+  bottom: -7px;
+  width: 24px;
+  height: 24px;
+  cursor: nwse-resize;
+}

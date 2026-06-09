@@ -1,6 +1,10 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import styles from '../code-block-frame.module.css';
+import { cn } from '../../lib/cn';
+import { Button } from '../ui/button';
+import { IconButton } from '../ui/icon-button';
 
 const MAX_CODE_BLOCK_HEIGHT = 360;
 
@@ -72,21 +76,19 @@ export function CodeBlockFrame({ code, html }: { code: string; html: string }) {
 
   return (
     <div
-      className={
-        expanded
-          ? 'code-block code-block--expanded'
-          : canExpand
-            ? 'code-block code-block--collapsed code-block--can-expand'
-            : 'code-block code-block--collapsed'
-      }>
+      data-code-block
+      className={cn(
+        styles.codeBlock,
+        !expanded && styles.collapsed,
+        !expanded && canExpand && styles.codeBlockCanExpand,
+      )}>
       <div
         ref={contentRef}
-        className="code-block__content"
+        className={styles.codeBlockContent}
         dangerouslySetInnerHTML={{ __html: html }}
       />
-      <button
-        type="button"
-        className="site-icon-button code-block__copy"
+      <IconButton
+        className={styles.codeBlockCopy}
         aria-label={
           copyState === 'copied'
             ? 'Copied code'
@@ -104,15 +106,14 @@ export function CodeBlockFrame({ code, html }: { code: string; html: string }) {
         data-state={copyState}
         onClick={handleCopy}>
         {copyState === 'copied' ? <CheckIcon /> : <CopyIcon />}
-      </button>
+      </IconButton>
       {canExpand ? (
-        <button
-          type="button"
-          className="site-button code-block__toggle"
+        <Button
+          className={styles.codeBlockToggle}
           aria-expanded={expanded}
           onClick={() => setExpanded((value) => !value)}>
           {expanded ? 'Collapse' : 'Show full code'}
-        </button>
+        </Button>
       ) : null}
     </div>
   );

@@ -15,7 +15,7 @@ export type ContentPageProps<P> = {
   dataMap: Map<string, ContentPageData>;
   resolveSlug: (params: P) => string;
   hrefPrefix: string;
-  wrapperClassName: string;
+  styles: Record<string, string>;
 };
 
 export async function ContentPage<P>({
@@ -23,7 +23,7 @@ export async function ContentPage<P>({
   dataMap,
   resolveSlug,
   hrefPrefix,
-  wrapperClassName,
+  styles,
 }: ContentPageProps<P>) {
   const resolvedParams = await params;
   const page = dataMap.get(resolveSlug(resolvedParams));
@@ -32,9 +32,9 @@ export async function ContentPage<P>({
   const Content = page.Content;
 
   return (
-    <article className={wrapperClassName}>
+    <article className={styles.wrapper}>
       <h1>{page.title}</h1>
-      <p className={`${wrapperClassName}__description`}>{page.description}</p>
+      <p className={styles.description}>{page.description}</p>
       <Content />
       <PageNavigation previous={navigation.previous} next={navigation.next} />
     </article>

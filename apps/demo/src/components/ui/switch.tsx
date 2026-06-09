@@ -1,6 +1,7 @@
 'use client';
 
 import { Switch } from '@base-ui-components/react/switch';
+import styles from './switch.module.css';
 
 export type SwitchProps = {
   checked: boolean;
@@ -17,11 +18,11 @@ export function SwitchInput({
 }: SwitchProps) {
   return (
     <Switch.Root
-      className={className ?? 'playground-switch'}
+      className={className ?? styles.switch}
       checked={checked}
       onCheckedChange={onChange}
       disabled={disabled}>
-      <Switch.Thumb className="playground-switch__thumb" />
+      <Switch.Thumb className={styles.thumb} />
     </Switch.Root>
   );
 }

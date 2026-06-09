@@ -6,6 +6,7 @@ import { AccentSelector } from './accent-selector';
 import { ThemeToggle } from './theme-toggle';
 import { cn } from '../lib/cn';
 import styles from './appearance-footer.module.css';
+import iconButtonStyles from './ui/icon-button.module.css';
 import { Button } from './ui/button';
 
 export function AppearanceFooter({
@@ -24,7 +25,7 @@ export function AppearanceFooter({
           href="https://github.com/yangshun/tilery"
           target="_blank"
           rel="noopener noreferrer"
-          className={cn(githubClassName)}
+          className={cn(iconButtonStyles.iconButton, githubClassName)}
           aria-label="GitHub repository">
           <RiGithubFill aria-hidden="true" />
         </a>
@@ -32,10 +33,7 @@ export function AppearanceFooter({
         <AccentSelector />
       </div>
       {utilityItem ? (
-        <Button
-          variant="secondary"
-          asChild
-          data-active={utilityItem.active}>
+        <Button variant="secondary" asChild data-active={utilityItem.active}>
           <Link href={utilityItem.href}>{utilityItem.label}</Link>
         </Button>
       ) : null}

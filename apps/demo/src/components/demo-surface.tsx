@@ -12,6 +12,8 @@ import {
   type ReactNode,
 } from 'react';
 import { usePointerDrag } from '../hooks/use-pointer-drag';
+import { cn } from '../lib/cn';
+import demoStyles from './demo-surface.module.css';
 
 /** Whether a demo renders inside a bordered box or flush (full-bleed). */
 export type DemoSurfaceMode = 'boxed' | 'plain';
@@ -39,11 +41,6 @@ type Size = {
   maxed: boolean;
 };
 
-/**
- * Frames a live example demo. `boxed` adds the bordered surface; `plain`
- * renders the demo flush (used by theme / full-bleed examples).
- * The preview surface can be resized by dragging the bottom-right corner.
- */
 export function DemoSurface({
   surface,
   children,
@@ -61,8 +58,6 @@ export function DemoSurface({
 
   const context = useMemo(() => ({ resized, reset }), [resized, reset]);
 
-  // When the container resizes (page resize, etc.), clamp or expand the
-  // stored width so the frame never overflows and grows if it was at max.
   useEffect(() => {
     if (!size) return;
     const container = containerRef.current;
@@ -73,11 +68,9 @@ export function DemoSurface({
       if (!newWidth) return;
       setSize((prev) => {
         if (!prev) return null;
-        // Container shrunk below stored width — clamp down.
         if (prev.width > newWidth) {
           return { ...prev, width: newWidth, maxed: false };
         }
-        // Container grew and the last resize was at max — expand with it.
         if (prev.maxed && prev.width < newWidth) {
           return { ...prev, width: newWidth, maxed: true };
         }
@@ -137,34 +130,42 @@ export function DemoSurface({
   return (
     <DemoSurfaceContext.Provider value={context}>
       <div
-        className="example-preview__demo-surface-wrap"
+        className={demoStyles.demoSurfaceWrap}
         style={
           size
             ? { ['--demo-frame-width' as string]: `${size.width}px` }
             : undefined
         }>
         <div
-          className={
-            surface === 'boxed'
-              ? 'example-preview__demo-surface example-preview__demo-surface--boxed'
-              : 'example-preview__demo-surface'
-          }
+          className={cn(
+            demoStyles.demoSurface,
+            surface === 'boxed' && demoStyles['demoSurface--boxed'],
+          )}
           ref={containerRef}
           style={size ? { height: size.height } : { height: defaultHeight }}>
           {children}
         </div>
         <span
-          className="example-preview__demo-surface__resize example-preview__demo-surface__resize--bottom"
+          className={cn(
+            demoStyles.demoSurface__resize,
+            demoStyles['demoSurface__resize--bottom'],
+          )}
           onPointerDown={(e) => startResize(e, 'bottom')}
           aria-hidden="true"
         />
         <span
-          className="example-preview__demo-surface__resize example-preview__demo-surface__resize--right"
+          className={cn(
+            demoStyles.demoSurface__resize,
+            demoStyles['demoSurface__resize--right'],
+          )}
           onPointerDown={(e) => startResize(e, 'right')}
           aria-hidden="true"
         />
         <span
-          className="example-preview__demo-surface__resize example-preview__demo-surface__resize--corner"
+          className={cn(
+            demoStyles.demoSurface__resize,
+            demoStyles['demoSurface__resize--corner'],
+          )}
           onPointerDown={(e) => startResize(e, 'corner')}
           aria-hidden="true"
         />

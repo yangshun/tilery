@@ -1,0 +1,15 @@
+.themeIcon {
+  display: inline-flex;
+}
+
+.themeIcon--moon {
+  display: none;
+}
+
+:global([data-theme='light']) .themeIcon--sun {
+  display: none;
+}
+
+:global([data-theme='light']) .themeIcon--moon {
+  display: inline-flex;
+}

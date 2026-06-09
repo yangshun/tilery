@@ -1,22 +1,22 @@
-// Autonomous hero background visual. The motion is CSS-only so it can fade in
-// and keep running without binding to scroll progress.
+import { cn } from '../../lib/cn';
+import styles from './home-principles.module.css';
 
 const workspaceTabs = ['app.tsx', 'preview', 'terminal'];
 
 export function HeroPrinciplesVisual() {
   return (
-    <div className="home-hero__principles" aria-hidden="true">
-      <div className="home-principles-visual">
-        <div className="home-principles-visual__stage">
-          <div className="home-principles__row home-workspace">
-            <div className="home-panel home-pp__panel home-pp__a">
-              <div className="home-tabbar">
-                <div className="home-tab home-tab--active">
-                  <span className="home-tab__label">{workspaceTabs[0]}</span>
+    <div className={styles.heroPrinciples} aria-hidden="true">
+      <div className={styles.principlesVisual}>
+        <div className={styles.principlesVisualStage}>
+          <div className={cn(styles.principlesRow, styles.workspace)}>
+            <div className={cn(styles.panel, 'home-pp__panel', styles.pp__a)}>
+              <div className={styles.tabbar}>
+                <div className={cn(styles.tab, styles['tab--active'])}>
+                  <span className={styles.tabLabel}>{workspaceTabs[0]}</span>
                 </div>
               </div>
-              <div className="home-pp__body home-pp__body--a">
-                <pre className="home-pp-code">
+              <div className={cn(styles.pp__body, styles['pp__body--a'])}>
+                <pre className={styles.ppCode}>
                   {`export function AppShell() {
   const layout = useWorkspaceLayout();
 
@@ -32,16 +32,21 @@ export function HeroPrinciplesVisual() {
               </div>
             </div>
 
-            <div className="home-pp__b">
-              <div className="home-panel home-pp__panel home-pp__editor">
-                <div className="home-tabbar">
-                  <div className="home-tab home-tab--active">
-                    <span className="home-tab__label">{workspaceTabs[1]}</span>
+            <div className={styles.pp__b}>
+              <div
+                className={cn(
+                  styles.panel,
+                  'home-pp__panel',
+                  styles.pp__editor,
+                )}>
+                <div className={styles.tabbar}>
+                  <div className={cn(styles.tab, styles['tab--active'])}>
+                    <span className={styles.tabLabel}>{workspaceTabs[1]}</span>
                   </div>
                 </div>
-                <div className="home-pp__body home-pp__body--b">
-                  <div className="home-pp-preview">
-                    <div className="home-pp-preview__pane">
+                <div className={cn(styles.pp__body, styles['pp__body--b'])}>
+                  <div className={styles.ppPreview}>
+                    <div className={styles.ppPreviewPane}>
                       <strong>Project dashboard</strong>
                       <span>5 open tabs</span>
                       <span>Layout saved 2m ago</span>
@@ -50,17 +55,22 @@ export function HeroPrinciplesVisual() {
                 </div>
               </div>
 
-              <div className="home-pp__term-wrap">
-                <div className="home-panel home-pp__panel home-pp__terminal">
-                  <div className="home-tabbar">
-                    <div className="home-tab home-tab--active">
-                      <span className="home-tab__label">
+              <div className={styles.pp__termWrap}>
+                <div
+                  className={cn(
+                    styles.panel,
+                    'home-pp__panel',
+                    styles.pp__terminal,
+                  )}>
+                  <div className={styles.tabbar}>
+                    <div className={cn(styles.tab, styles['tab--active'])}>
+                      <span className={styles.tabLabel}>
                         {workspaceTabs[2]}
                       </span>
                     </div>
                   </div>
-                  <div className="home-pp__body home-pp__body--c">
-                    <pre className="home-pp-terminal-text">
+                  <div className={cn(styles.pp__body, styles['pp__body--c'])}>
+                    <pre className={styles.ppTerminalText}>
                       {
                         '$ pnpm dev\nready - started server\ncompiled /workspace in 184ms'
                       }

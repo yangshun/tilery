@@ -2,11 +2,11 @@
 
 // Resolves which element actually scrolls the homepage and exposes it to scenes
 // that need viewport-aware playback. Above 1024px the page scrolls inside
-// `.site-main` (globals.css:339), but at <=1024px the layout flips to
-// `overflow: visible` (globals.css:896) and the WINDOW scrolls instead.
+// `<main data-scroll-root>`, but at <=1024px the layout flips to
+// `overflow: visible` and the WINDOW scrolls instead.
 //
-// Strategy: render a `display:contents` sentinel, walk up to `.site-main`, and
-// decide per-breakpoint whether `.site-main` is the scroller. Capability cards
+// Strategy: render a `display:contents` sentinel, walk up to `[data-scroll-root]`, and
+// decide per-breakpoint whether that element is the scroller. Capability cards
 // use this as their in-view root, and every animated scene shares the reduced
 // motion preference from here.
 
@@ -26,7 +26,7 @@ type HomeScrollContextValue = {
   container: RefObject<HTMLElement | null>;
   /** True once the scroller has been resolved on the client. */
   ready: boolean;
-  /** True when `.site-main` is the active scroller (desktop layout). */
+  /** True when the data-scroll-root element is the active scroller (desktop layout). */
   isDesktopScroller: boolean;
   /** OS "reduce motion" preference; the single source of truth for all scenes. */
   reduce: boolean;
@@ -46,8 +46,7 @@ export function HomeScrollProvider({ children }: { children: ReactNode }) {
   useLayoutEffect(() => {
     const resolve = () => {
       const main =
-        (sentinelRef.current?.closest('.site-main') as HTMLElement | null) ??
-        null;
+        sentinelRef.current?.closest<HTMLElement>('[data-scroll-root]') ?? null;
       const mobile = window.matchMedia(MOBILE_QUERY).matches;
       const desktopScroller = !mobile && main !== null;
       // null => useScroll falls back to the window (correct on mobile).

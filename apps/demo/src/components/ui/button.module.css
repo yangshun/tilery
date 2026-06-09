@@ -99,7 +99,10 @@
 }
 
 /* Light theme overrides for default variant */
-:global([data-theme='light']) .button:not(.primary):not(.secondary):not(.strong) {
+:global([data-theme='light'])
+  .button:not([data-variant='primary']):not([data-variant='secondary']):not(
+    [data-variant='strong']
+  ) {
   --button-bg: transparent;
   --button-border: rgba(15, 23, 42, 0.16);
   --button-fg: var(--site-fg-soft);
@@ -107,13 +110,22 @@
   --button-hover-border: rgba(15, 23, 42, 0.26);
   --button-hover-fg: var(--site-fg);
   --button-active-bg: color-mix(in srgb, var(--site-accent), transparent 88%);
-  --button-active-border: color-mix(in srgb, var(--site-accent), transparent 50%);
+  --button-active-border: color-mix(
+    in srgb,
+    var(--site-accent),
+    transparent 50%
+  );
   --button-active-fg: var(--site-fg);
 }
 
 .button:focus-visible {
   outline: 2px solid var(--site-accent);
   outline-offset: 2px;
+}
+
+.button a {
+  color: inherit;
+  text-decoration: inherit;
 }
 
 /* Playground subtle variant (for demo playground) */

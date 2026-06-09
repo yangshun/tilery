@@ -2,6 +2,7 @@
 
 import { RiArrowDownSLine } from 'react-icons/ri';
 import { cn } from '../../lib/cn';
+import styles from './select.module.css';
 
 export type SelectOption = { value: string; label: string };
 
@@ -23,9 +24,9 @@ export function Select({
   className,
 }: SelectProps) {
   return (
-    <div className={cn('playground-select-wrap', className)}>
+    <div className={cn(styles.wrap, className)}>
       <select
-        className="playground-select"
+        className={styles.select}
         aria-label={ariaLabel}
         value={value}
         disabled={disabled}
@@ -36,10 +37,7 @@ export function Select({
           </option>
         ))}
       </select>
-      <RiArrowDownSLine
-        className="playground-select__icon"
-        aria-hidden="true"
-      />
+      <RiArrowDownSLine className={styles.icon} aria-hidden="true" />
     </div>
   );
 }

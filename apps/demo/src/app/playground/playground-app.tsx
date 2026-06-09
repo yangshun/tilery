@@ -49,6 +49,8 @@ import {
   PlaygroundInspector,
   type PgGlobalProps,
 } from './playground-inspector';
+import styles from './playground-app.module.css';
+import { cn } from '../../lib/cn';
 
 export function PlaygroundApp() {
   const controllerRef = useRef<TileryController | null>(null);
@@ -58,6 +60,7 @@ export function PlaygroundApp() {
   const [mounted, setMounted] = useState(false);
   const [browserUrl, setBrowserUrl] = useState('');
   const stageRef = useRef<HTMLDivElement>(null);
+  const browserRef = useRef<HTMLDivElement>(null);
   const [frameSize, setFrameSize] = useState<{
     width: number;
     height: number;
@@ -194,9 +197,7 @@ export function PlaygroundApp() {
       direction: 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw',
     ) => {
       event.preventDefault();
-      const stage = stageRef.current;
-      if (!stage) return;
-      const browser = stage.querySelector<HTMLElement>('.playground-browser');
+      const browser = browserRef.current;
       if (!browser) return;
       const initialRect = browser.getBoundingClientRect();
       resizeContextRef.current = {
@@ -228,18 +229,36 @@ export function PlaygroundApp() {
         onClearEvents={clearEvents}
         onResetFrame={() => setFrameSize(null)}
       />
-      <div className="playground-stage" ref={stageRef}>
-        <div className="playground-browser" style={frameSize ?? undefined}>
-          <div className="playground-browser__bar">
-            <span className="playground-browser__lights">
-              <span className="playground-browser__light playground-browser__light--red" />
-              <span className="playground-browser__light playground-browser__light--yellow" />
-              <span className="playground-browser__light playground-browser__light--green" />
+      <div className={styles.stage} ref={stageRef}>
+        <div
+          ref={browserRef}
+          className={styles.browser}
+          style={frameSize ?? undefined}>
+          <div className={styles['browser__bar']}>
+            <span className={styles['browser__lights']}>
+              <span
+                className={cn(
+                  styles['browser__light'],
+                  styles['browser__light--red'],
+                )}
+              />
+              <span
+                className={cn(
+                  styles['browser__light'],
+                  styles['browser__light--yellow'],
+                )}
+              />
+              <span
+                className={cn(
+                  styles['browser__light'],
+                  styles['browser__light--green'],
+                )}
+              />
             </span>
-            <span className="playground-browser__address">{browserUrl}</span>
-            <span className="playground-browser__bar-spacer" />
+            <span className={styles['browser__address']}>{browserUrl}</span>
+            <span className={styles['browser__barSpacer']} />
           </div>
-          <div className="playground-workspace" style={themeStyle}>
+          <div className={styles.workspace} style={themeStyle}>
             {mounted ? (
               <Tilery<PgTabData>
                 ref={controllerRef as Ref<TileryController>}
@@ -296,42 +315,66 @@ export function PlaygroundApp() {
             ) : null}
           </div>
           <span
-            className="playground-browser__resize playground-browser__resize--n"
+            className={cn(
+              styles['browser__resize'],
+              styles['browser__resize--n'],
+            )}
             onPointerDown={(e) => startResize(e, 'n')}
             aria-hidden="true"
           />
           <span
-            className="playground-browser__resize playground-browser__resize--s"
+            className={cn(
+              styles['browser__resize'],
+              styles['browser__resize--s'],
+            )}
             onPointerDown={(e) => startResize(e, 's')}
             aria-hidden="true"
           />
           <span
-            className="playground-browser__resize playground-browser__resize--e"
+            className={cn(
+              styles['browser__resize'],
+              styles['browser__resize--e'],
+            )}
             onPointerDown={(e) => startResize(e, 'e')}
             aria-hidden="true"
           />
           <span
-            className="playground-browser__resize playground-browser__resize--w"
+            className={cn(
+              styles['browser__resize'],
+              styles['browser__resize--w'],
+            )}
             onPointerDown={(e) => startResize(e, 'w')}
             aria-hidden="true"
           />
           <span
-            className="playground-browser__resize playground-browser__resize--ne"
+            className={cn(
+              styles['browser__resize'],
+              styles['browser__resize--ne'],
+            )}
             onPointerDown={(e) => startResize(e, 'ne')}
             aria-hidden="true"
           />
           <span
-            className="playground-browser__resize playground-browser__resize--nw"
+            className={cn(
+              styles['browser__resize'],
+              styles['browser__resize--nw'],
+            )}
             onPointerDown={(e) => startResize(e, 'nw')}
             aria-hidden="true"
           />
           <span
-            className="playground-browser__resize playground-browser__resize--se"
+            className={cn(
+              styles['browser__resize'],
+              styles['browser__resize--se'],
+            )}
             onPointerDown={(e) => startResize(e, 'se')}
             aria-hidden="true"
           />
           <span
-            className="playground-browser__resize playground-browser__resize--sw"
+            className={cn(
+              styles['browser__resize'],
+              styles['browser__resize--sw'],
+            )}
             onPointerDown={(e) => startResize(e, 'sw')}
             aria-hidden="true"
           />
@@ -353,8 +396,8 @@ const KIND_ICON: Record<PgTabKind, IconType> = {
 function renderTabHeader(tab: TileryTab<PgTabData>) {
   const Icon = KIND_ICON[tab.data.kind];
   return (
-    <span className="playground-tab">
-      <Icon className="playground-tab__icon" aria-hidden="true" />
+    <span className={styles.tab}>
+      <Icon className={styles['tab__icon']} aria-hidden="true" />
       <span>{tab.data.title}</span>
     </span>
   );

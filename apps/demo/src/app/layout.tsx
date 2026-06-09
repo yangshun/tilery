@@ -4,6 +4,7 @@ import '@tilery/react/style.css';
 import '@fontsource-variable/mona-sans';
 import './globals.css';
 import { Sidebar } from '../components/sidebar';
+import { SidebarContainer } from '../components/sidebar-container';
 import {
   ACCENT_CSS,
   ACCENT_IDS_PATTERN,
@@ -15,6 +16,7 @@ import {
   playgroundNavigationItem,
   siteNavigationGroups,
 } from '../content/navigation';
+import styles from './site-layout.module.css';
 
 export const metadata: Metadata = {
   title: {
@@ -43,14 +45,16 @@ export default function RootLayout({
           id="tilery-accent-tokens"
           dangerouslySetInnerHTML={{ __html: ACCENT_CSS }}
         />
-        <div className="site-layout">
-          <div className="sidebar-container">
+        <div className={styles.siteLayout}>
+          <SidebarContainer className={styles.sidebarContainer}>
             <Sidebar
               groups={siteNavigationGroups}
               utilityItem={playgroundNavigationItem}
             />
-          </div>
-          <main className="site-main">{children}</main>
+          </SidebarContainer>
+          <main className={styles.siteMain} data-scroll-root>
+            {children}
+          </main>
         </div>
       </body>
     </html>

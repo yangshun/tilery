@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import type { SiteNavigationItem } from '../content/navigation';
+import styles from './page-navigation.module.css';
+import { cn } from '../lib/cn';
 
 export function PageNavigation({
   previous,
@@ -11,13 +13,14 @@ export function PageNavigation({
   if (!previous && !next) return null;
 
   return (
-    <nav className="page-navigation" aria-label="Page navigation">
+    <nav
+      data-page-nav
+      className={styles.navigation}
+      aria-label="Page navigation">
       {previous ? (
-        <Link
-          href={previous.href}
-          className="page-navigation__link page-navigation__link--previous">
-          <span className="page-navigation__eyebrow">Previous page</span>
-          <span className="page-navigation__title">{previous.label}</span>
+        <Link href={previous.href} className={styles.link}>
+          <span className={styles.eyebrow}>Previous page</span>
+          <span className={styles.title}>{previous.label}</span>
         </Link>
       ) : (
         <span />
@@ -25,9 +28,9 @@ export function PageNavigation({
       {next ? (
         <Link
           href={next.href}
-          className="page-navigation__link page-navigation__link--next">
-          <span className="page-navigation__eyebrow">Next page</span>
-          <span className="page-navigation__title">{next.label}</span>
+          className={cn(styles.link, styles['link--next'])}>
+          <span className={styles.eyebrow}>Next page</span>
+          <span className={styles.title}>{next.label}</span>
         </Link>
       ) : (
         <span />

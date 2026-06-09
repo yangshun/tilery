@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { CodeBlock } from '../../components/ui/code-block';
 import { PageNavigation } from '../../components/page-navigation';
 import { DesignShowcase } from './design-showcase';
+import styles from './design-page.module.css';
 
 export const metadata: Metadata = {
   title: 'Design System',
@@ -34,10 +35,10 @@ export default async function DesignPage() {
   });
 
   return (
-    <div className="design-page">
-      <header className="design-page__header">
+    <div className={styles.page}>
+      <header className={styles.pageHeader}>
         <h1>Demo design system</h1>
-        <p className="design-page__description">
+        <p className={styles.pageDescription}>
           A focused showcase for the demo website UI: tokens, controls, page
           chrome, examples, code blocks, and playground components.
         </p>
@@ -45,28 +46,30 @@ export default async function DesignPage() {
 
       <DesignShowcase />
 
-      <section className="design-section" aria-labelledby="design-code-title">
-        <div className="design-section__header">
+      <section className={styles.section} aria-labelledby="design-code-title">
+        <div className={styles.sectionHeader}>
           <h2 id="design-code-title">Code blocks</h2>
           <p>
             The docs and examples share the same highlighted frame, copy action,
             and long-code expansion treatment.
           </p>
         </div>
-        <div className="design-specimen design-specimen--wide">{codeBlock}</div>
+        <div className={styles.specimen + ' ' + styles['specimen--wide']}>
+          {codeBlock}
+        </div>
       </section>
 
       <section
-        className="design-section"
+        className={styles.section}
         aria-labelledby="design-navigation-title">
-        <div className="design-section__header">
+        <div className={styles.sectionHeader}>
           <h2 id="design-navigation-title">Page navigation</h2>
           <p>
             Previous and next links reuse the same component as guide, example,
             and reference pages.
           </p>
         </div>
-        <div className="design-specimen design-page-nav-specimen">
+        <div className={styles.specimen + ' ' + styles.pageNavSpecimen}>
           <PageNavigation
             previous={{ href: '/docs/styling', label: 'Styling' }}
             next={{ href: '/playground', label: 'Playground' }}

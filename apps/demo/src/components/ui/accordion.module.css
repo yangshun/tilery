@@ -1,0 +1,74 @@
+.section {
+  border-bottom: 1px solid var(--site-shell-border);
+}
+
+.sectionHeader {
+  margin: 0;
+}
+
+.sectionHead {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-align: left;
+  color: var(--site-fg);
+  cursor: pointer;
+  user-select: none;
+}
+
+.sectionChevron {
+  flex-shrink: 0;
+  font-size: 16px;
+  opacity: 0.7;
+  transition: transform 0.15s ease;
+}
+
+.sectionHead[data-panel-open] .sectionChevron {
+  transform: rotate(180deg);
+}
+
+.sectionPanel {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 0.24s ease;
+}
+
+.sectionPanel[hidden] {
+  display: none;
+}
+
+.sectionPanel[data-starting-style],
+.sectionPanel[data-ending-style] {
+  grid-template-rows: 0fr;
+}
+
+.sectionBody {
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 12px 16px;
+  transition: opacity 0.2s ease;
+}
+
+.sectionPanel[data-starting-style] .sectionBody,
+.sectionPanel[data-ending-style] .sectionBody {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sectionPanel,
+  .sectionBody,
+  .sectionChevron {
+    transition: none;
+  }
+}

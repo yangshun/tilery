@@ -1,0 +1,28 @@
+.status {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  padding: 0 10px;
+  border: 1px solid var(--site-border);
+  border-radius: 6px;
+  color: var(--site-fg);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.status--success {
+  border-color: var(--site-success-border);
+  background: var(--site-success-bg);
+  color: var(--site-success-fg);
+}
+
+.status--danger {
+  border-color: var(--site-danger-border);
+  background: var(--site-danger-bg);
+  color: var(--site-danger-fg);
+}
+
+.status--neutral {
+  background: var(--site-surface);
+  color: var(--site-muted);
+}
