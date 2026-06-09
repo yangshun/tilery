@@ -341,14 +341,6 @@
     margin: 18px 0 22px;
   }
 
-  .design-specimen .code-block {
-    margin: 0;
-  }
-
-  .design-page-nav-specimen [data-page-nav] {
-    margin-top: 0;
-  }
-
   .playground-workspace .tilery {
     height: 100%;
     font-size: 14px;
@@ -378,74 +370,6 @@
     margin-top: 6px;
   }
 
-  .design-showcase-playground [data-variant] {
-    gap: 6px;
-  }
-
-  .design-showcase-playground [data-variant] svg {
-    flex-shrink: 0;
-    font-size: 14px;
-  }
-
-  .design-showcase-playground > :last-child > :last-child {
-    border-bottom: 0;
-  }
-
-  .design-showcase-example-tabbar span {
-    min-width: 0;
-    padding: 7px 10px;
-    border: 1px solid transparent;
-    border-bottom: 0;
-    border-radius: 5px 5px 0 0;
-    color: var(--tilery-tab-fg);
-    font-size: 12px;
-    line-height: 1.2;
-  }
-
-  .design-showcase-example-tabbar span[data-active='true'] {
-    border-color: var(--example-demo-border);
-    background: var(--tilery-tab-active-bg);
-    color: var(--tilery-tab-active-fg);
-  }
-
-  .design-showcase-example-content > :last-child {
-    flex: 1;
-    min-height: 0;
-  }
-
-  .design-showcase-example-content p {
-    margin: 0 0 10px;
-    color: inherit;
-  }
-
-  .code-block pre {
-    font-size: 12px;
-    padding: 16px;
-    padding-right: 54px;
-  }
-
-  .code-block .shiki {
-    border: 0;
-    border-radius: 0;
-    background-color: transparent !important;
-  }
-
-  .code-block--can-expand::after {
-    content: '';
-    position: absolute;
-    right: 1px;
-    bottom: 1px;
-    left: 1px;
-    height: 96px;
-    pointer-events: none;
-    border-radius: 0 0 6px 6px;
-    background: linear-gradient(
-      to bottom,
-      rgb(var(--site-fade-rgb) / 0),
-      rgb(var(--site-fade-rgb) / 0.94)
-    );
-  }
-
   .demo-surface .tilery {
     font-size: 16px;
   }
@@ -461,31 +385,5 @@
 
   .home-demo-shell .tilery {
     font-size: 16px;
-  }
-
-  .home-demo-reveal {
-    opacity: 1;
-  }
-}
-
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .home-demo-reveal {
-      opacity: 0;
-      animation: home-demo-reveal-in linear both;
-      animation-timeline: view();
-      animation-range: entry 10% entry 60%;
-    }
-  }
-}
-
-@keyframes home-demo-reveal-in {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
   }
 }

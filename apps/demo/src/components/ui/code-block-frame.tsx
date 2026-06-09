@@ -76,9 +76,8 @@ export function CodeBlockFrame({ code, html }: { code: string; html: string }) {
   return (
     <div
       className={cn(
-        'code-block relative border border-site-border rounded-md bg-site-surface',
+        'code-block relative border border-site-border rounded-md bg-site-surface [&_pre]:text-xs [&_pre]:p-4 [&_pre]:pr-[54px] [&_.shiki]:border-0 [&_.shiki]:rounded-none [&_.shiki]:!bg-transparent',
         !expanded && 'overflow-hidden',
-        !expanded && canExpand && 'code-block--can-expand',
       )}>
       <div
         ref={contentRef}
@@ -88,6 +87,16 @@ export function CodeBlockFrame({ code, html }: { code: string; html: string }) {
         )}
         dangerouslySetInnerHTML={{ __html: html }}
       />
+      {!expanded && canExpand ? (
+        <div
+          className="absolute right-px bottom-px left-px h-24 pointer-events-none rounded-b-[6px]"
+          style={{
+            background:
+              'linear-gradient(to bottom, rgb(var(--site-fade-rgb) / 0), rgb(var(--site-fade-rgb) / 0.94))',
+          }}
+          aria-hidden="true"
+        />
+      ) : null}
       <IconButton
         className="absolute top-2.5 right-2.5 z-2 border border-site-chrome-border bg-site-chrome-bg text-site-chrome-fg shadow-[0_1px_3px_rgba(0,0,0,0.12)] hover:bg-site-chrome-bg-hover hover:text-site-fg [&_svg]:size-[15px] data-[state=copied]:text-site-success-fg data-[state=copied]:border-site-success-border data-[state=copied]:bg-site-success-bg data-[state=failed]:text-site-danger-fg data-[state=failed]:border-site-danger-border data-[state=failed]:bg-site-danger-bg"
         aria-label={

@@ -2,6 +2,7 @@
 
 import { LiveIdeDemo } from '../home-demo';
 import { cn } from '../../lib/cn';
+import './home-demo.css';
 
 export function DemoScene() {
   return (

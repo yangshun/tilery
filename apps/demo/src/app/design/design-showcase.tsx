@@ -330,7 +330,7 @@ export function DesignShowcase() {
         <DesignSpecimen
           title="Composed inspector"
           description="Accordion with Fields, Selects, and a ButtonGroup inside.">
-          <div className="design-showcase-playground max-w-[720px] overflow-hidden border border-site-shell-border rounded-lg bg-site-sidebar-bg light:bg-white max-lg:max-w-none">
+          <div className="max-w-[720px] overflow-hidden border border-site-shell-border rounded-lg bg-site-sidebar-bg light:bg-white max-lg:max-w-none [&_[data-variant]]:gap-1.5 [&_[data-variant]_svg]:shrink-0 [&_[data-variant]_svg]:text-sm [&>:last-child>:last-child]:border-b-0">
             <AccordionRoot defaultOpen={['workspace', 'panel']}>
               <AccordionItem value="workspace" title="Workspace">
                 <Field
@@ -479,8 +479,8 @@ export function DesignShowcase() {
                       </Button>
                     </>
                   }>
-                  <div className="design-showcase-example-content h-full min-h-0 flex flex-col bg-[var(--example-demo-panel-bg)]">
-                    <div className="design-showcase-example-tabbar shrink-0 flex min-w-0 gap-px px-1.5 pt-1.5 border-b border-[var(--example-demo-border)] bg-[var(--tilery-tabbar-bg)]">
+                  <div className="h-full min-h-0 flex flex-col bg-[var(--example-demo-panel-bg)] [&>:last-child]:flex-1 [&>:last-child]:min-h-0 [&_p]:mt-0 [&_p]:mb-[10px] [&_p]:text-inherit">
+                    <div className="shrink-0 flex min-w-0 gap-px px-1.5 pt-1.5 border-b border-[var(--example-demo-border)] bg-[var(--tilery-tabbar-bg)] [&_span]:min-w-0 [&_span]:px-2.5 [&_span]:py-[7px] [&_span]:border [&_span]:border-transparent [&_span]:border-b-0 [&_span]:rounded-t-[5px] [&_span]:text-[color:var(--tilery-tab-fg)] [&_span]:text-xs [&_span]:leading-[1.2] [&_span[data-active='true']]:border-[var(--example-demo-border)] [&_span[data-active='true']]:bg-[var(--tilery-tab-active-bg)] [&_span[data-active='true']]:text-[color:var(--tilery-tab-active-fg)]">
                       <span data-active="true">Preview</span>
                       <span>Source</span>
                       <span>Events</span>
@@ -519,7 +519,7 @@ export function DesignShowcase() {
             <DesignSpecimen
               title="Inspector panel"
               description="A playground-style inspector built from Accordion, Field, Select, Switch, NumberInput, and ButtonGroup.">
-              <div className="design-showcase-playground max-w-[720px] overflow-hidden border border-site-shell-border rounded-lg bg-site-sidebar-bg light:bg-white max-lg:max-w-none">
+              <div className="max-w-[720px] overflow-hidden border border-site-shell-border rounded-lg bg-site-sidebar-bg light:bg-white max-lg:max-w-none [&_[data-variant]]:gap-1.5 [&_[data-variant]_svg]:shrink-0 [&_[data-variant]_svg]:text-sm [&>:last-child>:last-child]:border-b-0">
                 <AccordionRoot defaultOpen={['workspace', 'panel']}>
                   <AccordionItem value="workspace" title="Workspace">
                     <Field

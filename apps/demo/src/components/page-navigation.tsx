@@ -8,16 +8,20 @@ const linkClass =
 export function PageNavigation({
   previous,
   next,
+  className,
 }: {
   previous: SiteNavigationItem | null;
   next: SiteNavigationItem | null;
+  className?: string;
 }) {
   if (!previous && !next) return null;
 
   return (
     <nav
-      data-page-nav
-      className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-3.5 mt-13"
+      className={cn(
+        'grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-3.5 mt-13',
+        className,
+      )}
       aria-label="Page navigation">
       {previous ? (
         <Link href={previous.href} className={linkClass}>

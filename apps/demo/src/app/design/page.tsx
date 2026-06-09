@@ -57,7 +57,7 @@ export default async function DesignPage() {
             and long-code expansion treatment.
           </p>
         </div>
-        <div className="design-specimen design-specimen--wide min-w-0 grid gap-[18px] p-[18px] rounded-lg bg-site-overlay-weak max-lg:p-3.5">
+        <div className="min-w-0 grid gap-[18px] p-[18px] rounded-lg bg-site-overlay-weak max-lg:p-3.5 [&_.code-block]:m-0">
           {codeBlock}
         </div>
       </section>
@@ -74,8 +74,9 @@ export default async function DesignPage() {
             and reference pages.
           </p>
         </div>
-        <div className="design-page-nav-specimen min-w-0 grid gap-[18px] p-[18px] rounded-lg bg-site-overlay-weak max-lg:p-3.5">
+        <div className="min-w-0 grid gap-[18px] p-[18px] rounded-lg bg-site-overlay-weak max-lg:p-3.5">
           <PageNavigation
+            className="mt-0"
             previous={{ href: '/docs/styling', label: 'Styling' }}
             next={{ href: '/playground', label: 'Playground' }}
           />
