@@ -1,7 +1,9 @@
 import Link from 'next/link';
 import type { SiteNavigationItem } from '../content/navigation';
-import styles from './page-navigation.module.css';
 import { cn } from '../lib/cn';
+
+const linkClass =
+  'grid gap-[3px] min-h-16 px-4 py-3.5 content-center border border-site-border rounded-lg text-site-fg bg-site-overlay-weak no-underline hover:border-site-nav-hover-border hover:bg-site-overlay-soft hover:no-underline';
 
 export function PageNavigation({
   previous,
@@ -15,22 +17,26 @@ export function PageNavigation({
   return (
     <nav
       data-page-nav
-      className={styles.navigation}
+      className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-3.5 mt-13"
       aria-label="Page navigation">
       {previous ? (
-        <Link href={previous.href} className={styles.link}>
-          <span className={styles.eyebrow}>Previous page</span>
-          <span className={styles.title}>{previous.label}</span>
+        <Link href={previous.href} className={linkClass}>
+          <span className="text-site-muted text-xs font-normal">
+            Previous page
+          </span>
+          <span className="text-site-fg text-[15px] font-medium leading-[1.3] break-anywhere max-lg:truncate">
+            {previous.label}
+          </span>
         </Link>
       ) : (
         <span />
       )}
       {next ? (
-        <Link
-          href={next.href}
-          className={cn(styles.link, styles['link--next'])}>
-          <span className={styles.eyebrow}>Next page</span>
-          <span className={styles.title}>{next.label}</span>
+        <Link href={next.href} className={cn(linkClass, 'text-right')}>
+          <span className="text-site-muted text-xs font-normal">Next page</span>
+          <span className="text-site-fg text-[15px] font-medium leading-[1.3] break-anywhere max-lg:truncate">
+            {next.label}
+          </span>
         </Link>
       ) : (
         <span />

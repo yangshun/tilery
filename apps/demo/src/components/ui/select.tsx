@@ -2,7 +2,6 @@
 
 import { RiArrowDownSLine } from 'react-icons/ri';
 import { cn } from '../../lib/cn';
-import styles from './select.module.css';
 
 export type SelectOption = { value: string; label: string };
 
@@ -24,9 +23,9 @@ export function Select({
   className,
 }: SelectProps) {
   return (
-    <div className={cn(styles.wrap, className)}>
+    <div className={cn('relative inline-flex items-center', className)}>
       <select
-        className={styles.select}
+        className="h-7 max-w-[170px] pr-[26px] pl-2 border border-site-shell-border rounded-[6px] bg-site-bg text-site-fg text-[12.5px] font-[inherit] cursor-pointer appearance-none"
         aria-label={ariaLabel}
         value={value}
         disabled={disabled}
@@ -37,7 +36,10 @@ export function Select({
           </option>
         ))}
       </select>
-      <RiArrowDownSLine className={styles.icon} aria-hidden="true" />
+      <RiArrowDownSLine
+        className="absolute right-[7px] inline-flex text-[15px] opacity-55 pointer-events-none"
+        aria-hidden="true"
+      />
     </div>
   );
 }

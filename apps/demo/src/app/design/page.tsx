@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import { CodeBlock } from '../../components/ui/code-block';
 import { PageNavigation } from '../../components/page-navigation';
 import { DesignShowcase } from './design-showcase';
-import styles from './design-page.module.css';
 
 export const metadata: Metadata = {
   title: 'Design System',
@@ -35,10 +34,10 @@ export default async function DesignPage() {
   });
 
   return (
-    <div className={styles.page}>
-      <header className={styles.pageHeader}>
+    <div className="max-w-[1180px] mx-auto px-12 py-10 pb-[72px] max-lg:px-[18px] max-lg:py-7 max-lg:pb-[52px]">
+      <header className="max-w-[760px] mb-12 max-lg:mb-9">
         <h1>Demo design system</h1>
-        <p className={styles.pageDescription}>
+        <p className="max-w-[720px] m-0 text-site-fg-soft text-base leading-[1.65]">
           A focused showcase for the demo website UI: tokens, controls, page
           chrome, examples, code blocks, and playground components.
         </p>
@@ -46,30 +45,36 @@ export default async function DesignPage() {
 
       <DesignShowcase />
 
-      <section className={styles.section} aria-labelledby="design-code-title">
-        <div className={styles.sectionHeader}>
-          <h2 id="design-code-title">Code blocks</h2>
-          <p>
+      <section
+        className="mt-[72px] max-lg:mt-11"
+        aria-labelledby="design-code-title">
+        <div className="max-w-[760px] mb-[18px]">
+          <h2 className="mt-0 mb-1" id="design-code-title">
+            Code blocks
+          </h2>
+          <p className="m-0 text-site-muted text-[15px] leading-[1.6]">
             The docs and examples share the same highlighted frame, copy action,
             and long-code expansion treatment.
           </p>
         </div>
-        <div className={styles.specimen + ' ' + styles['specimen--wide']}>
+        <div className="design-specimen design-specimen--wide min-w-0 grid gap-[18px] p-[18px] rounded-lg bg-site-overlay-weak max-lg:p-3.5">
           {codeBlock}
         </div>
       </section>
 
       <section
-        className={styles.section}
+        className="mt-[72px] max-lg:mt-11"
         aria-labelledby="design-navigation-title">
-        <div className={styles.sectionHeader}>
-          <h2 id="design-navigation-title">Page navigation</h2>
-          <p>
+        <div className="max-w-[760px] mb-[18px]">
+          <h2 className="mt-0 mb-1" id="design-navigation-title">
+            Page navigation
+          </h2>
+          <p className="m-0 text-site-muted text-[15px] leading-[1.6]">
             Previous and next links reuse the same component as guide, example,
             and reference pages.
           </p>
         </div>
-        <div className={styles.specimen + ' ' + styles.pageNavSpecimen}>
+        <div className="design-page-nav-specimen min-w-0 grid gap-[18px] p-[18px] rounded-lg bg-site-overlay-weak max-lg:p-3.5">
           <PageNavigation
             previous={{ href: '/docs/styling', label: 'Styling' }}
             next={{ href: '/playground', label: 'Playground' }}

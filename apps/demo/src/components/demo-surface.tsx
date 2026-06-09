@@ -8,24 +8,20 @@ import {
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
   type PointerEvent,
   type ReactNode,
 } from 'react';
 import { usePointerDrag } from '../hooks/use-pointer-drag';
 import { cn } from '../lib/cn';
-import demoStyles from './demo-surface.module.css';
 
-/** Whether a demo renders inside a bordered box or flush (full-bleed). */
 export type DemoSurfaceMode = 'boxed' | 'plain';
 
-/** Context exposed by DemoSurface so children (e.g. ExampleSection) can
- *  show a Reset button when the frame has been manually resized. */
 export const DemoSurfaceContext = createContext<{
   resized: boolean;
   reset: () => void;
 }>({ resized: false, reset: () => {} });
 
-/** Hook to consume the nearest DemoSurface resize state. */
 export function useDemoSurfaceResize() {
   return useContext(DemoSurfaceContext);
 }
@@ -37,8 +33,43 @@ const MIN_WIDTH = 360;
 type Size = {
   width: number;
   height: number;
-  /** Whether the last drag hit the container width limit. */
   maxed: boolean;
+};
+
+const DEMO_SURFACE_VARS: CSSProperties = {
+  ['--example-demo-bg' as string]: '#0e0f12',
+  ['--example-demo-fg' as string]: '#d9dde3',
+  ['--example-demo-fg-strong' as string]: '#f3f4f7',
+  ['--example-demo-muted' as string]: '#9aa1ab',
+  ['--example-demo-muted-soft' as string]: '#6f7785',
+  ['--example-demo-border' as string]: '#2a2d33',
+  ['--example-demo-border-soft' as string]: 'rgba(255, 255, 255, 0.08)',
+  ['--example-demo-panel-bg' as string]: '#111318',
+  ['--example-demo-panel-bg-raised' as string]: '#1f2127',
+  ['--example-demo-control-active-bg' as string]: 'rgba(255, 255, 255, 0.1)',
+  ['--example-demo-code-bg' as string]: '#101318',
+  ['--example-demo-meta-bg' as string]: 'rgba(255, 255, 255, 0.07)',
+  ['--tilery-bg' as string]: '#0e0f12',
+  ['--tilery-fg' as string]: '#d9dde3',
+  ['--tilery-panel-bg' as string]: '#1a1c20',
+  ['--tilery-panel-border' as string]: '#2a2d33',
+  ['--tilery-tabbar-bg' as string]: '#16181c',
+  ['--tilery-tab-fg' as string]: '#9aa1ab',
+  ['--tilery-tab-active-bg' as string]: '#1a1c20',
+  ['--tilery-tab-active-fg' as string]: '#f3f4f7',
+  ['--tilery-tab-hover-bg' as string]: 'rgba(255, 255, 255, 0.04)',
+  ['--tilery-menu-bg' as string]: '#1f2228',
+  ['--tilery-action-hover-bg' as string]: 'rgba(255, 255, 255, 0.08)',
+  ['--tilery-accent' as string]: 'var(--site-workspace-accent)',
+  ['--tilery-drop-bg' as string]:
+    'color-mix(in srgb, var(--site-workspace-accent), transparent 82%)',
+  ['--tilery-drop-border' as string]:
+    'color-mix(in srgb, var(--site-workspace-accent), transparent 28%)',
+  ['--tilery-resize-handle-active-bg' as string]:
+    'color-mix(in srgb, var(--site-workspace-accent), transparent 38%)',
+  ['--home-demo-accent' as string]: 'var(--site-workspace-accent)',
+  ['--home-demo-drop-bg' as string]: 'var(--tilery-drop-bg)',
+  ['--home-demo-drop-border' as string]: 'var(--tilery-drop-border)',
 };
 
 export function DemoSurface({
@@ -130,7 +161,7 @@ export function DemoSurface({
   return (
     <DemoSurfaceContext.Provider value={context}>
       <div
-        className={demoStyles.demoSurfaceWrap}
+        className="relative mb-6"
         style={
           size
             ? { ['--demo-frame-width' as string]: `${size.width}px` }
@@ -138,34 +169,29 @@ export function DemoSurface({
         }>
         <div
           className={cn(
-            demoStyles.demoSurface,
-            surface === 'boxed' && demoStyles['demoSurface--boxed'],
+            'demo-surface relative min-h-[240px] min-w-[360px] overflow-hidden text-base',
+            surface === 'boxed' &&
+              'border border-[var(--example-demo-border)] rounded-md bg-[var(--example-demo-bg)] text-[var(--example-demo-fg)] scheme-dark',
           )}
           ref={containerRef}
-          style={size ? { height: size.height } : { height: defaultHeight }}>
+          style={{
+            ...DEMO_SURFACE_VARS,
+            height: size ? size.height : defaultHeight,
+          }}>
           {children}
         </div>
         <span
-          className={cn(
-            demoStyles.demoSurface__resize,
-            demoStyles['demoSurface__resize--bottom'],
-          )}
+          className="absolute z-6 touch-none bottom-[-4px] left-0 right-0 h-2 cursor-ns-resize"
           onPointerDown={(e) => startResize(e, 'bottom')}
           aria-hidden="true"
         />
         <span
-          className={cn(
-            demoStyles.demoSurface__resize,
-            demoStyles['demoSurface__resize--right'],
-          )}
+          className="absolute z-6 touch-none right-[-4px] top-0 bottom-0 w-2 cursor-ew-resize"
           onPointerDown={(e) => startResize(e, 'right')}
           aria-hidden="true"
         />
         <span
-          className={cn(
-            demoStyles.demoSurface__resize,
-            demoStyles['demoSurface__resize--corner'],
-          )}
+          className="absolute z-6 touch-none right-[calc(100%-var(--demo-frame-width,100%)-7px)] bottom-[-7px] size-6 cursor-nwse-resize"
           onPointerDown={(e) => startResize(e, 'corner')}
           aria-hidden="true"
         />

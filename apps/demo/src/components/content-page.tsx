@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import type { ComponentType } from 'react';
 import { getAdjacentSiteNavigation } from '../content/navigation';
 import { PageNavigation } from './page-navigation';
+import { cn } from '../lib/cn';
 
 export type ContentPageData = {
   slug: string;
@@ -15,7 +16,8 @@ export type ContentPageProps<P> = {
   dataMap: Map<string, ContentPageData>;
   resolveSlug: (params: P) => string;
   hrefPrefix: string;
-  styles: Record<string, string>;
+  wrapperClassName?: string;
+  descriptionClassName?: string;
 };
 
 export async function ContentPage<P>({
@@ -23,7 +25,8 @@ export async function ContentPage<P>({
   dataMap,
   resolveSlug,
   hrefPrefix,
-  styles,
+  wrapperClassName,
+  descriptionClassName,
 }: ContentPageProps<P>) {
   const resolvedParams = await params;
   const page = dataMap.get(resolveSlug(resolvedParams));
@@ -32,9 +35,19 @@ export async function ContentPage<P>({
   const Content = page.Content;
 
   return (
-    <article className={styles.wrapper}>
+    <article
+      className={cn(
+        'content-page mx-auto px-10 py-8 max-lg:px-5 max-lg:pt-7 max-lg:pb-13',
+        wrapperClassName,
+      )}>
       <h1>{page.title}</h1>
-      <p className={styles.description}>{page.description}</p>
+      <p
+        className={cn(
+          'text-[15px] text-site-muted mb-6',
+          descriptionClassName,
+        )}>
+        {page.description}
+      </p>
       <Content />
       <PageNavigation previous={navigation.previous} next={navigation.next} />
     </article>

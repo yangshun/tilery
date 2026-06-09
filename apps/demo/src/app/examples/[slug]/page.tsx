@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { examples, examplesBySlug } from '../../../content/examples';
 import { ContentPage } from '../../../components/content-page';
-import pageStyles from './page.module.css';
 
 type ExamplePageParams = { slug: string };
 
@@ -35,7 +34,8 @@ export default function ExamplePage({
       dataMap={examplesBySlug}
       resolveSlug={(p) => p.slug}
       hrefPrefix="/examples"
-      styles={pageStyles}
+      wrapperClassName="example-content-wrapper max-w-[1100px]"
+      descriptionClassName="max-w-[720px] text-site-fg-soft mb-3.5"
     />
   );
 }

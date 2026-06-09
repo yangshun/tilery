@@ -16,8 +16,8 @@ import type {
   ReactNode,
 } from 'react';
 import { useDemoSurfaceResize } from '../../components/demo-surface';
+import { cn } from '../../lib/cn';
 import { Button } from '../../components/ui/button';
-import styles from './example-ui.module.css';
 
 type ExampleStackProps = PropsWithChildren<{
   rows?: string;
@@ -101,26 +101,36 @@ export function ExampleSection({
 
   return (
     <section
-      className={styles.section}
+      className="h-full min-h-0 grid grid-rows-[auto_minmax(0,1fr)] gap-4"
       onKeyDownCapture={markUserInteracted}
       onPointerDownCapture={markUserInteracted}>
       {hasHeader ? (
-        <div className={styles.header}>
-          <div className={styles.titleGroup}>
-            {title ? <div className={styles.title}>{title}</div> : null}
+        <div className="min-w-0 flex flex-nowrap items-end justify-between gap-x-[18px] gap-y-3 max-lg:flex-wrap max-lg:items-start">
+          <div className="min-w-0 flex-[1_1_320px] grid gap-[5px] max-lg:w-full">
+            {title ? (
+              <div className="text-site-fg text-[15px] font-[650] leading-[1.35]">
+                {title}
+              </div>
+            ) : null}
             {description ? (
-              <p className={styles.description}>{description}</p>
+              <p className="m-0 text-site-muted text-sm leading-[1.35]">
+                {description}
+              </p>
             ) : null}
           </div>
           {actions || resettable ? (
-            <div className={styles.actions}>
+            <div className="min-w-0 flex flex-[0_1_auto] flex-wrap justify-end gap-1.5 max-lg:w-full max-lg:justify-start">
               {actions}
               {resettable ? (
                 <Button
                   type="button"
                   size="compact"
-                  className={styles.reset}
-                  data-visible={showReset}
+                  className={cn(
+                    'overflow-hidden transition-[max-width,margin-left,opacity,padding,border-color,transform,visibility] duration-[180ms] ease-in-out',
+                    showReset
+                      ? 'max-w-24 opacity-100 translate-y-0'
+                      : 'max-w-0 ml-[-6px] px-0 border-0 opacity-0 pointer-events-none -translate-y-0.5 invisible',
+                  )}
                   aria-hidden={!showReset}
                   tabIndex={showReset ? undefined : -1}
                   onClick={resetWorkspace}>
@@ -131,7 +141,10 @@ export function ExampleSection({
           ) : null}
         </div>
       ) : null}
-      <div key={resetKey} className={styles.frame} style={frameStyle}>
+      <div
+        key={resetKey}
+        className="w-[min(var(--demo-frame-width,100%),100%)] h-full min-h-0 overflow-hidden border border-[var(--example-demo-border)] rounded-[6px] bg-[var(--example-demo-panel-bg)] text-[var(--example-demo-fg)]"
+        style={{ colorScheme: 'dark', ...frameStyle }}>
         {trackedChildren}
       </div>
     </section>

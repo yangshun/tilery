@@ -1,11 +1,5 @@
 'use client';
 
-// Playground orchestrator. Owns the live Tilery instance plus the inspector's
-// state: the current snapshot (refreshed on every onChange so the inspector
-// mirrors the workspace), the selected panel/tab, global component props, theme,
-// id/sequence counters, and the lifecycle event log. Structural commands are
-// issued by the inspector through the shared controller ref.
-
 import {
   useCallback,
   useEffect,
@@ -49,7 +43,6 @@ import {
   PlaygroundInspector,
   type PgGlobalProps,
 } from './playground-inspector';
-import styles from './playground-app.module.css';
 import { cn } from '../../lib/cn';
 
 export function PlaygroundApp() {
@@ -114,7 +107,6 @@ export function PlaygroundApp() {
     [snapshot],
   );
 
-  // Keep the selected panel/tab valid as the workspace changes.
   useEffect(() => {
     setSelectedPanelId((current) => {
       if (panels.length === 0) return null;
@@ -164,7 +156,6 @@ export function PlaygroundApp() {
     [themeId],
   );
 
-  // Resize the browser frame symmetrically about the stage centre.
   const resizeContextRef = useRef<{
     direction: 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw';
     initialWidth: number;
@@ -229,36 +220,27 @@ export function PlaygroundApp() {
         onClearEvents={clearEvents}
         onResetFrame={() => setFrameSize(null)}
       />
-      <div className={styles.stage} ref={stageRef}>
+      <div
+        className="flex-1 min-w-0 flex items-center justify-center overflow-hidden rounded-2xl max-lg:min-h-0"
+        ref={stageRef}>
         <div
           ref={browserRef}
-          className={styles.browser}
+          className="w-[min(980px,100%)] h-[min(660px,100%)] min-w-[360px] min-h-[280px] max-w-full max-h-full relative overflow-hidden flex flex-col border border-site-shell-border rounded-xl bg-[var(--tilery-bg,#0e0f12)] bg-clip-padding shadow-[0_24px_64px_rgba(0,0,0,0.42)] max-lg:w-full max-lg:h-full"
           style={frameSize ?? undefined}>
-          <div className={styles['browser__bar']}>
-            <span className={styles['browser__lights']}>
-              <span
-                className={cn(
-                  styles['browser__light'],
-                  styles['browser__light--red'],
-                )}
-              />
-              <span
-                className={cn(
-                  styles['browser__light'],
-                  styles['browser__light--yellow'],
-                )}
-              />
-              <span
-                className={cn(
-                  styles['browser__light'],
-                  styles['browser__light--green'],
-                )}
-              />
+          <div className="shrink-0 h-10 flex items-center gap-2.5 px-3 border-b border-site-shell-border bg-site-shell-bg">
+            <span className="inline-flex gap-[7px] shrink-0">
+              <span className="w-[11px] h-[11px] rounded-full bg-[#ff5f57]" />
+              <span className="w-[11px] h-[11px] rounded-full bg-[#febc2e]" />
+              <span className="w-[11px] h-[11px] rounded-full bg-[#28c840]" />
             </span>
-            <span className={styles['browser__address']}>{browserUrl}</span>
-            <span className={styles['browser__barSpacer']} />
+            <span className="flex-1 min-w-0 max-w-[420px] mx-auto h-6 flex items-center justify-center gap-1.5 px-3 border border-site-shell-border rounded-[7px] bg-site-bg text-site-fg/62 font-mono text-xs whitespace-nowrap overflow-hidden text-ellipsis">
+              {browserUrl}
+            </span>
+            <span className="w-[52px] shrink-0" />
           </div>
-          <div className={styles.workspace} style={themeStyle}>
+          <div
+            className="playground-workspace flex-1 min-w-0 min-h-0 bg-[var(--tilery-bg,#0e0f12)]"
+            style={themeStyle}>
             {mounted ? (
               <Tilery<PgTabData>
                 ref={controllerRef as Ref<TileryController>}
@@ -315,66 +297,42 @@ export function PlaygroundApp() {
             ) : null}
           </div>
           <span
-            className={cn(
-              styles['browser__resize'],
-              styles['browser__resize--n'],
-            )}
+            className="absolute z-[6] touch-none top-0 left-0 right-0 h-1.5 cursor-ns-resize"
             onPointerDown={(e) => startResize(e, 'n')}
             aria-hidden="true"
           />
           <span
-            className={cn(
-              styles['browser__resize'],
-              styles['browser__resize--s'],
-            )}
+            className="absolute z-[6] touch-none bottom-0 left-0 right-0 h-1.5 cursor-ns-resize"
             onPointerDown={(e) => startResize(e, 's')}
             aria-hidden="true"
           />
           <span
-            className={cn(
-              styles['browser__resize'],
-              styles['browser__resize--e'],
-            )}
+            className="absolute z-[6] touch-none right-0 top-0 bottom-0 w-1.5 cursor-ew-resize"
             onPointerDown={(e) => startResize(e, 'e')}
             aria-hidden="true"
           />
           <span
-            className={cn(
-              styles['browser__resize'],
-              styles['browser__resize--w'],
-            )}
+            className="absolute z-[6] touch-none left-0 top-0 bottom-0 w-1.5 cursor-ew-resize"
             onPointerDown={(e) => startResize(e, 'w')}
             aria-hidden="true"
           />
           <span
-            className={cn(
-              styles['browser__resize'],
-              styles['browser__resize--ne'],
-            )}
+            className="absolute z-[6] touch-none right-0 top-0 w-3.5 h-3.5 cursor-nesw-resize"
             onPointerDown={(e) => startResize(e, 'ne')}
             aria-hidden="true"
           />
           <span
-            className={cn(
-              styles['browser__resize'],
-              styles['browser__resize--nw'],
-            )}
+            className="absolute z-[6] touch-none left-0 top-0 w-3.5 h-3.5 cursor-nwse-resize"
             onPointerDown={(e) => startResize(e, 'nw')}
             aria-hidden="true"
           />
           <span
-            className={cn(
-              styles['browser__resize'],
-              styles['browser__resize--se'],
-            )}
+            className="absolute z-[6] touch-none right-0 bottom-0 w-3.5 h-3.5 cursor-nwse-resize"
             onPointerDown={(e) => startResize(e, 'se')}
             aria-hidden="true"
           />
           <span
-            className={cn(
-              styles['browser__resize'],
-              styles['browser__resize--sw'],
-            )}
+            className="absolute z-[6] touch-none left-0 bottom-0 w-3.5 h-3.5 cursor-nesw-resize"
             onPointerDown={(e) => startResize(e, 'sw')}
             aria-hidden="true"
           />
@@ -396,8 +354,8 @@ const KIND_ICON: Record<PgTabKind, IconType> = {
 function renderTabHeader(tab: TileryTab<PgTabData>) {
   const Icon = KIND_ICON[tab.data.kind];
   return (
-    <span className={styles.tab}>
-      <Icon className={styles['tab__icon']} aria-hidden="true" />
+    <span className="inline-flex items-center gap-[7px]">
+      <Icon className="text-sm opacity-78" aria-hidden="true" />
       <span>{tab.data.title}</span>
     </span>
   );
@@ -416,8 +374,6 @@ const contentStyle: CSSProperties = {
   lineHeight: 1.5,
 };
 
-// Reset the demo's global <pre> styling (border, radius, padding) so the code
-// samples read as plain preformatted text rather than a boxed code block.
 const mono: CSSProperties = {
   margin: 0,
   padding: 0,

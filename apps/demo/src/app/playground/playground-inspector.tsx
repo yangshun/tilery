@@ -1,11 +1,5 @@
 'use client';
 
-// The Playground inspector: a scrollable controls sidebar driven entirely by the
-// live snapshot (passed in as `panels`). Display state is read from the snapshot
-// entries; commands are issued through the live controller handle. Panel behavior
-// (resize/drag/drop, min/max) has no runtime setter, so those toggles round-trip
-// through getLayout() -> patchPanelInSnapshot() -> setLayout().
-
 import { useEffect, useState, type RefObject } from 'react';
 import Link from 'next/link';
 import { AppearanceFooter } from '../../components/appearance-footer';
@@ -35,8 +29,6 @@ import {
   AccordionRoot,
   Input,
 } from '../../components/ui';
-import styles from './playground-inspector.module.css';
-import { cn } from '../../lib/cn';
 
 export type PgGlobalProps = {
   resizable: boolean;
@@ -94,8 +86,6 @@ export function PlaygroundInspector({
 }: Props) {
   const [splitDir, setSplitDir] = useState<TileryDirection>('right');
   const [copied, setCopied] = useState(false);
-  // Start false on both server and client to avoid a hydration mismatch, then
-  // reconcile with localStorage after mount.
   const [hasSaved, setHasSaved] = useState(false);
   useEffect(() => {
     setHasSaved(!!localStorage.getItem(STORAGE_KEY));
@@ -118,7 +108,6 @@ export function PlaygroundInspector({
     .filter((p) => p.id !== selectedPanelId)
     .map((p) => ({ value: p.id, label: `${p.tabs[0]?.title ?? p.id}` }));
 
-  // ---- panel behavior round-trip ----
   const patchPanel = (patch: PgPanelPatch) => {
     const t = tilery();
     if (!t || !selectedPanelId) return;
@@ -126,7 +115,6 @@ export function PlaygroundInspector({
     if (patchPanelInSnapshot(snap, selectedPanelId, patch)) t.setLayout(snap);
   };
 
-  // ---- workspace ops ----
   const addTab = () => {
     if (!selectedPanelId) return;
     tilery()
@@ -135,8 +123,6 @@ export function PlaygroundInspector({
   };
   const splitPanel = () => {
     if (!selectedPanelId) return;
-    // No explicit `size`: Tilery splits the slot evenly, which always fits.
-    // A fixed size can exceed a narrow panel's slot and be rejected silently.
     tilery()
       ?.getPanel(selectedPanelId)
       ?.split(splitDir, { tabs: [makeTab()] });
@@ -177,7 +163,6 @@ export function PlaygroundInspector({
     window.setTimeout(() => setCopied(false), 1200);
   };
 
-  // ---- panel actions ----
   const toggleMaximize = () => {
     if (!selectedPanelId) return;
     const p = tilery()?.getPanel(selectedPanelId);
@@ -207,7 +192,6 @@ export function PlaygroundInspector({
     if (selectedPanelId) tilery()?.getPanel(selectedPanelId)?.focus();
   };
 
-  // ---- tab actions ----
   const tabLocked = tab ? !tab.closable && !tab.draggable : false;
   const setTabBehavior = (next: TileryTabBehaviorUpdate) => {
     if (selectedTabId) tilery()?.getTab(selectedTabId)?.setBehavior(next);
@@ -249,24 +233,23 @@ export function PlaygroundInspector({
   };
 
   return (
-    <aside className={styles.inspector} aria-label="Playground controls">
-      <header className={styles.inspectorHead}>
-        <div className={styles.inspectorBrandRow}>
-          <Link href="/" className={styles.inspectorBrand}>
+    <aside
+      className="shrink-0 w-80 h-full flex flex-col overflow-hidden border border-site-sidebar-border rounded-[10px] bg-site-sidebar-bg text-site-fg light:bg-white max-lg:w-full max-lg:h-auto max-lg:max-h-[44vh] max-lg:shrink-0"
+      aria-label="Playground controls">
+      <header className="px-3 py-2.5 border-b border-site-shell-border">
+        <div className="flex items-center justify-between gap-3">
+          <Link
+            href="/"
+            className="text-base font-[680] tracking-[-0.01em] text-site-fg no-underline">
             Tilery
           </Link>
-          <Button
-            variant="subtle"
-            size="compact"
-            tone="danger"
-            onClick={reset}
-            className={styles.reset}>
+          <Button variant="subtle" size="compact" tone="danger" onClick={reset}>
             Reset
           </Button>
         </div>
       </header>
 
-      <div className={styles.inspectorScroll}>
+      <div className="flex-1 min-h-0 overflow-y-auto">
         <AccordionRoot defaultOpen={['workspace', 'panel', 'tab']}>
           <AccordionItem value="workspace" title="Workspace">
             <Field
@@ -367,7 +350,7 @@ export function PlaygroundInspector({
 
           <AccordionItem value="panel" title="Selected panel">
             {panels.length === 0 ? (
-              <p className={styles.empty}>
+              <p className="m-0 text-xs text-site-fg/50">
                 No panels. Load a preset or reset the workspace.
               </p>
             ) : (
@@ -399,7 +382,7 @@ export function PlaygroundInspector({
                     <Field
                       label="Split panel"
                       control={
-                        <div className={styles.inline}>
+                        <div className="flex items-center gap-1.5">
                           <Select
                             ariaLabel="Split direction"
                             value={splitDir}
@@ -537,7 +520,9 @@ export function PlaygroundInspector({
 
           <AccordionItem value="tab" title="Selected tab">
             {!panel || panel.tabs.length === 0 ? (
-              <p className={styles.empty}>This panel has no tabs.</p>
+              <p className="m-0 text-xs text-site-fg/50">
+                This panel has no tabs.
+              </p>
             ) : (
               <>
                 <Field
@@ -637,8 +622,8 @@ export function PlaygroundInspector({
           </AccordionItem>
 
           <AccordionItem value="activity" title="Activity">
-            <div className={styles.activityHead}>
-              <span className={styles.hint}>Recent events</span>
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] text-site-fg/48">Recent events</span>
               <Button
                 variant="subtle"
                 size="compact"
@@ -648,13 +633,19 @@ export function PlaygroundInspector({
               </Button>
             </div>
             {events.length === 0 ? (
-              <p className={styles.empty}>No events yet. Interact above.</p>
+              <p className="m-0 text-xs text-site-fg/50">
+                No events yet. Interact above.
+              </p>
             ) : (
-              <ul className={styles.log}>
+              <ul className="m-0 p-0 list-none flex flex-col gap-[7px]">
                 {events.map((event) => (
-                  <li key={event.id} className={styles['log__row']}>
-                    <span className={styles['log__type']}>{event.type}</span>
-                    <span className={styles['log__detail']}>
+                  <li
+                    key={event.id}
+                    className="flex flex-col gap-0.5 pb-[7px] border-b border-site-shell-border">
+                    <span className="font-mono text-[11px] text-site-accent">
+                      {event.type}
+                    </span>
+                    <span className="text-xs text-site-fg/70 break-all">
                       {event.detail}
                     </span>
                   </li>
@@ -664,10 +655,7 @@ export function PlaygroundInspector({
           </AccordionItem>
         </AccordionRoot>
       </div>
-      <AppearanceFooter
-        className={styles.inspectorAppearance}
-        githubClassName={styles.inspectorIcon}
-      />
+      <AppearanceFooter className="shrink-0 mt-auto px-3 py-2 border-t border-site-shell-border flex items-center gap-1" />
     </aside>
   );
 }
@@ -685,7 +673,7 @@ function RenameField({
       label="Title"
       control={
         <form
-          className={styles.inline}
+          className="flex items-center gap-1.5"
           onSubmit={(event) => {
             event.preventDefault();
             onRename(draft);

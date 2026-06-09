@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import { cn } from '../../lib/cn';
-import styles from './field.module.css';
 
 export type FieldProps = {
   label: string;
@@ -11,12 +10,14 @@ export type FieldProps = {
 
 export function Field({ label, hint, control, className }: FieldProps) {
   return (
-    <div className={cn(styles.row, className)}>
-      <div className={styles.rowText}>
-        <span className={styles.rowLabel}>{label}</span>
-        {hint ? <span className={styles.rowHint}>{hint}</span> : null}
+    <div className={cn('flex items-center justify-between gap-3', className)}>
+      <div className="min-w-0 flex flex-col gap-px">
+        <span className="text-[13px]">{label}</span>
+        {hint ? (
+          <span className="text-[11px] text-site-fg/48">{hint}</span>
+        ) : null}
       </div>
-      <div className={styles.rowControl}>{control}</div>
+      <div className="shrink-0 flex items-center">{control}</div>
     </div>
   );
 }

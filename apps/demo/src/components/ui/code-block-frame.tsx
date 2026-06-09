@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import styles from '../code-block-frame.module.css';
 import { cn } from '../../lib/cn';
 import { Button } from '../ui/button';
 import { IconButton } from '../ui/icon-button';
@@ -76,19 +75,21 @@ export function CodeBlockFrame({ code, html }: { code: string; html: string }) {
 
   return (
     <div
-      data-code-block
       className={cn(
-        styles.codeBlock,
-        !expanded && styles.collapsed,
-        !expanded && canExpand && styles.codeBlockCanExpand,
+        'code-block relative border border-site-border rounded-md bg-site-surface',
+        !expanded && 'overflow-hidden',
+        !expanded && canExpand && 'code-block--can-expand',
       )}>
       <div
         ref={contentRef}
-        className={styles.codeBlockContent}
+        className={cn(
+          'rounded-[inherit]',
+          !expanded && 'max-h-[360px] overflow-hidden',
+        )}
         dangerouslySetInnerHTML={{ __html: html }}
       />
       <IconButton
-        className={styles.codeBlockCopy}
+        className="absolute top-2.5 right-2.5 z-2 border border-site-chrome-border bg-site-chrome-bg text-site-chrome-fg shadow-[0_1px_3px_rgba(0,0,0,0.12)] hover:bg-site-chrome-bg-hover hover:text-site-fg [&_svg]:size-[15px] data-[state=copied]:text-site-success-fg data-[state=copied]:border-site-success-border data-[state=copied]:bg-site-success-bg data-[state=failed]:text-site-danger-fg data-[state=failed]:border-site-danger-border data-[state=failed]:bg-site-danger-bg"
         aria-label={
           copyState === 'copied'
             ? 'Copied code'
@@ -109,7 +110,7 @@ export function CodeBlockFrame({ code, html }: { code: string; html: string }) {
       </IconButton>
       {canExpand ? (
         <Button
-          className={styles.codeBlockToggle}
+          className="absolute left-1/2 bottom-3.5 z-1 -translate-x-1/2 shadow-[0_2px_6px_rgba(0,0,0,0.16)]"
           aria-expanded={expanded}
           onClick={() => setExpanded((value) => !value)}>
           {expanded ? 'Collapse' : 'Show full code'}

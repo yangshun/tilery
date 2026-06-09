@@ -1,11 +1,9 @@
 'use client';
 
 import { RiMoonLine, RiSunLine } from 'react-icons/ri';
-import { cn } from '../lib/cn';
 import { IconButton } from './ui/icon-button';
-import styles from './theme-toggle.module.css';
 
-export function ThemeToggle() {
+export function ThemeToggle({ className }: { className?: string }) {
   function toggleTheme() {
     const root = document.documentElement;
     const next = root.dataset.theme === 'light' ? 'dark' : 'light';
@@ -21,15 +19,10 @@ export function ThemeToggle() {
     <IconButton
       aria-label="Toggle color theme"
       title="Toggle color theme"
+      className={className}
       onClick={toggleTheme}>
-      <RiSunLine
-        className={cn(styles.themeIcon, styles['themeIcon--sun'])}
-        aria-hidden="true"
-      />
-      <RiMoonLine
-        className={cn(styles.themeIcon, styles['themeIcon--moon'])}
-        aria-hidden="true"
-      />
+      <RiSunLine className="inline-flex light:hidden" aria-hidden="true" />
+      <RiMoonLine className="hidden light:inline-flex" aria-hidden="true" />
     </IconButton>
   );
 }

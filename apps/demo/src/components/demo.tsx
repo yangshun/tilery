@@ -8,7 +8,6 @@ import {
   extractSourceRegion,
   extractSourceRegions,
 } from '../lib/source-region';
-import demoStyles from './demo.module.css';
 
 export function Demo({
   source,
@@ -30,11 +29,11 @@ export function Demo({
   const code = resolveDemoSourceCode({ fileSource, region, regions, source });
 
   return (
-    <section className={demoStyles.case}>
+    <section className="min-w-0 mt-[72px]">
       <DemoSurface surface={surface} height={height}>
         <DemoMount>{children}</DemoMount>
       </DemoSurface>
-      <div className={demoStyles.source}>
+      <div className="mt-5">
         <CodeBlock code={code} />
       </div>
     </section>
