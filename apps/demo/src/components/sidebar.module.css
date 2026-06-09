@@ -48,7 +48,7 @@
   --icon-button-font-size: 17px;
 }
 
-.sidebar__toggle {
+.sidebar .sidebar__toggle {
   display: none;
 }
 
@@ -150,7 +150,7 @@
     padding: 10px 12px;
   }
 
-  .sidebar__toggle {
+  .sidebar .sidebar__toggle {
     display: inline-flex;
   }
 
