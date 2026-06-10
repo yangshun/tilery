@@ -3,6 +3,10 @@ title: Programmatic Control
 description: Imperative control exposed through the Tilery ref, panel objects, and tab objects.
 ---
 
+import { CodeBlock } from '../../../components/ui/code-block';
+import { extractSourceRegion } from '../../../lib/source-region';
+import control from './control.tsx?raw';
+
 ## Controller Ref
 
 The Tilery ref exposes a `TileryController`. Use it when the application, not a direct drag gesture, needs to change the workspace.
@@ -60,17 +64,7 @@ Edge panels are normal tab targets once they exist in the root layout. Move a ta
 
 Use `changeTabId()` when a temporary tab receives a durable id later, for example after saving a draft file. The rename updates panel tab order and active tab references; it returns `null` when the old id is missing or the new id is already in use.
 
-```tsx
-tilery.openOrActivateTab(
-  {
-    id: filePath,
-    data: { title: basename(filePath), filePath },
-  },
-  { afterTab: relatedTabId },
-);
-
-tilery.changeTabId('untitled-1', savedFilePath)?.activate();
-```
+<CodeBlock code={extractSourceRegion(control, 'open-tab')} />
 
 ## Panel Objects
 

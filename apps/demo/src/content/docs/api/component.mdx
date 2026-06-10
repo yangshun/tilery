@@ -3,17 +3,15 @@ title: Component Props
 description: Wire a Tilery component with renderers, behavior controls, actions, and callbacks.
 ---
 
+import { CodeBlock } from '../../../components/ui/code-block';
+import { extractSourceRegion } from '../../../lib/source-region';
+import component from './component.tsx?raw';
+
 ## How to read this page
 
 The Tilery component is the integration boundary for React apps. Start with rendering props, then add behavior, sizing, actions, and callbacks as your product needs them.
 
-```tsx
-<Tilery
-  initialLayout={layout}
-  renderTabHeader={(tab) => <span>{tab.data.title}</span>}
-  renderTabContent={(tab) => <Editor tab={tab} />}
-/>
-```
+<CodeBlock code={extractSourceRegion(component, 'basic')} />
 
 ## Required rendering props
 
@@ -29,27 +27,7 @@ Use these when mounting a Tilery instance. `initialLayout` describes the workspa
 
 Use `renderTabTrigger` when the tab itself needs to render as a link or router component. Keep link metadata in your tab `data`; Tilery supplies the props that preserve selection, drag, and accessibility behavior.
 
-```tsx
-type TabData = {
-  title: string;
-  href?: string;
-};
-
-<Tilery<TabData>
-  initialLayout={layout}
-  renderTabHeader={(tab) => <span>{tab.data.title}</span>}
-  renderTabTrigger={({ tab, props, children }) =>
-    tab.data.href ? (
-      <a href={tab.data.href} {...props}>
-        {children}
-      </a>
-    ) : (
-      <div {...props}>{children}</div>
-    )
-  }
-  renderTabContent={(tab) => <Editor tab={tab} />}
-/>;
-```
+<CodeBlock code={extractSourceRegion(component, 'tab-trigger')} />
 
 For client-side routing, render your router link component in the same slot and spread `props` onto the component. The close button stays outside the trigger, so link tabs do not wrap button controls.
 

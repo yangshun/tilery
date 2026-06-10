@@ -3,6 +3,10 @@ title: Concepts
 description: Understand the workspace model behind panels, tabs, groups, and snapshots.
 ---
 
+import { CodeBlock } from '../../components/ui/code-block';
+import { extractSourceRegion } from '../../lib/source-region';
+import concepts from './concepts.tsx?raw';
+
 ## The workspace model
 
 Tilery is built around a small set of ideas: tabs live in panels, panels live in groups, and groups form the tiled workspace. Once that tree exists, Tilery can derive dividers, drag zones, tab rows, content hosts, and snapshots from the same source of truth.
@@ -65,22 +69,7 @@ Use runtime state for callbacks and inspection. Use layout snapshots for persist
 
 `getLayout()` returns the serializable shape your application should save. Pass that snapshot back to `initialLayout` or `setLayout(snapshot)` to restore the same workspace.
 
-```tsx
-const saved = localStorage.getItem('tilery-layout');
-
-<Tilery
-  ref={tileryRef}
-  initialLayout={saved ? JSON.parse(saved) : defaultLayout}
-  onChange={() => {
-    const layout = tileryRef.current?.getLayout<MyTabData>();
-    if (layout) {
-      localStorage.setItem('tilery-layout', JSON.stringify(layout));
-    }
-  }}
-  renderTabHeader={renderTabHeader}
-  renderTabContent={renderTabContent}
-/>;
-```
+<CodeBlock code={extractSourceRegion(concepts, 'persistence')} />
 
 Snapshots store the panel tree, edge panel regions, tab order, active tabs, fullscreen state, default sizes, size constraints, explicit behavior booleans, floating bounds, popout window bounds, and z-order.
 
