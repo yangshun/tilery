@@ -239,7 +239,7 @@ export function PlaygroundApp() {
             <span className="w-[52px] shrink-0" />
           </div>
           <div
-            className="playground-workspace flex-1 min-w-0 min-h-0 bg-[var(--tilery-bg,#0e0f12)]"
+            className="playground-workspace flex-1 min-w-0 min-h-0 bg-[var(--tilery-bg,#0e0f12)] [&_.tilery]:h-full [&_.tilery]:text-sm"
             style={themeStyle}>
             {mounted ? (
               <Tilery<PgTabData>

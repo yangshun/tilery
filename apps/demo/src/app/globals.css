@@ -284,27 +284,6 @@
 } /* end @layer base */
 
 @layer components {
-  .accordion-panel {
-    transition: grid-template-rows 0.24s ease;
-  }
-
-  .accordion-panel[data-starting-style],
-  .accordion-panel[data-ending-style] {
-    grid-template-rows: 0fr;
-  }
-
-  .accordion-panel[data-starting-style] .accordion-panel-body,
-  .accordion-panel[data-ending-style] .accordion-panel-body {
-    opacity: 0;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .accordion-panel,
-    .accordion-panel-body {
-      transition: none;
-    }
-  }
-
   .site-main:has(.playground-page) {
     overflow: hidden;
   }
@@ -333,15 +312,6 @@
     margin-top: 6px;
   }
 
-  .doc-page .code-block {
-    margin: 18px 0 22px;
-  }
-
-  .playground-workspace .tilery {
-    height: 100%;
-    font-size: 14px;
-  }
-
   .example-content-wrapper > :where(ul, ol) {
     margin: 12px 0 20px;
     padding-left: 1.35rem;
@@ -364,22 +334,5 @@
 
   .example-content-wrapper > :where(ul, ol) li + li {
     margin-top: 6px;
-  }
-
-  .demo-surface .tilery {
-    font-size: 16px;
-  }
-
-  .demo-surface .tilery__tab-content :where(p, li, dd, dt) {
-    color: inherit;
-  }
-
-  .demo-surface .tilery__tab-content code {
-    background: var(--example-demo-code-bg);
-    color: var(--example-demo-fg-strong);
-  }
-
-  .home-demo-shell .tilery {
-    font-size: 16px;
   }
 }

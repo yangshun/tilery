@@ -169,7 +169,7 @@ export function DemoSurface({
         }>
         <div
           className={cn(
-            'demo-surface relative min-h-[240px] min-w-[360px] overflow-hidden text-base',
+            'demo-surface relative min-h-[240px] min-w-[360px] overflow-hidden text-base [&_.tilery]:text-base [&_.tilery__tab-content_:is(p,li,dd,dt)]:text-inherit [&_.tilery__tab-content_code]:bg-[var(--example-demo-code-bg)] [&_.tilery__tab-content_code]:text-[color:var(--example-demo-fg-strong)]',
             surface === 'boxed' &&
               'border border-[var(--example-demo-border)] rounded-md bg-[var(--example-demo-bg)] text-[var(--example-demo-fg)] scheme-dark',
           )}

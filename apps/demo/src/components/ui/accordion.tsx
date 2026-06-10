@@ -42,9 +42,9 @@ export function AccordionItem({ value, title, children }: AccordionItemProps) {
         </Accordion.Trigger>
       </Accordion.Header>
       <Accordion.Panel
-        className="accordion-panel grid grid-rows-[1fr] hidden:hidden"
+        className="grid grid-rows-[1fr] hidden:hidden transition-[grid-template-rows] duration-[240ms] ease-in-out motion-reduce:transition-none data-[starting-style]:grid-rows-[0fr] data-[ending-style]:grid-rows-[0fr]"
         keepMounted>
-        <div className="accordion-panel-body min-h-0 overflow-hidden flex flex-col gap-2.5 px-3 pt-1 pb-4 transition-opacity duration-200 ease-in-out">
+        <div className="min-h-0 overflow-hidden flex flex-col gap-2.5 px-3 pt-1 pb-4 transition-opacity duration-200 ease-in-out motion-reduce:transition-none [[data-starting-style]_&]:opacity-0 [[data-ending-style]_&]:opacity-0">
           {children}
         </div>
       </Accordion.Panel>

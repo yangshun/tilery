@@ -16,7 +16,7 @@ export function DemoScene() {
       </header>
       <div
         className={cn(
-          'home-demo-shell relative mt-6 flex flex-col text-base',
+          'home-demo-shell relative mt-6 flex flex-col text-base [&_.tilery]:text-base',
           'home-demo-reveal',
         )}
         style={
