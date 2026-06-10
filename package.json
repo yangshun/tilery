@@ -3,9 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vp run --filter @tilery/demo dev",
+    "dev": "vp run --filter @tilery/docs dev",
     "build": "vp run --filter './packages/*' build",
-    "build:demo": "vp run --filter @tilery/demo build",
+    "build:docs": "vp run --filter @tilery/docs build",
     "test": "vp test run",
     "test:watch": "vp test watch",
     "test:coverage": "vp test run --coverage",
@@ -14,7 +14,7 @@
     "lint:fix": "vp lint . --fix",
     "fmt": "vp fmt . --write",
     "fmt:check": "vp fmt . --check",
-    "typecheck": "tsc -p packages/core/tsconfig.json --noEmit && tsc -p packages/react/tsconfig.json --noEmit && tsc -p apps/demo/tsconfig.json --noEmit",
+    "typecheck": "tsc -p packages/core/tsconfig.json --noEmit && tsc -p packages/react/tsconfig.json --noEmit && tsc -p apps/docs/tsconfig.json --noEmit",
     "clean": "rm -rf packages/*/dist apps/*/dist apps/*/.next"
   },
   "devDependencies": {

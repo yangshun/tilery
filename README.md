@@ -591,7 +591,7 @@ type TileryDirection = 'left' | 'right' | 'top' | 'bottom';
 
 ```sh
 pnpm install
-pnpm dev          # Start the demo site
+pnpm dev          # Start the docs site
 pnpm build        # Build packages
 pnpm test         # Run tests
 pnpm test:coverage # Run tests with coverage

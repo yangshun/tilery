@@ -3,7 +3,6 @@
 import type { ReactNode } from 'react';
 import { Accordion } from '@base-ui-components/react/accordion';
 import { RiArrowDownSLine } from 'react-icons/ri';
-import { cn } from '../../lib/cn';
 
 export type AccordionRootProps = {
   defaultOpen?: string[];

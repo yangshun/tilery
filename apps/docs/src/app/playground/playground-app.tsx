@@ -43,7 +43,6 @@ import {
   PlaygroundInspector,
   type PgGlobalProps,
 } from './playground-inspector';
-import { cn } from '../../lib/cn';
 
 export function PlaygroundApp() {
   const controllerRef = useRef<TileryController | null>(null);

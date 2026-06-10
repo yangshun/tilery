@@ -64,7 +64,7 @@ importers:
         specifier: ^0.1.23
         version: 0.1.23(@types/node@25.9.1)(@vitest/coverage-v8@4.1.7)(jiti@2.7.0)(jsdom@29.1.1)(typescript@6.0.3)(vite@8.0.14(@types/node@25.9.1)(jiti@2.7.0)(yaml@2.9.0))(yaml@2.9.0)
 
-  apps/demo:
+  apps/docs:
     dependencies:
       '@base-ui-components/react':
         specifier: 1.0.0-rc.0
