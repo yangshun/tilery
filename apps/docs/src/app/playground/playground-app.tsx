@@ -10,7 +10,7 @@ import {
   type PointerEvent as ReactPointerEvent,
   type Ref,
 } from 'react';
-import { Tilery } from '@tilery/react';
+import { Tilery } from '@tileryjs/react';
 import { usePointerDrag } from '../../hooks/use-pointer-drag';
 import { useEventLog } from '../../hooks/use-event-log';
 import type {
@@ -20,7 +20,7 @@ import type {
   TileryNewTabHandler,
   TileryTab,
   TileryTabInit,
-} from '@tilery/react';
+} from '@tileryjs/react';
 import type { IconType } from 'react-icons';
 import {
   RiCodeSLine,
@@ -406,7 +406,7 @@ function tabSample({ kind, title }: PgTabData) {
 .panel[data-active='true'] {
   color: #f3f4f7;
 }`
-            : `import { Tilery } from '@tilery/react';
+            : `import { Tilery } from '@tileryjs/react';
 
 export function App() {
   return <Tilery initialLayout={layout} />;

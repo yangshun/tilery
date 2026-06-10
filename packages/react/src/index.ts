@@ -1,5 +1,5 @@
 /**
- * Public entry point for `@tilery/react`: the Tilery component, props,
+ * Public entry point for `@tileryjs/react`: the Tilery component, props,
  * events, and re-exported core types.
  */
 export {

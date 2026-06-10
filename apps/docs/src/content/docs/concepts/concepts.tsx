@@ -1,10 +1,10 @@
 import { useRef } from 'react';
-import { Tilery } from '@tilery/react';
+import { Tilery } from '@tileryjs/react';
 import type {
   TileryController,
   TileryInitialLayout,
   TileryTab,
-} from '@tilery/react';
+} from '@tileryjs/react';
 
 type MyTabData = { title: string };
 

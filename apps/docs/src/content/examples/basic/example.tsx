@@ -1,7 +1,7 @@
 'use client';
 
-import { Tilery } from '@tilery/react';
-import type { TileryInitialLayout, TileryTab } from '@tilery/react';
+import { Tilery } from '@tileryjs/react';
+import type { TileryInitialLayout, TileryTab } from '@tileryjs/react';
 import { ExampleSection, TabContent } from '../example-ui';
 
 type TabData = { title: string };

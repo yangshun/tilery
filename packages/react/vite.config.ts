@@ -28,7 +28,7 @@ export default defineConfig({
     dts({ rollupTypes: true }),
     {
       // Emit a self-contained stylesheet for the advertised
-      // `@tilery/react/style.css` export (publishConfig maps it to
+      // `@tileryjs/react/style.css` export (publishConfig maps it to
       // dist/index.css). Inlining the core stylesheet — rather than shipping
       // `@import 'tilery/style.css'` — means the published file needs no
       // bare-specifier resolution from the consumer's bundler.

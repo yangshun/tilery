@@ -8,7 +8,7 @@ import type {
   TileryDirection,
   TileryTabBehaviorUpdate,
   TileryTabInit,
-} from '@tilery/react';
+} from '@tileryjs/react';
 import {
   PG_DEFAULT_LAYOUT,
   PG_PRESETS,

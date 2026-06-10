@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useRef } from 'react';
-import { Tilery } from '@tilery/react';
+import { Tilery } from '@tileryjs/react';
 import type {
   TileryActiveTabChangeEvent,
   TileryController,
@@ -9,7 +9,7 @@ import type {
   TileryResizeEvent,
   TileryTab,
   TileryTabsMoveEvent,
-} from '@tilery/react';
+} from '@tileryjs/react';
 import { useEventLog } from '../../../hooks/use-event-log';
 import {
   EmptyState,

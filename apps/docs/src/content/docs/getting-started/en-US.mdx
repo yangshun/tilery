@@ -21,7 +21,7 @@ The important idea is that Tilery does not ask you to position rectangles by han
 Install the React adapter. It depends on the core package automatically.
 
 ```sh
-npm install @tilery/react
+npm install @tileryjs/react
 ```
 
 ## Add the base styles
@@ -29,7 +29,7 @@ npm install @tilery/react
 Import the stylesheet once in your application. It provides the panel chrome, tab bars, resize handles, drag previews, and default theme variables.
 
 ```tsx
-import '@tilery/react/style.css';
+import '@tileryjs/react/style.css';
 ```
 
 Use the styling docs later when you want to change the theme. The base stylesheet should stay loaded even if you override every color.
@@ -39,9 +39,9 @@ Use the styling docs later when you want to change the theme. The base styleshee
 This layout is a horizontal group with two child panels. Each panel owns a list of tabs; each tab carries the data your render functions need.
 
 ```tsx
-import { Tilery } from '@tilery/react';
-import '@tilery/react/style.css';
-import type { TileryInitialLayout } from '@tilery/react';
+import { Tilery } from '@tileryjs/react';
+import '@tileryjs/react/style.css';
+import type { TileryInitialLayout } from '@tileryjs/react';
 
 type MyTab = { title: string };
 

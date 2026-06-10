@@ -1,4 +1,4 @@
-import type { TileryController } from '@tilery/react';
+import type { TileryController } from '@tileryjs/react';
 
 function basename(path: string) {
   return path.split('/').pop() ?? path;

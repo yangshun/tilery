@@ -18,7 +18,7 @@ A tiling panel layout engine for React. Build IDE-like interfaces, dashboard bui
 ## Installation
 
 ```sh
-npm install @tilery/react
+npm install @tileryjs/react
 ```
 
 `tilery` (the core package) is included as a dependency automatically.
@@ -26,9 +26,9 @@ npm install @tilery/react
 ## Quick Start
 
 ```tsx
-import { Tilery } from '@tilery/react';
-import '@tilery/react/style.css';
-import type { TileryInitialLayout, TileryTab } from '@tilery/react';
+import { Tilery } from '@tileryjs/react';
+import '@tileryjs/react/style.css';
+import type { TileryInitialLayout, TileryTab } from '@tileryjs/react';
 
 type MyTabData = { title: string };
 
@@ -72,7 +72,7 @@ function App() {
 Import the base stylesheet which provides the panel chrome, tab bar, dividers, and drag overlay:
 
 ```ts
-import '@tilery/react/style.css';
+import '@tileryjs/react/style.css';
 ```
 
 All visual properties are customizable via CSS variables:
@@ -582,10 +582,10 @@ type TileryDirection = 'left' | 'right' | 'top' | 'bottom';
 
 ## Packages
 
-| Package         | Description                                                  |
-| --------------- | ------------------------------------------------------------ |
-| `tilery`        | Framework-agnostic types, state reducer, drag logic, and CSS |
-| `@tilery/react` | React adapter (components, hooks)                            |
+| Package           | Description                                                  |
+| ----------------- | ------------------------------------------------------------ |
+| `tilery`          | Framework-agnostic types, state reducer, drag logic, and CSS |
+| `@tileryjs/react` | React adapter (components, hooks)                            |
 
 ## Development
 

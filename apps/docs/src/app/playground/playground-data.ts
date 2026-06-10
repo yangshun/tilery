@@ -20,7 +20,7 @@ import type {
   TileryPanelSnapshot,
   TileryRootSnapshot,
   TilerySize,
-} from '@tilery/react';
+} from '@tileryjs/react';
 
 // ---------------------------------------------------------------------------
 // Tab data

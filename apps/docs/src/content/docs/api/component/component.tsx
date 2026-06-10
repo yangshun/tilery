@@ -1,5 +1,5 @@
-import { Tilery } from '@tilery/react';
-import type { TileryInitialLayout, TileryTab } from '@tilery/react';
+import { Tilery } from '@tileryjs/react';
+import type { TileryInitialLayout, TileryTab } from '@tileryjs/react';
 
 type TabData = {
   title: string;

@@ -3,7 +3,7 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   pageExtensions: ['ts', 'tsx', 'md', 'mdx'],
-  transpilePackages: ['tilery', '@tilery/react'],
+  transpilePackages: ['tilery', '@tileryjs/react'],
   turbopack: {
     rules: {
       // Allow `import code from './file.tsx?raw'` to return the file's

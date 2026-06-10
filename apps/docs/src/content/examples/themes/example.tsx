@@ -1,8 +1,8 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Tilery } from '@tilery/react';
-import type { TileryInitialLayout, TileryTab } from '@tilery/react';
+import { Tilery } from '@tileryjs/react';
+import type { TileryInitialLayout, TileryTab } from '@tileryjs/react';
 import { ExampleSection, ExampleStack } from '../example-ui';
 import type { CSSProperties, ReactNode } from 'react';
 

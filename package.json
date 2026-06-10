@@ -15,7 +15,8 @@
     "fmt": "vp fmt . --write",
     "fmt:check": "vp fmt . --check",
     "typecheck": "tsc -p packages/core/tsconfig.json --noEmit && tsc -p packages/react/tsconfig.json --noEmit && tsc -p apps/docs/tsconfig.json --noEmit",
-    "clean": "rm -rf packages/*/dist apps/*/dist apps/*/.next"
+    "clean": "rm -rf packages/*/dist apps/*/dist apps/*/.next",
+    "release": "pnpm -r --filter tilery --filter @tileryjs/react publish --access public"
   },
   "devDependencies": {
     "@types/node": "^25.9.1",

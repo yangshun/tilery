@@ -78,7 +78,7 @@ importers:
       '@next/mdx':
         specifier: ^16.2.7
         version: 16.2.7(@mdx-js/loader@3.1.1)
-      '@tilery/react':
+      '@tileryjs/react':
         specifier: workspace:*
         version: link:../../packages/react
       motion:

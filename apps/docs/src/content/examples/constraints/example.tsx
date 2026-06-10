@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Tilery } from '@tilery/react';
-import type { TileryInitialLayout, TileryTab } from '@tilery/react';
+import { Tilery } from '@tileryjs/react';
+import type { TileryInitialLayout, TileryTab } from '@tileryjs/react';
 import { ExampleSection, ExampleStack, TabContent } from '../example-ui';
 import { Button } from '../../../components/ui/button';
 
