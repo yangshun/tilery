@@ -8,42 +8,7 @@ import { DemoSurface } from '../../components/demo-surface';
 import { CodeBlock } from '../../components/ui/code-block';
 import { Example as BasicExample } from '../examples/basic/example';
 
-export const finishedLayoutCode = `import { Tilery } from '@tilery/react';
-import '@tilery/react/style.css';
-import type { TileryInitialLayout } from '@tilery/react';
-
-type MyTab = { title: string };
-
-const layout: TileryInitialLayout<MyTab> = {
-type: 'group',
-direction: 'horizontal',
-children: [
-{
-type: 'panel',
-id: 'left',
-size: 50,
-tabs: [{ id: 'a', data: { title: 'Panel A' } }],
-},
-{
-type: 'panel',
-id: 'right',
-size: 50,
-tabs: [{ id: 'b', data: { title: 'Panel B' } }],
-},
-],
-};
-
-export function App() {
-  return (
-    <div style={{ width: '100%', height: '100vh' }}>
-      <Tilery
-        initialLayout={layout}
-        renderTabHeader={(tab) => <span>{tab.data.title}</span>}
-        renderTabContent={(tab) => <div>{tab.data.title} content</div>}
-      />
-    </div>
-  );
-}`;
+import code from './getting-started.tsx?raw';
 
 ## Build a two-panel app shell
 
@@ -128,8 +93,8 @@ function App() {
   </DemoMount>
 </DemoSurface>
 
-<CodeBlock code={finishedLayoutCode} />
+<CodeBlock code={code} />
 
 ## Where to go next
 
-Use Concepts to understand the panel tree, snapshots, floating panels, and tab preservation model. Use Examples when you want to copy a complete workflow, such as an IDE shell, layout persistence, tab overflow, or native popout windows.
+Read [Concepts](/docs/concepts) to understand the panel tree, snapshots, floating panels, and tab preservation model, or head to [Examples](/examples/basic) to experience what Tilery and try out the various features such as layout persistence, tab overflow, or native popout windows.
