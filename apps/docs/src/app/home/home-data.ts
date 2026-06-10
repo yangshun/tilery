@@ -31,7 +31,7 @@ export const principles: HomePrinciple[] = [
   },
   {
     title: 'Framework-agnostic core',
-    body: 'Layout, drag, and resize logic live in a dependency-free core. React is the first adapter, not a requirement.',
+    body: 'Layout, drag, and resize logic live in the dependency-free tilery core. @tileryjs/react is the first adapter, not a requirement.',
   },
   {
     title: 'Zero dependencies, fully typed',
@@ -61,8 +61,8 @@ export const capabilities: HomeCapability[] = [
     demo: 'styling',
   },
   {
-    title: 'Core package',
-    body: 'Keep state and layout operations framework-agnostic, with React as the first adapter.',
+    title: 'Package split',
+    body: 'Install @tileryjs/react for apps; use tilery directly for framework adapters and layout tooling.',
     demo: 'core',
   },
   {

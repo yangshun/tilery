@@ -22,7 +22,8 @@ export const metadata: Metadata = {
     default: 'Tilery',
     template: '%s | Tilery',
   },
-  description: 'A tiling panel layout engine for React',
+  description:
+    'A tiling panel layout engine for React, published as @tileryjs/react',
 };
 
 // Runs before paint to set the theme from a saved choice or the system
