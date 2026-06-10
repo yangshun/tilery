@@ -15,6 +15,7 @@ import type {
   TileryOpenTabTarget,
   TileryPanel,
   TileryPanelId,
+  TileryPanelMoveTarget,
   TileryPopoutPanelOptions,
   TileryPopoutTabOptions,
   TileryPopoutWindowBounds,
@@ -96,6 +97,13 @@ export function makeTileryController(
       return Object.keys(state.tabs)
         .map((id) => controller.getTab(id))
         .filter((t): t is TileryTab => Boolean(t));
+    },
+    movePanel(panelId, target) {
+      dispatch({
+        type: 'PANEL_MOVE',
+        panelId,
+        to: normalizePanelMoveTarget(target, getSizeContext?.()),
+      });
     },
     splitPanel(panelId, direction, opts) {
       const newPanelId = tileryNextId('p');
@@ -341,6 +349,33 @@ function normalizeMoveTarget(
   };
 }
 
+function normalizePanelMoveTarget(
+  target: TileryPanelMoveTarget,
+  sizeContext?: TilerySizeResolutionContext,
+) {
+  const behavior = layoutBehaviorConfigFromOptions(target);
+  if ('splitPanel' in target) {
+    return {
+      splitPanelId: target.splitPanel,
+      direction: target.direction,
+      sizePercent: target.size ?? 50,
+      minSize: target.minSize,
+      maxSize: target.maxSize,
+      sizeContext,
+      ...(behavior ? tileryNormalizeLayoutBehavior(behavior) : {}),
+    };
+  }
+  return {
+    splitRoot: true as const,
+    direction: target.direction,
+    ...(target.size === undefined ? {} : { sizePercent: target.size }),
+    minSize: target.minSize,
+    maxSize: target.maxSize,
+    sizeContext,
+    ...(behavior ? tileryNormalizeLayoutBehavior(behavior) : {}),
+  };
+}
+
 /**
  * Constructs a live `TileryPanel` handle whose properties reflect the
  * current state on every read — they are not snapshots.
@@ -422,6 +457,9 @@ export function tileryMakePanel(
     },
     insertTab(tab: TileryTabInit, index: number, opts) {
       return tilery.insertTab(id, tab, index, opts);
+    },
+    moveTo(target: TileryPanelMoveTarget) {
+      tilery.movePanel(id, target);
     },
     split(direction: TileryDirection, opts) {
       return tilery.splitPanel(id, direction, opts);

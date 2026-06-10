@@ -4,6 +4,7 @@
  */
 import type {
   TileryLayoutState,
+  TileryLayoutTree,
   TileryPanelId,
   TileryPanelState,
   TileryTabId,
@@ -13,24 +14,37 @@ import type { TileryReducerAction } from './actions';
 import { tileryEdgePanelOrderFromState } from './edges';
 import {
   tileryCanSwapPanels,
+  tileryNormalizeLayoutBehavior,
   tileryPanelBehaviorFromState,
 } from './layout-behavior';
 import {
+  TILERY_DEFAULT_MIN_SIZE,
   tileryFindRemovalFillers,
   tilerySplitFitsPanelConstraints,
   tilerySplitInset,
 } from './layout-math';
 import {
-  tileryPanelOrderFromState,
+  tileryDefaultRootSplitSize,
   tileryFloatingPanelOrderFromState,
+  tileryPanelOrderFromLayout,
+  tileryPanelOrderFromState,
   tileryRemovePanelFromLayout,
   tilerySplitPanelInLayout,
+  tilerySplitRootInLayout,
   tilerySwapPanelsInLayout,
   tilerySyncLayoutPanels,
 } from './layout-tree';
+import { TILERY_EPSILON, tileryResolveSizePercent } from './size';
 import { tileryReducerTabActionToState } from './tab-state';
 
 type SplitPanelAction = Extract<TileryReducerAction, { type: 'PANEL_SPLIT' }>;
+type MovePanelAction = Extract<TileryReducerAction, { type: 'PANEL_MOVE' }>;
+type MovePanelToSplitAction = MovePanelAction & {
+  to: Extract<MovePanelAction['to'], { splitPanelId: TileryPanelId }>;
+};
+type MovePanelToRootSplitAction = MovePanelAction & {
+  to: Extract<MovePanelAction['to'], { splitRoot: true }>;
+};
 
 /**
  * Splits an existing tiled panel in the given direction, inserting a new
@@ -138,6 +152,34 @@ export function tileryRemovePanel(
 }
 
 /**
+ * Moves an existing tiled panel to a new split or root position while preserving
+ * the panel id and every tab it owns.
+ */
+export function tileryMovePanel(
+  current: TileryLayoutState,
+  action: MovePanelAction,
+): TileryLayoutState {
+  const panel = current.panels[action.panelId];
+  if (!panel) return current;
+  if (panel.kind !== 'tiled') return current;
+  if (panel.fullScreen) return current;
+  if (!tileryPanelBehaviorFromState(current, panel.id).draggable) {
+    return current;
+  }
+  if (!current.layout) return current;
+
+  if ('splitPanelId' in action.to) {
+    return movePanelToSplit(current, action as MovePanelToSplitAction, panel);
+  }
+
+  return movePanelToRootSplit(
+    current,
+    action as MovePanelToRootSplitAction,
+    panel,
+  );
+}
+
+/**
  * Sets or clears the full-screen flag for a panel, ensuring at most one
  * panel is full-screen at any time by clearing the flag on all others.
  * @returns The input state unchanged when the panel is missing or the flag
@@ -204,6 +246,156 @@ export function tilerySwapPanels(
       [b.id]: { ...b, inset: a.inset },
     },
   };
+}
+
+function movePanelToSplit(
+  current: TileryLayoutState,
+  action: MovePanelToSplitAction,
+  panel: TileryPanelState,
+): TileryLayoutState {
+  const target = current.panels[action.to.splitPanelId];
+  if (!target) return current;
+  if (target.kind !== 'tiled') return current;
+  if (target.fullScreen) return current;
+  if (target.id === panel.id) return current;
+  if (!tileryPanelBehaviorFromState(current, target.id).droppable) {
+    return current;
+  }
+
+  const minSize = action.to.minSize ?? panel.minSize;
+  const maxSize = action.to.maxSize ?? panel.maxSize;
+  if (
+    !tilerySplitFitsPanelConstraints(
+      target,
+      action.to.direction,
+      action.to.sizePercent,
+      { minSize, maxSize },
+      undefined,
+      action.to.sizeContext,
+    )
+  ) {
+    return current;
+  }
+
+  const withoutPanel = tileryRemovePanelFromLayout(current.layout, panel.id);
+  if (!withoutPanel || withoutPanel === current.layout) return current;
+
+  const layout = tilerySplitPanelInLayout(
+    withoutPanel,
+    target.id,
+    panel.id,
+    action.to.direction,
+    action.to.sizePercent,
+    panelMoveBehavior(current, panel.id, action.to),
+  );
+  if (!layout) return current;
+
+  return tilerySyncLayoutPanels(
+    {
+      ...current,
+      panels: {
+        ...current.panels,
+        [panel.id]: {
+          ...panel,
+          fullScreen: false,
+          minSize,
+          maxSize,
+        },
+      },
+      layout,
+    },
+    layout,
+  );
+}
+
+function movePanelToRootSplit(
+  current: TileryLayoutState,
+  action: MovePanelToRootSplitAction,
+  panel: TileryPanelState,
+): TileryLayoutState {
+  if (!tileryPanelBehaviorFromState(current, panel.id).droppable) {
+    return current;
+  }
+
+  const withoutPanel = tileryRemovePanelFromLayout(current.layout, panel.id);
+  if (!withoutPanel || withoutPanel === current.layout) return current;
+  if (tileryPanelOrderFromLayout(withoutPanel).length === 0) return current;
+
+  const minSize = action.to.minSize ?? panel.minSize;
+  const maxSize = action.to.maxSize ?? panel.maxSize;
+  if (!rootMoveFitsPanelConstraints(withoutPanel, action, minSize, maxSize)) {
+    return current;
+  }
+  const layout = tilerySplitRootInLayout(
+    withoutPanel,
+    panel.id,
+    action.to.direction,
+    action.to.sizePercent,
+    panelMoveBehavior(current, panel.id, action.to),
+  );
+
+  return tilerySyncLayoutPanels(
+    {
+      ...current,
+      panels: {
+        ...current.panels,
+        [panel.id]: {
+          ...panel,
+          fullScreen: false,
+          minSize,
+          maxSize,
+        },
+      },
+      layout,
+    },
+    layout,
+  );
+}
+
+function rootMoveFitsPanelConstraints(
+  layout: TileryLayoutTree,
+  action: MovePanelToRootSplitAction,
+  minSize: TileryPanelState['minSize'],
+  maxSize: TileryPanelState['maxSize'],
+): boolean {
+  const splitDirection =
+    action.to.direction === 'left' || action.to.direction === 'right'
+      ? 'horizontal'
+      : 'vertical';
+  const axisPixels =
+    splitDirection === 'horizontal'
+      ? action.to.sizeContext?.width
+      : action.to.sizeContext?.height;
+  const rawSize =
+    action.to.sizePercent ?? tileryDefaultRootSplitSize(layout, splitDirection);
+  const sizePercent = Math.max(0, Math.min(100, rawSize));
+  const minPercent =
+    tileryResolveSizePercent(minSize, axisPixels) ??
+    tileryResolveSizePercent(TILERY_DEFAULT_MIN_SIZE, axisPixels) ??
+    0;
+  const maxPercent = tileryResolveSizePercent(maxSize, axisPixels) ?? Infinity;
+  return (
+    sizePercent >= minPercent - TILERY_EPSILON &&
+    sizePercent <= maxPercent + TILERY_EPSILON
+  );
+}
+
+function panelMoveBehavior(
+  state: TileryLayoutState,
+  panelId: TileryPanelId,
+  target: MovePanelAction['to'],
+) {
+  if (hasMoveBehavior(target)) return tileryNormalizeLayoutBehavior(target);
+  return tileryPanelBehaviorFromState(state, panelId);
+}
+
+function hasMoveBehavior(target: MovePanelAction['to']): boolean {
+  return (
+    'locked' in target ||
+    'resizable' in target ||
+    'draggable' in target ||
+    'droppable' in target
+  );
 }
 
 /**

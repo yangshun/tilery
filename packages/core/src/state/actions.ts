@@ -65,6 +65,33 @@ export type TileryReducerAction =
     }
   | { type: 'PANEL_REMOVE'; panelId: TileryPanelId }
   | {
+      type: 'PANEL_MOVE';
+      panelId: TileryPanelId;
+      to:
+        | {
+            splitPanelId: TileryPanelId;
+            direction: TileryDirection;
+            sizePercent: number;
+            minSize?: TilerySize;
+            maxSize?: TilerySize;
+            sizeContext?: TilerySizeResolutionContext;
+            resizable?: boolean;
+            draggable?: boolean;
+            droppable?: boolean;
+          }
+        | {
+            splitRoot: true;
+            direction: TileryDirection;
+            sizePercent?: number;
+            minSize?: TilerySize;
+            maxSize?: TilerySize;
+            sizeContext?: TilerySizeResolutionContext;
+            resizable?: boolean;
+            draggable?: boolean;
+            droppable?: boolean;
+          };
+    }
+  | {
       type: 'PANEL_FULLSCREEN_SET';
       panelId: TileryPanelId;
       fullScreen: boolean;

@@ -30,6 +30,9 @@ import Controlled, {
 import LinkTabs, {
   frontmatter as linkTabs,
 } from './examples/link-tabs/en-US.mdx';
+import StatePreservation, {
+  frontmatter as statePreservation,
+} from './examples/state-preservation/en-US.mdx';
 import Persistence, {
   frontmatter as persistence,
 } from './examples/persistence/en-US.mdx';
@@ -106,6 +109,7 @@ export const examples: ExamplePage[] = [
   example('tab-locking', TabLocking, tabLocking),
   example('controlled', Controlled, controlled),
   example('link-tabs', LinkTabs, linkTabs),
+  example('state-preservation', StatePreservation, statePreservation),
   example('persistence', Persistence, persistence),
   example('callbacks', Callbacks, callbacks),
   example('floating', Floating, floating),

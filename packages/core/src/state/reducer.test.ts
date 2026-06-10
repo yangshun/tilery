@@ -3479,6 +3479,187 @@ describe('tileryReducer dispatch matrix', () => {
     expect(next).toBe(state);
   });
 
+  it('PANEL_MOVE moves a panel beside a target while preserving its tabs', () => {
+    const state = twoSideBySide();
+    const next = tileryReducer(state, {
+      type: 'PANEL_MOVE',
+      panelId: 'L',
+      to: {
+        splitPanelId: 'R',
+        direction: 'right',
+        sizePercent: 50,
+      },
+    });
+
+    expect(next.panelOrder).toEqual(['R', 'L']);
+    expect(next.panels.L!.tabs).toEqual(['L1', 'L2']);
+    expect(next.panels.L!.activeTabId).toBe('L1');
+    expect(next.tabs.L1!.panelId).toBe('L');
+    expect(next.tabs.L2!.panelId).toBe('L');
+    expect(next.tabs.R1!.panelId).toBe('R');
+    expect(Object.keys(next.panels).sort()).toEqual(['L', 'R']);
+    expect(Object.keys(next.tabs).sort()).toEqual(['L1', 'L2', 'R1']);
+    expect(next.panels.L!.inset.left).toBeCloseTo(50, 5);
+    expect(next.panels.R!.inset.right).toBeCloseTo(50, 5);
+  });
+
+  it('PANEL_MOVE can split the root while preserving panel identity', () => {
+    const state = tJunctionLayout();
+    const next = tileryReducer(state, {
+      type: 'PANEL_MOVE',
+      panelId: 'sidebar',
+      to: {
+        splitRoot: true,
+        direction: 'bottom',
+        sizePercent: 25,
+      },
+    });
+
+    expect(next.panelOrder).toEqual(['editor', 'terminal', 'sidebar']);
+    expect(next.panels.sidebar!.tabs).toEqual(['side']);
+    expect(next.tabs.side!.panelId).toBe('sidebar');
+    expect(next.panels.sidebar!.inset.top).toBeCloseTo(75, 5);
+    expect(next.panels.sidebar!.inset.bottom).toBeCloseTo(0, 5);
+  });
+
+  it('PANEL_MOVE preserves constraints unless the target overrides them', () => {
+    const state = tileryCreateInitialState({
+      type: 'group',
+      direction: 'horizontal',
+      children: [
+        {
+          type: 'panel',
+          id: 'L',
+          minSize: '20%',
+          maxSize: '80%',
+          tabs: [{ id: 'L1', data: {} }],
+        },
+        {
+          type: 'panel',
+          id: 'R',
+          tabs: [{ id: 'R1', data: {} }],
+        },
+      ],
+    });
+
+    const preserved = tileryReducer(state, {
+      type: 'PANEL_MOVE',
+      panelId: 'L',
+      to: {
+        splitPanelId: 'R',
+        direction: 'right',
+        sizePercent: 50,
+      },
+    });
+    expect(preserved.panels.L!.minSize).toBe('20%');
+    expect(preserved.panels.L!.maxSize).toBe('80%');
+
+    const overridden = tileryReducer(state, {
+      type: 'PANEL_MOVE',
+      panelId: 'L',
+      to: {
+        splitPanelId: 'R',
+        direction: 'right',
+        sizePercent: 50,
+        minSize: '10%',
+        maxSize: '60%',
+      },
+    });
+    expect(overridden.panels.L!.minSize).toBe('10%');
+    expect(overridden.panels.L!.maxSize).toBe('60%');
+  });
+
+  it('PANEL_MOVE is a no-op for missing, floating, fullscreen, self-target, locked, and invalid moves', () => {
+    const state = twoSideBySide();
+    expect(
+      tileryReducer(state, {
+        type: 'PANEL_MOVE',
+        panelId: 'missing',
+        to: { splitPanelId: 'R', direction: 'right', sizePercent: 50 },
+      }),
+    ).toBe(state);
+
+    const floating = tileryReducer(state, {
+      type: 'PANEL_FLOAT',
+      panelId: 'L',
+    });
+    expect(
+      tileryReducer(floating, {
+        type: 'PANEL_MOVE',
+        panelId: 'L',
+        to: { splitPanelId: 'R', direction: 'right', sizePercent: 50 },
+      }),
+    ).toBe(floating);
+
+    const fullscreen = tileryReducer(state, {
+      type: 'PANEL_FULLSCREEN_SET',
+      panelId: 'L',
+      fullScreen: true,
+    });
+    expect(
+      tileryReducer(fullscreen, {
+        type: 'PANEL_MOVE',
+        panelId: 'L',
+        to: { splitPanelId: 'R', direction: 'right', sizePercent: 50 },
+      }),
+    ).toBe(fullscreen);
+
+    expect(
+      tileryReducer(state, {
+        type: 'PANEL_MOVE',
+        panelId: 'L',
+        to: { splitPanelId: 'L', direction: 'right', sizePercent: 50 },
+      }),
+    ).toBe(state);
+
+    const locked = tileryCreateInitialState({
+      type: 'group',
+      direction: 'horizontal',
+      children: [
+        {
+          type: 'panel',
+          id: 'L',
+          locked: true,
+          tabs: [{ id: 'L1', data: {} }],
+        },
+        { type: 'panel', id: 'R', tabs: [{ id: 'R1', data: {} }] },
+      ],
+    });
+    expect(
+      tileryReducer(locked, {
+        type: 'PANEL_MOVE',
+        panelId: 'L',
+        to: { splitPanelId: 'R', direction: 'right', sizePercent: 50 },
+      }),
+    ).toBe(locked);
+
+    expect(
+      tileryReducer(state, {
+        type: 'PANEL_MOVE',
+        panelId: 'L',
+        to: {
+          splitPanelId: 'R',
+          direction: 'right',
+          sizePercent: 50,
+          minSize: '90%',
+        },
+      }),
+    ).toBe(state);
+
+    expect(
+      tileryReducer(state, {
+        type: 'PANEL_MOVE',
+        panelId: 'L',
+        to: {
+          splitRoot: true,
+          direction: 'bottom',
+          sizePercent: 50,
+          minSize: '90%',
+        },
+      }),
+    ).toBe(state);
+  });
+
   it('PANEL_SWAP swaps the insets of two existing panels (content stays put)', () => {
     const state = twoSideBySide();
     const beforeL = state.panels.L!.inset;

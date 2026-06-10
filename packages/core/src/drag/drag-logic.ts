@@ -108,6 +108,15 @@ export function tileryCommitDrag(
     const size =
       drag.hoverRootSize ??
       tileryRootSplitSizeForDrag(state, tabId, drag.hoverRootZone, panelDrag);
+    if (panelDrag) {
+      tilery.movePanel(sourcePanel.id, {
+        splitRoot: true,
+        direction: drag.hoverRootZone,
+        size,
+      });
+      tilery.setActiveTab(tabId);
+      return;
+    }
     tilery.moveTab(tabId, {
       splitRoot: true,
       direction: drag.hoverRootZone,
@@ -148,6 +157,15 @@ export function tileryCommitDrag(
       tileryResolveSplitInteraction(sourcePanel, target, dir) === 'swap'
     ) {
       tilery.swapPanels(sourcePanel.id, target.id);
+      return;
+    }
+    if (panelDrag) {
+      tilery.movePanel(sourcePanel.id, {
+        splitPanel: drag.hoverPanelId,
+        direction: dir,
+        size: 50,
+      });
+      tilery.setActiveTab(tabId);
       return;
     }
     tilery.moveTab(tabId, {

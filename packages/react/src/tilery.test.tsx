@@ -18,7 +18,11 @@ import type {
   TileryTabsMoveEvent,
   TileryTabsOpenEvent,
 } from './lifecycle';
-import type { TileryInitialLayout, TileryController } from 'tilery/internal';
+import type {
+  TileryController,
+  TileryInitialLayout,
+  TileryTab,
+} from 'tilery/internal';
 
 // Integration tests for the Tilery component itself. They exercise the
 // JSX tree that the per-piece unit tests don't reach: panel-chrome, tab,
@@ -100,6 +104,30 @@ function singlePanelLayout(): TileryInitialLayout<Data> {
     type: 'panel',
     id: 'solo',
     tabs: [{ id: 'only', data: { title: 'Only' } }],
+  };
+}
+
+function statePreservationLayout(): TileryInitialLayout<Data> {
+  return {
+    type: 'group',
+    direction: 'horizontal',
+    children: [
+      {
+        type: 'panel',
+        id: 'stateful',
+        size: 50,
+        tabs: [
+          { id: 'counter', data: { title: 'Counter' } },
+          { id: 'form', data: { title: 'Form' } },
+        ],
+      },
+      {
+        type: 'panel',
+        id: 'target',
+        size: 50,
+        tabs: [{ id: 'target-tab', data: { title: 'Target' } }],
+      },
+    ],
   };
 }
 
@@ -497,6 +525,29 @@ function pointerEvent(
       releasePointerCapture() {},
     } as unknown as HTMLElement,
   } as unknown as React.PointerEvent;
+}
+
+function StatefulTestContent({ tab }: { tab: TileryTab<Data> }) {
+  const [count, setCount] = React.useState(0);
+  if (tab.id === 'counter') {
+    return (
+      <button
+        type="button"
+        data-counter-button=""
+        onClick={() => setCount((value) => value + 1)}>
+        Count {count}
+      </button>
+    );
+  }
+  if (tab.id === 'form') {
+    return (
+      <label>
+        Form
+        <input data-form-input="" defaultValue="draft" />
+      </label>
+    );
+  }
+  return <div data-content-of={tab.id}>{tab.data.title}</div>;
 }
 
 describe('EdgeResizeHandle', () => {
@@ -1692,6 +1743,49 @@ describe('Tilery — rendering', () => {
     expect(h.getTabs()).toHaveLength(4);
     expect(h.getPanel('sidebar')).not.toBeNull();
     expect(h.getTab('foo')).not.toBeNull();
+    t.cleanup();
+  });
+
+  it('preserves tab content state and DOM state when a panel moves', () => {
+    const t = mount(statePreservationLayout(), undefined, {
+      renderTabContent: (tab) => <StatefulTestContent tab={tab} />,
+    });
+    const counterButton = t.host.querySelector<HTMLButtonElement>(
+      '[data-counter-button]',
+    )!;
+    const formInput =
+      t.host.querySelector<HTMLInputElement>('[data-form-input]')!;
+    const counterHost = t.host.querySelector('[data-tab-host="counter"]');
+    const formHost = t.host.querySelector('[data-tab-host="form"]');
+
+    act(() => {
+      counterButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+    formInput.value = 'edited draft';
+
+    act(() => {
+      t.controller().movePanel('stateful', {
+        splitPanel: 'target',
+        direction: 'right',
+      });
+    });
+
+    expect(
+      t
+        .controller()
+        .getPanel('stateful')
+        ?.tabs.map((tab) => tab.id),
+    ).toEqual(['counter', 'form']);
+    expect(t.controller().getTab('counter')?.panel.id).toBe('stateful');
+    expect(t.host.querySelector('[data-tab-host="counter"]')).toBe(counterHost);
+    expect(t.host.querySelector('[data-tab-host="form"]')).toBe(formHost);
+    expect(
+      t.host.querySelector<HTMLButtonElement>('[data-counter-button]')
+        ?.textContent,
+    ).toBe('Count 1');
+    expect(
+      t.host.querySelector<HTMLInputElement>('[data-form-input]')?.value,
+    ).toBe('edited draft');
     t.cleanup();
   });
 
@@ -3592,9 +3686,8 @@ describe('Tilery — drag flow covers the drop overlay path', () => {
       );
     });
 
-    const movedPanel = t.controller().getTab('side')!.panel;
-    expect(t.controller().getPanel('sidebar')).toBeNull();
-    expect(movedPanel.id).not.toBe('sidebar');
+    const movedPanel = t.controller().getPanel('sidebar')!;
+    expect(t.controller().getTab('side')!.panel.id).toBe('sidebar');
     expect(movedPanel.inset.top).toBeCloseTo(200 / 3);
     expect(movedPanel.inset.right).toBe(0);
     expect(movedPanel.inset.bottom).toBe(0);

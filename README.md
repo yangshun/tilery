@@ -502,6 +502,7 @@ The controller exposed via `ref`. Use it for programmatic layout manipulation.
 | `getTab(id)`                            | Returns a `TileryTab` or `null`               |
 | `getPanels()`                           | Returns all `TileryPanel[]`                   |
 | `getTabs()`                             | Returns all `TileryTab[]`                     |
+| `movePanel(panelId, target)`            | Moves a panel while preserving its identity   |
 | `splitPanel(panelId, direction, opts?)` | Splits a panel, returns the new `TileryPanel` |
 | `removePanel(panelId)`                  | Removes a panel (redistributes space)         |
 | `maximizePanel(panelId)`                | Shows one panel fullscreen                    |
@@ -532,6 +533,7 @@ Returned by `getPanel()` and `getPanels()`. Provides panel-scoped operations.
 | `maxSize`                      | Panel maximum size constraint, if set              |
 | `appendTab(tab, opts?)`        | Append a tab to this panel                         |
 | `insertTab(tab, index, opts?)` | Insert a tab at index                              |
+| `moveTo(target)`               | Move this panel while preserving its identity      |
 | `split(direction, opts?)`      | Split this panel                                   |
 | `remove()`                     | Remove this panel                                  |
 | `maximize()`                   | Show this panel fullscreen                         |
@@ -571,7 +573,36 @@ type TileryMoveTarget =
       size?: number;
       minSize?: number;
       maxSize?: number;
-    } & TileryLayoutBehaviorConfig); // Split into new panel
+    } & TileryLayoutBehaviorConfig) // Split into new panel
+  | ({
+      splitRoot: true;
+      direction: TileryDirection;
+      size?: number;
+      minSize?: number;
+      maxSize?: number;
+    } & TileryLayoutBehaviorConfig); // Split the root into a new panel
+```
+
+### `TileryPanelMoveTarget`
+
+Used with `movePanel()` and `panel.moveTo()`:
+
+```ts
+type TileryPanelMoveTarget =
+  | ({
+      splitPanel: TileryPanelId;
+      direction: TileryDirection;
+      size?: number;
+      minSize?: number;
+      maxSize?: number;
+    } & TileryLayoutBehaviorConfig)
+  | ({
+      splitRoot: true;
+      direction: TileryDirection;
+      size?: number;
+      minSize?: number;
+      maxSize?: number;
+    } & TileryLayoutBehaviorConfig);
 ```
 
 ### `TileryDirection`

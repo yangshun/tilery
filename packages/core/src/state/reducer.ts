@@ -33,6 +33,7 @@ import {
   tilerySyncLayoutPanels,
 } from './layout-tree';
 import {
+  tileryMovePanel,
   tileryRemovePanel,
   tilerySetPanelFullScreen,
   tilerySplitPanel,
@@ -79,6 +80,9 @@ export function tileryReducer(
     }
     case 'PANEL_REMOVE': {
       return tileryRemovePanel(current, action.panelId);
+    }
+    case 'PANEL_MOVE': {
+      return tileryMovePanel(current, action);
     }
     case 'PANEL_FULLSCREEN_SET': {
       return tilerySetPanelFullScreen(

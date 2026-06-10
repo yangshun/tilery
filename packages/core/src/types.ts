@@ -579,6 +579,14 @@ export type TileryRootSplitMoveTarget = {
 } & TileryLayoutBehaviorConfig;
 
 /**
+ * Destination for `movePanel()` / `panel.moveTo()`: a split of an existing panel
+ * or the whole root using the moved panel's existing identity.
+ */
+export type TileryPanelMoveTarget =
+  | TilerySplitMoveTarget
+  | TileryRootSplitMoveTarget;
+
+/**
  * Destination for `moveTab()` / `tab.moveTo()`: an index in a panel, before or
  * after a tab, or a split of an existing panel or the whole root.
  */
@@ -677,6 +685,8 @@ export type TileryController = {
   getPanels(): TileryPanel[];
   /** Returns every tab in the workspace. */
   getTabs(): TileryTab[];
+  /** Moves an existing tiled panel to a split or root target, preserving panel identity. */
+  movePanel(panelId: TileryPanelId, target: TileryPanelMoveTarget): void;
   /** Splits a panel and returns the new panel created beside it. */
   splitPanel(
     panelId: TileryPanelId,
@@ -829,6 +839,8 @@ export type TileryPanel = {
     index: number,
     opts?: { activate?: boolean },
   ): TileryTab;
+  /** Shorthand for controller.movePanel(this.id, target). */
+  moveTo(target: TileryPanelMoveTarget): void;
   /** Shorthand for controller.splitPanel(this.id, direction, opts). */
   split(
     direction: TileryDirection,

@@ -1,0 +1,29 @@
+---
+title: State Preservation
+description: Keep React, form, and iframe state mounted while panels move.
+category: App Integration
+---
+
+import { Demo } from '../../../components/demo';
+import { StatePreservationExample } from './example';
+
+State preservation is about the mounted runtime content inside a panel. Update each panel, then move it with the controls or by dragging the tab bar.
+
+This is separate from layout persistence: no snapshot is being saved here. The panel keeps the same identity while Tilery changes its position.
+
+<Demo
+  source="state-preservation/example.tsx"
+  regions={[
+    'state-preservation-layout',
+    'state-preservation-controller',
+    'state-preservation-tilery',
+  ]}
+  surface="plain"
+  height={520}>
+  <StatePreservationExample />
+</Demo>
+
+## Related
+
+- [Concepts](/docs/concepts) — See how stable tab content hosts preserve mounted state.
+- [Layout Persistence](/examples/persistence) — Save and restore serialized layout snapshots.

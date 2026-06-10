@@ -963,6 +963,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
     () => tileryPanelOrderFromState(state),
     [state],
   );
+  const stableTiledPanelIds = useStablePanelOrder(tiledPanelIds);
   const edgePanelIds = useMemo(
     () => tileryEdgePanelOrderFromState(state),
     [state],
@@ -1073,7 +1074,7 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
           className="tilery__main-layer"
           style={mainLayerStyle}>
           {!fullScreenPanelId &&
-            tiledPanelIds.map((panelId) => renderPanel(panelId))}
+            stableTiledPanelIds.map((panelId) => renderPanel(panelId))}
 
           {!fullScreenPanelId &&
             dividers.map((d) => (
@@ -1174,6 +1175,19 @@ export const Tilery = forwardRef(function Tilery<TData = unknown>(
 }) as <TData = unknown>(
   props: TileryProps<TData> & { ref?: React.Ref<TileryController> },
 ) => React.ReactElement;
+
+function useStablePanelOrder(panelIds: readonly TileryPanelId[]) {
+  const orderRef = useRef<TileryPanelId[]>([]);
+  return useMemo(() => {
+    const live = new Set(panelIds);
+    const next = orderRef.current.filter((id) => live.has(id));
+    for (const id of panelIds) {
+      if (!next.includes(id)) next.push(id);
+    }
+    orderRef.current = next;
+    return next;
+  }, [panelIds]);
+}
 
 /** Resolves a panel-visibility value to a boolean for a specific panel. */
 function resolvePanelVisibility(

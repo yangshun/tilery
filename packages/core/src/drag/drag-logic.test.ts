@@ -663,7 +663,7 @@ describe('tileryAdjacencySide', () => {
   });
 });
 
-describe('tileryCommitDrag — panelDrag=true (moves all tabs)', () => {
+describe('tileryCommitDrag — panelDrag=true', () => {
   const baseDrag: Omit<
     TileryDragState,
     'hoverTabBar' | 'hoverPanelId' | 'hoverZone'
@@ -678,6 +678,7 @@ describe('tileryCommitDrag — panelDrag=true (moves all tabs)', () => {
 
   function panelDragController() {
     const calls: { tabId: TileryTabId; target: unknown }[] = [];
+    const panelCalls: { panelId: string; target: unknown }[] = [];
     const swapCalls: { a: string; b: string }[] = [];
     const activeCalls: TileryTabId[] = [];
     const controller = {
@@ -703,6 +704,9 @@ describe('tileryCommitDrag — panelDrag=true (moves all tabs)', () => {
       moveTab(tabId: TileryTabId, target: unknown) {
         calls.push({ tabId, target });
       },
+      movePanel(panelId: string, target: unknown) {
+        panelCalls.push({ panelId, target });
+      },
       swapPanels(a: string, b: string) {
         swapCalls.push({ a, b });
       },
@@ -711,7 +715,7 @@ describe('tileryCommitDrag — panelDrag=true (moves all tabs)', () => {
         activeCalls.push(tabId);
       },
     } as unknown as TileryController;
-    return { controller, calls, swapCalls, activeCalls };
+    return { controller, calls, panelCalls, swapCalls, activeCalls };
   }
 
   it('tab-bar append moves all tabs from source panel', () => {
@@ -734,8 +738,9 @@ describe('tileryCommitDrag — panelDrag=true (moves all tabs)', () => {
     ]);
   });
 
-  it('root hover zone moves all tabs from source panel', () => {
-    const { controller, calls, activeCalls } = panelDragController();
+  it('root hover zone moves the source panel', () => {
+    const { controller, calls, panelCalls, activeCalls } =
+      panelDragController();
     tileryCommitDrag(
       controller,
       {
@@ -749,13 +754,12 @@ describe('tileryCommitDrag — panelDrag=true (moves all tabs)', () => {
       'T1',
       true,
     );
-    expect(calls).toEqual([
+    expect(calls).toEqual([]);
+    expect(panelCalls).toEqual([
       {
-        tabId: 'T1',
+        panelId: 'SRC',
         target: { splitRoot: true, direction: 'bottom', size: 100 / 3 },
       },
-      { tabId: 'T2', target: { afterTab: 'T1' } },
-      { tabId: 'T3', target: { afterTab: 'T2' } },
     ]);
     expect(activeCalls).toEqual(['T1']);
   });
@@ -884,8 +888,9 @@ describe('tileryCommitDrag — panelDrag=true (moves all tabs)', () => {
     ]);
   });
 
-  it('directional zone splits and moves all tabs when panelDrag=true', () => {
-    const { controller, calls, swapCalls } = panelDragController();
+  it('directional zone moves the source panel when panelDrag=true', () => {
+    const { controller, calls, panelCalls, swapCalls, activeCalls } =
+      panelDragController();
     tileryCommitDrag(
       controller,
       {
@@ -898,18 +903,19 @@ describe('tileryCommitDrag — panelDrag=true (moves all tabs)', () => {
       true,
     );
     expect(swapCalls).toEqual([]);
-    expect(calls).toEqual([
+    expect(calls).toEqual([]);
+    expect(panelCalls).toEqual([
       {
-        tabId: 'T1',
+        panelId: 'SRC',
         target: { splitPanel: 'TGT', direction: 'right', size: 50 },
       },
-      { tabId: 'T2', target: { afterTab: 'T1' } },
-      { tabId: 'T3', target: { afterTab: 'T2' } },
     ]);
+    expect(activeCalls).toEqual(['T1']);
   });
 
-  it('directional zone on own panel splits and moves siblings', () => {
+  it('directional zone on own panel delegates to panel move and lets the reducer no-op', () => {
     const calls: { tabId: TileryTabId; target: unknown }[] = [];
+    const panelCalls: { panelId: string; target: unknown }[] = [];
     const swapCalls: { a: string; b: string }[] = [];
     const controller = {
       getPanel(_id: string) {
@@ -932,6 +938,9 @@ describe('tileryCommitDrag — panelDrag=true (moves all tabs)', () => {
       moveTab(tabId: TileryTabId, target: unknown) {
         calls.push({ tabId, target });
       },
+      movePanel(panelId: string, target: unknown) {
+        panelCalls.push({ panelId, target });
+      },
       swapPanels(a: string, b: string) {
         swapCalls.push({ a, b });
       },
@@ -950,12 +959,12 @@ describe('tileryCommitDrag — panelDrag=true (moves all tabs)', () => {
       true,
     );
     expect(swapCalls).toEqual([]);
-    expect(calls).toEqual([
+    expect(calls).toEqual([]);
+    expect(panelCalls).toEqual([
       {
-        tabId: 'T1',
+        panelId: 'SRC',
         target: { splitPanel: 'SRC', direction: 'left', size: 50 },
       },
-      { tabId: 'T2', target: { afterTab: 'T1' } },
     ]);
   });
 

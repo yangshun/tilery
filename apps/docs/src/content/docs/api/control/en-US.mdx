@@ -18,6 +18,7 @@ The Tilery ref exposes a `TileryController`. Use it when the application, not a 
 | Open a file, query, or issue tab once | `openOrActivateTab()`                                        | Activates an existing resource tab by id or inserts it if missing.           |
 | Rename a temporary resource tab       | `changeTabId()`                                              | Moves a draft or untitled tab to a durable id without rebuilding the layout. |
 | Split a workspace region              | `splitPanel()` or `panel.split()`                            | Creates a new panel beside an existing panel.                                |
+| Move a whole panel                    | `movePanel()` or `panel.moveTo()`                            | Repositions a panel while preserving its identity and mounted content.       |
 | Move a tab from app code              | `moveTab()` or `tab.moveTo()`                                | Supports panel, before-tab, after-tab, and split targets.                    |
 | Float or pop out content              | `floatPanel()`, `floatTab()`, `popoutPanel()`, `popoutTab()` | Extracts existing content without closing its tabs.                          |
 | Persist or restore the workspace      | `getLayout()` and `setLayout()`                              | Round-trips the serializable snapshot shape.                                 |
@@ -30,6 +31,7 @@ The Tilery ref exposes a `TileryController`. Use it when the application, not a 
 | `getTab(id)`                              | Returns a TileryTab or null                                                                 |
 | `getPanels()`                             | Returns all TileryPanel[]                                                                   |
 | `getTabs()`                               | Returns all TileryTab[]                                                                     |
+| `movePanel(panelId, target)`              | Moves a tiled panel to a split or root target while preserving its identity                 |
 | `splitPanel(panelId, direction, opts?)`   | Splits a panel and returns the new TileryPanel                                              |
 | `removePanel(panelId)`                    | Removes a panel and redistributes space                                                     |
 | `maximizePanel(panelId)`                  | Shows one panel fullscreen                                                                  |
@@ -90,6 +92,7 @@ Use `changeTabId()` when a temporary tab receives a durable id later, for exampl
 | `maxSize`                       | Panel maximum size constraint, if set                                      |
 | `appendTab(tab, opts?)`         | Append a tab to this panel                                                 |
 | `insertTab(tab, index, opts?)`  | Insert a tab at index                                                      |
+| `moveTo(target)`                | Move this panel while preserving its identity                              |
 | `split(direction, opts?)`       | Split this panel                                                           |
 | `remove()`                      | Remove this panel                                                          |
 | `maximize()`                    | Show this panel fullscreen                                                 |
@@ -149,6 +152,30 @@ type TileryMoveTarget =
 ```
 
 Use `splitPanel` when the new panel should sit beside one existing panel. Use `splitRoot` when the new panel should become a full-width or full-height row/column around the whole main tiled layout. If `splitRoot` omits `size`, Tilery gives the new panel an equal share of the resulting root rows or columns.
+
+## TileryPanelMoveTarget
+
+Used with `movePanel()` and `panel.moveTo()`:
+
+```tsx
+type TileryPanelMoveTarget =
+  | ({
+      splitPanel: TileryPanelId;
+      direction: TileryDirection;
+      size?: number;
+      minSize?: TilerySize;
+      maxSize?: TilerySize;
+    } & TileryLayoutBehaviorConfig)
+  | ({
+      splitRoot: true;
+      direction: TileryDirection;
+      size?: number;
+      minSize?: TilerySize;
+      maxSize?: TilerySize;
+    } & TileryLayoutBehaviorConfig);
+```
+
+Use `movePanel()` when the panel's runtime content should stay mounted while its position changes. Unlike moving each tab into a new split, this keeps the original panel id.
 
 ## TileryOpenTabTarget
 

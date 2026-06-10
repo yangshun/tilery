@@ -40,6 +40,7 @@ export type {
   TileryPanel,
   TileryPanelId,
   TileryPanelInit,
+  TileryPanelMoveTarget,
   TileryPanelState,
   TileryPopoutPanelConfig,
   TileryPopoutPanelOptions,

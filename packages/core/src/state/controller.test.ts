@@ -740,6 +740,55 @@ describe('TileryController mutations', () => {
     expect(action.draggable).toBe(false);
     expect(action.droppable).toBe(false);
   });
+  it('movePanel dispatches PANEL_MOVE without creating a replacement panel id', () => {
+    const { controller, dispatched, getState } = makeStore(undefined, () => ({
+      width: 1000,
+      height: 800,
+    }));
+    controller.movePanel('P1', {
+      splitPanel: 'P2',
+      direction: 'right',
+      size: 35,
+      minSize: '120px',
+      maxSize: '80%',
+      locked: true,
+    });
+
+    const action = dispatched[0]!;
+    if (action.type !== 'PANEL_MOVE') throw new Error('expected PANEL_MOVE');
+    expect(action.panelId).toBe('P1');
+    expect(action.to).toEqual({
+      splitPanelId: 'P2',
+      direction: 'right',
+      sizePercent: 35,
+      minSize: '120px',
+      maxSize: '80%',
+      sizeContext: { width: 1000, height: 800 },
+      resizable: false,
+      draggable: false,
+      droppable: false,
+    });
+    expect('newPanelId' in action.to).toBe(false);
+    expect(getState().panels.P1!.tabs).toEqual(['T1', 'T2']);
+    expect(getState().tabs.T1!.panelId).toBe('P1');
+  });
+  it('panel.moveTo delegates to controller.movePanel', () => {
+    const { controller, dispatched } = makeStore();
+    controller.getPanel('P1')!.moveTo({
+      splitRoot: true,
+      direction: 'bottom',
+      size: 25,
+    });
+
+    const action = dispatched[0]!;
+    if (action.type !== 'PANEL_MOVE') throw new Error('expected PANEL_MOVE');
+    expect(action.panelId).toBe('P1');
+    expect(action.to).toMatchObject({
+      splitRoot: true,
+      direction: 'bottom',
+      sizePercent: 25,
+    });
+  });
   it('removePanel dispatches PANEL_REMOVE', () => {
     const { controller, dispatched } = makeStore();
     controller.removePanel('P1');
