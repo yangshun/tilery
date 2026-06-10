@@ -67,6 +67,7 @@ export function tileryCommitDrag(
   if (panelDrag && sourcePanel.tabs.some((tab) => tab.draggable === false)) {
     return;
   }
+  const shouldMoveSourcePanel = panelDrag || isSingleTabTiledPanel(sourcePanel);
   const leadIndex = allTabIds.indexOf(tabId);
   const tabsBefore = allTabIds.slice(0, leadIndex);
   const tabsAfter = allTabIds.slice(leadIndex + 1);
@@ -108,7 +109,7 @@ export function tileryCommitDrag(
     const size =
       drag.hoverRootSize ??
       tileryRootSplitSizeForDrag(state, tabId, drag.hoverRootZone, panelDrag);
-    if (panelDrag) {
+    if (shouldMoveSourcePanel) {
       tilery.movePanel(sourcePanel.id, {
         splitRoot: true,
         direction: drag.hoverRootZone,
@@ -149,17 +150,19 @@ export function tileryCommitDrag(
     ) {
       return;
     }
-    if (
-      target &&
-      !panelDrag &&
-      !sourcePanel.floating &&
-      !target.floating &&
-      tileryResolveSplitInteraction(sourcePanel, target, dir) === 'swap'
-    ) {
-      tilery.swapPanels(sourcePanel.id, target.id);
-      return;
+    if (target && !panelDrag && !sourcePanel.floating && !target.floating) {
+      const splitInteraction = tileryResolveSplitInteraction(
+        sourcePanel,
+        target,
+        dir,
+      );
+      if (splitInteraction === 'suppress') return;
+      if (splitInteraction === 'swap') {
+        tilery.swapPanels(sourcePanel.id, target.id);
+        return;
+      }
     }
-    if (panelDrag) {
+    if (shouldMoveSourcePanel) {
       tilery.movePanel(sourcePanel.id, {
         splitPanel: drag.hoverPanelId,
         direction: dir,
@@ -176,6 +179,14 @@ export function tileryCommitDrag(
     moveSiblingsPreservingOrder(tilery, tabsBefore, tabsAfter, tabId);
     if (panelDrag) tilery.setActiveTab(tabId);
   }
+}
+
+function isSingleTabTiledPanel(panel: {
+  kind?: string;
+  floating?: boolean;
+  tabs: readonly unknown[];
+}): boolean {
+  return panel.kind === 'tiled' && !panel.floating && panel.tabs.length === 1;
 }
 
 /**

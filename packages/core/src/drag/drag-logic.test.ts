@@ -53,6 +53,58 @@ describe('tileryCommitDrag — every branch', () => {
     } as unknown as TileryController;
     return { controller, calls, swapCalls };
   }
+
+  function singleTabTiledController({
+    targetTabs = [{ id: 'target-tab' }],
+    sourceInset = { top: 0, right: 50, bottom: 0, left: 0 },
+    targetInset = { top: 0, right: 0, bottom: 0, left: 50 },
+  }: {
+    targetTabs?: { id: string }[];
+    sourceInset?: { top: number; right: number; bottom: number; left: number };
+    targetInset?: { top: number; right: number; bottom: number; left: number };
+  } = {}) {
+    const calls: { tabId: TileryTabId; target: unknown }[] = [];
+    const panelCalls: { panelId: string; target: unknown }[] = [];
+    const swapCalls: { a: string; b: string }[] = [];
+    const activeCalls: TileryTabId[] = [];
+    const controller = {
+      getPanel(id: string) {
+        if (id !== 'TARGET') return null;
+        return {
+          id,
+          kind: 'tiled',
+          tabs: targetTabs,
+          inset: targetInset,
+        };
+      },
+      getTab(_id: TileryTabId) {
+        return {
+          id: _id,
+          panel: {
+            id: 'SOURCE',
+            kind: 'tiled',
+            tabs: [{ id: _id }],
+            inset: sourceInset,
+          },
+        };
+      },
+      moveTab(tabId: TileryTabId, target: unknown) {
+        calls.push({ tabId, target });
+      },
+      movePanel(panelId: string, target: unknown) {
+        panelCalls.push({ panelId, target });
+      },
+      swapPanels(a: string, b: string) {
+        swapCalls.push({ a, b });
+      },
+      getState: defaultDragState,
+      setActiveTab(tabId: TileryTabId) {
+        activeCalls.push(tabId);
+      },
+    } as unknown as TileryController;
+    return { controller, calls, panelCalls, swapCalls, activeCalls };
+  }
+
   const baseDrag: Omit<
     TileryDragState,
     'hoverTabBar' | 'hoverPanelId' | 'hoverZone'
@@ -186,6 +238,25 @@ describe('tileryCommitDrag — every branch', () => {
     );
     expect(calls[0]).toEqual({ tabId: 'TX', target: { panel: 'P', index: 2 } });
   });
+  it('center zone still merges a single-tab tiled source into the target panel', () => {
+    const { controller, calls, panelCalls } = singleTabTiledController({
+      targetTabs: [{ id: 'A' }, { id: 'B' }],
+    });
+    tileryCommitDrag(
+      controller,
+      {
+        ...baseDrag,
+        hoverTabBar: null,
+        hoverPanelId: 'TARGET',
+        hoverZone: 'center',
+      },
+      'TX',
+    );
+    expect(panelCalls).toEqual([]);
+    expect(calls).toEqual([
+      { tabId: 'TX', target: { panel: 'TARGET', index: 2 } },
+    ]);
+  });
   it('center zone with missing panel is a no-op', () => {
     const { controller, calls } = mockController();
     tileryCommitDrag(
@@ -212,6 +283,31 @@ describe('tileryCommitDrag — every branch', () => {
       target: { splitPanel: 'P', direction: 'right', size: 50 },
     });
   });
+  it('directional zone moves a single-tab tiled source panel when the drop resolves to split', () => {
+    const { controller, calls, panelCalls, swapCalls, activeCalls } =
+      singleTabTiledController({
+        targetTabs: [{ id: 'A' }, { id: 'B' }],
+      });
+    tileryCommitDrag(
+      controller,
+      {
+        ...baseDrag,
+        hoverTabBar: null,
+        hoverPanelId: 'TARGET',
+        hoverZone: 'right',
+      },
+      'TX',
+    );
+    expect(swapCalls).toEqual([]);
+    expect(calls).toEqual([]);
+    expect(panelCalls).toEqual([
+      {
+        panelId: 'SOURCE',
+        target: { splitPanel: 'TARGET', direction: 'right', size: 50 },
+      },
+    ]);
+    expect(activeCalls).toEqual(['TX']);
+  });
   it('root hover zone maps to splitRoot moveTab', () => {
     const { controller, calls } = mockController();
     tileryCommitDrag(
@@ -230,6 +326,30 @@ describe('tileryCommitDrag — every branch', () => {
       tabId: 'TX',
       target: { splitRoot: true, direction: 'bottom', size: 100 / 3 },
     });
+  });
+  it('root hover zone moves a single-tab tiled source panel', () => {
+    const { controller, calls, panelCalls, activeCalls } =
+      singleTabTiledController();
+    tileryCommitDrag(
+      controller,
+      {
+        ...baseDrag,
+        hoverTabBar: null,
+        hoverPanelId: null,
+        hoverZone: null,
+        hoverRootZone: 'bottom',
+        hoverRootSize: 100 / 3,
+      },
+      'TX',
+    );
+    expect(calls).toEqual([]);
+    expect(panelCalls).toEqual([
+      {
+        panelId: 'SOURCE',
+        target: { splitRoot: true, direction: 'bottom', size: 100 / 3 },
+      },
+    ]);
+    expect(activeCalls).toEqual(['TX']);
   });
   it('directional zone no-ops when the target behavior rejects drops', () => {
     const { controller, calls } = mockController();
@@ -569,9 +689,9 @@ describe('tileryCommitDrag — every branch', () => {
       target: { splitPanel: 'TGT', direction: 'left', size: 50 },
     });
   });
-  it('directional zone falls through to splitPanel moveTab when not a swap candidate (same side)', () => {
-    // Source is right of target, drop on target's RIGHT (same side as source) → not a swap.
-    // tileryCommitDrag falls through to default split.
+  it('directional zone suppresses when dropping on the side the source already occupies', () => {
+    // Source is right of target, drop on target's RIGHT (same side as source).
+    // The React hover path suppresses this overlay; the commit path mirrors it.
     const { controller, calls, swapCalls } = swapController(
       { top: 0, right: 0, bottom: 0, left: 50 },
       { top: 0, right: 50, bottom: 0, left: 0 },
@@ -587,10 +707,7 @@ describe('tileryCommitDrag — every branch', () => {
       'TX',
     );
     expect(swapCalls).toEqual([]);
-    expect(calls[0]).toEqual({
-      tabId: 'TX',
-      target: { splitPanel: 'TGT', direction: 'right', size: 50 },
-    });
+    expect(calls).toEqual([]);
   });
 });
 

@@ -78,6 +78,40 @@ function lShapeLayout(
   };
 }
 
+function statePreservationLikeLayout(): TileryInitialLayout<Data> {
+  return {
+    type: 'group',
+    direction: 'horizontal',
+    children: [
+      {
+        type: 'panel',
+        id: 'react-panel',
+        size: 34,
+        tabs: [{ id: 'react-counter', data: { title: 'React counter' } }],
+      },
+      {
+        type: 'group',
+        direction: 'vertical',
+        size: 66,
+        children: [
+          {
+            type: 'panel',
+            id: 'form-panel',
+            size: 50,
+            tabs: [{ id: 'draft-form', data: { title: 'Uncontrolled form' } }],
+          },
+          {
+            type: 'panel',
+            id: 'iframe-panel',
+            size: 50,
+            tabs: [{ id: 'iframe-counter', data: { title: 'Iframe counter' } }],
+          },
+        ],
+      },
+    ],
+  };
+}
+
 function simpleLayout(): TileryInitialLayout<Data> {
   return {
     type: 'group',
@@ -3698,6 +3732,133 @@ describe('Tilery — drag flow covers the drop overlay path', () => {
     );
     expect(t.controller().getPanel('term')!.inset.top).toBeCloseTo(100 / 3);
     expect(t.controller().getPanel('term')!.inset.bottom).toBeCloseTo(100 / 3);
+    t.cleanup();
+  });
+
+  it('moves a single-tab source panel when its only tab is dragged to a root edge', () => {
+    const t = mount(lShapeLayout());
+    const sideTab = t.host.querySelector<HTMLElement>(
+      '.tilery__tab[data-tab-id="side"]',
+    )!;
+    const sideHost = t.host.querySelector('[data-tab-host="side"]');
+
+    act(() => {
+      reactProps(sideTab).onPointerDown(
+        pointerEvent({ clientX: 100, clientY: 16, pointerId: 58 }),
+      );
+      reactProps(sideTab).onPointerMove(
+        pointerEvent({ clientX: 500, clientY: 795, pointerId: 58 }),
+      );
+    });
+
+    const overlay = t.host.querySelector<HTMLElement>('.tilery__drop-overlay');
+    expect(overlay?.dataset.rootZone).toBe('true');
+    expect(overlay?.dataset.zone).toBe('bottom');
+
+    act(() => {
+      reactProps(sideTab).onPointerUp(
+        pointerEvent({ clientX: 500, clientY: 795, pointerId: 58 }),
+      );
+    });
+
+    expect(t.controller().getPanel('sidebar')).not.toBeNull();
+    expect(t.controller().getTab('side')?.panel.id).toBe('sidebar');
+    expect(t.host.querySelector('[data-tab-host="side"]')).toBe(sideHost);
+    expect(
+      t
+        .controller()
+        .getPanels()
+        .map((panel) => panel.id),
+    ).toEqual(['editor', 'term', 'sidebar']);
+    t.cleanup();
+  });
+
+  it('moves the state-preservation iframe panel when its tab is dragged to the right root edge', () => {
+    const t = mount(statePreservationLikeLayout());
+    const iframeTab = t.host.querySelector<HTMLElement>(
+      '.tilery__tab[data-tab-id="iframe-counter"]',
+    )!;
+    const iframeHost = t.host.querySelector('[data-tab-host="iframe-counter"]');
+
+    act(() => {
+      reactProps(iframeTab).onPointerDown(
+        pointerEvent({ clientX: 820, clientY: 420, pointerId: 60 }),
+      );
+      reactProps(iframeTab).onPointerMove(
+        pointerEvent({ clientX: 995, clientY: 420, pointerId: 60 }),
+      );
+    });
+
+    const overlay = t.host.querySelector<HTMLElement>('.tilery__drop-overlay');
+    expect(overlay?.dataset.rootZone).toBe('true');
+    expect(overlay?.dataset.zone).toBe('right');
+
+    act(() => {
+      reactProps(iframeTab).onPointerUp(
+        pointerEvent({ clientX: 995, clientY: 420, pointerId: 60 }),
+      );
+    });
+
+    expect(t.controller().getPanel('iframe-panel')).not.toBeNull();
+    expect(t.controller().getTab('iframe-counter')?.panel.id).toBe(
+      'iframe-panel',
+    );
+    expect(t.host.querySelector('[data-tab-host="iframe-counter"]')).toBe(
+      iframeHost,
+    );
+    expect(
+      t
+        .controller()
+        .getPanels()
+        .map((panel) => panel.id),
+    ).toEqual(['react-panel', 'form-panel', 'iframe-panel']);
+    t.cleanup();
+  });
+
+  it('moves a single-tab source panel when its only tab is dragged to a panel split zone', () => {
+    const t = mount(lShapeLayout());
+    const sideTab = t.host.querySelector<HTMLElement>(
+      '.tilery__tab[data-tab-id="side"]',
+    )!;
+    const editorPanel = t.host.querySelector<HTMLElement>(
+      '.tilery__panel[data-panel-id="editor"]',
+    )!;
+    const sideHost = t.host.querySelector('[data-tab-host="side"]');
+    stubElementRect(editorPanel, {
+      left: 400,
+      top: 0,
+      width: 500,
+      height: 360,
+    });
+
+    act(() => {
+      reactProps(sideTab).onPointerDown(
+        pointerEvent({ clientX: 100, clientY: 16, pointerId: 59 }),
+      );
+      reactProps(sideTab).onPointerMove(
+        pointerEvent({ clientX: 860, clientY: 160, pointerId: 59 }),
+      );
+    });
+
+    const overlay = t.host.querySelector<HTMLElement>('.tilery__drop-overlay');
+    expect(overlay?.dataset.rootZone).not.toBe('true');
+    expect(overlay?.dataset.zone).toBe('right');
+
+    act(() => {
+      reactProps(sideTab).onPointerUp(
+        pointerEvent({ clientX: 860, clientY: 160, pointerId: 59 }),
+      );
+    });
+
+    expect(t.controller().getPanel('sidebar')).not.toBeNull();
+    expect(t.controller().getTab('side')?.panel.id).toBe('sidebar');
+    expect(t.host.querySelector('[data-tab-host="side"]')).toBe(sideHost);
+    expect(
+      t
+        .controller()
+        .getPanels()
+        .map((panel) => panel.id),
+    ).toEqual(['editor', 'sidebar', 'term']);
     t.cleanup();
   });
 
