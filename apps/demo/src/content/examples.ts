@@ -1,33 +1,45 @@
 import type { ComponentType } from 'react';
 
-import Basic, { frontmatter as basic } from './examples/basic.mdx';
-import Ide, { frontmatter as ide } from './examples/ide.mdx';
+import Basic, { frontmatter as basic } from './examples/basic/en-US.mdx';
+import Ide, { frontmatter as ide } from './examples/ide/en-US.mdx';
 import EdgePanels, {
   frontmatter as edgePanels,
-} from './examples/edge-panels.mdx';
-import Dashboard, { frontmatter as dashboard } from './examples/dashboard.mdx';
-import Nested, { frontmatter as nested } from './examples/nested.mdx';
+} from './examples/edge-panels/en-US.mdx';
+import Dashboard, {
+  frontmatter as dashboard,
+} from './examples/dashboard/en-US.mdx';
+import Nested, { frontmatter as nested } from './examples/nested/en-US.mdx';
 import Constraints, {
   frontmatter as constraints,
-} from './examples/constraints.mdx';
-import Collapse, { frontmatter as collapse } from './examples/collapse.mdx';
-import Overflow, { frontmatter as overflow } from './examples/overflow.mdx';
+} from './examples/constraints/en-US.mdx';
+import Collapse, {
+  frontmatter as collapse,
+} from './examples/collapse/en-US.mdx';
+import Overflow, {
+  frontmatter as overflow,
+} from './examples/overflow/en-US.mdx';
 import PanelLocking, {
   frontmatter as panelLocking,
-} from './examples/panel-locking.mdx';
+} from './examples/panel-locking/en-US.mdx';
 import TabLocking, {
   frontmatter as tabLocking,
-} from './examples/tab-locking.mdx';
+} from './examples/tab-locking/en-US.mdx';
 import Controlled, {
   frontmatter as controlled,
-} from './examples/controlled.mdx';
-import LinkTabs, { frontmatter as linkTabs } from './examples/link-tabs.mdx';
+} from './examples/controlled/en-US.mdx';
+import LinkTabs, {
+  frontmatter as linkTabs,
+} from './examples/link-tabs/en-US.mdx';
 import Persistence, {
   frontmatter as persistence,
-} from './examples/persistence.mdx';
-import Callbacks, { frontmatter as callbacks } from './examples/callbacks.mdx';
-import Floating, { frontmatter as floating } from './examples/floating.mdx';
-import Themes, { frontmatter as themes } from './examples/themes.mdx';
+} from './examples/persistence/en-US.mdx';
+import Callbacks, {
+  frontmatter as callbacks,
+} from './examples/callbacks/en-US.mdx';
+import Floating, {
+  frontmatter as floating,
+} from './examples/floating/en-US.mdx';
+import Themes, { frontmatter as themes } from './examples/themes/en-US.mdx';
 
 /** Sidebar grouping order for the example category sections. */
 export const exampleCategoryOrder = [

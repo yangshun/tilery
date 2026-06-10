@@ -1,18 +1,26 @@
 import type { ComponentType } from 'react';
 
-import Api, { frontmatter as api } from './docs/api.mdx';
+import Api, { frontmatter as api } from './docs/api/en-US.mdx';
 import ApiComponent, {
   frontmatter as apiComponent,
-} from './docs/api/component.mdx';
-import ApiControl, { frontmatter as apiControl } from './docs/api/control.mdx';
-import ApiEvents, { frontmatter as apiEvents } from './docs/api/events.mdx';
-import ApiLayout, { frontmatter as apiLayout } from './docs/api/layout.mdx';
-import ApiStyling, { frontmatter as apiStyling } from './docs/api/styling.mdx';
-import Concepts, { frontmatter as concepts } from './docs/concepts.mdx';
+} from './docs/api/component/en-US.mdx';
+import ApiControl, {
+  frontmatter as apiControl,
+} from './docs/api/control/en-US.mdx';
+import ApiEvents, {
+  frontmatter as apiEvents,
+} from './docs/api/events/en-US.mdx';
+import ApiLayout, {
+  frontmatter as apiLayout,
+} from './docs/api/layout/en-US.mdx';
+import ApiStyling, {
+  frontmatter as apiStyling,
+} from './docs/api/styling/en-US.mdx';
+import Concepts, { frontmatter as concepts } from './docs/concepts/en-US.mdx';
 import GettingStarted, {
   frontmatter as gettingStarted,
-} from './docs/getting-started.mdx';
-import Styling, { frontmatter as styling } from './docs/styling.mdx';
+} from './docs/getting-started/en-US.mdx';
+import Styling, { frontmatter as styling } from './docs/styling/en-US.mdx';
 
 export type DocPage = {
   slug: string;
