@@ -26,16 +26,16 @@ export type HomeCapability = {
 
 export const principles: HomePrinciple[] = [
   {
-    title: 'A drop-in window manager',
-    body: 'Draggable tabs, split zones, resize, maximize, floating panels, and pop-out windows — all from one <Tilery> component.',
+    title: 'Flexible panel layouts',
+    body: 'Split panels, resize dividers, move tabs, maximize views, float panels, and open popout windows from one Tilery surface.',
   },
   {
     title: 'Framework-agnostic core',
     body: 'Layout, drag, and resize logic live in the dependency-free tilery core. @tileryjs/react is the first adapter, not a requirement.',
   },
   {
-    title: 'Zero dependencies, fully typed',
-    body: 'React is the only peer dependency, and every panel, tab, and controller is typed end to end.',
+    title: 'Typed from core to adapter',
+    body: 'The core has no runtime dependencies, and the React adapter exposes typed panels, tabs, controllers, and events.',
   },
 ];
 

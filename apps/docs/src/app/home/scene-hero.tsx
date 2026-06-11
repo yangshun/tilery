@@ -13,11 +13,11 @@ export function HeroScene() {
         <h1
           id="home-title"
           className="m-0 max-w-3xl border-0 p-0 text-[clamp(34px,4.8vw,62px)] font-semibold leading-none tracking-tighter text-site-fg">
-          Build IDE-like tiled interfaces in React.
+          Build flexible interfaces that split, resize, and rearrange.
         </h1>
-        <p className="m-0 max-w-screen-sm text-[clamp(16px,1.5vw,18px)] leading-normal text-site-fg-soft">
-          A layout engine for draggable tabs, resizable panels, preserved React
-          state, and programmable workspaces.
+        <p className="mt-5 mb-0 max-w-screen-sm text-[clamp(16px,1.5vw,18px)] leading-normal text-site-fg-soft">
+          Tilery gives you draggable tabs, resizable panels, persistent layouts,
+          and a programmable core for complex product surfaces.
         </p>
         <div className="mt-7 flex flex-wrap gap-2.5 text-shadow-none max-lg:flex-col">
           <Button

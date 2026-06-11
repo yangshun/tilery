@@ -1,6 +1,6 @@
 # Tilery
 
-A tiling panel layout engine for React. Build IDE-like interfaces, dashboard builders, or any multi-panel application with fluid panel management, drag-and-drop tab reordering, and resizable dividers.
+Tilery is a panel layout engine for flexible interfaces that split, resize, and rearrange. Use it to build multi-panel product surfaces with draggable tabs, resizable dividers, persistent layouts, and a framework-agnostic core.
 
 [Website](https://tileryjs.com) | [GitHub](https://github.com/yangshun/tilery)
 
@@ -9,10 +9,10 @@ A tiling panel layout engine for React. Build IDE-like interfaces, dashboard bui
 - Drag tabs between panels or into new splits
 - Resize panels via split dividers
 - Maximize one panel fullscreen
-- Preserves React state across tab moves (portal-based rendering)
+- Preserves mounted content across tab moves in the React adapter
 - Framework-agnostic core with a React adapter
 - Fully customizable tab headers and content
-- Zero dependencies (React is a peer dep)
+- Dependency-free core; React is only a peer dependency of @tileryjs/react
 - TypeScript-first with full type coverage
 
 ## Installation

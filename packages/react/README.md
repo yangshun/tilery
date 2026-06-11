@@ -1,8 +1,8 @@
 # @tileryjs/react
 
-React adapter for Tilery, a tiling panel layout engine for building IDE-like
-interfaces, dashboard builders, multi-document editors, and other multi-panel
-applications.
+React adapter for Tilery, a panel layout engine for flexible interfaces that
+split, resize, and rearrange. Use it to build multi-panel product surfaces with
+draggable tabs, persistent layouts, floating panels, and popout windows.
 
 [Website](https://tileryjs.com) |
 [GitHub](https://github.com/yangshun/tilery)

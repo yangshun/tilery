@@ -6,7 +6,7 @@ export const metadata: Metadata = {
     absolute: 'Tilery',
   },
   description:
-    'Build IDE-like tiled interfaces with draggable tabs, resizable panels, preserved React state, and programmable workspaces.',
+    'Build flexible interfaces that split, resize, and rearrange with draggable tabs, persistent layouts, and a programmable core.',
 };
 
 export default function Home() {
