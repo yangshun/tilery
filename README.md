@@ -2,7 +2,7 @@
 
 A tiling panel layout engine for React. Build IDE-like interfaces, dashboard builders, or any multi-panel application with fluid panel management, drag-and-drop tab reordering, and resizable dividers.
 
-[Demo](https://tilery.vercel.app) | [GitHub](https://github.com/yangshun/tilery)
+[Website](https://tileryjs.com) | [GitHub](https://github.com/yangshun/tilery)
 
 ## Features
 

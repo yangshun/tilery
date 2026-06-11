@@ -78,6 +78,6 @@ function saveLayout<TData>(snapshot: TileryLayoutSnapshot<TData>) {
 
 ## Links
 
-- Documentation and demo: https://tilery.vercel.app
+- Website: https://tileryjs.com
 - Repository: https://github.com/yangshun/tilery
 - React adapter: https://www.npmjs.com/package/@tileryjs/react

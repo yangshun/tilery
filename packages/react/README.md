@@ -4,7 +4,7 @@ React adapter for Tilery, a tiling panel layout engine for building IDE-like
 interfaces, dashboard builders, multi-document editors, and other multi-panel
 applications.
 
-[Documentation and demo](https://tilery.vercel.app) |
+[Website](https://tileryjs.com) |
 [GitHub](https://github.com/yangshun/tilery)
 
 ## Features
@@ -145,6 +145,6 @@ menus, and focus states. Customize the visual system with CSS variables:
 
 ## Links
 
-- Documentation and demo: https://tilery.vercel.app
+- Website: https://tileryjs.com
 - Repository: https://github.com/yangshun/tilery
 - Core package: https://www.npmjs.com/package/tilery
