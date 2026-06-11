@@ -29,11 +29,11 @@ export function Demo({
   const code = resolveDemoSourceCode({ fileSource, region, regions, source });
 
   return (
-    <section className="min-w-0 mt-[72px]">
+    <section className="min-w-0 my-12">
       <DemoSurface surface={surface} height={height}>
         <DemoMount>{children}</DemoMount>
       </DemoSurface>
-      <div className="mt-5">
+      <div className="mt-4">
         <CodeBlock code={code} />
       </div>
     </section>

@@ -56,7 +56,7 @@ export function AccentSelector({ className }: { className?: string }) {
         title={`Accent color: ${current.label.toLowerCase()}`}>
         <RiPaletteLine className="inline-flex" aria-hidden="true" />
         <span
-          className="absolute right-[5px] bottom-[5px] size-[9px] rounded-full border border-site-bg shadow-[0_0_0_1px_rgba(255,255,255,0.4)] light:border-[rgba(15,23,42,0.32)] light:shadow-[0_0_0_1px_rgba(15,23,42,0.32)]"
+          className="absolute right-1.5 bottom-1.5 size-2.5 rounded-full border border-site-bg ring-1 ring-white/40 light:border-slate-900/30 light:ring-slate-900/30"
           style={{ background: SWATCH_COLORS[current.id] }}
           aria-hidden="true"
         />
@@ -74,11 +74,11 @@ export function AccentSelector({ className }: { className?: string }) {
                   value={option.id}
                   className={cn(
                     'size-6 p-0 rounded-full cursor-pointer',
-                    'border border-[rgba(255,255,255,0.4)] light:border-[rgba(15,23,42,0.32)]',
-                    'shadow-[0_0_0_2px_transparent] transition-[border-color,box-shadow,transform] duration-150 ease-in-out',
-                    'hover:translate-y-[-1px]',
+                    'border border-white/40 light:border-slate-900/30',
+                    'ring-2 ring-transparent transition duration-150 ease-in-out',
+                    'hover:-translate-y-px',
                     'data-[checked]:border-site-fg data-[checked]:shadow-[0_0_0_2px_var(--site-bg),0_0_0_4px_rgba(255,255,255,0.54)]',
-                    'light:data-[checked]:border-[#111827] light:data-[checked]:shadow-[0_0_0_2px_#fff,0_0_0_4px_rgba(15,23,42,0.42)]',
+                    'light:data-[checked]:border-gray-900 light:data-[checked]:shadow-none light:data-[checked]:ring-2 light:data-[checked]:ring-slate-900/40 light:data-[checked]:ring-offset-2 light:data-[checked]:ring-offset-white',
                   )}
                   style={{ background: SWATCH_COLORS[option.id] }}
                   aria-label={`Use ${option.label.toLowerCase()} accent color`}

@@ -34,8 +34,7 @@ export default function ExamplePage({
       dataMap={examplesBySlug}
       resolveSlug={(p) => p.slug}
       hrefPrefix="/examples"
-      wrapperClassName="example-content-wrapper max-w-[1100px]"
-      descriptionClassName="max-w-[720px] text-site-fg-soft mb-3.5"
+      wrapperClassName="example-content-wrapper"
     />
   );
 }

@@ -24,7 +24,7 @@ export function HomeContent() {
               '0 0 0 8px rgba(107, 114, 128, 0.26)',
           } as React.CSSProperties
         }>
-        <div className="relative z-1 mx-auto flex max-w-[1240px] flex-col gap-24 px-12 pt-14 pb-20 max-lg:gap-14 max-lg:px-[18px] max-lg:pt-7 max-lg:pb-14">
+        <div className="relative z-1 mx-auto flex max-w-7xl flex-col gap-24 px-12 pt-14 pb-20 max-lg:gap-14 max-lg:px-5 max-lg:pt-7 max-lg:pb-14">
           <HeroScene />
           <DemoScene />
           <CapabilitiesScene />

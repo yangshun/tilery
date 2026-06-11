@@ -167,7 +167,7 @@
     background: var(--site-bg);
     color: var(--site-fg);
     line-height: 1.6;
-    font-size: 14px;
+    font-size: 15px;
     -webkit-font-smoothing: antialiased;
   }
 
@@ -237,7 +237,7 @@
 
   p {
     margin-bottom: 12px;
-    color: var(--site-muted);
+    color: var(--site-fg);
   }
 
   table {

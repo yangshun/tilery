@@ -18,7 +18,7 @@ export function StatusChip({ tone, label, className }: StatusChipProps) {
   return (
     <div
       className={cn(
-        'inline-flex min-h-[30px] items-center px-2.5 border border-site-border rounded-[6px] text-site-fg text-[13px] font-semibold',
+        'inline-flex min-h-8 items-center px-2.5 border border-site-border rounded-md text-site-fg text-sm font-semibold',
         toneClasses[tone],
         className,
       )}>

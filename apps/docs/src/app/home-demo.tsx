@@ -19,7 +19,7 @@ export function LiveIdeDemo({
     <div
       ref={ref}
       className={cn(
-        'h-[min(620px,56vw)] min-h-[440px] max-lg:h-[420px] max-lg:min-h-[420px]',
+        'h-[min(620px,56vw)] min-h-96 max-lg:h-96 max-lg:min-h-96',
         className,
       )}>
       {inView ? (

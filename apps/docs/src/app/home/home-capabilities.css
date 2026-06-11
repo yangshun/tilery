@@ -1,3 +1,16 @@
+.cap-card {
+  --tilery-bg: #0e0f12;
+  --tilery-panel-bg: #1a1c20;
+  --tilery-panel-border: #2a2d33;
+  --tilery-tabbar-bg: #16181c;
+  --tilery-tab-active-bg: #1a1c20;
+  --tilery-tab-active-fg: #f3f4f7;
+  --tilery-tab-fg: #9aa1ab;
+  --tilery-fg: #d9dde3;
+
+  color-scheme: dark;
+}
+
 .cap-card-body::after {
   content: '';
   position: absolute;

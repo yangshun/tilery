@@ -105,31 +105,31 @@ export function ExampleSection({
       onKeyDownCapture={markUserInteracted}
       onPointerDownCapture={markUserInteracted}>
       {hasHeader ? (
-        <div className="min-w-0 flex flex-nowrap items-end justify-between gap-x-[18px] gap-y-3 max-lg:flex-wrap max-lg:items-start">
-          <div className="min-w-0 flex-[1_1_320px] grid gap-[5px] max-lg:w-full">
+        <div className="min-w-0 flex flex-nowrap items-end justify-between gap-x-5 gap-y-3 max-lg:flex-wrap max-lg:items-start">
+          <div className="min-w-0 grow shrink basis-80 grid gap-1.5 max-lg:w-full">
             {title ? (
-              <div className="text-site-fg text-[15px] font-[650] leading-[1.35]">
+              <div className="text-site-fg text-lg font-semibold leading-snug">
                 {title}
               </div>
             ) : null}
             {description ? (
-              <p className="m-0 text-site-muted text-sm leading-[1.35]">
+              <p className="m-0 text-site-muted text-base leading-snug">
                 {description}
               </p>
             ) : null}
           </div>
           {actions || resettable ? (
-            <div className="min-w-0 flex flex-[0_1_auto] flex-wrap justify-end gap-1.5 max-lg:w-full max-lg:justify-start">
+            <div className="min-w-0 flex flex-initial flex-wrap justify-end gap-1.5 max-lg:w-full max-lg:justify-start">
               {actions}
               {resettable ? (
                 <Button
                   type="button"
                   size="compact"
                   className={cn(
-                    'overflow-hidden transition-[max-width,margin-left,opacity,padding,border-color,transform,visibility] duration-[180ms] ease-in-out',
+                    'overflow-hidden transition-all duration-200 ease-in-out',
                     showReset
                       ? 'max-w-24 opacity-100 translate-y-0'
-                      : 'max-w-0 ml-[-6px] px-0 border-0 opacity-0 pointer-events-none -translate-y-0.5 invisible',
+                      : 'max-w-0 -ml-1.5 px-0 border-0 opacity-0 pointer-events-none -translate-y-0.5 invisible',
                   )}
                   aria-hidden={!showReset}
                   tabIndex={showReset ? undefined : -1}
@@ -143,7 +143,7 @@ export function ExampleSection({
       ) : null}
       <div
         key={resetKey}
-        className="w-[min(var(--demo-frame-width,100%),100%)] h-full min-h-0 overflow-hidden border border-[var(--example-demo-border)] rounded-[6px] bg-[var(--example-demo-panel-bg)] text-[var(--example-demo-fg)]"
+        className="w-[min(var(--demo-frame-width,100%),100%)] h-full min-h-0 overflow-hidden border border-[var(--example-demo-border)] rounded-md bg-[var(--example-demo-panel-bg)] text-[var(--example-demo-fg)]"
         style={{ colorScheme: 'dark', ...frameStyle }}>
         {trackedChildren}
       </div>

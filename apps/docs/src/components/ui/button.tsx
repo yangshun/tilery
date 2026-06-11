@@ -26,15 +26,15 @@ export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 const BASE =
-  'inline-flex items-center justify-center min-h-[30px] max-w-full px-3 border border-solid rounded-md text-[13px] font-medium leading-none no-underline whitespace-nowrap cursor-pointer transition-[background,border-color,color] duration-[120ms] ease-in-out disabled:opacity-42 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-site-accent focus-visible:outline-offset-2';
+  'inline-flex items-center justify-center min-h-8 max-w-full px-3 border border-solid rounded-md text-sm font-medium leading-none no-underline whitespace-nowrap cursor-pointer transition-colors duration-100 ease-in-out disabled:opacity-42 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-site-accent focus-visible:outline-offset-2';
 
 const VARIANT: Record<ButtonVariant, string> = {
   default: [
     'bg-site-chrome-bg border-site-chrome-border text-site-chrome-fg',
     'hover:not-disabled:bg-site-chrome-bg-hover hover:not-disabled:border-site-chrome-border hover:not-disabled:text-site-fg',
     'data-[active=true]:bg-site-fg/16 data-[active=true]:border-site-fg/38 data-[active=true]:text-site-fg',
-    'light:bg-transparent light:border-[rgba(15,23,42,0.16)] light:text-site-fg-soft',
-    'light:hover:not-disabled:bg-[rgba(15,23,42,0.045)] light:hover:not-disabled:border-[rgba(15,23,42,0.26)] light:hover:not-disabled:text-site-fg',
+    'light:bg-transparent light:border-slate-900/15 light:text-site-fg-soft',
+    'light:hover:not-disabled:bg-slate-900/5 light:hover:not-disabled:border-slate-900/25 light:hover:not-disabled:text-site-fg',
     'light:data-[active=true]:bg-site-accent/12 light:data-[active=true]:border-site-accent/50 light:data-[active=true]:text-site-fg',
   ].join(' '),
   primary: [
@@ -54,12 +54,12 @@ const VARIANT: Record<ButtonVariant, string> = {
 
 const SIZE: Record<ButtonSize, string> = {
   default: '',
-  compact: 'min-h-7 px-2.5 text-[12.5px]',
+  compact: 'min-h-7 px-2.5 text-sm',
   hero: 'min-h-10 px-4 rounded-lg font-semibold',
 };
 
 const DANGER_HOVER =
-  'hover:not-disabled:border-[#e5484d] hover:not-disabled:text-[#ff6b6f]';
+  'hover:not-disabled:border-red-500 hover:not-disabled:text-red-400';
 
 type PolymorphicProps<C extends ElementType> = {
   as?: C;

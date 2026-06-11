@@ -10,7 +10,7 @@ export function DemoScene() {
       <header className="flex max-w-none items-center justify-between gap-4">
         <h2
           id="demo-title"
-          className="m-0 border-0 p-0 text-[clamp(24px,3.2vw,40px)] font-semibold leading-[1.05] tracking-[-0.04em] text-site-fg">
+          className="m-0 border-0 p-0 text-[clamp(24px,3.2vw,40px)] font-semibold leading-none tracking-tighter text-site-fg">
           Try it — resize, drag, drop.
         </h2>
       </header>

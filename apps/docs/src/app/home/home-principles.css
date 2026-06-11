@@ -1,4 +1,8 @@
 .hero-principles {
+  --tilery-panel-bg: #111318;
+  --tilery-tab-active-bg: #111318;
+  --tilery-tabbar-bg: #0d0f13;
+
   transform-origin: 72% 48%;
   transform: perspective(1100px) rotateX(7deg) rotateY(-18deg) rotateZ(1deg)
     translate3d(0, 0, -42px) scale(0.95);
@@ -115,32 +119,6 @@
     margin: 0;
     transform: none;
     animation: none;
-  }
-
-  [data-theme='light'] .hero-principles {
-    --tilery-bg: #0e0f12;
-    --tilery-panel-bg: #111318;
-    --tilery-panel-border: #2a2d33;
-    --tilery-tabbar-bg: #0d0f13;
-    --tilery-tab-active-bg: #111318;
-    --tilery-tab-active-fg: #f3f4f7;
-    --tilery-tab-fg: #9aa1ab;
-    --tilery-fg: #d9dde3;
-  }
-
-  [data-theme='light'] .hero-principles .pp-workspace,
-  [data-theme='light'] .hero-principles .principles-visual {
-    color-scheme: dark;
-  }
-
-  [data-theme='light'] .hero-principles .pp-code,
-  [data-theme='light'] .hero-principles .pp-terminal-text,
-  [data-theme='light'] .hero-principles .pp-preview {
-    color: #6f7784;
-  }
-
-  [data-theme='light'] .hero-principles .pp-preview-pane strong {
-    color: #8d96a4;
   }
 }
 

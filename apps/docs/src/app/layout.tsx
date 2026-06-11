@@ -46,7 +46,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: ACCENT_CSS }}
         />
         <div className="flex h-screen overflow-hidden bg-site-bg max-lg:min-h-screen max-lg:h-auto max-lg:overflow-visible max-lg:flex-col">
-          <SidebarContainer className="shrink-0 w-[calc(var(--site-sidebar-width)+30px)] p-2.5 max-lg:w-auto max-lg:px-[18px] max-lg:py-2.5 max-lg:sticky max-lg:top-0 max-lg:z-10">
+          <SidebarContainer className="shrink-0 w-[calc(var(--site-sidebar-width)+30px)] p-2.5 max-lg:w-auto max-lg:px-5 max-lg:py-2.5 max-lg:sticky max-lg:top-0 max-lg:z-10">
             <Sidebar
               groups={siteNavigationGroups}
               utilityItem={playgroundNavigationItem}

@@ -169,9 +169,9 @@ export function DemoSurface({
         }>
         <div
           className={cn(
-            'demo-surface relative min-h-[240px] min-w-[360px] overflow-hidden text-base [&_.tilery]:text-base [&_.tilery__tab-content_:is(p,li,dd,dt)]:text-inherit [&_.tilery__tab-content_code]:bg-[var(--example-demo-code-bg)] [&_.tilery__tab-content_code]:text-[color:var(--example-demo-fg-strong)]',
+            'demo-surface relative min-h-60 min-w-96 overflow-hidden text-base text-[var(--example-demo-fg)] scheme-dark [&_.tilery]:text-base [&_.tilery__tab-content]:text-[color:var(--example-demo-fg)] [&_.tilery__tab-content_:is(p,li,dd,dt)]:text-[color:var(--example-demo-fg)] [&_.tilery__tab-content_code]:bg-[var(--example-demo-code-bg)] [&_.tilery__tab-content_code]:text-[color:var(--example-demo-fg-strong)]',
             surface === 'boxed' &&
-              'border border-[var(--example-demo-border)] rounded-md bg-[var(--example-demo-bg)] text-[var(--example-demo-fg)] scheme-dark',
+              'border border-[var(--example-demo-border)] rounded-md bg-[var(--example-demo-bg)]',
           )}
           ref={containerRef}
           style={{
@@ -181,17 +181,17 @@ export function DemoSurface({
           {children}
         </div>
         <span
-          className="absolute z-6 touch-none bottom-[-4px] left-0 right-0 h-2 cursor-ns-resize"
+          className="absolute z-6 touch-none -bottom-1 left-0 right-0 h-2 cursor-ns-resize"
           onPointerDown={(e) => startResize(e, 'bottom')}
           aria-hidden="true"
         />
         <span
-          className="absolute z-6 touch-none right-[-4px] top-0 bottom-0 w-2 cursor-ew-resize"
+          className="absolute z-6 touch-none -right-1 top-0 bottom-0 w-2 cursor-ew-resize"
           onPointerDown={(e) => startResize(e, 'right')}
           aria-hidden="true"
         />
         <span
-          className="absolute z-6 touch-none right-[calc(100%-var(--demo-frame-width,100%)-7px)] bottom-[-7px] size-6 cursor-nwse-resize"
+          className="absolute z-6 touch-none right-[calc(100%-var(--demo-frame-width,100%)-7px)] -bottom-2 size-6 cursor-nwse-resize"
           onPointerDown={(e) => startResize(e, 'corner')}
           aria-hidden="true"
         />

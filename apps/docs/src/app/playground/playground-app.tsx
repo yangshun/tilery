@@ -224,18 +224,18 @@ export function PlaygroundApp() {
         ref={stageRef}>
         <div
           ref={browserRef}
-          className="w-[min(980px,100%)] h-[min(660px,100%)] min-w-[360px] min-h-[280px] max-w-full max-h-full relative overflow-hidden flex flex-col border border-site-shell-border rounded-xl bg-[var(--tilery-bg,#0e0f12)] bg-clip-padding shadow-[0_24px_64px_rgba(0,0,0,0.42)] max-lg:w-full max-lg:h-full"
+          className="w-[min(980px,100%)] h-[min(660px,100%)] min-w-96 min-h-72 max-w-full max-h-full relative overflow-hidden flex flex-col border border-site-shell-border rounded-xl bg-[var(--tilery-bg,#0e0f12)] bg-clip-padding shadow-2xl max-lg:w-full max-lg:h-full"
           style={frameSize ?? undefined}>
           <div className="shrink-0 h-10 flex items-center gap-2.5 px-3 border-b border-site-shell-border bg-site-shell-bg">
-            <span className="inline-flex gap-[7px] shrink-0">
-              <span className="w-[11px] h-[11px] rounded-full bg-[#ff5f57]" />
-              <span className="w-[11px] h-[11px] rounded-full bg-[#febc2e]" />
-              <span className="w-[11px] h-[11px] rounded-full bg-[#28c840]" />
+            <span className="inline-flex gap-2 shrink-0">
+              <span className="w-3 h-3 rounded-full bg-red-400" />
+              <span className="w-3 h-3 rounded-full bg-amber-400" />
+              <span className="w-3 h-3 rounded-full bg-green-500" />
             </span>
-            <span className="flex-1 min-w-0 max-w-[420px] mx-auto h-6 flex items-center justify-center gap-1.5 px-3 border border-site-shell-border rounded-[7px] bg-site-bg text-site-fg/62 font-mono text-xs whitespace-nowrap overflow-hidden text-ellipsis">
+            <span className="flex-1 min-w-0 max-w-md mx-auto h-6 flex items-center justify-center gap-1.5 px-3 border border-site-shell-border rounded-lg bg-site-bg text-site-fg/62 font-mono text-xs whitespace-nowrap overflow-hidden text-ellipsis">
               {browserUrl}
             </span>
-            <span className="w-[52px] shrink-0" />
+            <span className="w-14 shrink-0" />
           </div>
           <div
             className="playground-workspace flex-1 min-w-0 min-h-0 bg-[var(--tilery-bg,#0e0f12)] [&_.tilery]:h-full [&_.tilery]:text-sm"
@@ -296,42 +296,42 @@ export function PlaygroundApp() {
             ) : null}
           </div>
           <span
-            className="absolute z-[6] touch-none top-0 left-0 right-0 h-1.5 cursor-ns-resize"
+            className="absolute z-10 touch-none top-0 left-0 right-0 h-1.5 cursor-ns-resize"
             onPointerDown={(e) => startResize(e, 'n')}
             aria-hidden="true"
           />
           <span
-            className="absolute z-[6] touch-none bottom-0 left-0 right-0 h-1.5 cursor-ns-resize"
+            className="absolute z-10 touch-none bottom-0 left-0 right-0 h-1.5 cursor-ns-resize"
             onPointerDown={(e) => startResize(e, 's')}
             aria-hidden="true"
           />
           <span
-            className="absolute z-[6] touch-none right-0 top-0 bottom-0 w-1.5 cursor-ew-resize"
+            className="absolute z-10 touch-none right-0 top-0 bottom-0 w-1.5 cursor-ew-resize"
             onPointerDown={(e) => startResize(e, 'e')}
             aria-hidden="true"
           />
           <span
-            className="absolute z-[6] touch-none left-0 top-0 bottom-0 w-1.5 cursor-ew-resize"
+            className="absolute z-10 touch-none left-0 top-0 bottom-0 w-1.5 cursor-ew-resize"
             onPointerDown={(e) => startResize(e, 'w')}
             aria-hidden="true"
           />
           <span
-            className="absolute z-[6] touch-none right-0 top-0 w-3.5 h-3.5 cursor-nesw-resize"
+            className="absolute z-10 touch-none right-0 top-0 w-3.5 h-3.5 cursor-nesw-resize"
             onPointerDown={(e) => startResize(e, 'ne')}
             aria-hidden="true"
           />
           <span
-            className="absolute z-[6] touch-none left-0 top-0 w-3.5 h-3.5 cursor-nwse-resize"
+            className="absolute z-10 touch-none left-0 top-0 w-3.5 h-3.5 cursor-nwse-resize"
             onPointerDown={(e) => startResize(e, 'nw')}
             aria-hidden="true"
           />
           <span
-            className="absolute z-[6] touch-none right-0 bottom-0 w-3.5 h-3.5 cursor-nwse-resize"
+            className="absolute z-10 touch-none right-0 bottom-0 w-3.5 h-3.5 cursor-nwse-resize"
             onPointerDown={(e) => startResize(e, 'se')}
             aria-hidden="true"
           />
           <span
-            className="absolute z-[6] touch-none left-0 bottom-0 w-3.5 h-3.5 cursor-nesw-resize"
+            className="absolute z-10 touch-none left-0 bottom-0 w-3.5 h-3.5 cursor-nesw-resize"
             onPointerDown={(e) => startResize(e, 'sw')}
             aria-hidden="true"
           />
@@ -353,7 +353,7 @@ const KIND_ICON: Record<PgTabKind, IconType> = {
 function renderTabHeader(tab: TileryTab<PgTabData>) {
   const Icon = KIND_ICON[tab.data.kind];
   return (
-    <span className="inline-flex items-center gap-[7px]">
+    <span className="inline-flex items-center gap-2">
       <Icon className="text-sm opacity-78" aria-hidden="true" />
       <span>{tab.data.title}</span>
     </span>

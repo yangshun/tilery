@@ -97,13 +97,13 @@ export function DesignShowcase() {
   return (
     <>
       <section
-        className="mt-[72px] max-lg:mt-11"
+        className="mt-20 max-lg:mt-11"
         aria-labelledby="design-foundation-title">
-        <div className="max-w-[760px] mb-[18px]">
+        <div className="max-w-3xl mb-5">
           <h2 className="mt-0 mb-1" id="design-foundation-title">
             Tokens and type
           </h2>
-          <p className="m-0 text-site-muted text-[15px] leading-[1.6]">
+          <p className="m-0 text-site-muted text-base leading-relaxed">
             The demo site is driven by theme-aware tokens, compact typography,
             and direct surface states.
           </p>
@@ -116,9 +116,9 @@ export function DesignShowcase() {
               {tokenRows.map((token) => (
                 <li
                   key={token.name}
-                  className="min-w-0 grid grid-cols-[34px_minmax(140px,0.8fr)_minmax(0,1fr)] items-center gap-2.5 py-2.5 border-b border-site-border text-site-muted text-[13px] last:border-b-0 max-lg:grid-cols-[30px_minmax(0,1fr)] max-lg:gap-x-2.5 max-lg:gap-y-1.5">
+                  className="min-w-0 grid grid-cols-[34px_minmax(140px,0.8fr)_minmax(0,1fr)] items-center gap-2.5 py-2.5 border-b border-site-border text-site-muted text-sm last:border-b-0 max-lg:grid-cols-[30px_minmax(0,1fr)] max-lg:gap-x-2.5 max-lg:gap-y-1.5">
                   <span
-                    className="w-[26px] h-[26px] border border-site-shell-border rounded-[6px]"
+                    className="w-7 h-7 border border-site-shell-border rounded-md"
                     style={
                       {
                         background: 'var(--design-token-sample)',
@@ -130,7 +130,7 @@ export function DesignShowcase() {
                   <code className="min-w-0 break-all text-site-fg">
                     {token.name}
                   </code>
-                  <span className="max-lg:col-[2]">{token.usage}</span>
+                  <span className="max-lg:col-start-2">{token.usage}</span>
                 </li>
               ))}
             </ul>
@@ -141,22 +141,22 @@ export function DesignShowcase() {
             description="Content hierarchy used by docs, examples, and controls.">
             <div className="grid gap-4">
               <div>
-                <span className="block mb-1.5 text-site-accent text-xs font-[650] leading-[1.25]">
+                <span className="block mb-1.5 text-site-accent text-xs font-semibold leading-tight">
                   Page title
                 </span>
-                <div className="text-site-fg leading-[1.3] text-[28px] font-bold">
+                <div className="text-site-fg leading-tight text-3xl font-bold">
                   Workspace controls
                 </div>
               </div>
               <div>
-                <span className="block mb-1.5 text-site-accent text-xs font-[650] leading-[1.25]">
+                <span className="block mb-1.5 text-site-accent text-xs font-semibold leading-tight">
                   Section title
                 </span>
-                <div className="text-site-fg leading-[1.3] text-xl font-semibold">
+                <div className="text-site-fg leading-tight text-xl font-semibold">
                   Selected panel
                 </div>
               </div>
-              <p className="m-0 text-site-muted text-[15px] leading-[1.6]">
+              <p className="m-0 text-site-muted text-base leading-relaxed">
                 Body copy uses muted color and a compact line height for dense
                 technical pages with inline <code>code</code> fragments.
               </p>
@@ -166,13 +166,13 @@ export function DesignShowcase() {
       </section>
 
       <section
-        className="mt-[72px] max-lg:mt-11"
+        className="mt-20 max-lg:mt-11"
         aria-labelledby="design-button-title">
-        <div className="max-w-[760px] mb-[18px]">
+        <div className="max-w-3xl mb-5">
           <h2 className="mt-0 mb-1" id="design-button-title">
             Button
           </h2>
-          <p className="m-0 text-site-muted text-[15px] leading-[1.6]">
+          <p className="m-0 text-site-muted text-base leading-relaxed">
             Variants cover page actions, primary calls to action, secondary
             buttons, and active, disabled, and danger states.
           </p>
@@ -205,13 +205,13 @@ export function DesignShowcase() {
       </section>
 
       <section
-        className="mt-[72px] max-lg:mt-11"
+        className="mt-20 max-lg:mt-11"
         aria-labelledby="design-icon-button-title">
-        <div className="max-w-[760px] mb-[18px]">
+        <div className="max-w-3xl mb-5">
           <h2 className="mt-0 mb-1" id="design-icon-button-title">
             IconButton
           </h2>
-          <p className="m-0 text-site-muted text-[15px] leading-[1.6]">
+          <p className="m-0 text-site-muted text-base leading-relaxed">
             Square icon-only controls for toolbars, global theme switching, and
             accent selection.
           </p>
@@ -251,13 +251,13 @@ export function DesignShowcase() {
       </section>
 
       <section
-        className="mt-[72px] max-lg:mt-11"
+        className="mt-20 max-lg:mt-11"
         aria-labelledby="design-field-title">
-        <div className="max-w-[760px] mb-[18px]">
+        <div className="max-w-3xl mb-5">
           <h2 className="mt-0 mb-1" id="design-field-title">
             Field
           </h2>
-          <p className="m-0 text-site-muted text-[15px] leading-[1.6]">
+          <p className="m-0 text-site-muted text-base leading-relaxed">
             Label-on-left, control-on-right row, with an optional hint line.
             Pair with Switch, Select, Input, or NumberInput.
           </p>
@@ -316,13 +316,13 @@ export function DesignShowcase() {
       </section>
 
       <section
-        className="mt-[72px] max-lg:mt-11"
+        className="mt-20 max-lg:mt-11"
         aria-labelledby="design-accordion-title">
-        <div className="max-w-[760px] mb-[18px]">
+        <div className="max-w-3xl mb-5">
           <h2 className="mt-0 mb-1" id="design-accordion-title">
             Accordion
           </h2>
-          <p className="m-0 text-site-muted text-[15px] leading-[1.6]">
+          <p className="m-0 text-site-muted text-base leading-relaxed">
             Collapsible sections keep dense controls scannable. Each panel keeps
             its content mounted.
           </p>
@@ -330,7 +330,7 @@ export function DesignShowcase() {
         <DesignSpecimen
           title="Composed inspector"
           description="Accordion with Fields, Selects, and a ButtonGroup inside.">
-          <div className="max-w-[720px] overflow-hidden border border-site-shell-border rounded-lg bg-site-sidebar-bg light:bg-white max-lg:max-w-none [&_[data-variant]]:gap-1.5 [&_[data-variant]_svg]:shrink-0 [&_[data-variant]_svg]:text-sm [&>:last-child>:last-child]:border-b-0">
+          <div className="max-w-3xl overflow-hidden border border-site-shell-border rounded-lg bg-site-sidebar-bg light:bg-white max-lg:max-w-none [&_[data-variant]]:gap-1.5 [&_[data-variant]_svg]:shrink-0 [&_[data-variant]_svg]:text-sm [&>:last-child>:last-child]:border-b-0">
             <AccordionRoot defaultOpen={['workspace', 'panel']}>
               <AccordionItem value="workspace" title="Workspace">
                 <Field
@@ -419,13 +419,13 @@ export function DesignShowcase() {
       </section>
 
       <section
-        className="mt-[72px] max-lg:mt-11"
+        className="mt-20 max-lg:mt-11"
         aria-labelledby="design-status-title">
-        <div className="max-w-[760px] mb-[18px]">
+        <div className="max-w-3xl mb-5">
           <h2 className="mt-0 mb-1" id="design-status-title">
             Status
           </h2>
-          <p className="m-0 text-site-muted text-[15px] leading-[1.6]">
+          <p className="m-0 text-site-muted text-base leading-relaxed">
             Success and danger colors are used by transient actions such as copy
             feedback, destructive buttons, and failed commands.
           </p>
@@ -438,13 +438,13 @@ export function DesignShowcase() {
       </section>
 
       <section
-        className="mt-[72px] max-lg:mt-11"
+        className="mt-20 max-lg:mt-11"
         aria-labelledby="design-compositions-title">
-        <div className="max-w-[760px] mb-[18px]">
+        <div className="max-w-3xl mb-5">
           <h2 className="mt-0 mb-1" id="design-compositions-title">
             Compositions
           </h2>
-          <p className="m-0 text-site-muted text-[15px] leading-[1.6]">
+          <p className="m-0 text-site-muted text-base leading-relaxed">
             Real pieces of the demo site built from the primitives above:
             example frames, footer actions, and a full playground-style
             inspector.
@@ -456,7 +456,7 @@ export function DesignShowcase() {
               title="Example section"
               description="A reusable header, action row, frame, and reset control.">
               <div
-                className="h-[330px] m-0 p-4 overflow-hidden border border-[var(--example-demo-border)] rounded-[6px] bg-[var(--example-demo-bg)] text-[var(--example-demo-fg)] max-lg:h-[410px] max-lg:p-3"
+                className="h-80 m-0 p-4 overflow-hidden border border-[var(--example-demo-border)] rounded-md bg-[var(--example-demo-bg)] text-[var(--example-demo-fg)] max-lg:h-96 max-lg:p-3"
                 style={{ colorScheme: 'dark', ...exampleSurfaceStyle }}>
                 <ExampleSection
                   title="Example section"
@@ -479,8 +479,8 @@ export function DesignShowcase() {
                       </Button>
                     </>
                   }>
-                  <div className="h-full min-h-0 flex flex-col bg-[var(--example-demo-panel-bg)] [&>:last-child]:flex-1 [&>:last-child]:min-h-0 [&_p]:mt-0 [&_p]:mb-[10px] [&_p]:text-inherit">
-                    <div className="shrink-0 flex min-w-0 gap-px px-1.5 pt-1.5 border-b border-[var(--example-demo-border)] bg-[var(--tilery-tabbar-bg)] [&_span]:min-w-0 [&_span]:px-2.5 [&_span]:py-[7px] [&_span]:border [&_span]:border-transparent [&_span]:border-b-0 [&_span]:rounded-t-[5px] [&_span]:text-[color:var(--tilery-tab-fg)] [&_span]:text-xs [&_span]:leading-[1.2] [&_span[data-active='true']]:border-[var(--example-demo-border)] [&_span[data-active='true']]:bg-[var(--tilery-tab-active-bg)] [&_span[data-active='true']]:text-[color:var(--tilery-tab-active-fg)]">
+                  <div className="h-full min-h-0 flex flex-col bg-[var(--example-demo-panel-bg)] [&>:last-child]:flex-1 [&>:last-child]:min-h-0 [&_p]:mt-0 [&_p]:mb-2.5 [&_p]:text-inherit">
+                    <div className="shrink-0 flex min-w-0 gap-px px-1.5 pt-1.5 border-b border-[var(--example-demo-border)] bg-[var(--tilery-tabbar-bg)] [&_span]:min-w-0 [&_span]:px-2.5 [&_span]:py-2 [&_span]:border [&_span]:border-transparent [&_span]:border-b-0 [&_span]:rounded-t-md [&_span]:text-[color:var(--tilery-tab-fg)] [&_span]:text-xs [&_span]:leading-tight [&_span[data-active='true']]:border-[var(--example-demo-border)] [&_span[data-active='true']]:bg-[var(--tilery-tab-active-bg)] [&_span[data-active='true']]:text-[color:var(--tilery-tab-active-fg)]">
                       <span data-active="true">Preview</span>
                       <span>Source</span>
                       <span>Events</span>
@@ -519,7 +519,7 @@ export function DesignShowcase() {
             <DesignSpecimen
               title="Inspector panel"
               description="A playground-style inspector built from Accordion, Field, Select, Switch, NumberInput, and ButtonGroup.">
-              <div className="max-w-[720px] overflow-hidden border border-site-shell-border rounded-lg bg-site-sidebar-bg light:bg-white max-lg:max-w-none [&_[data-variant]]:gap-1.5 [&_[data-variant]_svg]:shrink-0 [&_[data-variant]_svg]:text-sm [&>:last-child>:last-child]:border-b-0">
+              <div className="max-w-3xl overflow-hidden border border-site-shell-border rounded-lg bg-site-sidebar-bg light:bg-white max-lg:max-w-none [&_[data-variant]]:gap-1.5 [&_[data-variant]_svg]:shrink-0 [&_[data-variant]_svg]:text-sm [&>:last-child>:last-child]:border-b-0">
                 <AccordionRoot defaultOpen={['workspace', 'panel']}>
                   <AccordionItem value="workspace" title="Workspace">
                     <Field
@@ -625,12 +625,12 @@ function DesignSpecimen({
   children: ReactNode;
 }) {
   return (
-    <div className="min-w-0 grid gap-[18px] p-[18px] rounded-lg bg-site-overlay-weak max-lg:p-3.5">
-      <div className="grid gap-[5px]">
-        <h3 className="m-0 text-site-fg text-base font-[650] leading-[1.35]">
+    <div className="min-w-0 grid gap-5 p-5 rounded-lg bg-site-overlay-weak max-lg:p-3.5">
+      <div className="grid gap-1.5">
+        <h3 className="m-0 text-site-fg text-base font-semibold leading-snug">
           {title}
         </h3>
-        <p className="m-0 text-site-muted text-[13px] leading-[1.45]">
+        <p className="m-0 text-site-muted text-sm leading-normal">
           {description}
         </p>
       </div>

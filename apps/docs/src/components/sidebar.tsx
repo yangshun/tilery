@@ -33,7 +33,7 @@ export function Sidebar({
         key={item.href}
         href={item.href}
         className={cn(
-          'sidebar-link block px-2 py-1.5 text-[13px] text-site-fg no-underline rounded-md transition-[background,color] duration-150 ease-in-out hover:text-site-fg hover:bg-site-overlay hover:no-underline [.sidebar-link+&]:mt-0.5',
+          'sidebar-link block px-2 py-1.5 text-sm text-site-fg no-underline rounded-md transition-colors duration-150 ease-in-out hover:text-site-fg hover:bg-site-overlay hover:no-underline [.sidebar-link+&]:mt-0.5',
           isActive && 'bg-site-overlay text-site-fg',
           inSubgroup && 'pl-3.5',
         )}>
@@ -45,10 +45,10 @@ export function Sidebar({
   return (
     <aside
       className={cn(
-        'sidebar w-[var(--site-sidebar-width)] h-full flex flex-col overflow-hidden rounded-[10px] bg-site-sidebar-bg border border-site-sidebar-border max-lg:w-full max-lg:max-h-none max-lg:overflow-hidden max-lg:bg-site-bg/88',
+        'sidebar w-[var(--site-sidebar-width)] h-full flex flex-col overflow-hidden rounded-lg bg-site-sidebar-bg border border-site-sidebar-border max-lg:w-full max-lg:max-h-none max-lg:overflow-hidden max-lg:bg-site-bg/88',
         isOpen && 'sidebar--open',
       )}>
-      <div className="flex items-center justify-between px-3 pt-[11px] pb-2.5 border-b border-site-sidebar-border max-lg:gap-4 max-lg:px-3 max-lg:py-2.5">
+      <div className="flex items-center justify-between px-3 pt-3 pb-2.5 border-b border-site-sidebar-border max-lg:gap-4 max-lg:px-3 max-lg:py-2.5">
         <Link
           href="/"
           className="font-bold text-base text-site-fg no-underline hover:no-underline">
@@ -80,7 +80,7 @@ export function Sidebar({
         )}>
         {groups.map((group) => (
           <div key={group.title} className="mb-4">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.05em] text-site-accent px-2 py-1 mb-1">
+            <div className="text-xs font-semibold uppercase tracking-wider text-site-accent px-2 py-1 mb-1">
               {group.title}
             </div>
             {group.items?.map((item) => renderLink(item))}
@@ -90,7 +90,7 @@ export function Sidebar({
                 className={cn(
                   sectionIndex === 0 && !group.items?.length ? 'mt-0' : 'mt-2',
                 )}>
-                <div className="px-2 py-1.5 mb-0.5 text-site-fg text-[13px] font-medium">
+                <div className="px-2 py-1.5 mb-0.5 text-site-fg text-sm font-medium">
                   {section.title}
                 </div>
                 {section.items.map((item) => renderLink(item, true))}
@@ -105,7 +105,7 @@ export function Sidebar({
           !isOpen && 'max-lg:border-t-0',
         )}
         iconClassName="size-7"
-        githubClassName="text-lg rounded-[7px] !text-[17px]"
+        githubClassName="text-lg rounded-lg !text-lg"
         utilityItem={{
           href: utilityItem.href,
           label: utilityItem.label,

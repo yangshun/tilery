@@ -76,20 +76,20 @@ export function CodeBlockFrame({ code, html }: { code: string; html: string }) {
   return (
     <div
       className={cn(
-        'code-block relative border border-site-border rounded-md bg-site-surface [&_pre]:text-xs [&_pre]:p-4 [&_pre]:pr-[54px] [&_.shiki]:border-0 [&_.shiki]:rounded-none [&_.shiki]:!bg-transparent',
+        'code-block relative border border-site-border rounded-md bg-site-surface [&_pre]:text-xs [&_pre]:p-4 [&_pre]:pr-14 [&_.shiki]:border-0 [&_.shiki]:rounded-none [&_.shiki]:!bg-transparent',
         !expanded && 'overflow-hidden',
       )}>
       <div
         ref={contentRef}
         className={cn(
           'rounded-[inherit]',
-          !expanded && 'max-h-[360px] overflow-hidden',
+          !expanded && 'max-h-96 overflow-hidden',
         )}
         dangerouslySetInnerHTML={{ __html: html }}
       />
       {!expanded && canExpand ? (
         <div
-          className="absolute right-px bottom-px left-px h-24 pointer-events-none rounded-b-[6px]"
+          className="absolute right-px bottom-px left-px h-24 pointer-events-none rounded-b-md"
           style={{
             background:
               'linear-gradient(to bottom, rgb(var(--site-fade-rgb) / 0), rgb(var(--site-fade-rgb) / 0.94))',
@@ -98,7 +98,7 @@ export function CodeBlockFrame({ code, html }: { code: string; html: string }) {
         />
       ) : null}
       <IconButton
-        className="absolute top-2.5 right-2.5 z-2 border border-site-chrome-border bg-site-chrome-bg text-site-chrome-fg shadow-[0_1px_3px_rgba(0,0,0,0.12)] hover:bg-site-chrome-bg-hover hover:text-site-fg [&_svg]:size-[15px] data-[state=copied]:text-site-success-fg data-[state=copied]:border-site-success-border data-[state=copied]:bg-site-success-bg data-[state=failed]:text-site-danger-fg data-[state=failed]:border-site-danger-border data-[state=failed]:bg-site-danger-bg"
+        className="absolute top-2.5 right-2.5 z-2 border border-site-chrome-border bg-site-chrome-bg text-site-chrome-fg shadow-sm hover:bg-site-chrome-bg-hover hover:text-site-fg [&_svg]:size-4 data-[state=copied]:text-site-success-fg data-[state=copied]:border-site-success-border data-[state=copied]:bg-site-success-bg data-[state=failed]:text-site-danger-fg data-[state=failed]:border-site-danger-border data-[state=failed]:bg-site-danger-bg"
         aria-label={
           copyState === 'copied'
             ? 'Copied code'
@@ -119,7 +119,7 @@ export function CodeBlockFrame({ code, html }: { code: string; html: string }) {
       </IconButton>
       {canExpand ? (
         <Button
-          className="absolute left-1/2 bottom-3.5 z-1 -translate-x-1/2 shadow-[0_2px_6px_rgba(0,0,0,0.16)]"
+          className="absolute left-1/2 bottom-3.5 z-1 -translate-x-1/2 shadow-md"
           aria-expanded={expanded}
           onClick={() => setExpanded((value) => !value)}>
           {expanded ? 'Collapse' : 'Show full code'}

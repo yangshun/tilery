@@ -34,7 +34,7 @@ export default function DocPage({
       dataMap={docsBySlug}
       resolveSlug={(p) => p.slug.join('/')}
       hrefPrefix="/docs"
-      wrapperClassName="doc-page max-w-[800px] [&_.code-block]:mx-0 [&_.code-block]:mt-[18px] [&_.code-block]:mb-[22px]"
+      wrapperClassName="doc-page max-w-3xl [&_.code-block]:mx-0 [&_.code-block]:mt-5 [&_.code-block]:mb-6"
     />
   );
 }

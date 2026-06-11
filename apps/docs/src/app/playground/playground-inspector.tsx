@@ -234,13 +234,13 @@ export function PlaygroundInspector({
 
   return (
     <aside
-      className="shrink-0 w-80 h-full flex flex-col overflow-hidden border border-site-sidebar-border rounded-[10px] bg-site-sidebar-bg text-site-fg light:bg-white max-lg:w-full max-lg:h-auto max-lg:max-h-[44vh] max-lg:shrink-0"
+      className="shrink-0 w-80 h-full flex flex-col overflow-hidden border border-site-sidebar-border rounded-lg bg-site-sidebar-bg text-site-fg light:bg-white max-lg:w-full max-lg:h-auto max-lg:max-h-[44vh] max-lg:shrink-0"
       aria-label="Playground controls">
       <header className="px-3 py-2.5 border-b border-site-shell-border">
         <div className="flex items-center justify-between gap-3">
           <Link
             href="/"
-            className="text-base font-[680] tracking-[-0.01em] text-site-fg no-underline">
+            className="text-base font-bold tracking-normal text-site-fg no-underline">
             Tilery
           </Link>
           <Button variant="subtle" size="compact" tone="danger" onClick={reset}>
@@ -623,7 +623,7 @@ export function PlaygroundInspector({
 
           <AccordionItem value="activity" title="Activity">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] text-site-fg/48">Recent events</span>
+              <span className="text-xs text-site-fg/48">Recent events</span>
               <Button
                 variant="subtle"
                 size="compact"
@@ -637,12 +637,12 @@ export function PlaygroundInspector({
                 No events yet. Interact above.
               </p>
             ) : (
-              <ul className="m-0 p-0 list-none flex flex-col gap-[7px]">
+              <ul className="m-0 p-0 list-none flex flex-col gap-2">
                 {events.map((event) => (
                   <li
                     key={event.id}
-                    className="flex flex-col gap-0.5 pb-[7px] border-b border-site-shell-border">
-                    <span className="font-mono text-[11px] text-site-accent">
+                    className="flex flex-col gap-0.5 pb-2 border-b border-site-shell-border">
+                    <span className="font-mono text-xs text-site-accent">
                       {event.type}
                     </span>
                     <span className="text-xs text-site-fg/70 break-all">
