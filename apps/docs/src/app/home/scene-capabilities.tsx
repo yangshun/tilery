@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { RiLockLine } from 'react-icons/ri';
 import { capabilities, type HomeCapability } from './home-data';
 import { cn } from '../../lib/cn';
 import './home-capabilities.css';
@@ -93,13 +94,17 @@ function CapDemo({ type }: { type: HomeCapability['demo'] }) {
     case 'lock':
       return (
         <>
-          <i className="capx absolute top-4 bottom-4 left-1/20 right-1/2 rounded bg-[var(--tilery-panel-bg,#1a1c20)] border border-[var(--tilery-panel-border,#2a2d33)]" />
-          <i className="capx absolute top-4 bottom-4 left-1/2 right-1/20 rounded bg-[var(--tilery-panel-bg,#1a1c20)] border border-[var(--tilery-panel-border,#2a2d33)]" />
+          <i className="capx absolute top-4 bottom-4 left-[5%] right-[52%] rounded bg-[var(--tilery-panel-bg,#1a1c20)] border border-[var(--tilery-panel-border,#2a2d33)]" />
+          <i className="capx absolute top-4 bottom-4 left-[52%] right-[5%] rounded bg-[var(--tilery-panel-bg,#1a1c20)] border border-[var(--tilery-panel-border,#2a2d33)]" />
           <i className="capx capx-lock-divider absolute left-1/2 top-2 bottom-2 w-0.5 -ml-px rounded-sm bg-[var(--tilery-accent,#a3e635)] opacity-70" />
-          <i className="capx capx-lock-icon absolute left-1/4 top-1/2 h-3.5 w-4 -mt-1 -ml-2 rounded bg-white" />
-          <i className="capx capx-lock-shackle absolute left-1/4 top-1/2 h-2 w-2.5 -mt-2.5 -ml-1 rounded-t-md border-2 border-white border-b-0" />
-          <i className="capx capx-lock-icon absolute left-3/4 top-1/2 h-3.5 w-4 -mt-1 -ml-2 rounded bg-white" />
-          <i className="capx capx-lock-shackle absolute left-3/4 top-1/2 h-2 w-2.5 -mt-2.5 -ml-1 rounded-t-md border-2 border-white border-b-0" />
+          <RiLockLine
+            className="capx capx-lock-icon absolute left-[26.5%] top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 text-white"
+            aria-hidden="true"
+          />
+          <RiLockLine
+            className="capx capx-lock-icon absolute left-[73.5%] top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 text-white"
+            aria-hidden="true"
+          />
         </>
       );
   }
