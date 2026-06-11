@@ -57,9 +57,9 @@ function CapDemo({ type }: { type: HomeCapability['demo'] }) {
     case 'core':
       return (
         <>
-          <i className="capx capx-layer--3 absolute left-4 right-12 top-4 h-7 rounded bg-[var(--tilery-panel-bg,#1a1c20)] border border-[var(--tilery-panel-border,#2a2d33)]" />
-          <i className="capx capx-layer--2 absolute left-8 right-8 top-8 h-7 rounded bg-[var(--tilery-panel-bg,#1a1c20)] border border-[var(--tilery-panel-border,#2a2d33)]" />
-          <i className="capx capx-layer--1 absolute left-12 right-4 top-11 h-7 rounded bg-[var(--tilery-panel-bg,#1a1c20)] border border-[var(--tilery-accent,#a3e635)]" />
+          <i className="capx capx-layer--3 absolute left-4 right-[46px] top-4 h-7 rounded bg-[var(--tilery-panel-bg,#1a1c20)] border border-[var(--tilery-panel-border,#2a2d33)]" />
+          <i className="capx capx-layer--2 absolute left-[31px] right-[31px] top-[30px] h-7 rounded bg-[var(--tilery-panel-bg,#1a1c20)] border border-[var(--tilery-panel-border,#2a2d33)]" />
+          <i className="capx capx-layer--1 absolute left-[46px] right-4 top-[44px] h-7 rounded bg-[var(--tilery-panel-bg,#1a1c20)] border border-[var(--tilery-accent,#a3e635)]" />
         </>
       );
     case 'imperative':
@@ -83,9 +83,9 @@ function CapDemo({ type }: { type: HomeCapability['demo'] }) {
     case 'persist':
       return (
         <>
-          <i className="capx capx-persist-pane--l absolute top-4 bottom-4 left-1/20 w-1/2 rounded bg-[var(--tilery-panel-bg,#1a1c20)] border border-[var(--tilery-panel-border,#2a2d33)]" />
-          <i className="capx capx-persist-pane--r absolute top-4 bottom-4 right-1/20 w-1/3 rounded bg-[var(--tilery-panel-bg,#1a1c20)] border border-[var(--tilery-panel-border,#2a2d33)]" />
-          <pre className="capx capx-persist-token absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 m-0 rounded bg-[var(--tilery-bg,#0e0f12)] border border-[var(--tilery-panel-border,#2a2d33)] px-2.5 py-2 font-mono text-xs leading-normal text-[var(--tilery-tab-fg,#9aa1ab)] whitespace-pre opacity-0">
+          <i className="capx capx-persist-pane--l absolute top-4 bottom-4 left-[5%] w-1/2 rounded bg-[var(--tilery-panel-bg,#1a1c20)] border border-[var(--tilery-panel-border,#2a2d33)]" />
+          <i className="capx capx-persist-pane--r absolute top-4 bottom-4 right-[5%] w-[36%] rounded bg-[var(--tilery-panel-bg,#1a1c20)] border border-[var(--tilery-panel-border,#2a2d33)]" />
+          <pre className="capx capx-persist-token absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 m-0 rounded bg-[var(--tilery-bg,#0e0f12)] border border-[var(--tilery-panel-border,#2a2d33)] px-2.5 py-[7px] font-mono text-[10px] leading-[1.55] text-[var(--tilery-tab-fg,#9aa1ab)] whitespace-pre opacity-0">
             {'{ "panels": 2,\n  "tabs": 7 }'}
           </pre>
         </>
@@ -132,7 +132,7 @@ export function CapabilitiesScene() {
             className="cap-card flex flex-col overflow-hidden rounded-md border border-[var(--tilery-panel-border,#2a2d33)] bg-[var(--tilery-panel-bg,#1a1c20)] text-[var(--tilery-fg,#d9dde3)] shadow-none transition-shadow duration-150 ease-in-out scheme-dark hover:shadow-[var(--home-cap-card-hover-shadow)] focus-within:shadow-[var(--home-cap-card-hover-shadow)]">
             <div className="home-cap-card__bar flex flex-none items-stretch h-[var(--tilery-tabbar-height,32px)] bg-[var(--tilery-tabbar-bg,#16181c)] border-b border-[var(--tilery-panel-border,#2a2d33)]">
               <div className="cap-tab--active relative inline-flex flex-none items-center gap-2 max-w-44 px-3 h-full text-[var(--tilery-tab-font-size,12px)] border-r border-[var(--tilery-panel-border,#2a2d33)] rounded-t-md whitespace-nowrap bg-[var(--tilery-tab-active-bg,var(--tilery-panel-bg,#1a1c20))] text-[var(--tilery-tab-active-fg,#f3f4f7)]">
-                <span className="overflow-hidden text-ellipsis">
+                <span className="overflow-hidden text-ellipsis text-xs font-medium">
                   {cap.title}
                 </span>
               </div>
