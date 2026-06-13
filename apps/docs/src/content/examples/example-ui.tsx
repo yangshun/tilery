@@ -105,8 +105,8 @@ export function ExampleSection({
       onKeyDownCapture={markUserInteracted}
       onPointerDownCapture={markUserInteracted}>
       {hasHeader ? (
-        <div className="min-w-0 flex flex-nowrap items-end justify-between gap-x-5 gap-y-3 max-lg:flex-wrap max-lg:items-start">
-          <div className="min-w-0 grow shrink basis-80 grid gap-1.5 max-lg:w-full">
+        <div className="min-w-0 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-5 gap-y-3">
+          <div className="min-w-0 grid gap-1.5">
             {title ? (
               <div className="text-site-fg text-lg font-semibold leading-snug">
                 {title}
@@ -117,26 +117,28 @@ export function ExampleSection({
                 {description}
               </p>
             ) : null}
+            {actions ? (
+              <div className="mt-1 flex min-w-0 flex-wrap justify-start gap-1.5">
+                {actions}
+              </div>
+            ) : null}
           </div>
-          {actions || resettable ? (
-            <div className="min-w-0 flex flex-initial flex-wrap justify-end gap-1.5 max-lg:w-full max-lg:justify-start">
-              {actions}
-              {resettable ? (
-                <Button
-                  type="button"
-                  size="compact"
-                  className={cn(
-                    'overflow-hidden transition-all duration-200 ease-in-out',
-                    showReset
-                      ? 'max-w-24 opacity-100 translate-y-0'
-                      : 'max-w-0 -ml-1.5 px-0 border-0 opacity-0 pointer-events-none -translate-y-0.5 invisible',
-                  )}
-                  aria-hidden={!showReset}
-                  tabIndex={showReset ? undefined : -1}
-                  onClick={resetWorkspace}>
-                  Reset
-                </Button>
-              ) : null}
+          {resettable ? (
+            <div className="flex min-w-0 self-end justify-end max-lg:justify-self-end">
+              <Button
+                type="button"
+                size="compact"
+                className={cn(
+                  'overflow-hidden transition-all duration-200 ease-in-out',
+                  showReset
+                    ? 'max-w-24 opacity-100 translate-y-0'
+                    : 'max-w-0 -ml-1.5 px-0 border-0 opacity-0 pointer-events-none -translate-y-0.5 invisible',
+                )}
+                aria-hidden={!showReset}
+                tabIndex={showReset ? undefined : -1}
+                onClick={resetWorkspace}>
+                Reset
+              </Button>
             </div>
           ) : null}
         </div>
