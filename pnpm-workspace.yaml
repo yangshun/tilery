@@ -3,12 +3,26 @@ packages:
   - 'apps/*'
 
 overrides:
-  vite: npm:@voidzero-dev/vite-plus-core@latest
-  vitest: npm:@voidzero-dev/vite-plus-test@latest
+  vite: 'catalog:'
+  vitest: 'catalog:'
 
 catalog:
-  '@types/react': ^19.2.15
+  '@types/react': ^19.2.17
   '@types/react-dom': ^19.2.3
-  react: ^19.2.6
-  react-dom: ^19.2.6
+  react: ^19.2.7
+  react-dom: ^19.2.7
   typescript: ^6.0.3
+  vite: npm:@voidzero-dev/vite-plus-core@0.2.4
+  vitest: 4.1.10
+  vite-plus: 0.2.4
+  '@vitest/coverage-v8': 4.1.10
+
+allowBuilds:
+  sharp: false
+peerDependencyRules:
+  allowAny:
+    - vite
+    - vitest
+  allowedVersions:
+    vite: '*'
+    vitest: '*'

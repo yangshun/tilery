@@ -1,7 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { Accordion } from '@base-ui-components/react/accordion';
+import { Accordion } from '@base-ui/react/accordion';
 import { RiArrowDownSLine } from 'react-icons/ri';
 
 export type AccordionRootProps = {

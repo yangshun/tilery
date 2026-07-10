@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Menu } from '@base-ui-components/react/menu';
+import { Menu } from '@base-ui/react/menu';
 import { RiPaletteLine } from 'react-icons/ri';
 import { cn } from '../lib/cn';
 import { ICON_BUTTON_BASE } from './ui/icon-button';

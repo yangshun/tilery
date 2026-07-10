@@ -9,28 +9,28 @@
     "start": "next start"
   },
   "dependencies": {
-    "@base-ui-components/react": "1.0.0-rc.0",
+    "@base-ui/react": "^1.6.0",
     "@fontsource-variable/mona-sans": "5.2.8",
     "@mdx-js/loader": "^3.1.1",
-    "@next/mdx": "^16.2.7",
+    "@next/mdx": "^16.2.10",
     "@tileryjs/react": "workspace:*",
-    "motion": "^12.40.0",
-    "next": "^16.2.6",
+    "motion": "^12.42.2",
+    "next": "^16.2.10",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "react-icons": "^5.6.0",
+    "react-icons": "^5.7.0",
     "remark-frontmatter": "^5.0.0",
     "remark-gfm": "^4.0.1",
     "remark-mdx-frontmatter": "^5.2.0",
-    "shiki": "^4.1.0",
+    "shiki": "^4.3.1",
     "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.3.0",
+    "@tailwindcss/postcss": "^4.3.2",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "postcss": "^8.5.15",
-    "tailwindcss": "^4.3.0",
+    "postcss": "^8.5.16",
+    "tailwindcss": "^4.3.2",
     "typescript": "catalog:"
   }
 }
