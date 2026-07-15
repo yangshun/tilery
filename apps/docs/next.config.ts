@@ -3,6 +3,9 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   output: 'export',
+  experimental: {
+    useTypeScriptCli: true,
+  },
   pageExtensions: ['ts', 'tsx', 'md', 'mdx'],
   transpilePackages: ['tilery', '@tileryjs/react'],
   turbopack: {

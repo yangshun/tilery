@@ -11,7 +11,7 @@ catalog:
   '@types/react-dom': ^19.2.3
   react: ^19.2.7
   react-dom: ^19.2.7
-  typescript: ^6.0.3
+  typescript: ^7.0.2
   vite: npm:@voidzero-dev/vite-plus-core@0.2.4
   vitest: 4.1.10
   vite-plus: 0.2.4
@@ -24,5 +24,6 @@ peerDependencyRules:
     - vite
     - vitest
   allowedVersions:
+    typescript: '>=7'
     vite: '*'
     vitest: '*'
