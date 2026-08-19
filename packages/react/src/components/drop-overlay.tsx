@@ -217,7 +217,8 @@ function renderPanelZone(
 }
 
 function readPanelGap(panelEl: HTMLElement): number {
-  const value = getComputedStyle(panelEl).borderTopWidth;
-  const n = parseFloat(value);
+  const style = getComputedStyle(panelEl);
+  if (style.borderTopStyle === 'none') return 0;
+  const n = parseFloat(style.borderTopWidth);
   return Number.isFinite(n) ? n : 0;
 }
