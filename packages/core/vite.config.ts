@@ -18,7 +18,9 @@ export default defineConfig({
     },
   },
   plugins: [
-    dts(),
+    dts({
+      exclude: ['src/**/*.test.ts', 'src/**/test-helpers.ts'],
+    }),
     {
       name: 'copy-css',
       closeBundle() {

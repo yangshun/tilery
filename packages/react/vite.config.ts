@@ -25,7 +25,15 @@ export default defineConfig({
     },
   },
   plugins: [
-    dts({ rollupTypes: true }),
+    dts({
+      rollupTypes: true,
+      exclude: [
+        'src/**/*.test.ts',
+        'src/**/*.test.tsx',
+        'src/test-dom-setup.ts',
+        'src/test-helpers.ts',
+      ],
+    }),
     {
       // Emit a self-contained stylesheet for the advertised
       // `@tileryjs/react/style.css` export (publishConfig maps it to
