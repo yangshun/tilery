@@ -17,7 +17,109 @@ import {
   tileryResizeFloatingBounds,
 } from './floating';
 import { tileryCreateInitialState, tileryReducer } from './reducer';
-import type { TileryFloatingPanelBounds, TileryPanelState } from '../types';
+import type {
+  TileryFloatingPanelBounds,
+  TileryPanelState,
+  TilerySize,
+} from '../types';
+
+describe('automatic floating panel docking', () => {
+  function layout(
+    options: {
+      droppable?: boolean;
+      navigatorDroppable?: boolean;
+      minSize?: TilerySize;
+    } = {},
+  ) {
+    return tileryCreateInitialState({
+      type: 'root',
+      main: {
+        type: 'group',
+        direction: 'horizontal',
+        children: [
+          {
+            type: 'panel',
+            id: 'navigator',
+            size: 28,
+            droppable: options.navigatorDroppable ?? options.droppable,
+            tabs: [{ id: 'files', data: {} }],
+          },
+          {
+            type: 'panel',
+            id: 'editor',
+            size: 72,
+            droppable: options.droppable,
+            tabs: [{ id: 'readme', data: {} }],
+          },
+        ],
+      },
+      floating: [
+        {
+          type: 'floatingPanel',
+          id: 'search',
+          bounds: { x: 44, y: 12, width: 34, height: 48 },
+          minSize: options.minSize,
+          tabs: [{ id: 'search-tab', data: {} }],
+        },
+      ],
+    });
+  }
+
+  it.each([undefined, '200px'] as const)(
+    'skips a narrow first panel and docks beside the editor with minSize %s',
+    (minSize) => {
+      const next = tileryReducer(layout({ minSize }), {
+        type: 'PANEL_DOCK',
+        panelId: 'search',
+        sizeContext: { width: 1000, height: 800 },
+      });
+
+      expect(next.floatingPanelOrder).toEqual([]);
+      expect(next.panels.search).toMatchObject({ kind: 'tiled' });
+      expect(next.panels.navigator?.inset).toEqual({
+        top: 0,
+        right: 72,
+        bottom: 0,
+        left: 0,
+      });
+      expect(next.panels.search?.inset.left).toBeCloseTo(75.52);
+      expect(next.panels.editor?.inset.right).toBeCloseTo(24.48);
+      expect(next.tabs['search-tab']?.panelId).toBe('search');
+    },
+  );
+
+  it('skips a panel that rejects drops', () => {
+    const state = layout({ navigatorDroppable: false });
+    const next = tileryReducer(state, {
+      type: 'PANEL_DOCK',
+      panelId: 'search',
+      target: { size: 50 },
+    });
+    expect(next.panels.search?.kind).toBe('tiled');
+    expect(next.panels.navigator?.inset).toEqual(state.panels.navigator?.inset);
+  });
+
+  it('does not fall back when an explicit target cannot fit', () => {
+    const state = layout();
+    expect(
+      tileryReducer(state, {
+        type: 'PANEL_DOCK',
+        panelId: 'search',
+        target: { splitPanel: 'navigator' },
+      }),
+    ).toBe(state);
+  });
+
+  it('leaves the panel floating when no target accepts it', () => {
+    const state = layout({ droppable: false });
+    expect(
+      tileryReducer(state, {
+        type: 'PANEL_DOCK',
+        panelId: 'search',
+      }),
+    ).toBe(state);
+  });
+});
 
 describe('floating bounds helpers', () => {
   it('normalizes floating bounds with clamped dimensions and rounded coordinates', () => {

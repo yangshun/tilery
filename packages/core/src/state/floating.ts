@@ -385,9 +385,9 @@ export function tileryPopoutTab(
 
 /**
  * Inserts a floating panel into the tiled layout by splitting a target panel,
- * or places it as the sole tiled panel when no tiled panels exist yet. Returns
- * `state` unchanged when the panel is not floating, not draggable, the target
- * is full-screen, or the split violates size constraints.
+ * or places it as the sole tiled panel when no tiled panels exist yet.
+ * When no target panel is specified, uses the first tiled panel that accepts
+ * the split. Returns `state` unchanged when no eligible target exists.
  */
 export function tileryDockPanel(
   state: TileryLayoutState,
@@ -438,28 +438,29 @@ export function tileryDockPanel(
     );
   }
 
-  const splitPanelId = target?.splitPanel ?? tiledOrder[0]!;
-  const targetSource = state.panels[splitPanelId];
-  if (!targetSource || targetSource.kind !== 'tiled') return state;
-  if (targetSource.fullScreen) return state;
-  if (!tileryPanelBehaviorFromState(state, splitPanelId).droppable) {
-    return state;
-  }
   const direction = target?.direction ?? 'right';
   const sizePercent =
     target?.size ?? tileryDefaultDockSize(panel.floating.bounds);
-  if (
-    !tilerySplitFitsPanelConstraints(
-      targetSource,
-      direction,
-      sizePercent,
-      { minSize, maxSize },
-      undefined,
-      sizeContext,
-    )
-  ) {
-    return state;
-  }
+  const candidates =
+    target?.splitPanel != null ? [target.splitPanel] : tiledOrder;
+  const splitPanelId = candidates.find((id) => {
+    const candidate = state.panels[id];
+    return (
+      candidate?.kind === 'tiled' &&
+      !candidate.fullScreen &&
+      tileryPanelBehaviorFromState(state, id).droppable &&
+      tilerySplitFitsPanelConstraints(
+        candidate,
+        direction,
+        sizePercent,
+        { minSize, maxSize },
+        undefined,
+        sizeContext,
+      )
+    );
+  });
+  if (splitPanelId == null) return state;
+  const targetSource = state.panels[splitPanelId]!;
 
   const { source: sourceInset, created: createdInset } = tilerySplitInset(
     targetSource.inset,

@@ -608,7 +608,8 @@ export type TileryOpenTabTarget =
 
 /**
  * Destination for `dockPanel()` / `panel.dock()`. With no fields the panel docks
- * at a default spot; `splitPanel` + `direction` dock it beside a target panel.
+ * beside the first eligible tiled panel; `splitPanel` + `direction` dock it
+ * beside a specific target panel without falling back to other panels.
  */
 export type TileryDockPanelTarget = {
   /** Existing panel to dock beside. */
