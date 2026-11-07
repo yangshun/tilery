@@ -606,24 +606,23 @@ export function tilerySetPopoutWindowBounds(
 }
 
 /**
- * Derives sensible default floating bounds from a panel's current inset,
- * falling back to a centered ~46×48% rectangle when the panel occupies
- * nearly the full viewport.
+ * Shrinks a newly detached panel to 75% of its docked dimensions so it has
+ * room to move. Keeps it centered over its previous position, subject to
+ * the floating bounds limits.
  */
 export function tileryDefaultFloatingBounds(
   panel: TileryPanelState,
 ): TileryFloatingPanelBounds {
   const width = 100 - panel.inset.left - panel.inset.right;
   const height = 100 - panel.inset.top - panel.inset.bottom;
-  const fallback =
-    width > 85 && height > 85
-      ? { x: 18, y: 12, width: 46, height: 48 }
-      : {
-          x: panel.inset.left,
-          y: panel.inset.top,
-          width,
-          height,
-        };
+  const floatingWidth = Math.max(12, width * 0.75);
+  const floatingHeight = Math.max(12, height * 0.75);
+  const fallback = {
+    x: panel.inset.left + (width - floatingWidth) / 2,
+    y: panel.inset.top + (height - floatingHeight) / 2,
+    width: floatingWidth,
+    height: floatingHeight,
+  };
   return tileryNormalizeFloatingBounds(undefined, fallback);
 }
 

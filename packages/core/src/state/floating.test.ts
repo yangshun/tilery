@@ -137,7 +137,7 @@ describe('floating bounds helpers', () => {
     ).toEqual({ x: 1.2346, y: 2.3457, width: 33.3333, height: 44.4444 });
   });
 
-  it('derives default floating bounds from large and already-sized panels', () => {
+  it('shrinks default floating bounds and centers them over the source panel', () => {
     const largePanel = {
       inset: { top: 0, right: 0, bottom: 0, left: 0 },
     } as TileryPanelState;
@@ -146,18 +146,40 @@ describe('floating bounds helpers', () => {
     } as TileryPanelState;
 
     expect(tileryDefaultFloatingBounds(largePanel)).toEqual({
-      x: 18,
-      y: 12,
-      width: 46,
-      height: 48,
+      x: 12.5,
+      y: 12.5,
+      width: 75,
+      height: 75,
     });
     expect(tileryDefaultFloatingBounds(sizedPanel)).toEqual({
-      x: 8,
-      y: 12,
-      width: 48,
-      height: 70,
+      x: 14,
+      y: 20.75,
+      width: 36,
+      height: 52.5,
     });
   });
+
+  it.each([
+    {
+      inset: { top: 0, right: 70, bottom: 0, left: 0 },
+      expected: { x: 3.75, y: 12.5, width: 22.5, height: 75 },
+    },
+    {
+      inset: { top: 70, right: 0, bottom: 0, left: 0 },
+      expected: { x: 12.5, y: 73.75, width: 75, height: 22.5 },
+    },
+    {
+      inset: { top: 90, right: 0, bottom: 0, left: 90 },
+      expected: { x: 88, y: 88, width: 12, height: 12 },
+    },
+  ])(
+    'leaves room to move while respecting minimum floating size: $inset',
+    ({ inset, expected }) => {
+      expect(
+        tileryDefaultFloatingBounds({ inset } as TileryPanelState),
+      ).toEqual(expected);
+    },
+  );
 
   it('converts floating bounds to inset values and compares bounds', () => {
     const bounds: TileryFloatingPanelBounds = {

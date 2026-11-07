@@ -192,6 +192,11 @@ type TileryOpenTabTarget =
 
 Used with `floatPanel()` and `panel.float()`:
 
+When a docked panel becomes floating, its default width and height shrink to
+75% of their previous values, subject to the 12% floating minimum. The panel
+stays centered over its previous position. Supply bounds to override these
+defaults; floating an already-floating panel keeps its current bounds.
+
 ```tsx
 type TileryFloatPanelOptions = TileryFloatingPanelBoundsInit &
   TileryLayoutBehaviorConfig;

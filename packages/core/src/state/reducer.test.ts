@@ -922,6 +922,24 @@ describe('tileryReducer dispatch matrix', () => {
     });
     expect(next).toBe(state);
   });
+  it.each(['PANEL_FLOAT', 'TAB_FLOAT'] as const)(
+    '%s shrinks newly floating content to leave space for dragging',
+    (type) => {
+      const next = tileryReducer(
+        twoSideBySide(),
+        type === 'PANEL_FLOAT'
+          ? { type, panelId: 'L' }
+          : { type, tabId: 'L1', newPanelId: 'FLOATED' },
+      );
+      const panelId = type === 'PANEL_FLOAT' ? 'L' : 'FLOATED';
+      expect(next.panels[panelId]).toMatchObject({
+        kind: 'floating',
+        floating: { bounds: { x: 6.25, y: 12.5, width: 37.5, height: 75 } },
+      });
+      expect(next.tabs.L1?.panelId).toBe(panelId);
+    },
+  );
+
   it('PANEL_FLOAT detaches a tiled panel without deleting its tabs', () => {
     const state = twoSideBySide();
     const next = tileryReducer(state, {
